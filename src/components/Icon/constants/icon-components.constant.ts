@@ -9,6 +9,7 @@ import SaveRounded from "@mui/icons-material/SaveRounded";
 import type { SvgIconComponent } from "@mui/icons-material";
 import EmailRounded from "@mui/icons-material/EmailRounded";
 import PhoneRounded from "@mui/icons-material/PhoneRounded";
+import PlaceRounded from "@mui/icons-material/PlaceRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
 import GroupsRounded from "@mui/icons-material/GroupsRounded";
 import PersonRounded from "@mui/icons-material/PersonRounded";
@@ -64,6 +65,7 @@ export const ICON_COMPONENTS: Record<IconNameType, SvgIconComponent> = {
   building: ApartmentRounded,
   contacts: GroupsRounded,
   customer: PersonRounded,
+  location: PlaceRounded,
   document: DescriptionRounded,
   progress: TimelineRounded,
   projects: DashboardRounded,

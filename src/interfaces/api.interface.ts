@@ -1,4 +1,5 @@
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
 export interface ICursorPage<TItem> {
   items: TItem[];
@@ -38,6 +39,7 @@ export interface IApiProjectType {
   icon: string | null;
   subtitle: string | null;
   description: string | null;
+  detailFieldSet: ProjectDetailFieldSetType;
 }
 
 export interface IApiProjectMember {
@@ -47,7 +49,22 @@ export interface IApiProjectMember {
   role: UserRoleType;
 }
 
-export interface IApiProject {
+export interface IApiProjectCustomerDetails {
+  customerName: string | null;
+  customerCity: string | null;
+  customerUnit: string | null;
+  customerFloor: number | null;
+  customerPhone: string | null;
+  customerEmail: string | null;
+  customerAddress: string | null;
+  customerApartment: string | null;
+  customerCompanyNumber: string | null;
+  customerAssociationNumber: string | null;
+}
+
+export type CustomerDetailFieldType = keyof IApiProjectCustomerDetails;
+
+export interface IApiProject extends IApiProjectCustomerDetails {
   id: string;
   code: string;
   name: string;

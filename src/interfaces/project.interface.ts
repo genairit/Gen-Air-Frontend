@@ -1,4 +1,5 @@
 import type { IconNameType } from "../constants/icon.constant";
+import type { CustomerDetailFieldType } from "./api.interface";
 import type { UserRoleType } from "../constants/user-role.constant";
 
 export interface IProjectSummary {
@@ -13,11 +14,25 @@ export interface IProjectSummary {
 
 export type TRoleAssignees = Record<UserRoleType, string | null>;
 
+export type TCustomerDetailValues = Record<CustomerDetailFieldType, string>;
+
+export interface ITypeSwitchSummary {
+  kept: CustomerDetailFieldType[];
+  hidden: CustomerDetailFieldType[];
+  needed: CustomerDetailFieldType[];
+}
+
+export interface ITypeSwitch {
+  fromTypeId: string;
+  summary: ITypeSwitchSummary;
+}
+
 export interface IProjectFormValues {
   name: string;
   typeId: string | null;
   stageId: string | null;
   assignees: TRoleAssignees;
+  customerDetails: TCustomerDetailValues;
 }
 
 export interface IBoardColumn {
