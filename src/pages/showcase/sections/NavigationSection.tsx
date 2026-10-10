@@ -14,8 +14,10 @@ import TopBar from "../../../components/TopBar/TopBar";
 import Sidebar from "../../../components/Sidebar/Sidebar";
 import { noop } from "../../../utilities/function.utility";
 import BackLink from "../../../components/BackLink/BackLink";
+import BrandLogo from "../../../components/BrandLogo/BrandLogo";
 import Pagination from "../../../components/Pagination/Pagination";
 import SidebarUserCard from "../../../components/Sidebar/SidebarUserCard";
+import { BRAND_LOGO_WIDTHS } from "../../../constants/brand-logo.constant";
 import MobileBottomNav from "../../../components/MobileBottomNav/MobileBottomNav";
 
 const NavigationSection = () => {
@@ -28,12 +30,11 @@ const NavigationSection = () => {
     <ShowcaseSection position={5} title="ניווט">
       <Box sx={[styles.row({ gap: "32px" }), styles.topAligned]}>
         <Sidebar
-          brandTitle="GEN-AIR"
           items={SIDEBAR_ITEMS}
           activeId={activeSidebarId}
           onSelect={setActiveSidebarId}
           sectionTitle="פלטפורמת תפעול"
-          brandSubtitle="מערכות מיזוג אוויר מתקדמות"
+          brand={<BrandLogo width={BRAND_LOGO_WIDTHS.SIDEBAR} />}
           footer={
             <SidebarUserCard onAction={noop} actionLabel="התנתק" user={SHOWCASE_CURRENT_USER} />
           }

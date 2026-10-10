@@ -25,7 +25,7 @@ export const SHOWCASE_COLOR_SWATCHES: IColorSwatch[] = [
     color: palette.iceWhite,
     usage: "רקע סביבת העבודה וכרטיסים",
   },
-  { name: "Warm Orange", color: palette.orange, usage: "פעולה ראשית והתראות קריטיות בלבד" },
+  { name: "Genair Blue", color: palette.primary, usage: "פעולה ראשית והתראות קריטיות בלבד" },
   { name: "Air Blue", color: palette.airBlue, usage: "טאבים פעילים, משני, התקדמות, סטטוס חיובי" },
 ];
 

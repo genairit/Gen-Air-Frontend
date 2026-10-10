@@ -14,7 +14,7 @@ interface IStylesParams {
 const { palette, softShadow, radius, controlHeight } = theme;
 
 const FOCUS_SHADOW = `${softShadow.insetField}, ${createFocusRing(palette.airBlue)}`;
-const ERROR_SHADOW = `${softShadow.insetError}, ${createFocusRing(palette.orange)}`;
+const ERROR_SHADOW = `${softShadow.insetError}, ${createFocusRing(palette.primary)}`;
 
 const getFieldShadow = ({ hasError, disabled }: Pick<IStylesParams, "hasError" | "disabled">) => {
   if (disabled) {

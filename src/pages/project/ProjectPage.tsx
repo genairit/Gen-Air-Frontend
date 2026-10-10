@@ -65,7 +65,7 @@ const ProjectPage = () => {
         icon={ICON_NAMES.BUILDING}
         syncCaption={toErpSyncCaption(project.erpSyncedAt)}
         stage={formatStageLabel(project.stage?.name ?? "")}
-        stageDotColor={project.stage?.color ?? theme.palette.orange}
+        stageDotColor={project.stage?.color ?? theme.palette.primary}
         actions={
           hasPermission(sessionUser, "EDIT_PROJECTS") && (
             <Button

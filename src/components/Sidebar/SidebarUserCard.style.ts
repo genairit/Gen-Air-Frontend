@@ -10,13 +10,13 @@ export const useStyles = () =>
       alignItems: "center",
       justifyContent: "space-between",
       borderRadius: theme.radius.panel,
-      boxShadow: theme.softShadow.insetCharcoal,
-      backgroundColor: theme.palette.charcoalRaised,
+      boxShadow: theme.softShadow.inset,
+      backgroundColor: theme.palette.iceWhite,
     },
     action: {
       fontSize: 13,
       flexShrink: 0,
       fontFamily: "inherit",
-      color: theme.palette.sidebarMuted,
+      color: theme.palette.textMuted,
     },
   });

@@ -16,7 +16,7 @@ export const useStyles = () =>
     index: {
       fontSize: 13,
       fontFamily: theme.font.mono,
-      color: theme.palette.orange,
+      color: theme.palette.primary,
     },
     title: {
       margin: 0,

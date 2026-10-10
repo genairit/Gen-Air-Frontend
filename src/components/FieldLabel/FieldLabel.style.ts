@@ -15,7 +15,7 @@ export const useStyles = () =>
       color: hasError ? theme.palette.danger : theme.palette.charcoal,
     }),
     requiredMark: {
-      color: theme.palette.orange,
+      color: theme.palette.primary,
     },
     hint: {
       fontWeight: 400,

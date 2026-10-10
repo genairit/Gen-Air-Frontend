@@ -11,20 +11,20 @@ import {
   MOBILE_NAVIGATION_ITEMS,
 } from "../constants/navigation.constant";
 
-import Icon from "../components/Icon/Icon";
 import { useStyles } from "./AppLayout.style";
 import TopBar from "../components/TopBar/TopBar";
 import { Box, useMediaQuery } from "@mui/material";
 import Sidebar from "../components/Sidebar/Sidebar";
-import { theme } from "../constants/theme.constants";
 import { noop } from "../utilities/function.utility";
 import BackLink from "../components/BackLink/BackLink";
 import { ICON_NAMES } from "../constants/icon.constant";
 import { useSessionUser } from "../store/session.store";
+import BrandLogo from "../components/BrandLogo/BrandLogo";
 import { ROUTE_PATHS } from "../constants/routes.constant";
 import { toPerson } from "../utilities/mappers/user.mapper";
 import SidebarAction from "../components/Sidebar/SidebarAction";
 import { MOBILE_LAYOUT_QUERY } from "../constants/layout.constant";
+import { BRAND_LOGO_WIDTHS } from "../constants/brand-logo.constant";
 import { clearSessionAction } from "../actions/session-reset.action";
 import MobileBottomNav from "../components/MobileBottomNav/MobileBottomNav";
 import { Outlet, useLocation, useNavigate, ScrollRestoration } from "react-router-dom";
@@ -66,13 +66,11 @@ const AppLayout = () => {
         <Box sx={styles.sidebarSlot}>
           <Sidebar
             sx={styles.sidebar}
-            brandTitle={BRAND.TITLE}
             onSelect={handleNavigate}
             items={APP_NAVIGATION_ITEMS}
             activeId={activeNavigationId}
-            brandSubtitle={BRAND.SUBTITLE}
             sectionTitle={BRAND.SECTION_TITLE}
-            logo={<Icon size={30} name={ICON_NAMES.AIR} color={theme.palette.orange} />}
+            brand={<BrandLogo width={BRAND_LOGO_WIDTHS.SIDEBAR} />}
             footer={
               <SidebarAction
                 label={NAVIGATION_LABELS.LOGOUT}
