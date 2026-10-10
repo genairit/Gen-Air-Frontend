@@ -2,6 +2,7 @@ import {
   validateFloor,
   validateIsraeliPhone,
   validateRequiredText,
+  validateRequiredValue,
   validateRequiredEmail,
   validateCompanyNumber,
   validateAssociationNumber,
@@ -23,6 +24,7 @@ export const CUSTOMER_FIELD_KINDS = {
   EMAIL: "email",
   PHONE: "phone",
   FLOOR: "floor",
+  IDENTIFIER: "identifier",
   COMPANY_NUMBER: "companyNumber",
   ASSOCIATION_NUMBER: "associationNumber",
 } as const;
@@ -47,6 +49,13 @@ export const CUSTOMER_FIELD_KIND_CONFIG: Record<CustomerFieldKindType, ICustomer
     inputMode: "text",
     sanitize: keepAsTyped,
     validate: validateRequiredText,
+  },
+  identifier: {
+    isLtr: false,
+    pattern: null,
+    inputMode: "text",
+    sanitize: keepAsTyped,
+    validate: validateRequiredValue,
   },
   email: {
     isLtr: true,
@@ -195,7 +204,7 @@ export const CUSTOMER_DETAIL_FIELDS_BY_SET: Record<
       icon: ICON_NAMES.HOME,
       placeholder: "לדוגמה: 24",
       field: "customerApartment",
-      kind: CUSTOMER_FIELD_KINDS.TEXT,
+      kind: CUSTOMER_FIELD_KINDS.IDENTIFIER,
     },
   ],
   [PROJECT_DETAIL_FIELD_SETS.INSTITUTION]: [
@@ -253,7 +262,7 @@ export const CUSTOMER_DETAIL_FIELDS_BY_SET: Record<
       field: "customerUnit",
       icon: ICON_NAMES.BUILDING,
       placeholder: "לדוגמה: אגף B",
-      kind: CUSTOMER_FIELD_KINDS.TEXT,
+      kind: CUSTOMER_FIELD_KINDS.IDENTIFIER,
     },
   ],
 };
