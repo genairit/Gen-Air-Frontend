@@ -7,7 +7,7 @@ export const getNavigationIconColor = (isActive: boolean) =>
   isActive ? palette.charcoal : palette.sidebarMuted;
 
 export const getNavigationDotColor = (isActive: boolean) =>
-  isActive ? palette.orange : palette.mobileNavDot;
+  isActive ? palette.primary : palette.mobileNavDot;
 
 export const useStyles = () =>
   createStyles({

@@ -21,7 +21,7 @@ const { palette } = theme;
 export const DEMO_BOARD_COLUMNS: IBoardColumn[] = [
   { stageId: "quote", title: "הצעת מחיר", dotColor: palette.statusGray },
   { stageId: "order", title: "הזמנה", dotColor: palette.charcoal },
-  { stageId: "execution", title: "בביצוע", dotColor: palette.orange },
+  { stageId: "execution", title: "בביצוע", dotColor: palette.primary },
 ];
 
 export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
@@ -175,7 +175,7 @@ export const DEMO_PROJECT_TIMELINE: ITimelineEntry[] = [
     isHighlighted: true,
     date: "20/12/2023 16:45",
     label: "שלב א׳ — הושלם",
-    dotColor: palette.orange,
+    dotColor: palette.primary,
     author: "שונה ע״י יוסי לוי (מתקין ראשי)",
   },
   {
@@ -275,7 +275,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1001",
     isDisabled: false,
     phone: "052-4418230",
-    email: "aviad@gen-air.co.il",
+    email: "aviad@genair.co.il",
     role: USER_ROLES.SYSTEM_ADMIN,
     person: {
       initials: "אכ",
@@ -288,7 +288,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1042",
     isDisabled: false,
     phone: "054-7712094",
-    email: "michal@gen-air.co.il",
+    email: "michal@genair.co.il",
     role: USER_ROLES.SECRETARY,
     person: { initials: "מר", name: "מיכל רוזנברג", caption: "מזהה: EMP-1042" },
   },
@@ -296,7 +296,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1018",
     isDisabled: false,
     phone: "050-3365817",
-    email: "yossi.b@gen-air.co.il",
+    email: "yossi.b@genair.co.il",
     role: USER_ROLES.PROJECT_MANAGER,
     person: {
       initials: "יב",
@@ -309,7 +309,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1087",
     isDisabled: false,
     phone: "053-9021446",
-    email: "roman.l@gen-air.co.il",
+    email: "roman.l@genair.co.il",
     role: USER_ROLES.LEAD_INSTALLER,
     person: { initials: "רל", name: "רומן לוין", caption: "מזהה: EMP-1087 · צוות צפון VRF" },
   },
@@ -317,7 +317,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1031",
     isDisabled: true,
     phone: "058-6634172",
-    email: "dan.s@gen-air.co.il",
+    email: "dan.s@genair.co.il",
     role: USER_ROLES.LEAD_INSTALLER,
     person: { initials: "דש", name: "דן שמיר", caption: "מזהה: EMP-1031 · מושבת" },
   },

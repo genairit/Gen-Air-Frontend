@@ -46,6 +46,6 @@ export const useStyles = () =>
       transition: "background-color 0.2s ease",
       width: DOT_SIZE_BY_CONTROL_SIZE[size],
       height: DOT_SIZE_BY_CONTROL_SIZE[size],
-      backgroundColor: checked ? palette.orange : "transparent",
+      backgroundColor: checked ? palette.primary : "transparent",
     }),
   });

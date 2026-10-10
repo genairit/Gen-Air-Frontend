@@ -38,8 +38,8 @@ export const STYLE_BY_VARIANT: Record<ButtonVariantType, TButtonStyle> = {
     fontWeight: 700,
     color: palette.white,
     boxShadow: softShadow.primary,
-    backgroundColor: palette.orange,
-    "&:hover": { backgroundColor: palette.orangeHover },
+    backgroundColor: palette.primary,
+    "&:hover": { backgroundColor: palette.primaryHover },
     "&:active": { boxShadow: softShadow.primaryPressed },
   },
   secondary: {

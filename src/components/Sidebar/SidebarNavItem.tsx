@@ -17,7 +17,7 @@ interface ISidebarNavItemProps {
 const SidebarNavItem: FC<ISidebarNavItemProps> = ({ label, icon, isActive, onSelect }) => {
   const styles = useStyles();
   const sidebarStyles = useSidebarStyles();
-  const dotColor = isActive ? theme.palette.orange : "transparent";
+  const dotColor = isActive ? theme.palette.primary : "transparent";
 
   return (
     <ButtonBase

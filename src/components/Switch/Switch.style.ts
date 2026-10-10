@@ -33,6 +33,6 @@ export const useStyles = () =>
       height: 24,
       borderRadius: radius.pill,
       boxShadow: softShadow.knob,
-      backgroundColor: checked ? palette.orange : palette.white,
+      backgroundColor: checked ? palette.primary : palette.white,
     }),
   });

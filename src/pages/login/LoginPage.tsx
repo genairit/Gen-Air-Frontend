@@ -4,19 +4,16 @@ import { useStyles } from "./LoginPage.style";
 import Card from "../../components/Card/Card";
 import Button from "../../components/Button/Button";
 import { useSession } from "../../store/session.store";
-import { theme } from "../../constants/theme.constants";
 import { Navigate, useNavigate } from "react-router-dom";
 import CheckBox from "../../components/CheckBox/CheckBox";
-import IconTile from "../../components/IconTile/IconTile";
 import { ICON_NAMES } from "../../constants/icon.constant";
-import { BRAND } from "../../constants/navigation.constant";
+import BrandLogo from "../../components/BrandLogo/BrandLogo";
 import TextField from "../../components/TextField/TextField";
 import { ROUTE_PATHS } from "../../constants/routes.constant";
-import { SURFACE_DEPTHS } from "../../constants/surface.constant";
 import InlineError from "../../components/InlineError/InlineError";
-import { ICON_TILE_SIZES } from "../../constants/icon-tile.constant";
 import { useLoginMutation } from "../../hooks/mutations/user.mutation";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import { BRAND_LOGO_WIDTHS } from "../../constants/brand-logo.constant";
 import { canSubmitCredentials } from "../../utilities/credentials.utility";
 import { LOGIN_COPY, SUPPORT_EMAIL } from "../../constants/login.constant";
 import { BUTTON_SIZES } from "../../components/Button/constants/button.constants";
@@ -45,18 +42,7 @@ const LoginPage = () => {
   return (
     <Box component="main" sx={styles.page}>
       <Box sx={styles.brand}>
-        <IconTile
-          name={ICON_NAMES.AIR}
-          size={ICON_TILE_SIZES.XLARGE}
-          depth={SURFACE_DEPTHS.RAISED}
-          iconColor={theme.palette.orange}
-        />
-        <Box component="b" sx={styles.brandTitle}>
-          {BRAND.TITLE}
-        </Box>
-        <Box component="span" sx={styles.eyebrow}>
-          {BRAND.EYEBROW}
-        </Box>
+        <BrandLogo width={BRAND_LOGO_WIDTHS.LOGIN} />
         <Box component="h1" sx={styles.title}>
           {LOGIN_COPY.TITLE}
         </Box>
@@ -72,7 +58,7 @@ const LoginPage = () => {
           type={FIELD_TYPES.EMAIL}
           startIcon={ICON_NAMES.EMAIL}
           title={LOGIN_COPY.EMAIL_LABEL}
-          placeholder="name@gen-air.co.il"
+          placeholder={LOGIN_COPY.EMAIL_PLACEHOLDER}
         />
         <TextField
           value={password}

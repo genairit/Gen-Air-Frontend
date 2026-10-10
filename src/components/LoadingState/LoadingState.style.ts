@@ -13,7 +13,7 @@ export const useStyles = () =>
       justifyContent: "center",
     },
     spinner: {
-      color: theme.palette.orange,
+      color: theme.palette.primary,
     },
     label: MUTED_CAPTION,
   });

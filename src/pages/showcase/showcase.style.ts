@@ -54,7 +54,7 @@ export const useShowcaseStyles = () =>
     link: {
       fontSize: 14,
       fontWeight: 600,
-      color: palette.orange,
+      color: palette.primary,
       textDecoration: "none",
       "&:hover": { textDecoration: "underline", color: palette.danger },
     },

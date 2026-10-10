@@ -16,7 +16,7 @@ const SidebarUserCard: FC<ISidebarUserCardProps> = ({ user, actionLabel, onActio
 
   return (
     <Box sx={styles.card}>
-      <PersonSummary person={user} surface={SURFACE_TONES.DARK} />
+      <PersonSummary person={user} surface={SURFACE_TONES.LIGHT} />
       <ButtonBase onClick={onAction} sx={styles.action}>
         {actionLabel}
       </ButtonBase>

@@ -16,7 +16,9 @@ import Avatar from "../../../components/Avatar/Avatar";
 import Button from "../../../components/Button/Button";
 import { noop } from "../../../utilities/function.utility";
 import CheckBox from "../../../components/CheckBox/CheckBox";
+import BrandLogo from "../../../components/BrandLogo/BrandLogo";
 import TextField from "../../../components/TextField/TextField";
+import { BRAND_LOGO_WIDTHS } from "../../../constants/brand-logo.constant";
 import ChecklistItem from "../../../components/ChecklistItem/ChecklistItem";
 import MobileBottomNav from "../../../components/MobileBottomNav/MobileBottomNav";
 import { SURFACE_DEPTHS, SURFACE_RADII } from "../../../constants/surface.constant";
@@ -40,9 +42,7 @@ const LoginMobileSection = () => {
       <Box sx={[styles.row({ gap: "40px" }), styles.topAligned, styles.centered]}>
         <Box sx={styles.loginColumn}>
           <Box sx={styles.centeredText}>
-            <Box component="b" sx={styles.strong({ fontSize: 26 })}>
-              GEN-AIR
-            </Box>
+            <BrandLogo width={BRAND_LOGO_WIDTHS.LOGIN} />
             <Box component="span" sx={styles.strong({ fontSize: 22 })}>
               התחברות למערכת
             </Box>
@@ -57,7 +57,7 @@ const LoginMobileSection = () => {
               title="כתובת דוא״ל"
               onChange={setEmail}
               type={FIELD_TYPES.EMAIL}
-              placeholder="name@gen-air.co.il"
+              placeholder="name@genair.co.il"
             />
             <TextField
               title="סיסמה"
@@ -84,8 +84,8 @@ const LoginMobileSection = () => {
 
           <Box component="span" sx={[styles.caption, styles.textCenter]}>
             {"נתקלת בבעיה? "}
-            <Box component="a" sx={styles.link} href="mailto:support@gen-air.co.il">
-              support@gen-air.co.il
+            <Box component="a" sx={styles.link} href="mailto:support@genair.co.il">
+              support@genair.co.il
             </Box>
           </Box>
         </Box>

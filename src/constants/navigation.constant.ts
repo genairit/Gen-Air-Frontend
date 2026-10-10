@@ -36,9 +36,7 @@ export const ACTIVE_NAVIGATION_BY_ROUTE: Record<string, string> = {
 };
 
 export const BRAND = {
-  TITLE: "GEN-AIR",
-  EYEBROW: "HVAC SYSTEMS CRM",
-  SUBTITLE: "מערכות מיזוג אוויר מתקדמות",
+  TITLE: "GENAIR",
   SECTION_TITLE: "פלטפורמת תפעול",
 } as const;
 

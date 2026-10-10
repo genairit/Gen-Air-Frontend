@@ -7,8 +7,8 @@ import { createInsetShadow, createRaisedShadow } from "../utilities/shadow.utili
 
 const PALETTE = {
   white: "#FFFFFF",
-  orange: "#FF5A36",
-  danger: "#D8401F",
+  danger: "#1668BD",
+  primary: "#1F7FDB",
   outline: "#C9CBD1",
   divider: "#E2E3E8",
   airBlue: "#E1EDFA",
@@ -18,16 +18,16 @@ const PALETTE = {
   textMuted: "#6E7178",
   statusBlue: "#3E7BC4",
   statusGray: "#8A8D93",
-  orangeHover: "#FF6A48",
+  primaryHover: "#3591EA",
+  surfaceHover: "#EAEAEF",
   placeholder: "#9A9DA3",
-  errorSurface: "#FFF4F1",
+  errorSurface: "#EDF5FD",
   sidebarMuted: "#A3A6AD",
   disabledText: "#B5B7BC",
   mobileNavDot: "#4A4D52",
-  dangerSurface: "#FFE9E3",
+  dangerSurface: "#DCEBFA",
   airBlueStrong: "#B8D3F2",
   airBlueOutline: "#A7C6EA",
-  charcoalRaised: "#26292C",
 } as const;
 
 const SHADOW_COLORS = {
@@ -35,16 +35,14 @@ const SHADOW_COLORS = {
   dark: "#DCDCE2",
   deep: "#D2D2D8",
   hover: "#D6D6DC",
-  error: "#F1D9D2",
+  error: "#CFE0F2",
   track: "#D2D6DD",
   disabled: "#E2E2E7",
   airBlueDark: "#C6D6E8",
   airBlueLight: "#F7FBFF",
-  charcoalDark: "#16181A",
-  charcoalLight: "#2E3236",
   navActive: "#B8C6D6",
-  primaryGlow: "rgba(255, 90, 54, 0.30)",
-  primaryPressed: "rgba(150, 40, 15, 0.35)",
+  primaryGlow: "rgba(31, 127, 219, 0.30)",
+  primaryPressed: "rgba(10, 60, 130, 0.35)",
   knob: "rgba(0, 0, 0, 0.18)",
 } as const;
 
@@ -105,12 +103,6 @@ const SOFT_SHADOW_VALUES = {
     blur: 10,
     darkColor: SHADOW_COLORS.airBlueDark,
     lightColor: SHADOW_COLORS.airBlueLight,
-  }),
-  insetCharcoal: createInsetShadow({
-    offset: 3,
-    blur: 7,
-    darkColor: SHADOW_COLORS.charcoalDark,
-    lightColor: SHADOW_COLORS.charcoalLight,
   }),
   primary: createRaisedShadow({
     ...surfaceShadow,
