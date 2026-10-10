@@ -1,3 +1,4 @@
+import type { IApiProjectCustomerDetails } from "./api.interface";
 import type { UserRoleType } from "../constants/user-role.constant";
 
 export interface IProjectQuery {
@@ -11,7 +12,7 @@ interface IProjectMemberAssignment {
   role: UserRoleType;
 }
 
-export interface IProjectPayload {
+export interface IProjectPayload extends Partial<IApiProjectCustomerDetails> {
   name: string;
   stageId?: string;
   projectTypeId: string;

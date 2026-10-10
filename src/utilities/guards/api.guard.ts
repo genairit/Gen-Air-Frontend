@@ -23,6 +23,11 @@ import type {
   IApiTemplateFolderNode,
 } from "../../interfaces/api.interface";
 
+import {
+  type ProjectDetailFieldSetType,
+  PROJECT_DETAIL_FIELD_SET_VALUES,
+} from "../../constants/project-detail-field-set.constant";
+
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
 
 export const isUserRole = (value?: unknown): value is UserRoleType =>
@@ -39,6 +44,28 @@ export const isApiUser = (value: unknown): value is IApiUser => {
   return hasIdentity && hasContact && isUserRole(value.role);
 };
 
+export const isDetailFieldSet = (value?: unknown): value is ProjectDetailFieldSetType =>
+  PROJECT_DETAIL_FIELD_SET_VALUES.some(fieldSet => fieldSet === value);
+
+const CUSTOMER_TEXT_FIELDS = [
+  "customerName",
+  "customerCity",
+  "customerUnit",
+  "customerPhone",
+  "customerEmail",
+  "customerAddress",
+  "customerApartment",
+  "customerCompanyNumber",
+  "customerAssociationNumber",
+] as const;
+
+const hasCustomerDetails = (value: Record<string, unknown>) => {
+  const hasTextFields = CUSTOMER_TEXT_FIELDS.every(field => isNullableString(value[field]));
+  const hasFloor = value.customerFloor === null || isNumber(value.customerFloor);
+
+  return hasTextFields && hasFloor;
+};
+
 export const isApiProjectStage = (value: unknown): value is IApiProjectStage => {
   if (!isRecord(value)) {
     return false;
@@ -52,7 +79,9 @@ export const isApiProjectType = (value: unknown): value is IApiProjectType => {
     return false;
   }
 
-  return hasStringFields(value, ["id", "name"]) && isNullableString(value.icon);
+  const hasIdentity = hasStringFields(value, ["id", "name"]);
+
+  return hasIdentity && isNullableString(value.icon) && isDetailFieldSet(value.detailFieldSet);
 };
 
 const isApiProjectMember = (value: unknown): value is IApiProjectMember => {
@@ -74,7 +103,7 @@ export const isApiProject = (value: unknown): value is IApiProject => {
   const hasRelations = hasStringFields(value, ["stageId", "projectTypeId", "updatedAt"]);
   const hasValidMembers = isOptionalOf(isArrayOf(isApiProjectMember))(value.members);
 
-  return hasIdentity && hasRelations && hasValidMembers;
+  return hasIdentity && hasRelations && hasValidMembers && hasCustomerDetails(value);
 };
 
 export const isCursorPageOf =

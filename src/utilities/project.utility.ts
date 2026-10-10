@@ -1,3 +1,9 @@
+import {
+  toCustomerDetailValues,
+  toCustomerDetailsPayload,
+  createEmptyCustomerDetailValues,
+} from "./customer-details.utility";
+
 import type {
   IBoardColumn,
   TRoleAssignees,
@@ -8,6 +14,7 @@ import { mapUserRoles } from "./user-role.utility";
 import type { IApiProject } from "../interfaces/api.interface";
 import type { IProjectPayload } from "../interfaces/api-request.interface";
 import { USER_ROLE_VALUES, type UserRoleType } from "../constants/user-role.constant";
+import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
 export const getProjectsInStage = (projects: IApiProject[], stageId: string) =>
   projects.filter(project => project.stageId === stageId);
@@ -35,7 +42,13 @@ const toAssignees = (project: IApiProject): TRoleAssignees =>
 
 export const toProjectFormValues = (project: IApiProject | null): IProjectFormValues => {
   if (!project) {
-    return { name: "", typeId: null, stageId: null, assignees: createEmptyAssignees() };
+    return {
+      name: "",
+      typeId: null,
+      stageId: null,
+      assignees: createEmptyAssignees(),
+      customerDetails: createEmptyCustomerDetailValues(),
+    };
   }
 
   return {
@@ -43,6 +56,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
     stageId: project.stageId,
     typeId: project.projectTypeId,
     assignees: toAssignees(project),
+    customerDetails: toCustomerDetailValues(project),
   };
 };
 
@@ -56,12 +70,16 @@ const toMemberAssignments = (assignees: TRoleAssignees) =>
 export const canSubmitProjectForm = (values: IProjectFormValues) =>
   Boolean(values.name.trim()) && Boolean(values.typeId);
 
-export const toProjectPayload = (values: IProjectFormValues): IProjectPayload | null => {
+export const toProjectPayload = (
+  values: IProjectFormValues,
+  fieldSet: ProjectDetailFieldSetType | null,
+): IProjectPayload | null => {
   if (!values.typeId) {
     return null;
   }
 
   return {
+    ...toCustomerDetailsPayload(values.customerDetails, fieldSet),
     name: values.name.trim(),
     projectTypeId: values.typeId,
     members: toMemberAssignments(values.assignees),

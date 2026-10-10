@@ -27,6 +27,7 @@ export const ICON_NAMES = {
   BUILDING: "building",
   CONTACTS: "contacts",
   CUSTOMER: "customer",
+  LOCATION: "location",
   DOCUMENT: "document",
   PROGRESS: "progress",
   PROJECTS: "projects",

@@ -10,6 +10,7 @@ import { ICON_NAMES } from "../../constants/icon.constant";
 import ProjectDriveCard from "./components/ProjectDriveCard";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import { formatStageLabel } from "../../utilities/text.utility";
+import ProjectCustomerCard from "./components/ProjectCustomerCard";
 import ProjectTimelineCard from "./components/ProjectTimelineCard";
 import InlineError from "../../components/InlineError/InlineError";
 import { hasPermission } from "../../utilities/permission.utility";
@@ -56,6 +57,9 @@ const ProjectPage = () => {
   }
 
   const project = projectQuery.data;
+  const fieldSet = project.projectType?.detailFieldSet ?? null;
+  const canEdit = hasPermission(sessionUser, "EDIT_PROJECTS");
+  const openEditForm = () => navigate(buildEditProjectPath(project.id));
 
   return (
     <Box sx={styles.page}>
@@ -67,18 +71,27 @@ const ProjectPage = () => {
         stage={formatStageLabel(project.stage?.name ?? "")}
         stageDotColor={project.stage?.color ?? theme.palette.primary}
         actions={
-          hasPermission(sessionUser, "EDIT_PROJECTS") && (
+          canEdit && (
             <Button
+              onClick={openEditForm}
               icon={ICON_NAMES.EDIT}
               text={PROJECT_PAGE_COPY.EDIT}
               variant={BUTTON_VARIANTS.NEUTRAL}
-              onClick={() => navigate(buildEditProjectPath(project.id))}
             />
           )
         }
       />
 
       <ProjectTeamCard members={project.members ?? []} />
+
+      {fieldSet && (
+        <ProjectCustomerCard
+          project={project}
+          fieldSet={fieldSet}
+          onEdit={canEdit ? openEditForm : null}
+          typeName={project.projectType?.name ?? ""}
+        />
+      )}
 
       <Box sx={styles.grid({ minColumnWidth: 380 })}>
         <Box sx={styles.stack({})}>
