@@ -1,5 +1,5 @@
 import {
-  isLtrCustomerField,
+  toTextDirection,
   getCustomerDetailFields,
   formatCustomerDetailValue,
 } from "../../../utilities/customer-details.utility";
@@ -43,8 +43,8 @@ const ProjectCustomerCard: FC<IProjectCustomerCardProps> = ({
       <Box component="span" sx={styles.label}>
         {config.label}
       </Box>
-      <Box component="span" sx={styles.value({ isLtr: isLtrCustomerField(config) })}>
-        {formatCustomerDetailValue(project[config.field])}
+      <Box component="span" sx={styles.value}>
+        <bdi dir={toTextDirection(config)}>{formatCustomerDetailValue(project[config.field])}</bdi>
       </Box>
     </Box>
   );

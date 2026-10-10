@@ -212,3 +212,6 @@ export const getCustomerFieldFeedback = ({
     infoText: isConfirmedValid ? CUSTOMER_DETAILS_COPY.VALID : idleHelperText,
   };
 };
+
+export const toTextDirection = (config: ICustomerDetailFieldConfig) =>
+  isLtrCustomerField(config) ? "ltr" : "rtl";

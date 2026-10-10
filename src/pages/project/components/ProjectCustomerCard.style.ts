@@ -19,11 +19,9 @@ export const useStyles = () =>
       fontWeight: 600,
       color: palette.textMuted,
     },
-    value: ({ isLtr }: { isLtr: boolean }) => ({
+    value: {
       fontSize: 15,
       fontWeight: 600,
-      textAlign: "right",
       overflowWrap: "anywhere",
-      direction: isLtr ? "ltr" : "rtl",
-    }),
+    },
   });
