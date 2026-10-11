@@ -20,6 +20,7 @@ import {
   type ICustomerDetailFieldConfig,
 } from "../constants/customer-details.constant";
 
+import { getFieldFeedback } from "./field-feedback.utility";
 import { formatKeptFields, formatHiddenFields, formatNeededFields } from "./text.utility";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
@@ -196,22 +197,10 @@ export const getCustomerFieldFeedback = ({
   config,
   isTouched,
   isSubmitAttempted,
-}: ICustomerFieldFeedbackOptions) => {
-  const validation = validateCustomerDetail(config, value);
-  const shouldReveal = isTouched || isSubmitAttempted;
-  const isConfirmedValid = isTouched && validation.isValid;
-  // Every field keeps a helper line so blurring a field never shifts the layout under a pending click.
-  const idleHelperText = config.hint ?? CUSTOMER_DETAILS_COPY.RESERVED_HELPER_LINE;
-
-  if (shouldReveal && !validation.isValid) {
-    return { validation, infoText: "" };
-  }
-
-  return {
-    validation: { isValid: validation.isValid, errorText: "" },
-    infoText: isConfirmedValid ? CUSTOMER_DETAILS_COPY.VALID : idleHelperText,
-  };
-};
-
-export const toTextDirection = (config: ICustomerDetailFieldConfig) =>
-  isLtrCustomerField(config) ? "ltr" : "rtl";
+}: ICustomerFieldFeedbackOptions) =>
+  getFieldFeedback({
+    isTouched,
+    isSubmitAttempted,
+    hint: config.hint,
+    validation: validateCustomerDetail(config, value),
+  });

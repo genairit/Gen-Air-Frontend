@@ -25,6 +25,8 @@ export const API_ENDPOINTS = {
   projectDriveContents: (projectId: string) => `/project-drive/${projectId}/contents`,
   projectDriveFiles: (projectId: string) => `/project-drive/${projectId}/files`,
   DRIVE_TEMPLATE_FOLDERS: "/drive-template-folder",
+  ADDRESS_SUGGESTIONS: "/address/suggestions",
+  addressPlace: (placeId: string) => `/address/places/${encodeURIComponent(placeId)}`,
 } as const;
 
 export const DRIVE_UPLOAD_FIELD_NAME = "files";

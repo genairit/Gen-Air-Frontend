@@ -14,6 +14,11 @@ export const QUERY_KEYS = {
   PROJECT_STAGES: ["project-stages"],
   TEMPLATE_TREE: ["drive-template-tree"],
   USER_ROLE_COUNTS: ["user-role-counts"],
+  addressSuggestions: (input: string, sessionToken: string) => [
+    "address-suggestions",
+    input,
+    sessionToken,
+  ],
   users: (query: IUserQuery) => [QUERY_ROOTS.USERS, query],
   projects: (query: IProjectQuery) => [QUERY_ROOTS.PROJECTS, query],
   stageCounts: (query: IProjectQuery) => [QUERY_ROOTS.STAGE_COUNTS, query],

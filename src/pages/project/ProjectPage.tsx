@@ -8,6 +8,7 @@ import ProjectTeamCard from "./components/ProjectTeamCard";
 import { useSessionUser } from "../../store/session.store";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import ProjectDriveCard from "./components/ProjectDriveCard";
+import ProjectIntakeCard from "./components/ProjectIntakeCard";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import { formatStageLabel } from "../../utilities/text.utility";
 import ProjectCustomerCard from "./components/ProjectCustomerCard";
@@ -83,6 +84,8 @@ const ProjectPage = () => {
       />
 
       <ProjectTeamCard members={project.members ?? []} />
+
+      <ProjectIntakeCard project={project} onEdit={canEdit ? openEditForm : null} />
 
       {fieldSet && (
         <ProjectCustomerCard

@@ -2,7 +2,6 @@ import {
   isLtrCustomerField,
   getCustomerDetailFields,
   getCustomerFieldFeedback,
-  countCustomerDetailErrors,
 } from "../../../utilities/customer-details.utility";
 
 import {
@@ -30,6 +29,7 @@ import type { ProjectDetailFieldSetType } from "../../../constants/project-detai
 
 interface IProjectCustomerDetailsCardProps {
   typeName: string;
+  errorCount: number;
   notice?: ReactNode;
   isSubmitAttempted: boolean;
   values: TCustomerDetailValues;
@@ -43,13 +43,12 @@ const ProjectCustomerDetailsCard: FC<IProjectCustomerDetailsCardProps> = ({
   fieldSet,
   typeName,
   onChange,
+  errorCount,
   isSubmitAttempted,
 }) => {
   const styles = usePageStyles();
   const fields = getCustomerDetailFields(fieldSet);
   const [touchedFields, setTouchedFields] = useState<CustomerDetailFieldType[]>([]);
-
-  const errorCount = isSubmitAttempted ? countCustomerDetailErrors(values, fieldSet) : 0;
 
   const markTouched = (field: CustomerDetailFieldType) =>
     setTouchedFields(current => (current.includes(field) ? current : [...current, field]));

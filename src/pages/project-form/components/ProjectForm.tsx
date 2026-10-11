@@ -1,3 +1,11 @@
+import type {
+  ITypeSwitch,
+  ContactFieldType,
+  IVerifiedAddress,
+  IProjectFormValues,
+  IPaymentTermsValues,
+} from "../../../interfaces/project.interface";
+
 import {
   ALL_USERS_QUERY,
   PROJECT_FORM_COPY,
@@ -11,6 +19,15 @@ import {
   useDeleteProjectMutation,
   useUpdateProjectMutation,
 } from "../../../hooks/mutations/project.mutation";
+
+import {
+  isCityRequired,
+  toIntakeValues,
+  countIntakeErrors,
+  getPaymentTermsOptions,
+  getRequiredIntakeGroups,
+  fitPaymentTermsToFieldSet,
+} from "../../../utilities/project-intake.utility";
 
 import {
   buildTypeSwitch,
@@ -31,9 +48,11 @@ import Button from "../../../components/Button/Button";
 import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
+import ProjectPaymentTermsCard from "./ProjectPaymentTermsCard";
 import ActionBar from "../../../components/ActionBar/ActionBar";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
+import ProjectAddressContactCard from "./ProjectAddressContactCard";
 import ProjectCustomerDetailsCard from "./ProjectCustomerDetailsCard";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
@@ -41,7 +60,6 @@ import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { UserRoleType } from "../../../constants/user-role.constant";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
-import type { ITypeSwitch, IProjectFormValues } from "../../../interfaces/project.interface";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
 import { canSubmitProjectForm, toProjectFormValues } from "../../../utilities/project.utility";
@@ -62,6 +80,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const [values, setValues] = useState<IProjectFormValues>(() => toProjectFormValues(project));
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
+  const [wasPaymentTermsReset, setWasPaymentTermsReset] = useState(false);
 
   const usersQuery = useUsersQuery(ALL_USERS_QUERY);
   const typesQuery = useProjectTypesQuery();
@@ -76,20 +95,26 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const mutationError = createMutation.error ?? updateMutation.error ?? deleteMutation.error;
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const canDelete = isEditMode && hasPermission(sessionUser, "DELETE_PROJECTS");
+  const originalIntake = project ? toIntakeValues(project) : null;
+  const requiredIntake = getRequiredIntakeGroups(values, originalIntake);
+  const intakeErrorCount = countIntakeErrors({ values, fieldSet, original: originalIntake });
+  const formErrorCount =
+    countCustomerDetailErrors(values.customerDetails, fieldSet) + intakeErrorCount;
 
   const openProject = (savedProjectId: string) => navigate(buildProjectPath(savedProjectId));
 
   const submitByMode: Record<ProjectFormModeType, () => void> = {
-    new: () => createMutation.mutate({ values, fieldSet }, { onSuccess: openProject }),
+    new: () =>
+      createMutation.mutate({ values, fieldSet, originalIntake }, { onSuccess: openProject }),
     edit: () =>
       updateMutation.mutate(
-        { projectId: projectId ?? "", values, fieldSet },
+        { projectId: projectId ?? "", values, fieldSet, originalIntake },
         { onSuccess: openProject },
       ),
   };
 
   const handleSubmit = () => {
-    if (countCustomerDetailErrors(values.customerDetails, fieldSet) > 0) {
+    if (formErrorCount > 0) {
       setIsSubmitAttempted(true);
 
       return;
@@ -107,7 +132,23 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       customerDetails: { ...current.customerDetails, [field]: value },
     }));
 
+  const handleContactChange = (field: ContactFieldType, value: string) =>
+    setValues(current => ({ ...current, contact: { ...current.contact, [field]: value } }));
+
+  const handleAddressChange = (address: IVerifiedAddress | null) => updateValues({ address });
+
+  const handlePaymentTermsChange = (paymentTerms: IPaymentTermsValues) => {
+    setWasPaymentTermsReset(false);
+    updateValues({ paymentTerms });
+  };
+
   const handleTypeSelect = (typeId: string) => {
+    const paymentTerms = fitPaymentTermsToFieldSet(
+      values.paymentTerms,
+      findDetailFieldSet(projectTypes, typeId),
+    );
+
+    setWasPaymentTermsReset(paymentTerms.terms !== values.paymentTerms.terms);
     setTypeSwitch(
       buildTypeSwitch({
         toTypeId: typeId,
@@ -116,7 +157,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         values: values.customerDetails,
       }),
     );
-    updateValues({ typeId });
+    updateValues({ typeId, paymentTerms });
   };
 
   const handleUndoTypeSwitch = () => {
@@ -156,6 +197,16 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         selectedTypeId={values.typeId}
         options={projectTypes.map(toProjectTypeOption)}
       />
+      <ProjectAddressContactCard
+        address={values.address}
+        contact={values.contact}
+        isSubmitAttempted={isSubmitAttempted}
+        onAddressChange={handleAddressChange}
+        onContactChange={handleContactChange}
+        requiresCity={isCityRequired(fieldSet)}
+        isAddressRequired={requiredIntake.address}
+        isContactRequired={requiredIntake.contact}
+      />
       {fieldSet && (
         <ProjectCustomerDetailsCard
           fieldSet={fieldSet}
@@ -163,6 +214,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           values={values.customerDetails}
           isSubmitAttempted={isSubmitAttempted}
           onChange={handleCustomerDetailChange}
+          errorCount={isSubmitAttempted ? formErrorCount : 0}
           notice={
             typeSwitch && (
               <TypeSwitchBanner
@@ -173,6 +225,16 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
               />
             )
           }
+        />
+      )}
+      {fieldSet && (
+        <ProjectPaymentTermsCard
+          value={values.paymentTerms}
+          wasReset={wasPaymentTermsReset}
+          onChange={handlePaymentTermsChange}
+          isSubmitAttempted={isSubmitAttempted}
+          isRequired={requiredIntake.paymentTerms}
+          options={getPaymentTermsOptions(fieldSet)}
         />
       )}
       <ProjectRolesCard

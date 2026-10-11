@@ -16,6 +16,7 @@ import PersonRounded from "@mui/icons-material/PersonRounded";
 import DeleteRounded from "@mui/icons-material/DeleteRounded";
 import LogoutRounded from "@mui/icons-material/LogoutRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
+import PaymentsRounded from "@mui/icons-material/PaymentsRounded";
 import TimelineRounded from "@mui/icons-material/TimelineRounded";
 import VerifiedRounded from "@mui/icons-material/VerifiedRounded";
 import SettingsRounded from "@mui/icons-material/SettingsRounded";
@@ -32,6 +33,7 @@ import CloudUploadRounded from "@mui/icons-material/CloudUploadRounded";
 import ReceiptLongRounded from "@mui/icons-material/ReceiptLongRounded";
 import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
 import EngineeringRounded from "@mui/icons-material/EngineeringRounded";
+import PriorityHighRounded from "@mui/icons-material/PriorityHighRounded";
 import RequestQuoteRounded from "@mui/icons-material/RequestQuoteRounded";
 import FolderSpecialRounded from "@mui/icons-material/FolderSpecialRounded";
 import CreateNewFolderRounded from "@mui/icons-material/CreateNewFolderRounded";
@@ -58,9 +60,11 @@ export const ICON_COMPONENTS: Record<IconNameType, SvgIconComponent> = {
   logout: LogoutRounded,
   report: AssessmentRounded,
   search: SearchRounded,
+  urgent: PriorityHighRounded,
   upload: CloudUploadRounded,
   gdrive: AddToDriveRounded,
   invoice: ReceiptLongRounded,
+  payment: PaymentsRounded,
   foreman: EngineeringRounded,
   building: ApartmentRounded,
   contacts: GroupsRounded,
