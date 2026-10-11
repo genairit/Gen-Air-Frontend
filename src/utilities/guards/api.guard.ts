@@ -16,12 +16,19 @@ import type {
   TUserRoleCounts,
   IApiProjectType,
   IApiProjectStage,
+  IApiPlaceAddress,
   IApiProjectMember,
   IApiDriveContents,
+  IApiPlaceSuggestion,
   IProjectStageCounts,
   IApiStageTransition,
   IApiTemplateFolderNode,
 } from "../../interfaces/api.interface";
+
+import {
+  PAYMENT_TERMS_VALUES,
+  type PaymentTermsType,
+} from "../../constants/payment-terms.constant";
 
 import {
   type ProjectDetailFieldSetType,
@@ -66,6 +73,26 @@ const hasCustomerDetails = (value: Record<string, unknown>) => {
   return hasTextFields && hasFloor;
 };
 
+const PROJECT_INTAKE_TEXT_FIELDS = [
+  "address",
+  "contactName",
+  "contactRole",
+  "addressCity",
+  "contactPhone",
+  "addressPlaceId",
+  "paymentTermsNote",
+] as const;
+
+export const isPaymentTerms = (value?: unknown): value is PaymentTermsType =>
+  PAYMENT_TERMS_VALUES.some(terms => terms === value);
+
+const hasProjectIntake = (value: Record<string, unknown>) => {
+  const hasTextFields = PROJECT_INTAKE_TEXT_FIELDS.every(field => isNullableString(value[field]));
+  const hasPaymentTerms = value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
+
+  return hasTextFields && hasPaymentTerms;
+};
+
 export const isApiProjectStage = (value: unknown): value is IApiProjectStage => {
   if (!isRecord(value)) {
     return false;
@@ -103,7 +130,9 @@ export const isApiProject = (value: unknown): value is IApiProject => {
   const hasRelations = hasStringFields(value, ["stageId", "projectTypeId", "updatedAt"]);
   const hasValidMembers = isOptionalOf(isArrayOf(isApiProjectMember))(value.members);
 
-  return hasIdentity && hasRelations && hasValidMembers && hasCustomerDetails(value);
+  const hasDetails = hasCustomerDetails(value) && hasProjectIntake(value);
+
+  return hasIdentity && hasRelations && hasValidMembers && hasDetails;
 };
 
 export const isCursorPageOf =
@@ -158,4 +187,22 @@ export const isApiTemplateFolderNode = (value: unknown): value is IApiTemplateFo
   return (
     hasStringFields(value, ["id", "name"]) && isArrayOf(isApiTemplateFolderNode)(value.children)
   );
+};
+
+export const isApiPlaceSuggestion = (value: unknown): value is IApiPlaceSuggestion => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return hasStringFields(value, ["placeId", "mainText"]) && isNullableString(value.secondaryText);
+};
+
+export const isApiPlaceAddress = (value: unknown): value is IApiPlaceAddress => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const hasIdentity = hasStringFields(value, ["placeId", "formattedAddress"]);
+
+  return hasIdentity && isNullableString(value.city) && isNullableString(value.countryCode);
 };

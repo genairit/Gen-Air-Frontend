@@ -1,5 +1,5 @@
-import type { IApiProjectCustomerDetails } from "./api.interface";
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { IApiProjectIntake, IApiProjectCustomerDetails } from "./api.interface";
 
 export interface IProjectQuery {
   search: string;
@@ -12,7 +12,10 @@ interface IProjectMemberAssignment {
   role: UserRoleType;
 }
 
-export interface IProjectPayload extends Partial<IApiProjectCustomerDetails> {
+export type TProjectIntakePayload = Partial<Omit<IApiProjectIntake, "address" | "addressCity">>;
+
+export interface IProjectPayload
+  extends Partial<IApiProjectCustomerDetails>, TProjectIntakePayload {
   name: string;
   stageId?: string;
   projectTypeId: string;
@@ -43,4 +46,15 @@ export interface ILoginPayload {
   email: string;
   password: string;
   rememberMe: boolean;
+}
+
+export interface IAddressSearch {
+  input: string;
+  signal: AbortSignal;
+  sessionToken: string;
+}
+
+export interface IAddressLookup {
+  placeId: string;
+  sessionToken: string;
 }

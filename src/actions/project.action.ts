@@ -2,8 +2,7 @@ import { queryClient } from "../providers/query-client";
 import { projectService } from "../services/project.service";
 import { QUERY_ROOTS } from "../constants/query-key.constant";
 import { toProjectPayload } from "../utilities/project.utility";
-import type { IProjectFormValues } from "../interfaces/project.interface";
-import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
+import type { IProjectSubmission } from "../interfaces/project.interface";
 
 const invalidateProjectQueries = () =>
   Promise.all([
@@ -13,13 +12,8 @@ const invalidateProjectQueries = () =>
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.TRANSITIONS] }),
   ]);
 
-interface IProjectSubmission {
-  values: IProjectFormValues;
-  fieldSet: ProjectDetailFieldSetType | null;
-}
-
-const requirePayload = ({ values, fieldSet }: IProjectSubmission) => {
-  const payload = toProjectPayload(values, fieldSet);
+const requirePayload = (submission: IProjectSubmission) => {
+  const payload = toProjectPayload(submission);
 
   if (!payload) {
     throw new Error("A project type is required before saving");

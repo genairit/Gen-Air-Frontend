@@ -1,6 +1,8 @@
 import type { IconNameType } from "../constants/icon.constant";
-import type { CustomerDetailFieldType } from "./api.interface";
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { PaymentTermsType } from "../constants/payment-terms.constant";
+import type { IApiProjectIntake, CustomerDetailFieldType } from "./api.interface";
+import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
 export interface IProjectSummary {
   id: string;
@@ -27,12 +29,42 @@ export interface ITypeSwitch {
   summary: ITypeSwitchSummary;
 }
 
-export interface IProjectFormValues {
+export interface IVerifiedAddress {
+  placeId: string;
+  city: string | null;
+  formattedAddress: string;
+}
+
+export type ContactFieldType = keyof Pick<
+  IApiProjectIntake,
+  "contactName" | "contactPhone" | "contactRole"
+>;
+
+export type TContactValues = Record<ContactFieldType, string>;
+
+export interface IPaymentTermsValues {
+  note: string;
+  terms: PaymentTermsType | null;
+}
+
+export interface IProjectIntakeValues {
+  contact: TContactValues;
+  address: IVerifiedAddress | null;
+  paymentTerms: IPaymentTermsValues;
+}
+
+export interface IProjectFormValues extends IProjectIntakeValues {
   name: string;
   typeId: string | null;
   stageId: string | null;
   assignees: TRoleAssignees;
   customerDetails: TCustomerDetailValues;
+}
+
+export interface IProjectSubmission {
+  values: IProjectFormValues;
+  fieldSet: ProjectDetailFieldSetType | null;
+  originalIntake: IProjectIntakeValues | null;
 }
 
 export interface IBoardColumn {

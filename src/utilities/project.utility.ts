@@ -8,13 +8,14 @@ import type {
   IBoardColumn,
   TRoleAssignees,
   IProjectFormValues,
+  IProjectSubmission,
 } from "../interfaces/project.interface";
 
 import { mapUserRoles } from "./user-role.utility";
 import type { IApiProject } from "../interfaces/api.interface";
 import type { IProjectPayload } from "../interfaces/api-request.interface";
 import { USER_ROLE_VALUES, type UserRoleType } from "../constants/user-role.constant";
-import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
+import { toIntakeValues, toIntakePayload, createEmptyIntakeValues } from "./project-intake.utility";
 
 export const getProjectsInStage = (projects: IApiProject[], stageId: string) =>
   projects.filter(project => project.stageId === stageId);
@@ -47,6 +48,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
       typeId: null,
       stageId: null,
       assignees: createEmptyAssignees(),
+      ...createEmptyIntakeValues(),
       customerDetails: createEmptyCustomerDetailValues(),
     };
   }
@@ -56,6 +58,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
     stageId: project.stageId,
     typeId: project.projectTypeId,
     assignees: toAssignees(project),
+    ...toIntakeValues(project),
     customerDetails: toCustomerDetailValues(project),
   };
 };
@@ -70,16 +73,18 @@ const toMemberAssignments = (assignees: TRoleAssignees) =>
 export const canSubmitProjectForm = (values: IProjectFormValues) =>
   Boolean(values.name.trim()) && Boolean(values.typeId);
 
-export const toProjectPayload = (
-  values: IProjectFormValues,
-  fieldSet: ProjectDetailFieldSetType | null,
-): IProjectPayload | null => {
+export const toProjectPayload = ({
+  values,
+  fieldSet,
+  originalIntake,
+}: IProjectSubmission): IProjectPayload | null => {
   if (!values.typeId) {
     return null;
   }
 
   return {
     ...toCustomerDetailsPayload(values.customerDetails, fieldSet),
+    ...toIntakePayload(values, originalIntake),
     name: values.name.trim(),
     projectTypeId: values.typeId,
     members: toMemberAssignments(values.assignees),

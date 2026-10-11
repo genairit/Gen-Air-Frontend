@@ -1,4 +1,5 @@
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
 export interface ICursorPage<TItem> {
@@ -64,7 +65,18 @@ export interface IApiProjectCustomerDetails {
 
 export type CustomerDetailFieldType = keyof IApiProjectCustomerDetails;
 
-export interface IApiProject extends IApiProjectCustomerDetails {
+export interface IApiProjectIntake {
+  address: string | null;
+  contactName: string | null;
+  contactRole: string | null;
+  addressCity: string | null;
+  contactPhone: string | null;
+  addressPlaceId: string | null;
+  paymentTermsNote: string | null;
+  paymentTerms: PaymentTermsType | null;
+}
+
+export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectIntake {
   id: string;
   code: string;
   name: string;
@@ -126,3 +138,16 @@ export interface IApiTemplateFolderNode {
 }
 
 export type TUserRoleCounts = Record<UserRoleType, number>;
+
+export interface IApiPlaceSuggestion {
+  placeId: string;
+  mainText: string;
+  secondaryText: string | null;
+}
+
+export interface IApiPlaceAddress {
+  placeId: string;
+  city: string | null;
+  formattedAddress: string;
+  countryCode: string | null;
+}

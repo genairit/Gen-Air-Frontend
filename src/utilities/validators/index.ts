@@ -13,3 +13,6 @@ export { validateRequiredEmail } from "./required-email.validator";
 export { validateCompanyNumber } from "./company-number.validator";
 export { validateAssociationNumber } from "./association-number.validator";
 export { validateRequiredValue } from "./required-value.validator";
+export { validateContactName } from "./contact-name.validator";
+export { validateIsraeliMobilePhone } from "./israeli-mobile-phone.validator";
+export { validatePaymentTermsNote } from "./payment-terms-note.validator";

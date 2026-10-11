@@ -1,5 +1,5 @@
 import {
-  toTextDirection,
+  isLtrCustomerField,
   getCustomerDetailFields,
   formatCustomerDetailValue,
 } from "../../../utilities/customer-details.utility";
@@ -15,8 +15,8 @@ import { Box } from "@mui/material";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
-import { useStyles } from "./ProjectCustomerCard.style";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import DetailTile from "../../../components/DetailTile/DetailTile";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
@@ -36,17 +36,14 @@ const ProjectCustomerCard: FC<IProjectCustomerCardProps> = ({
   typeName,
 }) => {
   const pageStyles = usePageStyles();
-  const styles = useStyles();
 
   const renderTile = (config: ICustomerDetailFieldConfig) => (
-    <Box sx={styles.tile} key={config.field}>
-      <Box component="span" sx={styles.label}>
-        {config.label}
-      </Box>
-      <Box component="span" sx={styles.value}>
-        <bdi dir={toTextDirection(config)}>{formatCustomerDetailValue(project[config.field])}</bdi>
-      </Box>
-    </Box>
+    <DetailTile
+      key={config.field}
+      label={config.label}
+      isLtr={isLtrCustomerField(config)}
+      value={formatCustomerDetailValue(project[config.field])}
+    />
   );
 
   const editAction = onEdit && (
