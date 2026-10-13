@@ -1,5 +1,6 @@
 import type { UserRoleType } from "../constants/user-role.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
+import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
 export interface ICursorPage<TItem> {
@@ -151,3 +152,23 @@ export interface IApiPlaceAddress {
   formattedAddress: string;
   countryCode: string | null;
 }
+
+export interface IApiCustomer {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  taxId: string;
+  address: string;
+  createdAt: string;
+  contactName: string;
+  createdBy?: IApiUser;
+  priorityId: string | null;
+  prioritySyncAttempts: number;
+  prioritySyncedAt: string | null;
+  prioritySyncError: string | null;
+  customerType: ProjectDetailFieldSetType;
+  prioritySyncStatus: PrioritySyncStatusType;
+}
+
+export type TCustomerSyncStatusCounts = Record<PrioritySyncStatusType, number>;

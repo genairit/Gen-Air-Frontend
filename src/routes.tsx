@@ -5,9 +5,11 @@ import type { RouteObject } from "react-router-dom";
 import RequireSession from "./layouts/RequireSession";
 import ProjectPage from "./pages/project/ProjectPage";
 import SettingsPage from "./pages/settings/SettingsPage";
+import CustomerPage from "./pages/customer/CustomerPage";
 import { ROUTE_PATHS } from "./constants/routes.constant";
 import ComponentsShowcase from "./pages/ComponentsShowcase";
 import EmployeesPage from "./pages/employees/EmployeesPage";
+import CustomersPage from "./pages/customers/CustomersPage";
 import ProjectFormPage from "./pages/project-form/ProjectFormPage";
 import { PROJECT_FORM_MODES } from "./constants/project-form.constant";
 
@@ -23,6 +25,8 @@ export const routes: RouteObject[] = [
           { path: ROUTE_PATHS.PROJECT, element: <ProjectPage /> },
           { path: ROUTE_PATHS.SETTINGS, element: <SettingsPage /> },
           { path: ROUTE_PATHS.EMPLOYEES, element: <EmployeesPage /> },
+          { path: ROUTE_PATHS.CUSTOMERS, element: <CustomersPage /> },
+          { path: ROUTE_PATHS.CUSTOMER, element: <CustomerPage /> },
           { path: ROUTE_PATHS.COMPONENTS, element: <ComponentsShowcase /> },
           {
             path: ROUTE_PATHS.NEW_PROJECT,

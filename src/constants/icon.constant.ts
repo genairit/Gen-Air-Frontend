@@ -18,6 +18,7 @@ export const ICON_NAMES = {
   FILTER: "filter",
   FOLDER: "folder",
   LOGOUT: "logout",
+  PENDING: "pending",
   REPORT: "report",
   SEARCH: "search",
   URGENT: "urgent",

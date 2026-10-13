@@ -1,6 +1,11 @@
+import {
+  BACK_LINK_BY_ROUTE,
+  PAGE_TITLE_BY_ROUTE,
+  ACTIVE_NAVIGATION_BY_ROUTE,
+} from "../constants/navigation.constant";
+
 import { generatePath, matchPath } from "react-router-dom";
 import { ROUTE_PATHS } from "../constants/routes.constant";
-import { PAGE_TITLE_BY_ROUTE, ACTIVE_NAVIGATION_BY_ROUTE } from "../constants/navigation.constant";
 
 export const buildProjectPath = (projectId: string) =>
   generatePath(ROUTE_PATHS.PROJECT, { projectId });
@@ -31,8 +36,18 @@ export const getActiveNavigationId = (pathname: string) => {
   return ACTIVE_NAVIGATION_BY_ROUTE[route];
 };
 
-export const isProjectViewRoute = (pathname: string) =>
-  Boolean(matchPath(ROUTE_PATHS.PROJECT, pathname));
+export const buildCustomerPath = (customerId: string) =>
+  generatePath(ROUTE_PATHS.CUSTOMER, { customerId });
+
+export const getBackLinkTarget = (pathname: string) => {
+  const route = findMatchingRoute(pathname, Object.keys(BACK_LINK_BY_ROUTE));
+
+  if (!route) {
+    return null;
+  }
+
+  return BACK_LINK_BY_ROUTE[route];
+};
 
 export const getProjectFormCancelPath = (projectId: string | null) => {
   if (!projectId) {
