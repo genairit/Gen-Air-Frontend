@@ -1,25 +1,25 @@
 import type { LocalStorageKeyType, SessionStorageKeyType } from "../constants/storage.constant";
 
-const readItem = (storage: Storage, key: string) => {
+const readItem = (storage: () => Storage, key: string) => {
   try {
-    return storage.getItem(key);
+    return storage().getItem(key);
   } catch {
     // Storage throws in private mode or when blocked; treat it as empty.
     return null;
   }
 };
 
-const writeItem = (storage: Storage, key: string, value: string) => {
+const writeItem = (storage: () => Storage, key: string, value: string) => {
   try {
-    storage.setItem(key, value);
+    storage().setItem(key, value);
   } catch {
     // Storage throws in private mode or when full; the session then lives in memory only.
   }
 };
 
-const removeItem = (storage: Storage, key: string) => {
+const removeItem = (storage: () => Storage, key: string) => {
   try {
-    storage.removeItem(key);
+    storage().removeItem(key);
   } catch {
     // Storage throws in private mode; nothing was persisted to remove.
   }
@@ -27,28 +27,28 @@ const removeItem = (storage: Storage, key: string) => {
 
 export class LocalStorageManager {
   static getItem(key: LocalStorageKeyType): string | null {
-    return readItem(localStorage, key);
+    return readItem(() => localStorage, key);
   }
 
   static setItem(key: LocalStorageKeyType, value: string): void {
-    writeItem(localStorage, key, value);
+    writeItem(() => localStorage, key, value);
   }
 
   static removeItem(key: LocalStorageKeyType): void {
-    removeItem(localStorage, key);
+    removeItem(() => localStorage, key);
   }
 }
 
 export class SessionStorageManager {
   static getItem(key: SessionStorageKeyType): string | null {
-    return readItem(sessionStorage, key);
+    return readItem(() => sessionStorage, key);
   }
 
   static setItem(key: SessionStorageKeyType, value: string): void {
-    writeItem(sessionStorage, key, value);
+    writeItem(() => sessionStorage, key, value);
   }
 
   static removeItem(key: SessionStorageKeyType): void {
-    removeItem(sessionStorage, key);
+    removeItem(() => sessionStorage, key);
   }
 }

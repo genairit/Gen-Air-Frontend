@@ -15,6 +15,12 @@ import {
 } from "../../../constants/project-form.constant";
 
 import {
+  readProjectDraft,
+  saveProjectDraft,
+  clearProjectDraft,
+} from "../../../utilities/project-draft.utility";
+
+import {
   useCreateProjectMutation,
   useDeleteProjectMutation,
   useUpdateProjectMutation,
@@ -36,7 +42,6 @@ import {
 } from "../../../utilities/customer-details.utility";
 
 import { Box } from "@mui/material";
-import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProjectTypeCard from "./ProjectTypeCard";
 import { usePageStyles } from "../../page.style";
@@ -48,6 +53,7 @@ import Button from "../../../components/Button/Button";
 import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
+import { type FC, useState, type SetStateAction } from "react";
 import ProjectPaymentTermsCard from "./ProjectPaymentTermsCard";
 import ActionBar from "../../../components/ActionBar/ActionBar";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
@@ -56,6 +62,7 @@ import ProjectAddressContactCard from "./ProjectAddressContactCard";
 import ProjectCustomerDetailsCard from "./ProjectCustomerDetailsCard";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
+import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { UserRoleType } from "../../../constants/user-role.constant";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
@@ -77,7 +84,25 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const copy = PROJECT_FORM_MODE_COPY[mode];
   const projectId = project?.id ?? null;
   const isEditMode = mode === PROJECT_FORM_MODES.EDIT;
-  const [values, setValues] = useState<IProjectFormValues>(() => toProjectFormValues(project));
+  const draftUserId = !isEditMode ? (sessionUser?.id ?? null) : null;
+  const [restoredDraft] = useState(() => readProjectDraft(draftUserId));
+  const [wasDraftRestored, setWasDraftRestored] = useState(Boolean(restoredDraft));
+  const [values, setFormValues] = useState<IProjectFormValues>(
+    () => restoredDraft ?? toProjectFormValues(project),
+  );
+  const setValues = (update: SetStateAction<IProjectFormValues>) => {
+    const next = typeof update === "function" ? update(values) : update;
+    saveProjectDraft(draftUserId, next);
+    setFormValues(next);
+  };
+  const discardDraft = () => {
+    clearProjectDraft(draftUserId);
+    setFormValues(toProjectFormValues(null));
+    setWasDraftRestored(false);
+    setTypeSwitch(null);
+    setIsSubmitAttempted(false);
+    setWasPaymentTermsReset(false);
+  };
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const [wasPaymentTermsReset, setWasPaymentTermsReset] = useState(false);
@@ -85,7 +110,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const usersQuery = useUsersQuery(ALL_USERS_QUERY);
   const typesQuery = useProjectTypesQuery();
   const stagesQuery = useProjectStagesQuery();
-  const createMutation = useCreateProjectMutation();
+  const createMutation = useCreateProjectMutation(draftUserId);
   const updateMutation = useUpdateProjectMutation();
   const deleteMutation = useDeleteProjectMutation();
 
@@ -185,6 +210,21 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         {project && <Chip isMonospace label={project.code} size={CHIP_SIZES.MEDIUM} />}
       </Box>
 
+      {!isEditMode && (
+        <NoticeBanner
+          lines={[PROJECT_FORM_COPY.DRAFT_PRIVACY]}
+          title={
+            wasDraftRestored ? PROJECT_FORM_COPY.DRAFT_RESTORED : PROJECT_FORM_COPY.DRAFT_NOTICE
+          }
+          actions={
+            <Button
+              text={PROJECT_FORM_COPY.DISCARD_DRAFT}
+              onClick={discardDraft}
+              variant={BUTTON_VARIANTS.NEUTRAL}
+            />
+          }
+        />
+      )}
       <ProjectDetailsCard
         mode={mode}
         values={values}
