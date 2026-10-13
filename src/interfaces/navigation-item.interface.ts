@@ -5,3 +5,8 @@ export interface INavigationItem {
   label: string;
   icon?: IconNameType;
 }
+
+export interface IBackLinkTarget {
+  to: string;
+  label: string;
+}

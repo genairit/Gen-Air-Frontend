@@ -1,4 +1,5 @@
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
 import type { IApiProjectIntake, IApiProjectCustomerDetails } from "./api.interface";
 
 export interface IProjectQuery {
@@ -25,6 +26,11 @@ export interface IProjectPayload
 export interface IUserQuery {
   search: string;
   role: UserRoleType | null;
+}
+
+export interface ICustomerQuery {
+  search: string;
+  prioritySyncStatus: PrioritySyncStatusType | null;
 }
 
 export interface IUserPayload {

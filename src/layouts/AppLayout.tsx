@@ -1,10 +1,4 @@
 import {
-  getPageTitle,
-  isProjectViewRoute,
-  getActiveNavigationId,
-} from "../utilities/route.utility";
-
-import {
   BRAND,
   NAVIGATION_LABELS,
   APP_NAVIGATION_ITEMS,
@@ -28,6 +22,7 @@ import { BRAND_LOGO_WIDTHS } from "../constants/brand-logo.constant";
 import { clearSessionAction } from "../actions/session-reset.action";
 import MobileBottomNav from "../components/MobileBottomNav/MobileBottomNav";
 import { Outlet, useLocation, useNavigate, ScrollRestoration } from "react-router-dom";
+import { getPageTitle, getBackLinkTarget, getActiveNavigationId } from "../utilities/route.utility";
 
 const AppLayout = () => {
   const styles = useStyles();
@@ -55,9 +50,10 @@ const AppLayout = () => {
     return null;
   }
 
-  const topBarLeading = isProjectViewRoute(pathname) ? (
-    <BackLink to={ROUTE_PATHS.BOARD} label={NAVIGATION_LABELS.BACK_TO_BOARD} />
-  ) : null;
+  const backLinkTarget = getBackLinkTarget(pathname);
+  const topBarLeading = backLinkTarget && (
+    <BackLink to={backLinkTarget.to} label={backLinkTarget.label} />
+  );
 
   return (
     <Box sx={styles.shell}>

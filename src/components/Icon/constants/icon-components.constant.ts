@@ -16,6 +16,7 @@ import PersonRounded from "@mui/icons-material/PersonRounded";
 import DeleteRounded from "@mui/icons-material/DeleteRounded";
 import LogoutRounded from "@mui/icons-material/LogoutRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
+import ScheduleRounded from "@mui/icons-material/ScheduleRounded";
 import PaymentsRounded from "@mui/icons-material/PaymentsRounded";
 import TimelineRounded from "@mui/icons-material/TimelineRounded";
 import VerifiedRounded from "@mui/icons-material/VerifiedRounded";
@@ -58,6 +59,7 @@ export const ICON_COMPONENTS: Record<IconNameType, SvgIconComponent> = {
   filter: FilterAltRounded,
   folder: FolderRounded,
   logout: LogoutRounded,
+  pending: ScheduleRounded,
   report: AssessmentRounded,
   search: SearchRounded,
   urgent: PriorityHighRounded,

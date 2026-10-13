@@ -1,7 +1,13 @@
-import type { IUserQuery, IProjectQuery } from "../interfaces/api-request.interface";
+import type {
+  IUserQuery,
+  IProjectQuery,
+  ICustomerQuery,
+} from "../interfaces/api-request.interface";
 
 export const QUERY_ROOTS = {
   USERS: "users",
+  CUSTOMER: "customer",
+  CUSTOMERS: "customers",
   PROJECT: "project",
   PROJECTS: "projects",
   PROJECT_DRIVE: "project-drive",
@@ -14,12 +20,15 @@ export const QUERY_KEYS = {
   PROJECT_STAGES: ["project-stages"],
   TEMPLATE_TREE: ["drive-template-tree"],
   USER_ROLE_COUNTS: ["user-role-counts"],
+  CUSTOMER_SYNC_STATUS_COUNTS: ["customer-sync-status-counts"],
   addressSuggestions: (input: string, sessionToken: string) => [
     "address-suggestions",
     input,
     sessionToken,
   ],
   users: (query: IUserQuery) => [QUERY_ROOTS.USERS, query],
+  customers: (query: ICustomerQuery) => [QUERY_ROOTS.CUSTOMERS, query],
+  customer: (customerId: string) => [QUERY_ROOTS.CUSTOMER, customerId],
   projects: (query: IProjectQuery) => [QUERY_ROOTS.PROJECTS, query],
   stageCounts: (query: IProjectQuery) => [QUERY_ROOTS.STAGE_COUNTS, query],
   project: (projectId: string) => [QUERY_ROOTS.PROJECT, projectId],

@@ -11,6 +11,7 @@ import type {
   IApiUser,
   ICursorPage,
   IApiProject,
+  IApiCustomer,
   IApiDriveItem,
   ILoginResponse,
   TUserRoleCounts,
@@ -23,12 +24,18 @@ import type {
   IProjectStageCounts,
   IApiStageTransition,
   IApiTemplateFolderNode,
+  TCustomerSyncStatusCounts,
 } from "../../interfaces/api.interface";
 
 import {
   PAYMENT_TERMS_VALUES,
   type PaymentTermsType,
 } from "../../constants/payment-terms.constant";
+
+import {
+  type PrioritySyncStatusType,
+  PRIORITY_SYNC_STATUS_VALUES,
+} from "../../constants/priority-sync.constant";
 
 import {
   type ProjectDetailFieldSetType,
@@ -206,3 +213,45 @@ export const isApiPlaceAddress = (value: unknown): value is IApiPlaceAddress => 
 
   return hasIdentity && isNullableString(value.city) && isNullableString(value.countryCode);
 };
+
+export const isPrioritySyncStatus = (value?: unknown): value is PrioritySyncStatusType =>
+  PRIORITY_SYNC_STATUS_VALUES.some(status => status === value);
+
+const CUSTOMER_REQUIRED_TEXT_FIELDS = [
+  "id",
+  "name",
+  "phone",
+  "email",
+  "taxId",
+  "address",
+  "createdAt",
+  "contactName",
+] as const;
+
+const CUSTOMER_NULLABLE_TEXT_FIELDS = [
+  "priorityId",
+  "prioritySyncedAt",
+  "prioritySyncError",
+] as const;
+
+export const isApiCustomer = (value: unknown): value is IApiCustomer => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const hasIdentity = hasStringFields(value, CUSTOMER_REQUIRED_TEXT_FIELDS);
+  const hasType = isDetailFieldSet(value.customerType);
+  const hasSyncStatus = isPrioritySyncStatus(value.prioritySyncStatus);
+  const hasSyncAttempts = isNumber(value.prioritySyncAttempts);
+  const hasSyncDetails = CUSTOMER_NULLABLE_TEXT_FIELDS.every(field =>
+    isNullableString(value[field]),
+  );
+  const hasValidCreator = isOptionalOf(isApiUser)(value.createdBy);
+
+  return (
+    hasIdentity && hasType && hasSyncStatus && hasSyncAttempts && hasSyncDetails && hasValidCreator
+  );
+};
+
+export const isCustomerSyncStatusCounts = (value: unknown): value is TCustomerSyncStatusCounts =>
+  isNumberRecord(value) && PRIORITY_SYNC_STATUS_VALUES.every(status => isNumber(value[status]));
