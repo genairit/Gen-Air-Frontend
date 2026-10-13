@@ -35,6 +35,11 @@ export const PROJECT_FORM_MODE_COPY: Record<ProjectFormModeType, IProjectFormMod
 
 export const PROJECT_FORM_COPY = {
   CANCEL: "ביטול",
+  DRAFT_RESTORED: "טיוטת הפרויקט שוחזרה",
+  DRAFT_NOTICE: "פרטי הפרויקט נשמרים כטיוטה במכשיר זה",
+  DISCARD_DRAFT: "מחק טיוטה והתחל מחדש",
+  DRAFT_PRIVACY:
+    "שם הפרויקט, סוג, שלב, צוות ותנאי תשלום נשמרים. פרטי לקוח, כתובת, איש קשר והערות תשלום אינם נשמרים ויש להזינם מחדש בחזרה לטופס.",
   LOADING: "טוען את טופס הפרויקט...",
   PENDING_CODE: "מזהה יוקצה בשמירה",
   NO_ASSIGNEE: "ללא שיבוץ",

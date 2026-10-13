@@ -12,6 +12,7 @@ import { QUERY_KEYS } from "../../constants/query-key.constant";
 import type { IApiProject } from "../../interfaces/api.interface";
 import { moveProjectInList } from "../../utilities/project.utility";
 import { uploadProjectFilesAction } from "../../actions/drive.action";
+import { clearProjectDraft } from "../../utilities/project-draft.utility";
 import type { IProjectQuery } from "../../interfaces/api-request.interface";
 
 interface IProjectMove {
@@ -46,7 +47,12 @@ export const useMoveProjectMutation = (query: IProjectQuery) => {
   });
 };
 
-export const useCreateProjectMutation = () => useMutation({ mutationFn: createProjectAction });
+export const useCreateProjectMutation = (draftUserId: string | null = null) =>
+  useMutation({
+    mutationFn: createProjectAction,
+    onMutate: () => draftUserId,
+    onSuccess: (_savedId, _values, userId) => clearProjectDraft(userId ?? null),
+  });
 
 export const useUpdateProjectMutation = () => useMutation({ mutationFn: updateProjectAction });
 

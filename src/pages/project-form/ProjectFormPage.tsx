@@ -3,6 +3,7 @@ import ProjectForm from "./components/ProjectForm";
 import Button from "../../components/Button/Button";
 import { useNavigate, useParams } from "react-router-dom";
 import { ICON_NAMES } from "../../constants/icon.constant";
+import { useSessionUser } from "../../store/session.store";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import { useProjectQuery } from "../../hooks/queries/project.query";
 import LoadingState from "../../components/LoadingState/LoadingState";
@@ -18,12 +19,13 @@ interface IProjectFormPageProps {
 
 const ProjectFormPage: FC<IProjectFormPageProps> = ({ mode }) => {
   const navigate = useNavigate();
+  const user = useSessionUser();
   const params = useParams();
   const projectId = params[ROUTE_PARAMS.PROJECT_ID] ?? null;
   const projectQuery = useProjectQuery(projectId);
 
   if (!projectId) {
-    return <ProjectForm mode={mode} project={null} />;
+    return <ProjectForm mode={mode} project={null} key={`${mode}:${user?.id ?? "anonymous"}`} />;
   }
 
   if (projectQuery.isPending) {
@@ -47,7 +49,13 @@ const ProjectFormPage: FC<IProjectFormPageProps> = ({ mode }) => {
     );
   }
 
-  return <ProjectForm mode={mode} key={projectQuery.data.id} project={projectQuery.data} />;
+  return (
+    <ProjectForm
+      mode={mode}
+      project={projectQuery.data}
+      key={`${mode}:${user?.id ?? "anonymous"}:${projectQuery.data.id}`}
+    />
+  );
 };
 
 export default ProjectFormPage;
