@@ -18,6 +18,7 @@ import type {
   IApiProjectType,
   IApiProjectStage,
   IApiPlaceAddress,
+  IApiApartmentPage,
   IApiProjectMember,
   IApiDriveContents,
   IApiPlaceSuggestion,
@@ -115,7 +116,14 @@ export const isApiProjectType = (value: unknown): value is IApiProjectType => {
 
   const hasIdentity = hasStringFields(value, ["id", "name"]);
 
-  return hasIdentity && isNullableString(value.icon) && isDetailFieldSet(value.detailFieldSet);
+  const hasApartmentRule = typeof value.canHaveApartments === "boolean";
+
+  return (
+    hasIdentity &&
+    hasApartmentRule &&
+    isNullableString(value.icon) &&
+    isDetailFieldSet(value.detailFieldSet)
+  );
 };
 
 const isApiProjectMember = (value: unknown): value is IApiProjectMember => {
@@ -138,8 +146,9 @@ export const isApiProject = (value: unknown): value is IApiProject => {
   const hasValidMembers = isOptionalOf(isArrayOf(isApiProjectMember))(value.members);
 
   const hasDetails = hasCustomerDetails(value) && hasProjectIntake(value);
+  const hasHierarchy = isNullableString(value.parentProjectId) && isNullableString(value.notes);
 
-  return hasIdentity && hasRelations && hasValidMembers && hasDetails;
+  return hasIdentity && hasRelations && hasValidMembers && hasDetails && hasHierarchy;
 };
 
 export const isCursorPageOf =
@@ -255,3 +264,6 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
 
 export const isCustomerSyncStatusCounts = (value: unknown): value is TCustomerSyncStatusCounts =>
   isNumberRecord(value) && PRIORITY_SYNC_STATUS_VALUES.every(status => isNumber(value[status]));
+
+export const isApiApartmentPage = (value: unknown): value is IApiApartmentPage =>
+  isCursorPageOf(isApiProject)(value) && isRecord(value) && isNumber(value.total);

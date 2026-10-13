@@ -28,6 +28,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
   quote: [
     {
       progress: 20,
+      apartmentsLabel: null,
       id: "GA-84811",
       code: "GA-84811",
       type: "בנייה רוויה",
@@ -37,6 +38,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
     },
     {
       progress: 35,
+      apartmentsLabel: null,
       id: "GA-84790",
       code: "GA-84790",
       type: "מסחרי (VRF)",
@@ -48,6 +50,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
   order: [
     {
       progress: 55,
+      apartmentsLabel: null,
       id: "GA-84902",
       code: "GA-84902",
       updatedLabel: "היום",
@@ -57,6 +60,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
     },
     {
       progress: 48,
+      apartmentsLabel: null,
       id: "GA-84877",
       code: "GA-84877",
       type: "בנייה רוויה",
@@ -68,6 +72,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
   execution: [
     {
       progress: 72,
+      apartmentsLabel: null,
       id: "GA-84920",
       code: "GA-84920",
       type: "בנייה רוויה",
@@ -77,6 +82,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
     },
     {
       progress: 86,
+      apartmentsLabel: null,
       id: "GA-84655",
       code: "GA-84655",
       updatedLabel: "היום",

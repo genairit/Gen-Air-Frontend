@@ -1,4 +1,5 @@
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
 import type { IApiProjectIntake, IApiProjectCustomerDetails } from "./api.interface";
 
@@ -63,4 +64,24 @@ export interface IAddressSearch {
 export interface IAddressLookup {
   placeId: string;
   sessionToken: string;
+}
+
+export interface IApartmentQuery {
+  search: string;
+  stageId: string | null;
+}
+
+export interface IApartmentPayload {
+  contactName: string;
+  contactPhone: string;
+  customerFloor: number;
+  customerApartment: string;
+  customerName: string | null;
+  customerPhone: string | null;
+}
+
+export interface IApartmentChanges {
+  notes?: string | null;
+  paymentTermsNote?: string | null;
+  paymentTerms?: PaymentTermsType | null;
 }

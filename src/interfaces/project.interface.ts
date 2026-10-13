@@ -12,6 +12,7 @@ export interface IProjectSummary {
   updatedLabel: string;
   teamInitials: string[];
   progress: number | null;
+  apartmentsLabel: string | null;
 }
 
 export type TRoleAssignees = Record<UserRoleType, string | null>;

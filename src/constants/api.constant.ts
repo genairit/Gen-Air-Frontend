@@ -20,6 +20,8 @@ export const API_ENDPOINTS = {
   PROJECT_STAGE_COUNTS: "/project/stage-counts",
   projectById: (projectId: string) => `/project/${projectId}`,
   projectStage: (projectId: string) => `/project/${projectId}/stage`,
+  projectApartments: (projectId: string) => `/project/${projectId}/apartments`,
+  apartmentStageCounts: (projectId: string) => `/project/${projectId}/apartments/stage-counts`,
   PROJECT_STAGES: "/project-stage",
   PROJECT_STAGE_ORDER: "/project-stage/order",
   projectStageById: (stageId: string) => `/project-stage/${stageId}`,
