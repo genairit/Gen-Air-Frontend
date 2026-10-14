@@ -9,6 +9,10 @@ export interface IProjectQuery {
   projectTypeId: string | null;
 }
 
+export interface IProjectPageQuery extends IProjectQuery {
+  stageId: string | null;
+}
+
 interface IProjectMemberAssignment {
   userId: string;
   role: UserRoleType;

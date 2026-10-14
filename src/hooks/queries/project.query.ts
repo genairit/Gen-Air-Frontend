@@ -1,10 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
 import { QUERY_KEYS } from "../../constants/query-key.constant";
 import { projectService } from "../../services/project.service";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { projectTypeService } from "../../services/project-type.service";
 import { projectStageService } from "../../services/project-stage.service";
-import type { IProjectQuery } from "../../interfaces/api-request.interface";
+import type { ICursorPage, IApiProject } from "../../interfaces/api.interface";
 import { projectActivityService } from "../../services/project-activity.service";
+import type { IProjectQuery, IProjectPageQuery } from "../../interfaces/api-request.interface";
 
 export const useProjectStagesQuery = () =>
   useQuery({ queryKey: QUERY_KEYS.PROJECT_STAGES, queryFn: () => projectStageService.getAll() });
@@ -16,6 +17,18 @@ export const useProjectsQuery = (query: IProjectQuery) =>
   useQuery({
     queryKey: QUERY_KEYS.projects(query),
     queryFn: () => projectService.getByFilter(query),
+  });
+
+const FIRST_PROJECT_PAGE_CURSOR: string | null = null;
+
+const getNextProjectCursor = (page: ICursorPage<IApiProject>) => page.nextCursor;
+
+export const useProjectPagesQuery = (query: IProjectPageQuery) =>
+  useInfiniteQuery({
+    getNextPageParam: getNextProjectCursor,
+    queryKey: QUERY_KEYS.projectPages(query),
+    initialPageParam: FIRST_PROJECT_PAGE_CURSOR,
+    queryFn: ({ pageParam }) => projectService.getPage(query, pageParam),
   });
 
 export const useProjectStageCountsQuery = (query: IProjectQuery) =>

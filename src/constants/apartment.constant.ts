@@ -18,8 +18,6 @@ import { VALID_FIELD } from "../utilities/field-feedback.utility";
 import type { IApartmentChanges } from "../interfaces/api-request.interface";
 import { FIELD_TYPES } from "../components/TextField/constants/textfield.constants";
 
-export const ALL_STAGES_TILE_ID = "all";
-
 export const PAYMENT_TERMS_RESET: IApartmentChanges = {
   paymentTerms: null,
   paymentTermsNote: null,
@@ -113,7 +111,6 @@ export const BUILDING_PAGE_COPY = {
   NO_NOTES: "אין הערות לבניין",
   STAGES_TITLE: "דירות לפי שלב",
   STAGES_SUBTITLE: "לחיצה על שלב מסננת את הטבלה",
-  ALL_STAGES: "הכל",
   APARTMENTS_TITLE: "דירות הבניין",
   SEARCH_PLACEHOLDER: "חיפוש לפי מספר דירה, לקוח או קוד...",
   EMPTY_TITLE: "עדיין אין דירות בבניין הזה",
