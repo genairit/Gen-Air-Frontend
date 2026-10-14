@@ -105,6 +105,7 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   driveFolderId: string | null;
   projectType?: IApiProjectType;
   members?: IApiProjectMember[];
+  customer?: IApiCustomer | null;
   parentProjectId: string | null;
   parentProject?: IApiProjectReference;
   inheritedFields?: InheritedProjectFieldType[];

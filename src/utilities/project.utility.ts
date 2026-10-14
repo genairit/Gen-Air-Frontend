@@ -47,6 +47,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
       name: "",
       typeId: null,
       stageId: null,
+      customerId: null,
       assignees: createEmptyAssignees(),
       ...createEmptyIntakeValues(),
       customerDetails: createEmptyCustomerDetailValues(),
@@ -57,6 +58,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
     name: project.name,
     stageId: project.stageId,
     typeId: project.projectTypeId,
+    customerId: project.customerId,
     assignees: toAssignees(project),
     ...toIntakeValues(project),
     customerDetails: toCustomerDetailValues(project),
@@ -73,12 +75,14 @@ const toMemberAssignments = (assignees: TRoleAssignees) =>
 export const canSubmitProjectForm = (values: IProjectFormValues) =>
   Boolean(values.name.trim()) && Boolean(values.typeId);
 
+export const countMissingCustomer = (values: IProjectFormValues) => (values.customerId ? 0 : 1);
+
 export const toProjectPayload = ({
   values,
   fieldSet,
   originalIntake,
 }: IProjectSubmission): IProjectPayload | null => {
-  if (!values.typeId) {
+  if (!values.typeId || !values.customerId) {
     return null;
   }
 
@@ -87,6 +91,7 @@ export const toProjectPayload = ({
     ...toIntakePayload(values, originalIntake),
     name: values.name.trim(),
     projectTypeId: values.typeId,
+    customerId: values.customerId,
     members: toMemberAssignments(values.assignees),
     ...(values.stageId ? { stageId: values.stageId } : {}),
   };

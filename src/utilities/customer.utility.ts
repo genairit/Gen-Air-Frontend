@@ -1,11 +1,13 @@
 import {
   CUSTOMERS_COPY,
   CUSTOMER_PAGE_COPY,
+  CUSTOMER_PICKER_COPY,
   CUSTOMER_SYNC_STEP_TITLES,
   TAX_ID_LABEL_BY_CUSTOMER_TYPE,
 } from "../constants/customer.constant";
 
 import {
+  PRIORITY_SYNC_STATUSES,
   PRIORITY_SYNC_STATUS_VALUES,
   type PrioritySyncStatusType,
 } from "../constants/priority-sync.constant";
@@ -90,3 +92,17 @@ export const getCustomerSyncSteps = (customer: IApiCustomer): ICustomerSyncStep[
     caption: `נשמר ${formatDate(new Date(customer.createdAt), DATE_FORMAT.DATE_DOTS)}`,
   },
 ];
+
+export const isCustomerSelectable = (customer: IApiCustomer) =>
+  customer.prioritySyncStatus !== PRIORITY_SYNC_STATUSES.FAILED;
+
+export const getCustomerPickerLabel = (search: string) => {
+  if (search.trim()) {
+    return CUSTOMER_PICKER_COPY.RESULTS;
+  }
+
+  return CUSTOMER_PICKER_COPY.RECENT;
+};
+
+export const formatCustomerContactLine = (customer: IApiCustomer) =>
+  [customer.contactName, customer.phone, customer.email].join(" · ");

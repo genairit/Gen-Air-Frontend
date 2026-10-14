@@ -20,6 +20,7 @@ export interface IProjectPayload
   extends Partial<IApiProjectCustomerDetails>, TProjectIntakePayload {
   name: string;
   stageId?: string;
+  customerId: string;
   projectTypeId: string;
   members: IProjectMemberAssignment[];
 }

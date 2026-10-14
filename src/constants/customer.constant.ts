@@ -97,3 +97,20 @@ export const SYNC_STEP_ICON_BY_STATE: Record<TCustomerSyncStepState, IconNameTyp
   active: null,
   failed: null,
 };
+
+export const CUSTOMER_PICKER_RESULT_LIMIT = 5;
+
+export const CUSTOMER_PICKER_COPY = {
+  TITLE: "לקוח הפרויקט",
+  SUBTITLE: "בחירת לקוח קיים. הפרטים נשמרים בכרטיס הלקוח ולא מוקלדים מחדש",
+  SEARCH_PLACEHOLDER: "חיפוש לקוח לפי שם, ח.פ, איש קשר או טלפון...",
+  RECENT: "לקוחות אחרונים",
+  RESULTS: "תוצאות חיפוש",
+  NO_RESULTS: "לא נמצא לקוח שמתאים לחיפוש",
+  BLOCKED: "לא ניתן לבחור עד שיסונכרן ל-Priority",
+  REQUIRED: "בחר לקוח לפרויקט לפני השמירה",
+  LOADING: "טוען לקוחות...",
+  OPEN_CUSTOMER: "כרטיס הלקוח",
+  REPLACE: "החלף לקוח",
+  NOT_SELECTED: "לא נבחר לקוח",
+} as const;
