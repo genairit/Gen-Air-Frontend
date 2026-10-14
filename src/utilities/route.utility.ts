@@ -6,6 +6,7 @@ import {
 
 import { generatePath, matchPath } from "react-router-dom";
 import { ROUTE_PATHS } from "../constants/routes.constant";
+import type { IBackLinkTarget } from "../interfaces/navigation-item.interface";
 
 export const buildProjectPath = (projectId: string) =>
   generatePath(ROUTE_PATHS.PROJECT, { projectId });
@@ -36,17 +37,26 @@ export const getActiveNavigationId = (pathname: string) => {
   return ACTIVE_NAVIGATION_BY_ROUTE[route];
 };
 
+export const buildApartmentPath = (buildingId: string, apartmentId: string) =>
+  generatePath(ROUTE_PATHS.APARTMENT, { projectId: buildingId, apartmentId });
+
+export const buildNewApartmentPath = (buildingId: string) =>
+  generatePath(ROUTE_PATHS.NEW_APARTMENT, { projectId: buildingId });
+
 export const buildCustomerPath = (customerId: string) =>
   generatePath(ROUTE_PATHS.CUSTOMER, { customerId });
 
-export const getBackLinkTarget = (pathname: string) => {
+export const getBackLinkTarget = (pathname: string): IBackLinkTarget | null => {
   const route = findMatchingRoute(pathname, Object.keys(BACK_LINK_BY_ROUTE));
+  const match = route ? matchPath(route, pathname) : null;
 
-  if (!route) {
+  if (!route || !match) {
     return null;
   }
 
-  return BACK_LINK_BY_ROUTE[route];
+  const { label, buildPath } = BACK_LINK_BY_ROUTE[route];
+
+  return { label, to: buildPath(match.params) };
 };
 
 export const getProjectFormCancelPath = (projectId: string | null) => {

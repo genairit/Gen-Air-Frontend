@@ -1,6 +1,7 @@
 import { ICON_NAMES } from "./icon.constant";
-import { ROUTE_PATHS } from "./routes.constant";
-import type { IBackLinkTarget, INavigationItem } from "../interfaces/navigation-item.interface";
+import { generatePath, type Params } from "react-router-dom";
+import { ROUTE_PARAMS, ROUTE_PATHS } from "./routes.constant";
+import type { IBackLinkRoute, INavigationItem } from "../interfaces/navigation-item.interface";
 
 export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
   { id: ROUTE_PATHS.BOARD, label: "לוח בקרה", icon: ICON_NAMES.PROJECTS },
@@ -22,6 +23,8 @@ export const PAGE_TITLE_BY_ROUTE: Record<string, string> = {
   [ROUTE_PATHS.PROJECT]: "תצוגת פרויקט",
   [ROUTE_PATHS.NEW_PROJECT]: "יצירת פרויקט חדש",
   [ROUTE_PATHS.EDIT_PROJECT]: "עריכת פרויקט",
+  [ROUTE_PATHS.NEW_APARTMENT]: "הוספת דירה",
+  [ROUTE_PATHS.APARTMENT]: "תצוגת דירה",
   [ROUTE_PATHS.SETTINGS]: "הגדרות מערכת",
   [ROUTE_PATHS.EMPLOYEES]: "ניהול עובדים",
   [ROUTE_PATHS.CUSTOMERS]: "לקוחות",
@@ -34,6 +37,8 @@ export const ACTIVE_NAVIGATION_BY_ROUTE: Record<string, string> = {
   [ROUTE_PATHS.PROJECT]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.NEW_PROJECT]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.EDIT_PROJECT]: ROUTE_PATHS.BOARD,
+  [ROUTE_PATHS.NEW_APARTMENT]: ROUTE_PATHS.BOARD,
+  [ROUTE_PATHS.APARTMENT]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.SETTINGS]: ROUTE_PATHS.SETTINGS,
   [ROUTE_PATHS.EMPLOYEES]: ROUTE_PATHS.EMPLOYEES,
   [ROUTE_PATHS.CUSTOMERS]: ROUTE_PATHS.CUSTOMERS,
@@ -50,9 +55,27 @@ export const NAVIGATION_LABELS = {
   LOGOUT: "התנתק",
   BACK_TO_BOARD: "חזרה ללוח הבקרה",
   BACK_TO_CUSTOMERS: "חזרה ללקוחות",
+  BACK_TO_BUILDING: "חזרה לבניין",
 } as const;
 
-export const BACK_LINK_BY_ROUTE: Record<string, IBackLinkTarget> = {
-  [ROUTE_PATHS.PROJECT]: { to: ROUTE_PATHS.BOARD, label: NAVIGATION_LABELS.BACK_TO_BOARD },
-  [ROUTE_PATHS.CUSTOMER]: { to: ROUTE_PATHS.CUSTOMERS, label: NAVIGATION_LABELS.BACK_TO_CUSTOMERS },
+const toBuildingPath = (params: Params) =>
+  generatePath(ROUTE_PATHS.PROJECT, { projectId: params[ROUTE_PARAMS.PROJECT_ID] ?? "" });
+
+export const BACK_LINK_BY_ROUTE: Record<string, IBackLinkRoute> = {
+  [ROUTE_PATHS.PROJECT]: {
+    label: NAVIGATION_LABELS.BACK_TO_BOARD,
+    buildPath: () => ROUTE_PATHS.BOARD,
+  },
+  [ROUTE_PATHS.CUSTOMER]: {
+    label: NAVIGATION_LABELS.BACK_TO_CUSTOMERS,
+    buildPath: () => ROUTE_PATHS.CUSTOMERS,
+  },
+  [ROUTE_PATHS.NEW_APARTMENT]: {
+    buildPath: toBuildingPath,
+    label: NAVIGATION_LABELS.BACK_TO_BUILDING,
+  },
+  [ROUTE_PATHS.APARTMENT]: {
+    buildPath: toBuildingPath,
+    label: NAVIGATION_LABELS.BACK_TO_BUILDING,
+  },
 };

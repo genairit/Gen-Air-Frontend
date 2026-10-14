@@ -2,6 +2,7 @@ import type {
   IUserQuery,
   IProjectQuery,
   ICustomerQuery,
+  IApartmentQuery,
 } from "../interfaces/api-request.interface";
 
 export const QUERY_ROOTS = {
@@ -10,6 +11,8 @@ export const QUERY_ROOTS = {
   CUSTOMERS: "customers",
   PROJECT: "project",
   PROJECTS: "projects",
+  APARTMENTS: "apartments",
+  APARTMENT_STAGE_COUNTS: "apartment-stage-counts",
   PROJECT_DRIVE: "project-drive",
   STAGE_COUNTS: "project-stage-counts",
   TRANSITIONS: "project-transitions",
@@ -32,6 +35,13 @@ export const QUERY_KEYS = {
   projects: (query: IProjectQuery) => [QUERY_ROOTS.PROJECTS, query],
   stageCounts: (query: IProjectQuery) => [QUERY_ROOTS.STAGE_COUNTS, query],
   project: (projectId: string) => [QUERY_ROOTS.PROJECT, projectId],
+  apartments: (buildingId: string, query: IApartmentQuery) => [
+    QUERY_ROOTS.APARTMENTS,
+    buildingId,
+    query,
+  ],
+  allApartments: (buildingId: string) => [QUERY_ROOTS.APARTMENTS, buildingId, "all"],
+  apartmentStageCounts: (buildingId: string) => [QUERY_ROOTS.APARTMENT_STAGE_COUNTS, buildingId],
   transitions: (projectId: string) => [QUERY_ROOTS.TRANSITIONS, projectId],
   driveContents: (projectId: string, folderId: string | null) => [
     QUERY_ROOTS.PROJECT_DRIVE,

@@ -41,6 +41,7 @@ export interface IApiProjectType {
   icon: string | null;
   subtitle: string | null;
   description: string | null;
+  canHaveApartments: boolean;
   detailFieldSet: ProjectDetailFieldSetType;
 }
 
@@ -77,18 +78,36 @@ export interface IApiProjectIntake {
   paymentTerms: PaymentTermsType | null;
 }
 
+export type InheritedProjectFieldType = keyof Pick<
+  IApiProjectIntake,
+  "address" | "addressCity" | "paymentTerms" | "addressPlaceId" | "paymentTermsNote"
+>;
+
+export interface IApiProjectReference {
+  id: string;
+  code: string;
+  name: string;
+}
+
 export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectIntake {
   id: string;
   code: string;
   name: string;
   stageId: string;
   updatedAt: string;
+  notes: string | null;
   projectTypeId: string;
+  apartmentCount?: number;
   stage?: IApiProjectStage;
+  customerId: string | null;
   erpSyncedAt: string | null;
+  parentNotes?: string | null;
   driveFolderId: string | null;
   projectType?: IApiProjectType;
   members?: IApiProjectMember[];
+  parentProjectId: string | null;
+  parentProject?: IApiProjectReference;
+  inheritedFields?: InheritedProjectFieldType[];
 }
 
 export type TCountsByStageId = Record<string, number>;
@@ -172,3 +191,7 @@ export interface IApiCustomer {
 }
 
 export type TCustomerSyncStatusCounts = Record<PrioritySyncStatusType, number>;
+
+export interface IApiApartmentPage extends ICursorPage<IApiProject> {
+  total: number;
+}

@@ -22,6 +22,7 @@ import type {
 import { getFullName } from "./user.mapper";
 import { formatFileSize } from "../file.utility";
 import { theme } from "../../constants/theme.constants";
+import { formatApartmentCount } from "../apartment.utility";
 import { DATE_FORMAT } from "../../constants/date.constants";
 import { getInitials, formatErpSyncCaption } from "../text.utility";
 import { USER_ROLE_LABELS } from "../../constants/user-role.constant";
@@ -53,8 +54,17 @@ const getMemberInitials = (project: IApiProject) =>
     member.user ? [getInitials(getFullName(member.user))] : [],
   );
 
+const toApartmentsLabel = (project: IApiProject) => {
+  if (!project.projectType?.canHaveApartments) {
+    return null;
+  }
+
+  return formatApartmentCount(project.apartmentCount ?? 0);
+};
+
 export const toProjectSummary = (project: IApiProject): IProjectSummary => ({
   id: project.id,
+  apartmentsLabel: toApartmentsLabel(project),
   progress: null,
   code: project.code,
   name: project.name,

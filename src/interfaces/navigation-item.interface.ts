@@ -1,3 +1,4 @@
+import type { Params } from "react-router-dom";
 import type { IconNameType } from "../constants/icon.constant";
 
 export interface INavigationItem {
@@ -9,4 +10,9 @@ export interface INavigationItem {
 export interface IBackLinkTarget {
   to: string;
   label: string;
+}
+
+export interface IBackLinkRoute {
+  label: string;
+  buildPath: (params: Params) => string;
 }
