@@ -2,7 +2,7 @@ import { taskService } from "../services/task.service";
 import { queryClient } from "../providers/query-client";
 import { QUERY_ROOTS } from "../constants/query-key.constant";
 import type { TaskStatusType } from "../constants/task.constant";
-import type { ICreateTaskPayload, TUpdateTaskPayload } from "../interfaces/task.interface";
+import type { ITaskCreation, TUpdateTaskPayload } from "../interfaces/task.interface";
 
 export const refreshTaskQueriesAction = () =>
   Promise.all([
@@ -11,11 +11,23 @@ export const refreshTaskQueriesAction = () =>
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.TASK_COUNTS] }),
   ]);
 
-export const createTaskAction = async (payload: ICreateTaskPayload) => {
-  const task = await taskService.create(payload);
-  await refreshTaskQueriesAction();
-  return task;
+const markUrgentWhenRequested = async (taskId: string, isUrgent: boolean) => {
+  if (!isUrgent) {
+    return;
+  }
+
+  await taskService.updateUrgency(taskId, true);
 };
+
+export const createTaskAction = async ({ payload, isUrgent }: ITaskCreation) => {
+  const task = await taskService.create(payload);
+
+  await markUrgentWhenRequested(task.id, isUrgent);
+  await refreshTaskQueriesAction();
+
+  return task.id;
+};
+
 export const updateTaskAction = async ({
   taskId,
   payload,
@@ -23,10 +35,10 @@ export const updateTaskAction = async ({
   taskId: string;
   payload: TUpdateTaskPayload;
 }) => {
-  const task = await taskService.update(taskId, payload);
+  await taskService.update(taskId, payload);
   await refreshTaskQueriesAction();
-  return task;
 };
+
 export const updateTaskStatusAction = async ({
   taskId,
   status,
@@ -34,10 +46,10 @@ export const updateTaskStatusAction = async ({
   taskId: string;
   status: TaskStatusType;
 }) => {
-  const task = await taskService.updateStatus(taskId, status);
+  await taskService.updateStatus(taskId, status);
   await refreshTaskQueriesAction();
-  return task;
 };
+
 export const updateTaskUrgencyAction = async ({
   taskId,
   isUrgent,
@@ -45,15 +57,15 @@ export const updateTaskUrgencyAction = async ({
   taskId: string;
   isUrgent: boolean;
 }) => {
-  const task = await taskService.updateUrgency(taskId, isUrgent);
+  await taskService.updateUrgency(taskId, isUrgent);
   await refreshTaskQueriesAction();
-  return task;
 };
+
 export const claimTaskAction = async (taskId: string) => {
-  const task = await taskService.claim(taskId);
+  await taskService.claim(taskId);
   await refreshTaskQueriesAction();
-  return task;
 };
+
 export const deleteTaskAction = async (taskId: string) => {
   await taskService.delete(taskId);
   await refreshTaskQueriesAction();

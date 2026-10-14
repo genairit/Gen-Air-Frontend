@@ -6,6 +6,7 @@ import {
 
 import { generatePath, matchPath } from "react-router-dom";
 import { ROUTE_PATHS } from "../constants/routes.constant";
+import { NEW_TASK_PROJECT_PARAM } from "../constants/task.constant";
 import type { IBackLinkTarget } from "../interfaces/navigation-item.interface";
 
 export const buildProjectPath = (projectId: string) =>
@@ -65,4 +66,14 @@ export const getProjectFormCancelPath = (projectId: string | null) => {
   }
 
   return buildProjectPath(projectId);
+};
+
+export const buildTaskPath = (taskId: string) => generatePath(ROUTE_PATHS.TASK, { taskId });
+
+export const buildNewTaskPath = (projectId: string | null) => {
+  if (!projectId) {
+    return ROUTE_PATHS.NEW_TASK;
+  }
+
+  return `${ROUTE_PATHS.NEW_TASK}?${new URLSearchParams({ [NEW_TASK_PROJECT_PARAM]: projectId })}`;
 };

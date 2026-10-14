@@ -1,9 +1,12 @@
 import AppLayout from "./layouts/AppLayout";
+import TaskPage from "./pages/task/TaskPage";
 import LoginPage from "./pages/login/LoginPage";
 import BoardPage from "./pages/board/BoardPage";
+import TasksPage from "./pages/tasks/TasksPage";
 import type { RouteObject } from "react-router-dom";
 import RequireSession from "./layouts/RequireSession";
 import ProjectPage from "./pages/project/ProjectPage";
+import NewTaskPage from "./pages/task-form/NewTaskPage";
 import SettingsPage from "./pages/settings/SettingsPage";
 import CustomerPage from "./pages/customer/CustomerPage";
 import { ROUTE_PATHS } from "./constants/routes.constant";
@@ -27,6 +30,9 @@ export const routes: RouteObject[] = [
           { path: ROUTE_PATHS.PROJECT, element: <ProjectPage /> },
           { path: ROUTE_PATHS.APARTMENT, element: <ApartmentPage /> },
           { path: ROUTE_PATHS.NEW_APARTMENT, element: <NewApartmentPage /> },
+          { path: ROUTE_PATHS.TASKS, element: <TasksPage /> },
+          { path: ROUTE_PATHS.TASK, element: <TaskPage /> },
+          { path: ROUTE_PATHS.NEW_TASK, element: <NewTaskPage /> },
           { path: ROUTE_PATHS.SETTINGS, element: <SettingsPage /> },
           { path: ROUTE_PATHS.EMPLOYEES, element: <EmployeesPage /> },
           { path: ROUTE_PATHS.CUSTOMERS, element: <CustomersPage /> },
