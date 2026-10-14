@@ -1,1 +1,1 @@
-declare module "moment/locale/he";
+declare module "moment/dist/locale/he";
