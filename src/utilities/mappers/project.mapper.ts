@@ -9,7 +9,6 @@ import type {
 } from "../../interfaces/api.interface";
 
 import type {
-  IBoardColumn,
   IStatusStage,
   IProjectFile,
   IProjectFolder,
@@ -71,12 +70,6 @@ export const toProjectSummary = (project: IApiProject): IProjectSummary => ({
   teamInitials: getMemberInitials(project),
   type: project.projectType?.name ?? "",
   updatedLabel: formatRelativeTime(project.updatedAt),
-});
-
-export const toBoardColumn = (stage: IApiProjectStage): IBoardColumn => ({
-  title: stage.name,
-  stageId: stage.id,
-  dotColor: stage.color ?? theme.palette.statusGray,
 });
 
 export const toStatusStage = (stage: IApiProjectStage): IStatusStage => ({

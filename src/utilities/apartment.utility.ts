@@ -4,32 +4,24 @@ import {
   isPaymentTermsNoteRequired,
 } from "./project-intake.utility";
 
-import type {
-  IApiProject,
-  IApiProjectStage,
-  IProjectStageCounts,
-} from "../interfaces/api.interface";
-
 import {
   ADD_APARTMENT_COPY,
-  ALL_STAGES_TILE_ID,
   BUILDING_PAGE_COPY,
   APARTMENT_PAGE_COPY,
 } from "../constants/apartment.constant";
 
 import type {
-  IStageTile,
   IApartmentPosition,
   IApartmentFormValues,
   TInheritanceSourceType,
 } from "../interfaces/apartment.interface";
 
 import { isPaymentTerms } from "./guards/api.guard";
-import { theme } from "../constants/theme.constants";
 import { findOptionIdByLabel } from "./option.utility";
 import { formatCustomerDetailValue } from "./customer-details.utility";
 import type { IApartmentChanges } from "../interfaces/api-request.interface";
 import type { IApartmentPayload } from "../interfaces/api-request.interface";
+import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 import { APARTMENT_PEOPLE_FIELDS, APARTMENT_UNIT_FIELDS } from "../constants/apartment.constant";
 import { PAYMENT_TERMS_LABELS, type PaymentTermsType } from "../constants/payment-terms.constant";
@@ -99,32 +91,6 @@ export const getPaymentTermsSource = (apartment: IApiProject): TInheritanceSourc
   return "overridden";
 };
 
-export const toStageTiles = (
-  stages: IApiProjectStage[],
-  counts: IProjectStageCounts | null,
-): IStageTile[] => [
-  {
-    id: ALL_STAGES_TILE_ID,
-    count: counts?.total ?? 0,
-    label: BUILDING_PAGE_COPY.ALL_STAGES,
-    dotColor: theme.palette.textMuted,
-  },
-  ...stages.map(stage => ({
-    id: stage.id,
-    label: stage.name,
-    count: counts?.byStage[stage.id] ?? 0,
-    dotColor: stage.color ?? theme.palette.statusGray,
-  })),
-];
-
-export const toStageFilter = (tileId: string) => {
-  if (tileId === ALL_STAGES_TILE_ID) {
-    return null;
-  }
-
-  return tileId;
-};
-
 export const findApartmentPosition = (
   apartments: IApiProject[],
   apartmentId: string,
@@ -152,14 +118,6 @@ export const formatBuildingBadge = (apartmentCount: number) =>
   `בניין · ${formatApartmentCount(apartmentCount)}`;
 
 export const formatApartmentResults = (count: number) => `${count} תוצאות`;
-
-export const toStageShare = (count: number, total: number) => {
-  if (total === 0) {
-    return 0;
-  }
-
-  return count / total;
-};
 
 export const findStage = (stages: IApiProjectStage[], stageId: string) =>
   stages.find(stage => stage.id === stageId) ?? null;

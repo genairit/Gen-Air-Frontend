@@ -3,6 +3,7 @@ import type {
   IProjectQuery,
   ICustomerQuery,
   IApartmentQuery,
+  IProjectPageQuery,
 } from "../interfaces/api-request.interface";
 
 import type { ITaskQuery } from "../interfaces/task.interface";
@@ -47,6 +48,7 @@ export const QUERY_KEYS = {
   customers: (query: ICustomerQuery) => [QUERY_ROOTS.CUSTOMERS, query],
   customer: (customerId: string) => [QUERY_ROOTS.CUSTOMER, customerId],
   projects: (query: IProjectQuery) => [QUERY_ROOTS.PROJECTS, query],
+  projectPages: (query: IProjectPageQuery) => [QUERY_ROOTS.PROJECTS, "pages", query],
   stageCounts: (query: IProjectQuery) => [QUERY_ROOTS.STAGE_COUNTS, query],
   project: (projectId: string) => [QUERY_ROOTS.PROJECT, projectId],
   apartments: (buildingId: string, query: IApartmentQuery) => [

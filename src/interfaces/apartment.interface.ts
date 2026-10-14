@@ -30,13 +30,6 @@ export interface IInheritanceBadgeConfig {
   variant: ChipVariantType;
 }
 
-export interface IStageTile {
-  id: string;
-  label: string;
-  count: number;
-  dotColor: string;
-}
-
 export interface IApartmentPosition {
   total: number;
   position: number;

@@ -1,9 +1,3 @@
-import {
-  toStageTiles,
-  toStageFilter,
-  formatBuildingBadge,
-} from "../../../../utilities/apartment.utility";
-
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +7,6 @@ import ProjectTasksCard from "../ProjectTasksCard";
 import { usePageStyles } from "../../../page.style";
 import Chip from "../../../../components/Chip/Chip";
 import ProjectPageHeader from "../ProjectPageHeader";
-import ApartmentStagesCard from "./ApartmentStagesCard";
 import ProjectFilesSection from "../ProjectFilesSection";
 import ProjectCustomerCard from "../ProjectCustomerCard";
 import Button from "../../../../components/Button/Button";
@@ -22,10 +15,14 @@ import { ICON_NAMES } from "../../../../constants/icon.constant";
 import { useSessionUser } from "../../../../store/session.store";
 import type { IApiProject } from "../../../../interfaces/api.interface";
 import { hasPermission } from "../../../../utilities/permission.utility";
+import { formatBuildingBadge } from "../../../../utilities/apartment.utility";
+import { BUILDING_PAGE_COPY } from "../../../../constants/apartment.constant";
+import { ALL_STAGES_TILE_ID } from "../../../../constants/stage-tile.constant";
 import { useProjectStagesQuery } from "../../../../hooks/queries/project.query";
+import StageTilesCard from "../../../../components/StageTilesCard/StageTilesCard";
+import { toStageTiles, toStageFilter } from "../../../../utilities/stage-tile.utility";
 import { useApartmentStageCountsQuery } from "../../../../hooks/queries/apartment.query";
 import { buildEditProjectPath, buildNewApartmentPath } from "../../../../utilities/route.utility";
-import { ALL_STAGES_TILE_ID, BUILDING_PAGE_COPY } from "../../../../constants/apartment.constant";
 
 interface IBuildingViewProps {
   project: IApiProject;
@@ -63,10 +60,12 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
 
       <BuildingInheritedCard building={project} />
 
-      <ApartmentStagesCard
+      <StageTilesCard
         onSelect={setActiveTileId}
         activeTileId={activeTileId}
+        title={BUILDING_PAGE_COPY.STAGES_TITLE}
         tiles={toStageTiles(stages, stageCounts)}
+        subtitle={BUILDING_PAGE_COPY.STAGES_SUBTITLE}
       />
 
       <ApartmentsTable

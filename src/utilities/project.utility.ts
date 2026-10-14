@@ -5,33 +5,17 @@ import {
 } from "./customer-details.utility";
 
 import type {
-  IBoardColumn,
   TRoleAssignees,
   IProjectFormValues,
   IProjectSubmission,
 } from "../interfaces/project.interface";
 
 import { mapUserRoles } from "./user-role.utility";
-import type { IApiProject } from "../interfaces/api.interface";
+import { BOARD_COPY } from "../constants/board.constant";
 import type { IProjectPayload } from "../interfaces/api-request.interface";
+import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
 import { USER_ROLE_VALUES, type UserRoleType } from "../constants/user-role.constant";
 import { toIntakeValues, toIntakePayload, createEmptyIntakeValues } from "./project-intake.utility";
-
-export const getProjectsInStage = (projects: IApiProject[], stageId: string) =>
-  projects.filter(project => project.stageId === stageId);
-
-export const moveProjectInList = (
-  projects: IApiProject[],
-  { projectId, stageId }: { projectId: string; stageId: string },
-) => projects.map(project => (project.id === projectId ? { ...project, stageId } : project));
-
-export const getVisibleBoardColumns = (columns: IBoardColumn[], stageId: string | null) => {
-  if (!stageId) {
-    return columns;
-  }
-
-  return columns.filter(column => column.stageId === stageId);
-};
 
 const createEmptyAssignees = (): TRoleAssignees => mapUserRoles(() => null);
 
@@ -96,3 +80,12 @@ export const toProjectPayload = ({
     ...(values.stageId ? { stageId: values.stageId } : {}),
   };
 };
+
+export const formatProjectCustomer = (project: IApiProject) =>
+  project.customer?.name ?? project.customerName ?? BOARD_COPY.NO_CUSTOMER;
+
+export const formatVisibleProjects = ({ visible, total }: { visible: number; total: number }) =>
+  `מציג ${visible} מתוך ${total} פרויקטים`;
+
+export const findStageByName = (stages: IApiProjectStage[], name: string | null) =>
+  stages.find(stage => stage.name === name) ?? null;
