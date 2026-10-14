@@ -15,11 +15,17 @@ import type {
 
 import { CHIP_VARIANTS } from "./chip.constant";
 import { VALID_FIELD } from "../utilities/field-feedback.utility";
+import type { IApartmentChanges } from "../interfaces/api-request.interface";
 import { FIELD_TYPES } from "../components/TextField/constants/textfield.constants";
 
 export const ALL_STAGES_TILE_ID = "all";
 
-export const APARTMENT_SCROLL_THRESHOLD_PX = 200;
+export const PAYMENT_TERMS_RESET: IApartmentChanges = {
+  paymentTerms: null,
+  paymentTermsNote: null,
+};
+
+export const APARTMENT_SCROLL_ROOT_MARGIN = "200px";
 
 export const EMPTY_APARTMENT_FORM: IApartmentFormValues = {
   floor: "",
@@ -85,9 +91,13 @@ export const APARTMENT_PEOPLE_FIELDS: IApartmentFormFieldConfig[] = [
 ];
 
 export const INHERITANCE_BADGES: Record<TInheritanceSourceType, IInheritanceBadgeConfig> = {
-  building: { label: "מפרויקט האב", variant: CHIP_VARIANTS.INFO },
-  overridden: { label: "שונה בדירה", variant: CHIP_VARIANTS.DARK },
-  own: { label: "נקבע בדירה", variant: CHIP_VARIANTS.INSET },
+  building: { label: "מפרויקט האב", variant: CHIP_VARIANTS.INFO, description: "עוקב אחרי האב" },
+  overridden: {
+    label: "שונה בדירה",
+    variant: CHIP_VARIANTS.DARK,
+    description: "ערך מקומי, אפשר לחזור לאב",
+  },
+  own: { label: "נקבע בדירה", variant: CHIP_VARIANTS.INSET, description: "שייך לדירה בלבד" },
 };
 
 export const BUILDING_PAGE_COPY = {
@@ -148,9 +158,6 @@ export const APARTMENT_PAGE_COPY = {
   CONTACT_PHONE: "טלפון נייד",
   INHERITED_TITLE: "נתונים מהפרויקט האב",
   INHERITED_SUBTITLE: "ערך שהוגדר באב מתעדכן אוטומטית, אלא אם שונה בדירה",
-  FOLLOWS_PARENT: "עוקב אחרי האב",
-  LOCAL_VALUE: "ערך מקומי, אפשר לחזור לאב",
-  APARTMENT_ONLY: "שייך לדירה בלבד",
   PROJECT_TYPE: "סוג פרויקט",
   ADDRESS: "כתובת הבניין",
   UNIT: "קומה ומספר דירה",
@@ -175,6 +182,7 @@ export const APARTMENT_PAGE_COPY = {
   NOTES_SUBTITLE: "נראות רק בדירה זו",
   NOTES_PLACEHOLDER: "לדוגמה: הדייר זמין רק אחר הצהריים, גישה דרך חדר המדרגות המזרחי",
   NOTES_SAVED: "ההערות נשמרו",
+  SAVE_NOTES: "שמור הערות",
 } as const;
 
 export const ADD_APARTMENT_COPY = {
@@ -186,6 +194,9 @@ export const ADD_APARTMENT_COPY = {
   INHERITED_TITLE: "עובר מהבניין",
   INHERITED_SUBTITLE: "קריאה בלבד, אפשר לשנות לדירה זו אחרי השמירה",
   FROM_PARENT: "מפרויקט האב",
+  TYPE_LABEL: "סוג פרויקט",
+  ADDRESS_LABEL: "כתובת הבניין",
+  TERMS_LABEL: "תנאי תשלום",
   NOT_CHANGEABLE: "לא ניתן לשינוי",
   ADDRESS_NOTE: "לא ניתן לשינוי · מוסיפים קומה ומספר דירה",
   TERMS_NOTE: "מתעדכן אוטומטית עם האב",

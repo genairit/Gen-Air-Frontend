@@ -26,6 +26,7 @@ export type TInheritanceSourceType = "building" | "overridden" | "own";
 
 export interface IInheritanceBadgeConfig {
   label: string;
+  description: string;
   variant: ChipVariantType;
 }
 
@@ -41,4 +42,11 @@ export interface IApartmentPosition {
   position: number;
   nextId: string | null;
   previousId: string | null;
+}
+
+export interface IApartmentSelection {
+  toggleAll: () => void;
+  isAllSelected: boolean;
+  toggle: (apartmentId: string) => void;
+  isSelected: (apartmentId: string) => boolean;
 }
