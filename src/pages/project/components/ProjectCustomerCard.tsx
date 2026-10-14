@@ -1,12 +1,11 @@
 import {
   isLtrCustomerField,
-  getCustomerDetailFields,
+  getSiteDetailFields,
   formatCustomerDetailValue,
 } from "../../../utilities/customer-details.utility";
 
 import {
   CUSTOMER_DETAILS_COPY,
-  CUSTOMER_DETAILS_TITLES,
   type ICustomerDetailFieldConfig,
 } from "../../../constants/customer-details.constant";
 
@@ -20,6 +19,7 @@ import DetailTile from "../../../components/DetailTile/DetailTile";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { CUSTOMER_DETAIL_FIELDS, CUSTOMER_PICKER_COPY } from "../../../constants/customer.constant";
 import type { ProjectDetailFieldSetType } from "../../../constants/project-detail-field-set.constant";
 
 interface IProjectCustomerCardProps {
@@ -36,8 +36,9 @@ const ProjectCustomerCard: FC<IProjectCustomerCardProps> = ({
   typeName,
 }) => {
   const pageStyles = usePageStyles();
+  const customer = project.customer ?? null;
 
-  const renderTile = (config: ICustomerDetailFieldConfig) => (
+  const renderSiteTile = (config: ICustomerDetailFieldConfig) => (
     <DetailTile
       key={config.field}
       label={config.label}
@@ -60,10 +61,25 @@ const ProjectCustomerCard: FC<IProjectCustomerCardProps> = ({
         badge={typeName}
         action={editAction}
         icon={ICON_NAMES.CUSTOMER}
-        title={CUSTOMER_DETAILS_TITLES[fieldSet]}
+        title={CUSTOMER_DETAILS_COPY.VIEW_TITLE}
       />
       <Box sx={pageStyles.grid({ minColumnWidth: 200, gap: "14px" })}>
-        {getCustomerDetailFields(fieldSet).map(renderTile)}
+        {customer &&
+          CUSTOMER_DETAIL_FIELDS.map(config => (
+            <DetailTile
+              key={config.field}
+              label={config.label}
+              isLtr={config.isLtr}
+              value={customer[config.field]}
+            />
+          ))}
+        {!customer && (
+          <DetailTile
+            label={CUSTOMER_PICKER_COPY.TITLE}
+            value={CUSTOMER_PICKER_COPY.NOT_SELECTED}
+          />
+        )}
+        {getSiteDetailFields(fieldSet).map(renderSiteTile)}
       </Box>
     </Card>
   );

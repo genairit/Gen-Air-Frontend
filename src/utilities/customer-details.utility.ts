@@ -14,9 +14,9 @@ import type {
 import {
   CUSTOMER_FIELD_KINDS,
   CUSTOMER_DETAILS_COPY,
+  SITE_DETAIL_FIELDS_BY_SET,
   CUSTOMER_FIELD_KIND_CONFIG,
   CUSTOMER_DETAIL_SHORT_LABELS,
-  CUSTOMER_DETAIL_FIELDS_BY_SET,
   type ICustomerDetailFieldConfig,
 } from "../constants/customer-details.constant";
 
@@ -59,14 +59,14 @@ export const findDetailFieldSet = (
 ): ProjectDetailFieldSetType | null =>
   types.find(type => type.id === typeId)?.detailFieldSet ?? null;
 
-export const getCustomerDetailFields = (
+export const getSiteDetailFields = (
   fieldSet: ProjectDetailFieldSetType | null,
 ): ICustomerDetailFieldConfig[] => {
   if (!fieldSet) {
     return [];
   }
 
-  return CUSTOMER_DETAIL_FIELDS_BY_SET[fieldSet];
+  return SITE_DETAIL_FIELDS_BY_SET[fieldSet];
 };
 
 export const validateCustomerDetail = (config: ICustomerDetailFieldConfig, value: string) =>
@@ -76,7 +76,7 @@ export const countCustomerDetailErrors = (
   values: TCustomerDetailValues,
   fieldSet: ProjectDetailFieldSetType | null,
 ) =>
-  getCustomerDetailFields(fieldSet).filter(
+  getSiteDetailFields(fieldSet).filter(
     config => !validateCustomerDetail(config, values[config.field]).isValid,
   ).length;
 
@@ -91,8 +91,8 @@ export const summarizeTypeSwitch = ({
   toFieldSet: ProjectDetailFieldSetType;
   fromFieldSet: ProjectDetailFieldSetType;
 }): ITypeSwitchSummary => {
-  const previousFields = toFieldNames(getCustomerDetailFields(fromFieldSet));
-  const nextFields = toFieldNames(getCustomerDetailFields(toFieldSet));
+  const previousFields = toFieldNames(getSiteDetailFields(fromFieldSet));
+  const nextFields = toFieldNames(getSiteDetailFields(toFieldSet));
   const isFilled = (field: CustomerDetailFieldType) => Boolean(values[field].trim());
 
   return {
@@ -166,7 +166,7 @@ export const toCustomerDetailsPayload = (
   fieldSet: ProjectDetailFieldSetType | null,
 ): Partial<IApiProjectCustomerDetails> =>
   Object.fromEntries(
-    getCustomerDetailFields(fieldSet).map(config => [
+    getSiteDetailFields(fieldSet).map(config => [
       config.field,
       toPayloadValue(config, values[config.field]),
     ]),

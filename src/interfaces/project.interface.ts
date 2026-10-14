@@ -58,6 +58,7 @@ export interface IProjectFormValues extends IProjectIntakeValues {
   name: string;
   typeId: string | null;
   stageId: string | null;
+  customerId: string | null;
   assignees: TRoleAssignees;
   customerDetails: TCustomerDetailValues;
 }
