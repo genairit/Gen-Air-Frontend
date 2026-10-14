@@ -1,5 +1,4 @@
 import {
-  BOARD_COPY,
   ALL_OPTION_ID,
   BOARD_FILTER_ALL,
   PROJECT_MANAGERS_QUERY,
@@ -12,8 +11,8 @@ import {
 } from "../../hooks/queries/project.query";
 
 import {
-  toStageTiles,
   toStageFilter,
+  toStageFilterTabs,
   countInStageFilter,
 } from "../../utilities/stage-tile.utility";
 
@@ -31,7 +30,6 @@ import { hasPermission } from "../../utilities/permission.utility";
 import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
 import { useDebouncedValue } from "../../hooks/debounced-value.hook";
 import { ALL_STAGES_TILE_ID } from "../../constants/stage-tile.constant";
-import StageTilesCard from "../../components/StageTilesCard/StageTilesCard";
 import type { IProjectQuery } from "../../interfaces/api-request.interface";
 import { toOptions, toFilterId, withAllOption } from "../../utilities/option.utility";
 
@@ -42,7 +40,7 @@ const BoardPage = () => {
   const [search, setSearch] = useState("");
   const [typeFilterId, setTypeFilterId] = useState<string | null>(null);
   const [managerFilterId, setManagerFilterId] = useState<string | null>(null);
-  const [activeTileId, setActiveTileId] = useState<string>(ALL_STAGES_TILE_ID);
+  const [activeTabId, setActiveTabId] = useState<string>(ALL_STAGES_TILE_ID);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
 
   const query: IProjectQuery = {
@@ -58,7 +56,7 @@ const BoardPage = () => {
 
   const stages = stagesQuery.data ?? [];
   const counts = countsQuery.data ?? null;
-  const stageId = toStageFilter(activeTileId);
+  const stageId = toStageFilter(activeTabId);
   const typeOptions = withAllOption(BOARD_FILTER_ALL.TYPES, toOptions(typesQuery.data ?? []));
   const managerOptions = withAllOption(
     BOARD_FILTER_ALL.MANAGERS,
@@ -83,17 +81,12 @@ const BoardPage = () => {
         }}
       />
 
-      <StageTilesCard
-        onSelect={setActiveTileId}
-        activeTileId={activeTileId}
-        title={BOARD_COPY.STAGES_TITLE}
-        tiles={toStageTiles(stages, counts)}
-        subtitle={BOARD_COPY.STAGES_SUBTITLE}
-      />
-
       <ProjectsTable
         stages={stages}
+        activeTabId={activeTabId}
+        onTabChange={setActiveTabId}
         query={{ ...query, stageId }}
+        tabs={toStageFilterTabs(stages, counts)}
         total={countInStageFilter(counts, stageId)}
         onOpenProject={projectId => navigate(buildProjectPath(projectId))}
       />

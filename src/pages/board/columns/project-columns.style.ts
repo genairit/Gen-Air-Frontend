@@ -24,6 +24,18 @@ export const PROJECT_COLUMN_STYLES = createStyles({
     ...MUTED_CAPTION,
     fontSize: 12,
   },
+  mobileHeader: {
+    gap: "10px",
+    display: "flex",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+  },
+  mobileMeta: {
+    gap: "8px",
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+  },
   stopper: {
     minWidth: 0,
     display: "flex",

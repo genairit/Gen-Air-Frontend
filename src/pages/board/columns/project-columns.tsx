@@ -3,12 +3,11 @@ import ProjectTeamCell from "./cells/ProjectTeamCell";
 import ProjectTypeCell from "./cells/ProjectTypeCell";
 import ProjectStageCell from "./cells/ProjectStageCell";
 import ProjectUpdatedCell from "./cells/ProjectUpdatedCell";
-import ProjectCustomerCell from "./cells/ProjectCustomerCell";
 import { PROJECT_TABLE_HEADERS } from "../../../constants/board.constant";
 import type { IDataTableColumn } from "../../../interfaces/data-table.interface";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 
-export const PROJECT_TABLE_MIN_WIDTH = 1010;
+export const PROJECT_TABLE_MIN_WIDTH = 860;
 
 interface IProjectColumnsOptions {
   stages: IApiProjectStage[];
@@ -32,20 +31,6 @@ export const buildProjectColumns = ({
     render: project => <ProjectTypeCell project={project} />,
   },
   {
-    id: "customer",
-    track: "minmax(160px, 1.2fr)",
-    header: PROJECT_TABLE_HEADERS.CUSTOMER,
-    render: project => <ProjectCustomerCell project={project} />,
-  },
-  {
-    id: "stage",
-    track: "minmax(200px, 1.1fr)",
-    header: PROJECT_TABLE_HEADERS.STAGE,
-    render: project => (
-      <ProjectStageCell stages={stages} project={project} onChange={onStageChange} />
-    ),
-  },
-  {
     id: "team",
     track: "minmax(110px, 0.7fr)",
     header: PROJECT_TABLE_HEADERS.TEAM,
@@ -56,5 +41,13 @@ export const buildProjectColumns = ({
     track: "minmax(100px, 0.6fr)",
     header: PROJECT_TABLE_HEADERS.UPDATED,
     render: project => <ProjectUpdatedCell project={project} />,
+  },
+  {
+    id: "stage",
+    track: "minmax(200px, 1.1fr)",
+    header: PROJECT_TABLE_HEADERS.STAGE,
+    render: project => (
+      <ProjectStageCell stages={stages} project={project} onChange={onStageChange} />
+    ),
   },
 ];
