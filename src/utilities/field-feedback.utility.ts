@@ -30,3 +30,11 @@ export const getFieldFeedback = ({
     infoText: isConfirmedValid ? CUSTOMER_DETAILS_COPY.VALID : idleHelperText,
   };
 };
+
+export const toErrorValidator = (errorText?: string | null) => (): IValidationResult => {
+  if (!errorText) {
+    return VALID_FIELD;
+  }
+
+  return { isValid: false, errorText };
+};

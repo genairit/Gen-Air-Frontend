@@ -14,6 +14,7 @@ export const ICON_NAMES = {
   EMAIL: "email",
   PHONE: "phone",
   QUOTE: "quote",
+  TASKS: "tasks",
   DELETE: "delete",
   FILTER: "filter",
   FOLDER: "folder",

@@ -7,6 +7,12 @@ export const DEFAULT_API_BASE_URL = "/api";
 export const API_PAGE_SIZE = 200;
 
 export const API_ENDPOINTS = {
+  TASKS: "/task",
+  TASK_COUNTS: "/task/counts",
+  taskById: (taskId: string) => `/task/${taskId}`,
+  taskStatus: (taskId: string) => `/task/${taskId}/status`,
+  taskUrgency: (taskId: string) => `/task/${taskId}/urgency`,
+  taskClaim: (taskId: string) => `/task/${taskId}/claim`,
   LOGIN: "/auth/login",
   USERS: "/user",
   MY_USER: "/user/me",

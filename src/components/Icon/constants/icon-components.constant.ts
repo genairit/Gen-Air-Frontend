@@ -27,6 +27,7 @@ import FilterAltRounded from "@mui/icons-material/FilterAltRounded";
 import DashboardRounded from "@mui/icons-material/DashboardRounded";
 import OpenInNewRounded from "@mui/icons-material/OpenInNewRounded";
 import type { IconNameType } from "../../../constants/icon.constant";
+import AssignmentRounded from "@mui/icons-material/AssignmentRounded";
 import VisibilityRounded from "@mui/icons-material/VisibilityRounded";
 import AddToDriveRounded from "@mui/icons-material/AddToDriveRounded";
 import AssessmentRounded from "@mui/icons-material/AssessmentRounded";
@@ -63,6 +64,7 @@ export const ICON_COMPONENTS: Record<IconNameType, SvgIconComponent> = {
   report: AssessmentRounded,
   search: SearchRounded,
   urgent: PriorityHighRounded,
+  tasks: AssignmentRounded,
   upload: CloudUploadRounded,
   gdrive: AddToDriveRounded,
   invoice: ReceiptLongRounded,
