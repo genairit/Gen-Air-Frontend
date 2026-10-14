@@ -6,9 +6,11 @@ import {
   TASKS_PAGE_COPY,
   POOL_ASSIGNEE_ID,
   TASK_STATUS_TABS,
+  TASK_HISTORY_COPY,
   TASK_STATUS_LABELS,
   TASK_STATUS_VALUES,
   URGENCY_CONFIRM_COPY,
+  TASK_HISTORY_PREVIEW_COUNT,
 } from "../constants/task.constant";
 
 import type {
@@ -18,6 +20,7 @@ import type {
   TTaskFormErrors,
   ITaskFormValues,
   ICreateTaskPayload,
+  IApiTaskTransition,
   IUrgencyConfirmation,
 } from "../interfaces/task.interface";
 
@@ -249,3 +252,45 @@ export const toInitialTaskFormValues = (project: IApiProject | null): ITaskFormV
   ...EMPTY_TASK_FORM,
   ...toProjectSelection(project),
 });
+
+export const formatHistoryCount = (count: number) => {
+  if (count === 1) {
+    return "1 עדכון";
+  }
+
+  return `${count} עדכונים`;
+};
+
+export const getHistoryToggleCopy = ({
+  isExpanded,
+  total,
+}: {
+  isExpanded: boolean;
+  total: number;
+}) => {
+  if (isExpanded) {
+    return { caption: "", label: TASK_HISTORY_COPY.SHOW_LESS };
+  }
+
+  return {
+    label: `הצג הכל (${total})`,
+    caption: `עוד ${total - TASK_HISTORY_PREVIEW_COUNT} עדכונים ישנים יותר`,
+  };
+};
+
+export const isHistoryPartial = (transitions: IApiTaskTransition[]) =>
+  transitions.length > 0 && !transitions.some(transition => transition.fromStatus === null);
+
+export const formatTransitionTime = (transition: IApiTaskTransition) =>
+  formatTimestamp(transition.createdAt);
+
+export const formatTransitionAuthor = (transition: IApiTaskTransition) =>
+  formatPersonName(transition.changedBy);
+
+export const getVisibleHistory = (transitions: IApiTaskTransition[], isExpanded: boolean) => {
+  if (isExpanded) {
+    return transitions;
+  }
+
+  return transitions.slice(0, TASK_HISTORY_PREVIEW_COUNT);
+};

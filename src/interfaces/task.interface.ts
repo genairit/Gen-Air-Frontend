@@ -93,3 +93,13 @@ export interface IUrgencyConfirmation {
   isBeforeSave: boolean;
   kind: UrgencyChangeType;
 }
+
+export interface IApiTaskTransition {
+  id: string;
+  taskId: string;
+  createdAt: string;
+  changedById: string;
+  toStatus: TaskStatusType;
+  changedBy?: IApiUser | null;
+  fromStatus: TaskStatusType | null;
+}

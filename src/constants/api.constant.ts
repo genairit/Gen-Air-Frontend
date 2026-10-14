@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
   taskStatus: (taskId: string) => `/task/${taskId}/status`,
   taskUrgency: (taskId: string) => `/task/${taskId}/urgency`,
   taskClaim: (taskId: string) => `/task/${taskId}/claim`,
+  taskTransitions: (taskId: string) => `/task/${taskId}/transitions`,
   LOGIN: "/auth/login",
   USERS: "/user",
   MY_USER: "/user/me",

@@ -140,11 +140,11 @@ test("creation and urgency use separate requests and successful writes invalidat
   assert.equal(fixture.requests.length, requestCount + 1);
   assert.equal(fixture.requests.at(-1).url, "/task");
   assert.deepEqual(fixture.requests.at(-1).payload, payload);
-  assert.equal(fixture.invalidations.length, 3);
+  assert.equal(fixture.invalidations.length, 4);
   await updateTaskUrgencyAction({ taskId: "task-1", isUrgent: true });
   assert.equal(fixture.requests.at(-1).url, "/task/task-1/urgency");
   assert.deepEqual(fixture.requests.at(-1).payload, { isUrgent: true });
-  assert.equal(fixture.invalidations.length, 6);
+  assert.equal(fixture.invalidations.length, 8);
 });
 
 test("creating an urgent task marks it urgent right after it is created", async () => {
@@ -162,7 +162,7 @@ test("creating an urgent task marks it urgent right after it is created", async 
   assert.equal(fixture.requests.at(-2).url, "/task");
   assert.equal(fixture.requests.at(-1).url, `/task/${sample.id}/urgency`);
   assert.deepEqual(fixture.requests.at(-1).payload, { isUrgent: true });
-  assert.equal(fixture.invalidations.length, 3);
+  assert.equal(fixture.invalidations.length, 4);
 });
 
 test("failed writes are surfaced without claiming a saved task or refreshing caches", async () => {

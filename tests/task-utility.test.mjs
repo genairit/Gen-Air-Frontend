@@ -122,3 +122,37 @@ test("the open pool sends no assignee and picking a project pre-fills its custom
   });
   assert.deepEqual(utility.toProjectSelection(null), { projectId: null, isCustomerFromProject: false });
 });
+
+const transition = overrides => ({
+  id: "t",
+  taskId: "task-1",
+  toStatus: "in_progress",
+  fromStatus: "not_started",
+  changedById: "u",
+  changedBy: null,
+  createdAt: "2026-10-14T10:00:00.000Z",
+  ...overrides,
+});
+
+test("the status history counts updates and knows when it is partial", () => {
+  const created = transition({ id: "c", fromStatus: null, toStatus: "not_started" });
+  assert.equal(utility.formatHistoryCount(1), "1 עדכון");
+  assert.equal(utility.formatHistoryCount(6), "6 עדכונים");
+  assert.equal(utility.isHistoryPartial([]), false);
+  assert.equal(utility.isHistoryPartial([transition()]), true);
+  assert.equal(utility.isHistoryPartial([transition(), created]), false);
+});
+
+test("a long status history shows the newest four until expanded", () => {
+  const history = Array.from({ length: 6 }, (_, index) => transition({ id: `t${index}` }));
+  assert.deepEqual(
+    utility.getVisibleHistory(history, false).map(entry => entry.id),
+    ["t0", "t1", "t2", "t3"],
+  );
+  assert.equal(utility.getVisibleHistory(history, true).length, 6);
+  assert.deepEqual(utility.getHistoryToggleCopy({ isExpanded: false, total: 6 }), {
+    label: "הצג הכל (6)",
+    caption: "עוד 2 עדכונים ישנים יותר",
+  });
+  assert.equal(utility.getHistoryToggleCopy({ isExpanded: true, total: 6 }).label, "הצג פחות");
+});

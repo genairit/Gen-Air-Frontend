@@ -29,3 +29,9 @@ export const useTaskQuery = (taskId: string | null) =>
     queryKey: QUERY_KEYS.task(taskId ?? ""),
     queryFn: () => taskService.getById(taskId ?? ""),
   });
+
+export const useTaskTransitionsQuery = (taskId: string) =>
+  useQuery({
+    queryKey: QUERY_KEYS.taskTransitions(taskId),
+    queryFn: () => taskService.getTransitions(taskId),
+  });

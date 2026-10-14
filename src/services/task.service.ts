@@ -5,10 +5,11 @@ import type {
 } from "../interfaces/task.interface";
 
 import { isCursorPageOf } from "../utilities/guards/api.guard";
+import { isArrayOf } from "../utilities/guards/primitive.guard";
 import type { TaskStatusType } from "../constants/task.constant";
 import { httpClient, ensureResponse } from "./http-client.service";
 import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
-import { isApiTask, isTaskCounts } from "../utilities/guards/task.guard";
+import { isApiTask, isTaskCounts, isApiTaskTransition } from "../utilities/guards/task.guard";
 
 const toSearchParam = (search?: string) => search?.trim() || null;
 
@@ -39,6 +40,13 @@ class TaskService {
     const response = await httpClient.get<unknown>(endpoint);
 
     return ensureResponse(endpoint, response.data, isApiTask);
+  }
+
+  async getTransitions(taskId: string) {
+    const endpoint = API_ENDPOINTS.taskTransitions(taskId);
+    const response = await httpClient.get<unknown>(endpoint);
+
+    return ensureResponse(endpoint, response.data, isArrayOf(isApiTaskTransition));
   }
 
   async create(payload: ICreateTaskPayload) {
