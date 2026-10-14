@@ -8,7 +8,7 @@ import { readFileSync, existsSync } from "node:fs";
 registerHooks({
   resolve(specifier, context, next) {
     if (specifier.startsWith(".") && context.parentURL) {
-      for (const suffix of [".ts", "/index.ts"]) {
+      for (const suffix of [".ts", "/index.ts", ".js"]) {
         const url = new URL(specifier + suffix, context.parentURL);
         if (existsSync(url)) return { url: url.href, shortCircuit: true };
       }
