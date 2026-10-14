@@ -5,7 +5,12 @@ import type {
   IApartmentQuery,
 } from "../interfaces/api-request.interface";
 
+import type { ITaskQuery } from "../interfaces/task.interface";
+
 export const QUERY_ROOTS = {
+  TASKS: "tasks",
+  TASK: "task",
+  TASK_COUNTS: "task-counts",
   USERS: "users",
   CUSTOMER: "customer",
   CUSTOMERS: "customers",
@@ -19,6 +24,15 @@ export const QUERY_ROOTS = {
 } as const;
 
 export const QUERY_KEYS = {
+  tasks: (query: ITaskQuery) => [QUERY_ROOTS.TASKS, query],
+  taskCounts: (query: ITaskQuery) => [
+    QUERY_ROOTS.TASK_COUNTS,
+    query.projectId ?? null,
+    query.customerId ?? null,
+    query.assigneeId ?? null,
+    query.unassigned ?? null,
+  ],
+  task: (taskId: string) => [QUERY_ROOTS.TASK, taskId],
   PROJECT_TYPES: ["project-types"],
   PROJECT_STAGES: ["project-stages"],
   TEMPLATE_TREE: ["drive-template-tree"],
