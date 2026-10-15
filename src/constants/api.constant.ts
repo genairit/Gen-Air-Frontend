@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
   projectTransitions: (projectId: string) => `/project-stage-transition/by-project/${projectId}`,
   projectDriveContents: (projectId: string) => `/project-drive/${projectId}/contents`,
   projectDriveFiles: (projectId: string) => `/project-drive/${projectId}/files`,
+  DRIVE_UPLOAD_POLICY: "/project-drive/upload-policy",
   DRIVE_TEMPLATE_FOLDERS: "/drive-template-folder",
   ADDRESS_SUGGESTIONS: "/address/suggestions",
   addressPlace: (placeId: string) => `/address/places/${encodeURIComponent(placeId)}`,

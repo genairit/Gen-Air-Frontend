@@ -12,8 +12,9 @@ import DropZone from "../../../components/DropZone/DropZone";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
-import { PROJECT_DRIVE_UPLOAD_DESCRIPTION } from "../../../constants/project.constant";
+import { useDriveUploadPolicyQuery } from "../../../hooks/queries/project.query";
 import { useUploadProjectFilesMutation } from "../../../hooks/mutations/project.mutation";
+import { getUploadAccept, getUploadDescription } from "../../../utilities/drive-upload.utility";
 
 interface IProjectFilesSectionProps {
   projectId: string;
@@ -22,6 +23,7 @@ interface IProjectFilesSectionProps {
 const ProjectFilesSection: FC<IProjectFilesSectionProps> = ({ projectId }) => {
   const styles = usePageStyles();
   const uploadMutation = useUploadProjectFilesMutation();
+  const uploadPolicy = useDriveUploadPolicyQuery();
 
   return (
     <Box sx={styles.grid({ minColumnWidth: 380 })}>
@@ -30,7 +32,8 @@ const ProjectFilesSection: FC<IProjectFilesSectionProps> = ({ projectId }) => {
         <DropZone
           title={PROJECT_PAGE_COPY.UPLOAD_TITLE}
           buttonLabel={PROJECT_PAGE_COPY.UPLOAD_BUTTON}
-          description={PROJECT_DRIVE_UPLOAD_DESCRIPTION}
+          accept={getUploadAccept(uploadPolicy.data ?? null)}
+          description={getUploadDescription(uploadPolicy.data ?? null)}
           onFilesSelected={files => uploadMutation.mutate({ projectId, files })}
         />
         {uploadMutation.isPending && <LoadingState label={PROJECT_PAGE_STATUS_COPY.UPLOADING} />}
