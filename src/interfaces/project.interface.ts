@@ -122,7 +122,6 @@ export interface IStatusStage {
   id: string;
   tag: string;
   name: string;
-  isDraft?: boolean;
   description: string;
 }
 

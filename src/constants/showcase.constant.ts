@@ -44,19 +44,19 @@ export const SHOWCASE_DEPTH_SAMPLES: IDepthSample[] = [
 
 export const SHOWCASE_STATUS_CHIPS: IChipSample[] = [
   {
-    label: "בביצוע פעיל",
+    label: "בעבודה",
     size: CHIP_SIZES.MEDIUM,
     variant: CHIP_VARIANTS.INFO,
     dotColor: palette.statusBlue,
   },
   {
-    label: "הצעת מחיר",
+    label: "ממתין",
     size: CHIP_SIZES.MEDIUM,
     variant: CHIP_VARIANTS.RAISED,
     dotColor: palette.statusGray,
   },
   {
-    label: "הזמנה",
+    label: "בעבודה",
     size: CHIP_SIZES.MEDIUM,
     variant: CHIP_VARIANTS.RAISED,
     dotColor: palette.charcoal,
@@ -123,7 +123,7 @@ export const SHOWCASE_TOP_BAR_USER: IPerson = {
   avatarTone: AVATAR_TONES.CHARCOAL,
 };
 
-export const PROJECT_STATUS_OPTIONS = ["הצעת מחיר", "הזמנה", "בביצוע", "מסירה/שירות"];
+export const PROJECT_STATUS_OPTIONS = ["ממתין", "בעבודה", "להמתין", "הסתיים"];
 
 export const MANAGER_FILTER_OPTIONS = ["כל המנהלים", "אביעד כהן", "דוד בן שחר", "יוסי בראון"];
 

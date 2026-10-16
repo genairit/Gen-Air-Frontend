@@ -19,9 +19,9 @@ import type { IEmployee, IRoleAssignment } from "../interfaces/employee.interfac
 const { palette } = theme;
 
 export const DEMO_BOARD_COLUMNS: IBoardColumn[] = [
-  { stageId: "quote", title: "הצעת מחיר", dotColor: palette.statusGray },
-  { stageId: "order", title: "הזמנה", dotColor: palette.charcoal },
-  { stageId: "execution", title: "בביצוע", dotColor: palette.primary },
+  { stageId: "quote", title: "ממתין", dotColor: palette.statusGray },
+  { stageId: "order", title: "בעבודה", dotColor: palette.charcoal },
+  { stageId: "execution", title: "להמתין", dotColor: palette.primary },
 ];
 
 export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
@@ -228,30 +228,10 @@ export const DEMO_PROJECT_ROLE_ASSIGNMENTS: IRoleAssignment[] = [
 ];
 
 export const DEMO_STATUS_STAGES: IStatusStage[] = [
-  {
-    id: "quote",
-    name: "הצעת מחיר",
-    tag: "שלב פתיחה",
-    description: "יצירת תיקיית פרויקט אוטומטית וחישובי עומס תרמי",
-  },
-  {
-    id: "order",
-    name: "הזמנה",
-    tag: "רכש והזמנות",
-    description: "אישור מול ה-ERP, הזמנת יחידות VRF ורכש ציוד",
-  },
-  {
-    id: "execution",
-    name: "בביצוע",
-    tag: "עבודות שטח",
-    description: "עבודות צנרת באתר, בדיקות לחץ והתקנת יחידות פנים",
-  },
-  {
-    id: "handover",
-    name: "מסירה/שירות",
-    tag: "מסירה ואחריות",
-    description: "פרוטוקול מסירה, תעודת אחריות וחוזה שירות",
-  },
+  { id: "waiting", name: "ממתין", tag: "קבוע", description: "הפרויקט ממתין לתחילת עבודה" },
+  { id: "in-progress", name: "בעבודה", tag: "קבוע", description: "עבודה על הפרויקט מתבצעת כעת" },
+  { id: "on-hold", name: "להמתין", tag: "קבוע", description: "העבודה על הפרויקט בהמתנה" },
+  { id: "completed", name: "הסתיים", tag: "קבוע", description: "העבודה על הפרויקט הסתיימה" },
 ];
 
 export const DEMO_FOLDER_TEMPLATE_NODES: IFolderTreeNode[] = [

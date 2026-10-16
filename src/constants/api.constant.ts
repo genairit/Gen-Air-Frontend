@@ -32,8 +32,6 @@ export const API_ENDPOINTS = {
   projectApartments: (projectId: string) => `/project/${projectId}/apartments`,
   apartmentStageCounts: (projectId: string) => `/project/${projectId}/apartments/stage-counts`,
   PROJECT_STAGES: "/project-stage",
-  PROJECT_STAGE_ORDER: "/project-stage/order",
-  projectStageById: (stageId: string) => `/project-stage/${stageId}`,
   PROJECT_TYPES: "/project-type",
   projectTransitions: (projectId: string) => `/project-stage-transition/by-project/${projectId}`,
   projectDriveContents: (projectId: string) => `/project-drive/${projectId}/contents`,
