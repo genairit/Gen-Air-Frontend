@@ -48,12 +48,6 @@ export interface IUserPayload {
   role: UserRoleType;
 }
 
-export interface IProjectStagePayload {
-  name: string;
-  tag: string | null;
-  description: string | null;
-}
-
 export interface ILoginPayload {
   email: string;
   password: string;
