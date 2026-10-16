@@ -184,3 +184,65 @@ test("task management is manager-only while employee status permission matches t
   assert.equal(hasPermission({ role: "lead_installer" }, "UPDATE_TASK_STATUS"), true);
   assert.equal(hasPermission(null, "MANAGE_TASKS"), false);
 });
+
+test("personal tasks keep search, tabs and cursor pagination on the caller-scoped endpoint", async () => {
+  const before = fixture.requests.length;
+  fixture.response = { items: [sample], nextCursor: "personal-next-page" };
+  const page = await taskService.getMyTasks({ search: "  project  ", isUrgent: true }, null);
+  await taskService.getMyTasks({ search: "project", isUrgent: true }, page.nextCursor);
+  await taskService.getMyTasks({ status: "in_review" }, null);
+  const requests = fixture.requests.slice(before);
+  assert.equal(requests.length, 3);
+  assert.ok(requests.every(request => request.url === "/task/my-tasks"));
+  assert.equal(requests[0].params.search, "project");
+  assert.equal(requests[0].params.isUrgent, true);
+  assert.equal(requests[1].params.batchCursor, "personal-next-page");
+  assert.equal(requests[2].params.status, "in_review");
+  assert.ok(requests.every(request => !("assigneeId" in request.params)));
+});
+
+test("personal counts use the authenticated caller endpoint and validate its response", async () => {
+  fixture.response = {
+    total: 2,
+    urgent: 1,
+    byStatus: {
+      waiting_for_response: 0,
+      not_started: 1,
+      in_progress: 1,
+      in_review: 0,
+      proposal_sent: 0,
+    },
+  };
+  assert.equal((await taskService.getMyCounts()).total, 2);
+  assert.equal(fixture.requests.at(-1).url, "/task/my-tasks/counts");
+  assert.equal(fixture.requests.at(-1).params == null, true);
+  fixture.response = { total: 100 };
+  await assert.rejects(taskService.getMyCounts(), /Unexpected response shape/);
+  fixture.response = { items: [{ ...sample, status: "invalid" }], nextCursor: null };
+  await assert.rejects(taskService.getMyTasks({}, null), /Unexpected response shape/);
+});
+
+test("personal task/count caches are isolated by account and from shared project queries", () => {
+  assert.notDeepEqual(QUERY_KEYS.myTasks("user-a", {}), QUERY_KEYS.myTasks("user-b", {}));
+  assert.notDeepEqual(QUERY_KEYS.myTaskCounts("user-a"), QUERY_KEYS.myTaskCounts("user-b"));
+  assert.notDeepEqual(QUERY_KEYS.myTasks("user-a", {}), QUERY_KEYS.tasks({}));
+  assert.notDeepEqual(QUERY_KEYS.myTaskCounts("user-a"), QUERY_KEYS.taskCounts({}));
+  assert.notDeepEqual(
+    QUERY_KEYS.myTasks("user-a", {}),
+    QUERY_KEYS.myTasks("user-a", { isUrgent: true }),
+  );
+  assert.equal(QUERY_KEYS.myTasks("user-a", {})[0], QUERY_KEYS.tasks({})[0]);
+  assert.equal(QUERY_KEYS.myTaskCounts("user-a")[0], QUERY_KEYS.taskCounts({})[0]);
+});
+
+test("a personal endpoint failure is surfaced without falling back to the global list", async () => {
+  const before = fixture.requests.length;
+  fixture.error = new Error("Personal tasks unavailable");
+  try {
+    await assert.rejects(taskService.getMyTasks({}, null), /Personal tasks unavailable/);
+    assert.equal(fixture.requests.length, before + 1);
+    assert.equal(fixture.requests.at(-1).url, "/task/my-tasks");
+  } finally {
+    fixture.error = null;
+  }
+});

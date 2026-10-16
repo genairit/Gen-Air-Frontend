@@ -8,6 +8,8 @@ export const API_PAGE_SIZE = 200;
 
 export const API_ENDPOINTS = {
   TASKS: "/task",
+  MY_TASKS: "/task/my-tasks",
+  MY_TASK_COUNTS: "/task/my-tasks/counts",
   TASK_COUNTS: "/task/counts",
   taskById: (taskId: string) => `/task/${taskId}`,
   taskStatus: (taskId: string) => `/task/${taskId}/status`,
@@ -36,6 +38,7 @@ export const API_ENDPOINTS = {
   projectTransitions: (projectId: string) => `/project-stage-transition/by-project/${projectId}`,
   projectDriveContents: (projectId: string) => `/project-drive/${projectId}/contents`,
   projectDriveFiles: (projectId: string) => `/project-drive/${projectId}/files`,
+  DRIVE_UPLOAD_POLICY: "/project-drive/upload-policy",
   DRIVE_TEMPLATE_FOLDERS: "/drive-template-folder",
   ADDRESS_SUGGESTIONS: "/address/suggestions",
   addressPlace: (placeId: string) => `/address/places/${encodeURIComponent(placeId)}`,

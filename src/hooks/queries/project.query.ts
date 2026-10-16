@@ -62,3 +62,9 @@ export const useDriveTemplateQuery = () =>
     queryKey: QUERY_KEYS.TEMPLATE_TREE,
     queryFn: () => projectActivityService.getTemplateTree(),
   });
+
+export const useDriveUploadPolicyQuery = () =>
+  useQuery({
+    queryKey: ["drive-upload-policy"],
+    queryFn: () => projectActivityService.getUploadPolicy(),
+  });

@@ -26,6 +26,8 @@ export const QUERY_ROOTS = {
 } as const;
 
 export const QUERY_KEYS = {
+  myTasks: (userId: string | null, query: ITaskQuery) => [QUERY_ROOTS.TASKS, "mine", userId, query],
+  myTaskCounts: (userId: string | null) => [QUERY_ROOTS.TASK_COUNTS, "mine", userId],
   tasks: (query: ITaskQuery) => [QUERY_ROOTS.TASKS, query],
   taskCounts: (query: ITaskQuery) => [
     QUERY_ROOTS.TASK_COUNTS,

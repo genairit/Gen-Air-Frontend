@@ -6,6 +6,8 @@ import {
 
 import { isArrayOf } from "../utilities/guards/primitive.guard";
 import { httpClient, ensureResponse } from "./http-client.service";
+import { validateProjectFiles } from "../utilities/drive-upload.utility";
+import { isDriveUploadPolicy } from "../utilities/guards/drive-upload.guard";
 import { API_ENDPOINTS, DRIVE_UPLOAD_FIELD_NAME } from "../constants/api.constant";
 
 const toFolderParams = (folderId: string | null) => (folderId ? { folderId } : {});
@@ -25,7 +27,15 @@ class ProjectActivityService {
     return ensureResponse(endpoint, response.data, isApiDriveContents);
   }
 
+  async getUploadPolicy() {
+    const endpoint = API_ENDPOINTS.DRIVE_UPLOAD_POLICY;
+    const response = await httpClient.get<unknown>(endpoint);
+    return ensureResponse(endpoint, response.data, isDriveUploadPolicy);
+  }
+
   async uploadFiles(projectId: string, files: File[]) {
+    const policy = await this.getUploadPolicy();
+    await validateProjectFiles(files, policy);
     const formData = new FormData();
 
     files.forEach(file => formData.append(DRIVE_UPLOAD_FIELD_NAME, file));

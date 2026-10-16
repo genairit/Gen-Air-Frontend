@@ -1,4 +1,5 @@
 import { taskService } from "../../services/task.service";
+import { useSessionUser } from "../../store/session.store";
 import type { IApiTask } from "../../interfaces/task.interface";
 import { QUERY_KEYS } from "../../constants/query-key.constant";
 import type { ITaskQuery } from "../../interfaces/task.interface";
@@ -35,3 +36,23 @@ export const useTaskTransitionsQuery = (taskId: string) =>
     queryKey: QUERY_KEYS.taskTransitions(taskId),
     queryFn: () => taskService.getTransitions(taskId),
   });
+
+export const useMyTasksQuery = (query: ITaskQuery) => {
+  const userId = useSessionUser()?.id ?? null;
+  return useInfiniteQuery({
+    enabled: Boolean(userId),
+    getNextPageParam: getNextCursor,
+    queryKey: QUERY_KEYS.myTasks(userId, query),
+    initialPageParam: FIRST_PAGE_CURSOR,
+    queryFn: ({ pageParam }) => taskService.getMyTasks(query, pageParam),
+  });
+};
+
+export const useMyTaskCountsQuery = () => {
+  const userId = useSessionUser()?.id ?? null;
+  return useQuery({
+    enabled: Boolean(userId),
+    queryKey: QUERY_KEYS.myTaskCounts(userId),
+    queryFn: () => taskService.getMyCounts(),
+  });
+};
