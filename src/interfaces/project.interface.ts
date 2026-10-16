@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { IconNameType } from "../constants/icon.constant";
 import type { UserRoleType } from "../constants/user-role.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
@@ -89,6 +90,7 @@ export interface ITimelineEntry {
   label: string;
   author: string;
   dotColor: string;
+  badge?: ReactNode;
   isHighlighted?: boolean;
 }
 

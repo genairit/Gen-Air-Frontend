@@ -191,3 +191,17 @@ export const URGENCY_CHOICES = [
     subtitle: NEW_TASK_COPY.URGENT_SUB,
   },
 ] as const;
+
+export const TASK_HISTORY_PREVIEW_COUNT = 4;
+
+export const TASK_HISTORY_COPY = {
+  TITLE: "היסטוריית סטטוס",
+  SUBTITLE: "החדש ביותר למעלה · שינויי סטטוס בלבד",
+  CREATED_IN: "נוצרה בסטטוס",
+  EMPTY_TITLE: "אין היסטוריית סטטוס למשימה הזו",
+  EMPTY_DESCRIPTION:
+    "המשימה נוצרה לפני שהמערכת התחילה לתעד שינויי סטטוס. שינויים חדשים יופיעו כאן מרגע שהסטטוס יעודכן.",
+  PARTIAL_NOTE: "לפני עדכון זה אין תיעוד — המשימה נוצרה לפני תחילת ההיסטוריה",
+  SHOW_LESS: "הצג פחות",
+  LOADING: "טוען היסטוריה...",
+} as const;

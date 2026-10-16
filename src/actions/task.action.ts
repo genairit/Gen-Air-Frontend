@@ -9,6 +9,7 @@ export const refreshTaskQueriesAction = () =>
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.TASKS] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.TASK] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.TASK_COUNTS] }),
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.TASK_TRANSITIONS] }),
   ]);
 
 const markUrgentWhenRequested = async (taskId: string, isUrgent: boolean) => {

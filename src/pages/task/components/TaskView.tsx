@@ -16,6 +16,7 @@ import { type FC, useState } from "react";
 import TaskHeaderCard from "./TaskHeaderCard";
 import TaskUrgencyCard from "./TaskUrgencyCard";
 import TaskDetailsCard from "./TaskDetailsCard";
+import TaskHistoryCard from "./TaskHistoryCard";
 import { usePageStyles } from "../../page.style";
 import InlineError from "../../../components/InlineError/InlineError";
 import { formatUrgencyRecipient } from "../../../utilities/task.utility";
@@ -67,6 +68,7 @@ const TaskView: FC<ITaskViewProps> = ({ task, isManager }) => {
         isSaving={updateMutation.isPending}
         onClaim={() => claimMutation.mutate(task.id)}
       />
+      <TaskHistoryCard taskId={task.id} />
       <UrgencyConfirmPopup
         confirmation={confirmation}
         onConfirm={confirmUrgencyChange}

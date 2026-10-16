@@ -7,8 +7,8 @@ import {
 } from "./primitive.guard";
 
 import { isApiUser } from "./api.guard";
-import type { IApiTask, ITaskCounts } from "../../interfaces/task.interface";
 import { TASK_STATUS_VALUES, type TaskStatusType } from "../../constants/task.constant";
+import type { IApiTask, ITaskCounts, IApiTaskTransition } from "../../interfaces/task.interface";
 
 const TASK_TEXT_FIELDS = [
   "id",
@@ -70,4 +70,16 @@ export const isTaskCounts = (value: unknown): value is ITaskCounts => {
     isCount(value.urgent) &&
     TASK_STATUS_VALUES.every(status => isCount(counts[status]))
   );
+};
+
+export const isApiTaskTransition = (value: unknown): value is IApiTaskTransition => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const hasIdentity = hasStringFields(value, ["id", "taskId", "createdAt", "changedById"]);
+  const hasStatuses =
+    isTaskStatus(value.toStatus) && (value.fromStatus === null || isTaskStatus(value.fromStatus));
+
+  return hasIdentity && hasStatuses && isOptionalOf(isApiUser)(value.changedBy);
 };

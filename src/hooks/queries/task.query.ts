@@ -31,6 +31,12 @@ export const useTaskQuery = (taskId: string | null) =>
     queryFn: () => taskService.getById(taskId ?? ""),
   });
 
+export const useTaskTransitionsQuery = (taskId: string) =>
+  useQuery({
+    queryKey: QUERY_KEYS.taskTransitions(taskId),
+    queryFn: () => taskService.getTransitions(taskId),
+  });
+
 export const useMyTasksQuery = (query: ITaskQuery) => {
   const userId = useSessionUser()?.id ?? null;
   return useInfiniteQuery({
