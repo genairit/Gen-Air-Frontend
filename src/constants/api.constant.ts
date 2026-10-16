@@ -8,6 +8,8 @@ export const API_PAGE_SIZE = 200;
 
 export const API_ENDPOINTS = {
   TASKS: "/task",
+  MY_TASKS: "/task/my-tasks",
+  MY_TASK_COUNTS: "/task/my-tasks/counts",
   TASK_COUNTS: "/task/counts",
   taskById: (taskId: string) => `/task/${taskId}`,
   taskStatus: (taskId: string) => `/task/${taskId}/status`,

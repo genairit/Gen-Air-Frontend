@@ -30,7 +30,7 @@ import { MOBILE_LAYOUT_QUERY } from "../../../constants/layout.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { buildTaskColumns, TASK_TABLE_MIN_WIDTH } from "../columns/task-columns";
-import { useTasksQuery, useTaskCountsQuery } from "../../../hooks/queries/task.query";
+import { useMyTasksQuery, useMyTaskCountsQuery } from "../../../hooks/queries/task.query";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import { toTaskTabs, toTaskQuery, formatTaskSummary } from "../../../utilities/task.utility";
 
@@ -47,8 +47,8 @@ const TasksTable: FC<ITasksTableProps> = ({ isManager }) => {
   const [search, setSearch] = useState("");
   const [filterId, setFilterId] = useState<string>(TASK_FILTER_IDS.ALL);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
-  const tasksQuery = useTasksQuery(toTaskQuery(filterId, debouncedSearch));
-  const countsQuery = useTaskCountsQuery({});
+  const tasksQuery = useMyTasksQuery(toTaskQuery(filterId, debouncedSearch));
+  const countsQuery = useMyTaskCountsQuery();
   const statusMutation = useUpdateTaskStatusMutation();
   const claimMutation = useClaimTaskMutation();
 
