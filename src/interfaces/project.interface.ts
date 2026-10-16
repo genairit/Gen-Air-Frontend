@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type { IconNameType } from "../constants/icon.constant";
 import type { UserRoleType } from "../constants/user-role.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
+import type { FolderContentStatusType } from "../constants/drive-folder.constant";
 import type { IApiProjectIntake, CustomerDetailFieldType } from "./api.interface";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
@@ -94,19 +95,12 @@ export interface ITimelineEntry {
   isHighlighted?: boolean;
 }
 
-export interface IFolderTreeNode {
-  id: string;
-  name: string;
-  depth: number;
-  isLeaf?: boolean;
-  icon?: IconNameType;
-}
-
 export interface IProjectFolder {
   id: string;
   name: string;
-  fileCount: number;
   icon?: IconNameType;
+  fileCount: number | null;
+  contentStatus: FolderContentStatusType;
 }
 
 export interface IProjectTypeOption {

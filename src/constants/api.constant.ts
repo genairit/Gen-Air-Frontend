@@ -37,7 +37,6 @@ export const API_ENDPOINTS = {
   projectDriveContents: (projectId: string) => `/project-drive/${projectId}/contents`,
   projectDriveFiles: (projectId: string) => `/project-drive/${projectId}/files`,
   DRIVE_UPLOAD_POLICY: "/project-drive/upload-policy",
-  DRIVE_TEMPLATE_FOLDERS: "/drive-template-folder",
   ADDRESS_SUGGESTIONS: "/address/suggestions",
   addressPlace: (placeId: string) => `/address/places/${encodeURIComponent(placeId)}`,
 } as const;
@@ -46,4 +45,6 @@ export const DRIVE_UPLOAD_FIELD_NAME = "files";
 
 export const HTTP_STATUS = {
   UNAUTHORIZED: 401,
+  BAD_GATEWAY: 502,
+  SERVICE_UNAVAILABLE: 503,
 } as const;

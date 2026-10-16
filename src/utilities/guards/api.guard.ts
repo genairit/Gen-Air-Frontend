@@ -14,6 +14,7 @@ import type {
   IApiCustomer,
   IApiDriveItem,
   ILoginResponse,
+  IApiDriveFolder,
   TUserRoleCounts,
   IApiProjectType,
   IApiProjectStage,
@@ -24,9 +25,13 @@ import type {
   IApiPlaceSuggestion,
   IProjectStageCounts,
   IApiStageTransition,
-  IApiTemplateFolderNode,
   TCustomerSyncStatusCounts,
 } from "../../interfaces/api.interface";
+
+import {
+  type FolderContentStatusType,
+  FOLDER_CONTENT_STATUS_VALUES,
+} from "../../constants/drive-folder.constant";
 
 import {
   PAYMENT_TERMS_VALUES,
@@ -185,8 +190,19 @@ export const isApiStageTransition = (value: unknown): value is IApiStageTransiti
 const isApiDriveItem = (value: unknown): value is IApiDriveItem =>
   isRecord(value) && hasStringFields(value, ["id", "name", "mimeType"]);
 
-const isApiDriveFolder = (value: unknown) =>
-  isRecord(value) && hasStringFields(value, ["id", "name"]) && isNumber(value.fileCount);
+const isFolderContentStatus = (value?: unknown): value is FolderContentStatusType =>
+  FOLDER_CONTENT_STATUS_VALUES.some(status => status === value);
+
+const isApiDriveFolder = (value: unknown): value is IApiDriveFolder => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const hasIdentity = hasStringFields(value, ["id", "name"]);
+  const hasFileCount = value.fileCount === null || isNumber(value.fileCount);
+
+  return hasIdentity && hasFileCount && isFolderContentStatus(value.contentStatus);
+};
 
 export const isApiDriveContents = (value: unknown): value is IApiDriveContents => {
   if (!isRecord(value)) {
@@ -194,19 +210,9 @@ export const isApiDriveContents = (value: unknown): value is IApiDriveContents =
   }
 
   const hasFiles = isArrayOf(isApiDriveItem)(value.files);
-  const hasFolders = Array.isArray(value.folders) && value.folders.every(isApiDriveFolder);
+  const hasFolders = isArrayOf(isApiDriveFolder)(value.folders);
 
   return typeof value.folderId === "string" && hasFiles && hasFolders;
-};
-
-export const isApiTemplateFolderNode = (value: unknown): value is IApiTemplateFolderNode => {
-  if (!isRecord(value)) {
-    return false;
-  }
-
-  return (
-    hasStringFields(value, ["id", "name"]) && isArrayOf(isApiTemplateFolderNode)(value.children)
-  );
 };
 
 export const isApiPlaceSuggestion = (value: unknown): value is IApiPlaceSuggestion => {

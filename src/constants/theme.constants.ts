@@ -28,6 +28,7 @@ const PALETTE = {
   dangerSurface: "#DCEBFA",
   airBlueStrong: "#B8D3F2",
   airBlueOutline: "#A7C6EA",
+  spinnerTrack: "#D6D7DC",
 } as const;
 
 const SHADOW_COLORS = {

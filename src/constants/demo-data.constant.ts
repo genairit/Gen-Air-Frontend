@@ -4,7 +4,6 @@ import type {
   IBoardColumn,
   ITimelineEntry,
   IProjectFolder,
-  IFolderTreeNode,
   IProjectSummary,
   IProjectTypeOption,
 } from "../interfaces/project.interface";
@@ -14,6 +13,7 @@ import { ICON_NAMES } from "./icon.constant";
 import { AVATAR_TONES } from "./tone.constant";
 import { USER_ROLES } from "./user-role.constant";
 import type { IPerson } from "../interfaces/person.interface";
+import { FOLDER_CONTENT_STATUSES } from "./drive-folder.constant";
 import type { IEmployee, IRoleAssignment } from "../interfaces/employee.interface";
 
 const { palette } = theme;
@@ -144,11 +144,41 @@ export const DEMO_PROJECT_TEAM: IPerson[] = [
 ];
 
 export const DEMO_PROJECT_FOLDERS: IProjectFolder[] = [
-  { id: "plans", icon: ICON_NAMES.HVAC, name: "תוכניות מיזוג אוויר", fileCount: 3 },
-  { id: "quotes", icon: ICON_NAMES.QUOTE, name: "כתבי כמויות והצעות מחיר", fileCount: 6 },
-  { id: "reports", icon: ICON_NAMES.REPORT, name: "אישורי ביצוע ודוחות שטח", fileCount: 12 },
-  { id: "invoices", icon: ICON_NAMES.INVOICE, name: "חשבוניות ומסמכים פיננסיים", fileCount: 8 },
-  { id: "misc", icon: ICON_NAMES.FOLDER, name: "קבצים ומסמכים נוספים", fileCount: 4 },
+  {
+    id: "plans",
+    fileCount: 3,
+    icon: ICON_NAMES.HVAC,
+    name: "תוכניות מיזוג אוויר",
+    contentStatus: FOLDER_CONTENT_STATUSES.HAS_CONTENT,
+  },
+  {
+    id: "quotes",
+    fileCount: 6,
+    icon: ICON_NAMES.QUOTE,
+    name: "כתבי כמויות והצעות מחיר",
+    contentStatus: FOLDER_CONTENT_STATUSES.HAS_CONTENT,
+  },
+  {
+    id: "reports",
+    fileCount: 12,
+    icon: ICON_NAMES.REPORT,
+    name: "אישורי ביצוע ודוחות שטח",
+    contentStatus: FOLDER_CONTENT_STATUSES.HAS_CONTENT,
+  },
+  {
+    id: "invoices",
+    fileCount: 0,
+    icon: ICON_NAMES.INVOICE,
+    name: "חשבוניות ומסמכים פיננסיים",
+    contentStatus: FOLDER_CONTENT_STATUSES.EMPTY,
+  },
+  {
+    id: "misc",
+    fileCount: null,
+    icon: ICON_NAMES.FOLDER,
+    name: "קבצים ומסמכים נוספים",
+    contentStatus: FOLDER_CONTENT_STATUSES.UNKNOWN,
+  },
 ];
 
 export const DEMO_PROJECT_FILES: IProjectFile[] = [
@@ -232,28 +262,6 @@ export const DEMO_STATUS_STAGES: IStatusStage[] = [
   { id: "in-progress", name: "בעבודה", tag: "קבוע", description: "עבודה על הפרויקט מתבצעת כעת" },
   { id: "on-hold", name: "להמתין", tag: "קבוע", description: "העבודה על הפרויקט בהמתנה" },
   { id: "completed", name: "הסתיים", tag: "קבוע", description: "העבודה על הפרויקט הסתיימה" },
-];
-
-export const DEMO_FOLDER_TEMPLATE_NODES: IFolderTreeNode[] = [
-  { id: "engineering", depth: 1, icon: ICON_NAMES.FOLDER, name: "01_הנדסה_ותכנון/" },
-  {
-    depth: 2,
-    isLeaf: true,
-    id: "thermal-load",
-    icon: ICON_NAMES.REPORT,
-    name: "חישוב_עומסים_תרמי.xlsx",
-  },
-  { id: "cad", depth: 2, isLeaf: true, icon: ICON_NAMES.FOLDER, name: "תוכניות_CAD/" },
-  { id: "procurement", depth: 1, icon: ICON_NAMES.FOLDER, name: "02_הזמנות_ורכש/" },
-  { id: "execution", depth: 1, icon: ICON_NAMES.FOLDER, name: "03_תיק_ביצוע/" },
-  {
-    id: "unit",
-    depth: 2,
-    isLeaf: true,
-    name: "דירה_{Unit_Number}/",
-    icon: ICON_NAMES.PROJECT_FOLDER,
-  },
-  { id: "handover", depth: 1, icon: ICON_NAMES.FOLDER, name: "04_מסירה_ותעודות_אחריות/" },
 ];
 
 export const DEMO_EMPLOYEES: IEmployee[] = [
