@@ -14,7 +14,21 @@ const toSearchParam = (search?: string) => search?.trim() || null;
 
 class TaskService {
   async getByFilter(query: ITaskQuery, batchCursor: string | null) {
-    const response = await httpClient.get<unknown>(API_ENDPOINTS.TASKS, {
+    return this.getPage(API_ENDPOINTS.TASKS, query, batchCursor);
+  }
+
+  async getMyTasks(query: ITaskQuery, batchCursor: string | null) {
+    return this.getPage(API_ENDPOINTS.MY_TASKS, query, batchCursor);
+  }
+
+  async getMyCounts() {
+    const endpoint = API_ENDPOINTS.MY_TASK_COUNTS;
+    const response = await httpClient.get<unknown>(endpoint);
+    return ensureResponse(endpoint, response.data, isTaskCounts);
+  }
+
+  private async getPage(endpoint: string, query: ITaskQuery, batchCursor: string | null) {
+    const response = await httpClient.get<unknown>(endpoint, {
       params: {
         ...query,
         batchCursor,
@@ -23,7 +37,7 @@ class TaskService {
       },
     });
 
-    return ensureResponse(API_ENDPOINTS.TASKS, response.data, isCursorPageOf(isApiTask));
+    return ensureResponse(endpoint, response.data, isCursorPageOf(isApiTask));
   }
 
   async getCounts({ projectId, customerId, assigneeId, unassigned }: ITaskQuery) {
