@@ -1,4 +1,5 @@
 import type { IApiUser } from "./api.interface";
+import type { QueryKey } from "@tanstack/react-query";
 import type { TaskStatusType } from "../constants/task.constant";
 
 export interface IApiTaskProject {
@@ -102,4 +103,15 @@ export interface IApiTaskTransition {
   toStatus: TaskStatusType;
   changedBy?: IApiUser | null;
   fromStatus: TaskStatusType | null;
+}
+
+export interface ITaskStatusChange {
+  taskId: string;
+  updatedAt?: string;
+  status: TaskStatusType;
+}
+
+export interface ITaskStatusSnapshot {
+  task: IApiTask | null;
+  lists: { queryKey: QueryKey; status: TaskStatusType }[];
 }

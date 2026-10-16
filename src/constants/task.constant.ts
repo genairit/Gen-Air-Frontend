@@ -205,3 +205,5 @@ export const TASK_HISTORY_COPY = {
   SHOW_LESS: "הצג פחות",
   LOADING: "טוען היסטוריה...",
 } as const;
+
+export const TASK_STATUS_MUTATION_KEY = ["task-status-update"] as const;
