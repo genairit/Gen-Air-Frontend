@@ -5,7 +5,6 @@ import type {
   IApiProjectType,
   IApiProjectStage,
   IApiStageTransition,
-  IApiTemplateFolderNode,
 } from "../../interfaces/api.interface";
 
 import type {
@@ -13,7 +12,6 @@ import type {
   IProjectFile,
   IProjectFolder,
   ITimelineEntry,
-  IFolderTreeNode,
   IProjectSummary,
   IProjectTypeOption,
 } from "../../interfaces/project.interface";
@@ -115,6 +113,7 @@ export const toProjectFolder = (folder: IApiDriveFolder): IProjectFolder => ({
   name: folder.name,
   icon: ICON_NAMES.FOLDER,
   fileCount: folder.fileCount,
+  contentStatus: folder.contentStatus,
 });
 
 export const toProjectFile = (item: IApiDriveItem): IProjectFile => ({
@@ -126,15 +125,6 @@ export const toProjectFile = (item: IApiDriveItem): IProjectFile => ({
     .filter(Boolean)
     .join(" · "),
 });
-
-export const flattenTemplateTree = (
-  nodes: IApiTemplateFolderNode[],
-  depth = 1,
-): IFolderTreeNode[] =>
-  nodes.flatMap(node => [
-    { id: node.id, depth, name: `${node.name}/`, icon: ICON_NAMES.FOLDER },
-    ...flattenTemplateTree(node.children, depth + 1),
-  ]);
 
 export const toErpSyncCaption = (erpSyncedAt: string | null) => {
   if (!erpSyncedAt) {

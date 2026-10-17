@@ -3,7 +3,6 @@ import { Box } from "@mui/material";
 import PasswordCard from "./PasswordCard";
 import { usePageStyles } from "../../page.style";
 import StatusStagesCard from "./StatusStagesCard";
-import FolderTemplateCard from "./FolderTemplateCard";
 import { SETTINGS_COPY } from "../../../constants/settings.constant";
 import type { IStatusStage } from "../../../interfaces/project.interface";
 
@@ -27,7 +26,6 @@ const SettingsContent: FC<ISettingsContentProps> = ({ stages }) => {
       <Box sx={styles.grid({ minColumnWidth: 400 })}>
         <StatusStagesCard stages={stages} />
         <Box sx={styles.stack({})}>
-          <FolderTemplateCard />
           <PasswordCard />
         </Box>
       </Box>

@@ -40,7 +40,6 @@ export const QUERY_KEYS = {
   taskTransitions: (taskId: string) => [QUERY_ROOTS.TASK_TRANSITIONS, taskId],
   PROJECT_TYPES: ["project-types"],
   PROJECT_STAGES: ["project-stages"],
-  TEMPLATE_TREE: ["drive-template-tree"],
   USER_ROLE_COUNTS: ["user-role-counts"],
   CUSTOMER_SYNC_STATUS_COUNTS: ["customer-sync-status-counts"],
   addressSuggestions: (input: string, sessionToken: string) => [

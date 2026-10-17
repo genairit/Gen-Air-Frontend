@@ -1,5 +1,6 @@
 import type { UserRoleType } from "../constants/user-role.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
+import type { FolderContentStatusType } from "../constants/drive-folder.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
@@ -141,21 +142,14 @@ export interface IApiDriveItem {
 export interface IApiDriveFolder {
   id: string;
   name: string;
-  fileCount: number;
+  fileCount: number | null;
+  contentStatus: FolderContentStatusType;
 }
 
 export interface IApiDriveContents {
   folderId: string;
   files: IApiDriveItem[];
   folders: IApiDriveFolder[];
-}
-
-export interface IApiTemplateFolderNode {
-  id: string;
-  name: string;
-  position: number;
-  parentId: string | null;
-  children: IApiTemplateFolderNode[];
 }
 
 export type TUserRoleCounts = Record<UserRoleType, number>;

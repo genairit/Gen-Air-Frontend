@@ -9,6 +9,7 @@ import { SURFACE_DEPTHS, SURFACE_RADII } from "../../constants/surface.constant"
 interface IFolderAccordionProps {
   title: string;
   caption: string;
+  badge?: ReactNode;
   isExpanded: boolean;
   children: ReactNode;
   icon?: IconNameType;
@@ -17,6 +18,7 @@ interface IFolderAccordionProps {
 
 const FolderAccordion: FC<IFolderAccordionProps> = ({
   icon,
+  badge,
   title,
   caption,
   isExpanded,
@@ -36,6 +38,7 @@ const FolderAccordion: FC<IFolderAccordionProps> = ({
         </Box>
         <Box component="span" sx={styles.meta}>
           {caption}
+          {badge}
           <Box component="span" sx={styles.chevron}>
             {chevron}
           </Box>
