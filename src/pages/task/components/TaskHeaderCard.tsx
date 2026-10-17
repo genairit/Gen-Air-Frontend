@@ -18,6 +18,7 @@ import { ICON_TILE_SIZES } from "../../../constants/icon-tile.constant";
 import { formatTaskCreatedCaption } from "../../../utilities/task.utility";
 import TaskStatusChip from "../../../components/TaskStatusChip/TaskStatusChip";
 import TaskUrgentChip from "../../../components/TaskUrgentChip/TaskUrgentChip";
+import { useIsTaskStatusPending } from "../../../hooks/mutations/task.mutation";
 
 interface ITaskHeaderCardProps {
   task: IApiTask;
@@ -26,9 +27,10 @@ interface ITaskHeaderCardProps {
 
 const TaskHeaderCard: FC<ITaskHeaderCardProps> = ({ task, onStatusChange }) => {
   const styles = useStyles();
+  const isPending = useIsTaskStatusPending(task.id);
 
   const changeStatus = (tabId: string) => {
-    if (!isTaskStatus(tabId) || tabId === task.status) {
+    if (isPending || !isTaskStatus(tabId) || tabId === task.status) {
       return;
     }
 
@@ -62,7 +64,13 @@ const TaskHeaderCard: FC<ITaskHeaderCardProps> = ({ task, onStatusChange }) => {
         </Box>
         {`· ${TASK_PAGE_COPY.STATUS_HINT}`}
       </Box>
-      <Tabs isFullWidth activeId={task.status} onChange={changeStatus} items={TASK_STATUS_TABS} />
+      <Tabs
+        isFullWidth
+        disabled={isPending}
+        activeId={task.status}
+        onChange={changeStatus}
+        items={TASK_STATUS_TABS}
+      />
     </Card>
   );
 };

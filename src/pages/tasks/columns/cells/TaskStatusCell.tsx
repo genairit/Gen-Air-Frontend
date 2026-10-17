@@ -10,6 +10,7 @@ import { TASK_COLUMN_STYLES } from "../task-columns.style";
 import type { IApiTask } from "../../../../interfaces/task.interface";
 import { findTaskStatusByLabel } from "../../../../utilities/task.utility";
 import Autocomplete from "../../../../components/Autocomplete/Autocomplete";
+import { useIsTaskStatusPending } from "../../../../hooks/mutations/task.mutation";
 
 interface ITaskStatusCellProps {
   task: IApiTask;
@@ -19,10 +20,11 @@ interface ITaskStatusCellProps {
 const stopRowClick = (event: MouseEvent) => event.stopPropagation();
 
 const TaskStatusCell: FC<ITaskStatusCellProps> = ({ task, onChange }) => {
+  const isPending = useIsTaskStatusPending(task.id);
   const changeStatus = (label: string | null) => {
     const status = findTaskStatusByLabel(label);
 
-    if (!status || status === task.status) {
+    if (isPending || !status || status === task.status) {
       return;
     }
 
@@ -32,6 +34,7 @@ const TaskStatusCell: FC<ITaskStatusCellProps> = ({ task, onChange }) => {
   return (
     <Box onClick={stopRowClick} sx={TASK_COLUMN_STYLES.stopper}>
       <Autocomplete
+        disabled={isPending}
         isAutocomplete={false}
         onChange={changeStatus}
         options={TASK_STATUS_OPTION_LABELS}
