@@ -16,7 +16,7 @@ export const CUSTOMER_PAGE_SIZE = 7;
 
 export const CUSTOMERS_COPY = {
   TITLE: "לקוחות",
-  EYEBROW: "לקוחות · מסונכרנים עם Priority",
+  EYEBROW: "לקוחות · ניהול ב-CRM",
   DESCRIPTION:
     "לקוח הוא הבעלים של פרויקטים ובניינים. דיירי דירות מנוהלים בתוך הדירה ולא מופיעים כאן.",
   SEARCH_PLACEHOLDER: "חיפוש לפי שם, ח.פ, איש קשר, טלפון או מזהה Priority...",
@@ -69,13 +69,12 @@ export const CUSTOMER_PAGE_COPY = {
   LAST_SYNCED: "סונכרן לאחרונה",
   FAILED_TITLE: "הלקוח לא הגיע ל-Priority",
   FAILED_NOTE: "עד שהסנכרון יצליח אי אפשר להפיק ללקוח הצעות מחיר והזמנות ב-Priority.",
-  PENDING_NOTE:
-    "הלקוח נשמר ב-CRM וממתין לאישור מ-Priority. אין צורך לפעול, הסטטוס יתעדכן כשהסנכרון יסתיים.",
+  PENDING_NOTE: "הלקוח שמור ב-CRM וזמין לשיוך לפרויקטים. הסנכרון עם Priority יתווסף בהמשך.",
 } as const;
 
 export const CUSTOMER_SYNC_SUBTITLE_BY_STATUS: Record<PrioritySyncStatusType, string> = {
   synced: "הלקוח קיים ב-Priority וב-CRM",
-  pending: "ממתין לתשובה מ-Priority",
+  pending: "שמור ב-CRM · ממתין לסנכרון עתידי",
   failed: "הלקוח שמור ב-CRM בלבד",
 };
 
@@ -96,6 +95,7 @@ export const CUSTOMER_SYNC_STEP_TITLES = {
 export const SYNC_STEP_ICON_BY_STATE: Record<TCustomerSyncStepState, IconNameType | null> = {
   done: ICON_NAMES.DONE,
   active: null,
+  waiting: null,
   failed: null,
 };
 

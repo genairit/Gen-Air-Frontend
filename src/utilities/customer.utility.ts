@@ -73,8 +73,8 @@ const PRIORITY_STEP_BY_STATUS: Record<
     caption: `מזהה ${customer.priorityId ?? ""}`,
   }),
   pending: () => ({
-    state: "active",
-    caption: "ממתין לתשובה...",
+    state: "waiting",
+    caption: "טרם בוצע סנכרון",
     title: CUSTOMER_SYNC_STEP_TITLES.PRIORITY,
   }),
   failed: customer => ({

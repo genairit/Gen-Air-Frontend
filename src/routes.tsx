@@ -15,6 +15,7 @@ import ComponentsShowcase from "./pages/ComponentsShowcase";
 import EmployeesPage from "./pages/employees/EmployeesPage";
 import CustomersPage from "./pages/customers/CustomersPage";
 import ProjectFormPage from "./pages/project-form/ProjectFormPage";
+import NewCustomerPage from "./pages/customer-form/NewCustomerPage";
 import NewApartmentPage from "./pages/apartment-form/NewApartmentPage";
 import { PROJECT_FORM_MODES } from "./constants/project-form.constant";
 
@@ -36,6 +37,7 @@ export const routes: RouteObject[] = [
           { path: ROUTE_PATHS.SETTINGS, element: <SettingsPage /> },
           { path: ROUTE_PATHS.EMPLOYEES, element: <EmployeesPage /> },
           { path: ROUTE_PATHS.CUSTOMERS, element: <CustomersPage /> },
+          { path: ROUTE_PATHS.NEW_CUSTOMER, element: <NewCustomerPage /> },
           { path: ROUTE_PATHS.CUSTOMER, element: <CustomerPage /> },
           { path: ROUTE_PATHS.COMPONENTS, element: <ComponentsShowcase /> },
           {

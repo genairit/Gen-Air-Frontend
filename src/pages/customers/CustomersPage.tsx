@@ -1,12 +1,21 @@
 import { Box } from "@mui/material";
 import { usePageStyles } from "../page.style";
 import Icon from "../../components/Icon/Icon";
+import { useNavigate } from "react-router-dom";
+import Button from "../../components/Button/Button";
 import CustomersTable from "./components/CustomersTable";
+import { useSessionUser } from "../../store/session.store";
 import { ICON_NAMES } from "../../constants/icon.constant";
+import { ROUTE_PATHS } from "../../constants/routes.constant";
+import { hasPermission } from "../../utilities/permission.utility";
 import { CUSTOMERS_COPY } from "../../constants/customer.constant";
+import { CUSTOMER_FORM_COPY } from "../../constants/customer-form.constant";
 
 const CustomersPage = () => {
   const styles = usePageStyles();
+  const navigate = useNavigate();
+  const user = useSessionUser();
+  const canCreateCustomer = hasPermission(user, "MANAGE_CUSTOMERS");
 
   return (
     <Box sx={styles.page}>
@@ -22,6 +31,9 @@ const CustomersPage = () => {
           {CUSTOMERS_COPY.DESCRIPTION}
         </Box>
       </Box>
+      {canCreateCustomer && (
+        <Button text={CUSTOMER_FORM_COPY.ADD} onClick={() => navigate(ROUTE_PATHS.NEW_CUSTOMER)} />
+      )}
       <CustomersTable />
     </Box>
   );
