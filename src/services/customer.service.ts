@@ -7,8 +7,14 @@ import {
 import { httpClient, ensureResponse } from "./http-client.service";
 import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
 import type { ICustomerQuery } from "../interfaces/api-request.interface";
+import type { ICreateCustomerPayload } from "../interfaces/customer.interface";
 
 class CustomerService {
+  async create(payload: ICreateCustomerPayload) {
+    const response = await httpClient.post<unknown>(API_ENDPOINTS.CUSTOMERS, payload);
+    return ensureResponse(API_ENDPOINTS.CUSTOMERS, response.data, isApiCustomer);
+  }
+
   async getByFilter({ search, prioritySyncStatus }: ICustomerQuery) {
     const response = await httpClient.get<unknown>(API_ENDPOINTS.CUSTOMERS, {
       params: { search: search.trim() || null, prioritySyncStatus, batchSize: API_PAGE_SIZE },

@@ -33,6 +33,7 @@ export const PAGE_TITLE_BY_ROUTE: Record<string, string> = {
   [ROUTE_PATHS.SETTINGS]: "הגדרות מערכת",
   [ROUTE_PATHS.EMPLOYEES]: "ניהול עובדים",
   [ROUTE_PATHS.CUSTOMERS]: "לקוחות",
+  [ROUTE_PATHS.NEW_CUSTOMER]: "לקוח חדש",
   [ROUTE_PATHS.CUSTOMER]: "כרטיס לקוח",
   [ROUTE_PATHS.COMPONENTS]: "ספריית רכיבים",
 };
@@ -50,6 +51,7 @@ export const ACTIVE_NAVIGATION_BY_ROUTE: Record<string, string> = {
   [ROUTE_PATHS.SETTINGS]: ROUTE_PATHS.SETTINGS,
   [ROUTE_PATHS.EMPLOYEES]: ROUTE_PATHS.EMPLOYEES,
   [ROUTE_PATHS.CUSTOMERS]: ROUTE_PATHS.CUSTOMERS,
+  [ROUTE_PATHS.NEW_CUSTOMER]: ROUTE_PATHS.CUSTOMERS,
   [ROUTE_PATHS.CUSTOMER]: ROUTE_PATHS.CUSTOMERS,
   [ROUTE_PATHS.COMPONENTS]: ROUTE_PATHS.BOARD,
 };
@@ -71,6 +73,10 @@ const toBuildingPath = (params: Params) =>
   generatePath(ROUTE_PATHS.PROJECT, { projectId: params[ROUTE_PARAMS.PROJECT_ID] ?? "" });
 
 export const BACK_LINK_BY_ROUTE: Record<string, IBackLinkRoute> = {
+  [ROUTE_PATHS.NEW_CUSTOMER]: {
+    label: NAVIGATION_LABELS.BACK_TO_CUSTOMERS,
+    buildPath: () => ROUTE_PATHS.CUSTOMERS,
+  },
   [ROUTE_PATHS.PROJECT]: {
     label: NAVIGATION_LABELS.BACK_TO_BOARD,
     buildPath: () => ROUTE_PATHS.BOARD,

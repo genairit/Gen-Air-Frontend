@@ -98,8 +98,9 @@ test("builds the Priority step from the sync status and keeps the CRM step done"
   assert.equal(stateOf("synced")[0].caption, "מזהה PR-7");
   assert.deepEqual(
     stateOf("pending").map(step => step.state),
-    ["active", "done"],
+    ["waiting", "done"],
   );
+  assert.equal(stateOf("pending")[0].caption, "טרם בוצע סנכרון");
   assert.deepEqual(
     stateOf("failed").map(step => step.state),
     ["failed", "done"],

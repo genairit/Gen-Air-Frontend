@@ -11,6 +11,7 @@ export const ROUTE_PATHS = {
   SETTINGS: "/settings",
   EMPLOYEES: "/employees",
   CUSTOMERS: "/customers",
+  NEW_CUSTOMER: "/customers/new",
   CUSTOMER: `/customers/:${ROUTE_PARAMS.CUSTOMER_ID}`,
   COMPONENTS: "/components",
   NEW_PROJECT: "/projects/new",

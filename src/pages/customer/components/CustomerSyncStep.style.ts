@@ -8,6 +8,7 @@ const { palette, softShadow, radius } = theme;
 const BADGE_BY_STATE: Record<TCustomerSyncStepState, { background: string; color: string }> = {
   done: { background: palette.primary, color: palette.white },
   failed: { background: palette.charcoal, color: palette.white },
+  waiting: { background: palette.iceWhite, color: palette.charcoal },
   active: { background: palette.iceWhite, color: palette.charcoal },
 };
 
