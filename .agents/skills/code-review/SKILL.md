@@ -22,4 +22,5 @@ the review checklist, and the exact output templates. Also follow the repository
   requires, never the repository workspace.
 - The developer fixes every finding, deletes every `// CR:` annotation, re-verifies,
   and runs `$code-review` again on the full diff. Only a review with no findings
-  continues to proof, the pull request, and board updates.
+  continues to the QA gate; only PASSED QA then continues to proof, the feature pull
+  request, and board updates.
