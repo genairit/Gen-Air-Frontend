@@ -37,7 +37,7 @@ export default defineRailway(context => {
     regions: { "europe-west4-drams3a": 1 },
     env: { PORT: "8080", BACKEND_URL: BACKEND_PRIVATE_URL },
     build: { builder: "DOCKERFILE", dockerfilePath: "Dockerfile" },
-    source: github("kfirmr/Gen-Air-Frontend", {
+    source: github("genairit/Gen-Air-Frontend", {
       branch: resolveBranch(context.environmentName),
     }),
   });
