@@ -10,7 +10,7 @@ const ShowcaseHeader = () => {
     <Box component="header" sx={showcaseStyles.spacedRow}>
       <Box sx={showcaseStyles.stack({ gap: "8px" })}>
         <Box component="span" sx={styles.eyebrow}>
-          GEN-AIR CRM · UI KIT
+          GENAIR CRM · UI KIT
         </Box>
         <Box component="h1" sx={styles.title}>
           ספריית רכיבים

@@ -22,6 +22,7 @@ export type TTextfieldProps = Omit<TextFieldProps, "onChange" | "title"> & {
   value: string;
   title?: string;
   type: TFieldType;
+  isLtr?: boolean;
   infoText?: string;
   readonly?: boolean;
   titleHint?: string;
@@ -41,6 +42,7 @@ const TextField: FC<TTextfieldProps> = ({
   type,
   value,
   style,
+  isLtr: forcedLtr,
   title,
   infoText,
   readonly,
@@ -65,7 +67,7 @@ const TextField: FC<TTextfieldProps> = ({
   }
 
   const inputType = KEYBOARD_TYPE_MAP[type];
-  const isLtr = LTR_FIELD_TYPES.includes(type);
+  const isLtr = forcedLtr ?? LTR_FIELD_TYPES.includes(type);
   const { isValid, errorText } = validateInput(value, type, validator);
   const helperText = getHelperText({ errorText, warningText, infoText });
 

@@ -19,6 +19,7 @@ const builtInValidators: Record<TFieldType, (val: string) => IValidationResult> 
   text: val => validateHebrewText(val),
   phone: val => validatePhoneNumber(val),
   email: val => validateEmail(val),
+  date: val => validateFreeText(val),
   search: val => validateFreeText(val),
   password: val => validatePassword(val),
 };

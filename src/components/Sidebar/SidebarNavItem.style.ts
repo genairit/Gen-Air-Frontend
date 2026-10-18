@@ -2,7 +2,7 @@ import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 import { CENTERED_FLEX } from "../../styles/templates.style";
 
-const { palette, radius } = theme;
+const { palette, radius, softShadow } = theme;
 
 const ACTIVE_ITEM_STYLE = {
   color: palette.charcoal,
@@ -10,9 +10,9 @@ const ACTIVE_ITEM_STYLE = {
 };
 
 const IDLE_ITEM_STYLE = {
-  color: palette.outline,
+  color: palette.charcoal,
   backgroundColor: "transparent",
-  "&:hover": { backgroundColor: palette.charcoalRaised },
+  "&:hover": { backgroundColor: palette.surfaceHover },
 };
 
 export const useStyles = () =>
@@ -26,6 +26,7 @@ export const useStyles = () =>
       borderRadius: radius.pill,
       opacity: isActive ? 1 : 0.8,
       backgroundColor: palette.iceWhite,
+      boxShadow: softShadow.raisedSmall,
     }),
     label: {
       flex: 1,

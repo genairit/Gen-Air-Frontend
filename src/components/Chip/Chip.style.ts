@@ -12,7 +12,7 @@ const STYLE_BY_VARIANT: Record<ChipVariantType, TChipStyle> = {
   info: { backgroundColor: palette.airBlue, color: palette.charcoal },
   plain: { backgroundColor: "transparent", color: palette.charcoal },
   dark: { backgroundColor: palette.charcoal, color: palette.iceWhite, fontWeight: 700 },
-  alert: { backgroundColor: palette.orange, color: palette.white, fontWeight: 700 },
+  alert: { backgroundColor: palette.primary, color: palette.white, fontWeight: 700 },
   inset: { backgroundColor: palette.iceWhite, boxShadow: softShadow.insetSmall },
   raised: { backgroundColor: palette.iceWhite, boxShadow: softShadow.raisedSmall },
 };

@@ -15,6 +15,7 @@ interface IProjectHeaderProps {
   title: string;
   stage: string;
   projectId: string;
+  badge?: ReactNode;
   actions: ReactNode;
   syncCaption: string;
   icon?: IconNameType;
@@ -23,6 +24,7 @@ interface IProjectHeaderProps {
 
 const ProjectHeader: FC<IProjectHeaderProps> = ({
   icon,
+  badge,
   title,
   stage,
   projectId,
@@ -43,6 +45,7 @@ const ProjectHeader: FC<IProjectHeaderProps> = ({
             </Box>
             <Chip isMonospace label={projectId} variant={CHIP_VARIANTS.INSET} />
             <Chip label={stage} size={CHIP_SIZES.MEDIUM} dotColor={stageDotColor} />
+            {badge}
           </Box>
           <Box component="span" sx={styles.caption}>
             <Icon size={20} name={ICON_NAMES.ERP} />

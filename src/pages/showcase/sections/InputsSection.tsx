@@ -21,7 +21,7 @@ const InputsSection = () => {
   const [isNotifying, setIsNotifying] = useState(true);
   const [isRadioSelected, setIsRadioSelected] = useState(true);
   const [password, setPassword] = useState("genair2026");
-  const [invalidEmail, setInvalidEmail] = useState("aviad@gen-air");
+  const [invalidEmail, setInvalidEmail] = useState("aviad@genair");
   const [projectName, setProjectName] = useState("מגדל בבלי Horizon C");
   const [projectStatus, setProjectStatus] = useState<string | null>(PROJECT_STATUS_OPTIONS[0]);
 
@@ -43,7 +43,7 @@ const InputsSection = () => {
           title="כתובת דוא״ל"
           onChange={setEmail}
           type={FIELD_TYPES.EMAIL}
-          placeholder="name@gen-air.co.il"
+          placeholder="name@genair.co.il"
         />
         <Autocomplete
           title="סטטוס פרויקט"

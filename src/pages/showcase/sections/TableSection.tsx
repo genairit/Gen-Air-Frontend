@@ -45,7 +45,7 @@ const TableSection = () => {
             title="כתובת דוא״ל"
             onChange={setEmail}
             type={FIELD_TYPES.EMAIL}
-            placeholder="yuval@gen-air.co.il"
+            placeholder="yuval@genair.co.il"
           />
           <Autocomplete
             isRequired

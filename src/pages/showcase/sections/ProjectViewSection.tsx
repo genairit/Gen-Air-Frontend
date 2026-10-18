@@ -19,12 +19,14 @@ import DropZone from "../../../components/DropZone/DropZone";
 import Timeline from "../../../components/Timeline/Timeline";
 import TextField from "../../../components/TextField/TextField";
 import { validateFreeText } from "../../../utilities/validators";
-import { formatFileCount } from "../../../utilities/text.utility";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import PersonCard from "../../../components/PersonCard/PersonCard";
 import { toggleSelectedId } from "../../../utilities/selection.utility";
 import ProjectHeader from "../../../components/ProjectHeader/ProjectHeader";
+import { formatFolderCaption } from "../../../utilities/drive-folder.utility";
 import FolderAccordion from "../../../components/FolderAccordion/FolderAccordion";
+import { DRIVE_STATUS_BADGE_SIZES } from "../../../constants/drive-folder.constant";
+import DriveStatusBadge from "../../../components/DriveStatusBadge/DriveStatusBadge";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 
@@ -81,9 +83,15 @@ const ProjectViewSection = () => {
               <FolderAccordion
                 key={folder.id}
                 title={folder.name}
-                caption={formatFileCount(folder.fileCount)}
                 isExpanded={folder.id === expandedFolderId}
                 onToggle={() => handleFolderToggle(folder.id)}
+                caption={formatFolderCaption(folder.contentStatus, folder.fileCount)}
+                badge={
+                  <DriveStatusBadge
+                    state={folder.contentStatus}
+                    size={DRIVE_STATUS_BADGE_SIZES.ACCORDION}
+                  />
+                }
               >
                 {DEMO_PROJECT_FILES.map(file => (
                   <FileRow file={file} key={file.id} linkLabel="פתח ב-Drive" />

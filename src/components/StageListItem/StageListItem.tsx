@@ -42,9 +42,11 @@ const StageListItem: FC<IStageListItemProps> = ({
         depth={SURFACE_DEPTHS.RAISED_SOFT}
         sx={styles.card({ isDragging, isHighlighted })}
       >
-        <Box aria-hidden component="span" sx={styles.handle}>
-          ⋮⋮
-        </Box>
+        {dragSourceProps && (
+          <Box aria-hidden component="span" sx={styles.handle}>
+            ⋮⋮
+          </Box>
+        )}
         <Box sx={styles.position}>{toTwoDigitOrdinal(position)}</Box>
         <Box sx={styles.details}>
           <Box component="b" sx={styles.name}>

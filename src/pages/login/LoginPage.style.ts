@@ -24,18 +24,6 @@ export const useStyles = () =>
       alignItems: "center",
       flexDirection: "column",
     },
-    brandTitle: {
-      fontSize: 28,
-      fontWeight: 700,
-      marginTop: "8px",
-      letterSpacing: "0.02em",
-    },
-    eyebrow: {
-      fontSize: 12,
-      fontWeight: 600,
-      letterSpacing: "0.14em",
-      color: palette.textMuted,
-    },
     title: {
       fontSize: 26,
       fontWeight: 800,

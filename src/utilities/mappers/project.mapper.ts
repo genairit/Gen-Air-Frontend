@@ -5,16 +5,13 @@ import type {
   IApiProjectType,
   IApiProjectStage,
   IApiStageTransition,
-  IApiTemplateFolderNode,
 } from "../../interfaces/api.interface";
 
 import type {
-  IBoardColumn,
   IStatusStage,
   IProjectFile,
   IProjectFolder,
   ITimelineEntry,
-  IFolderTreeNode,
   IProjectSummary,
   IProjectTypeOption,
 } from "../../interfaces/project.interface";
@@ -22,6 +19,7 @@ import type {
 import { getFullName } from "./user.mapper";
 import { formatFileSize } from "../file.utility";
 import { theme } from "../../constants/theme.constants";
+import { formatApartmentCount } from "../apartment.utility";
 import { DATE_FORMAT } from "../../constants/date.constants";
 import { getInitials, formatErpSyncCaption } from "../text.utility";
 import { USER_ROLE_LABELS } from "../../constants/user-role.constant";
@@ -53,20 +51,23 @@ const getMemberInitials = (project: IApiProject) =>
     member.user ? [getInitials(getFullName(member.user))] : [],
   );
 
+const toApartmentsLabel = (project: IApiProject) => {
+  if (!project.projectType?.canHaveApartments) {
+    return null;
+  }
+
+  return formatApartmentCount(project.apartmentCount ?? 0);
+};
+
 export const toProjectSummary = (project: IApiProject): IProjectSummary => ({
   id: project.id,
+  apartmentsLabel: toApartmentsLabel(project),
   progress: null,
   code: project.code,
   name: project.name,
   teamInitials: getMemberInitials(project),
   type: project.projectType?.name ?? "",
   updatedLabel: formatRelativeTime(project.updatedAt),
-});
-
-export const toBoardColumn = (stage: IApiProjectStage): IBoardColumn => ({
-  title: stage.name,
-  stageId: stage.id,
-  dotColor: stage.color ?? theme.palette.statusGray,
 });
 
 export const toStatusStage = (stage: IApiProjectStage): IStatusStage => ({
@@ -112,6 +113,7 @@ export const toProjectFolder = (folder: IApiDriveFolder): IProjectFolder => ({
   name: folder.name,
   icon: ICON_NAMES.FOLDER,
   fileCount: folder.fileCount,
+  contentStatus: folder.contentStatus,
 });
 
 export const toProjectFile = (item: IApiDriveItem): IProjectFile => ({
@@ -123,15 +125,6 @@ export const toProjectFile = (item: IApiDriveItem): IProjectFile => ({
     .filter(Boolean)
     .join(" · "),
 });
-
-export const flattenTemplateTree = (
-  nodes: IApiTemplateFolderNode[],
-  depth = 1,
-): IFolderTreeNode[] =>
-  nodes.flatMap(node => [
-    { id: node.id, depth, name: `${node.name}/`, icon: ICON_NAMES.FOLDER },
-    ...flattenTemplateTree(node.children, depth + 1),
-  ]);
 
 export const toErpSyncCaption = (erpSyncedAt: string | null) => {
   if (!erpSyncedAt) {

@@ -8,6 +8,11 @@ interface IGridStyleOptions {
   gridTemplate: string;
 }
 
+interface IRowStyleOptions extends IGridStyleOptions {
+  isDimmed: boolean;
+  isClickable: boolean;
+}
+
 const createGridRow = ({ minWidth, gridTemplate }: IGridStyleOptions) => ({
   minWidth,
   gap: "16px",
@@ -31,7 +36,7 @@ export const useStyles = () =>
       padding: "0 20px",
       color: theme.palette.textMuted,
     }),
-    row: ({ isDimmed, ...options }: IGridStyleOptions & { isDimmed: boolean }) => ({
+    row: ({ isDimmed, isClickable, ...options }: IRowStyleOptions) => ({
       ...createGridRow(options),
       minHeight: 72,
       padding: "10px 20px",
@@ -40,5 +45,7 @@ export const useStyles = () =>
       boxShadow: theme.softShadow.raisedCompact,
       backgroundColor: theme.palette.iceWhite,
       opacity: isDimmed ? DIMMED_ROW_OPACITY : 1,
+      cursor: isClickable ? "pointer" : "default",
+      "&:hover": isClickable ? { backgroundColor: theme.palette.surfaceHover } : {},
     }),
   });

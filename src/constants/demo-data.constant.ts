@@ -4,7 +4,6 @@ import type {
   IBoardColumn,
   ITimelineEntry,
   IProjectFolder,
-  IFolderTreeNode,
   IProjectSummary,
   IProjectTypeOption,
 } from "../interfaces/project.interface";
@@ -14,20 +13,22 @@ import { ICON_NAMES } from "./icon.constant";
 import { AVATAR_TONES } from "./tone.constant";
 import { USER_ROLES } from "./user-role.constant";
 import type { IPerson } from "../interfaces/person.interface";
+import { FOLDER_CONTENT_STATUSES } from "./drive-folder.constant";
 import type { IEmployee, IRoleAssignment } from "../interfaces/employee.interface";
 
 const { palette } = theme;
 
 export const DEMO_BOARD_COLUMNS: IBoardColumn[] = [
-  { stageId: "quote", title: "הצעת מחיר", dotColor: palette.statusGray },
-  { stageId: "order", title: "הזמנה", dotColor: palette.charcoal },
-  { stageId: "execution", title: "בביצוע", dotColor: palette.orange },
+  { stageId: "quote", title: "ממתין", dotColor: palette.statusGray },
+  { stageId: "order", title: "בעבודה", dotColor: palette.charcoal },
+  { stageId: "execution", title: "להמתין", dotColor: palette.primary },
 ];
 
 export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
   quote: [
     {
       progress: 20,
+      apartmentsLabel: null,
       id: "GA-84811",
       code: "GA-84811",
       type: "בנייה רוויה",
@@ -37,6 +38,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
     },
     {
       progress: 35,
+      apartmentsLabel: null,
       id: "GA-84790",
       code: "GA-84790",
       type: "מסחרי (VRF)",
@@ -48,6 +50,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
   order: [
     {
       progress: 55,
+      apartmentsLabel: null,
       id: "GA-84902",
       code: "GA-84902",
       updatedLabel: "היום",
@@ -57,6 +60,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
     },
     {
       progress: 48,
+      apartmentsLabel: null,
       id: "GA-84877",
       code: "GA-84877",
       type: "בנייה רוויה",
@@ -68,6 +72,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
   execution: [
     {
       progress: 72,
+      apartmentsLabel: null,
       id: "GA-84920",
       code: "GA-84920",
       type: "בנייה רוויה",
@@ -77,6 +82,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
     },
     {
       progress: 86,
+      apartmentsLabel: null,
       id: "GA-84655",
       code: "GA-84655",
       updatedLabel: "היום",
@@ -138,11 +144,41 @@ export const DEMO_PROJECT_TEAM: IPerson[] = [
 ];
 
 export const DEMO_PROJECT_FOLDERS: IProjectFolder[] = [
-  { id: "plans", icon: ICON_NAMES.HVAC, name: "תוכניות מיזוג אוויר", fileCount: 3 },
-  { id: "quotes", icon: ICON_NAMES.QUOTE, name: "כתבי כמויות והצעות מחיר", fileCount: 6 },
-  { id: "reports", icon: ICON_NAMES.REPORT, name: "אישורי ביצוע ודוחות שטח", fileCount: 12 },
-  { id: "invoices", icon: ICON_NAMES.INVOICE, name: "חשבוניות ומסמכים פיננסיים", fileCount: 8 },
-  { id: "misc", icon: ICON_NAMES.FOLDER, name: "קבצים ומסמכים נוספים", fileCount: 4 },
+  {
+    id: "plans",
+    fileCount: 3,
+    icon: ICON_NAMES.HVAC,
+    name: "תוכניות מיזוג אוויר",
+    contentStatus: FOLDER_CONTENT_STATUSES.HAS_CONTENT,
+  },
+  {
+    id: "quotes",
+    fileCount: 6,
+    icon: ICON_NAMES.QUOTE,
+    name: "כתבי כמויות והצעות מחיר",
+    contentStatus: FOLDER_CONTENT_STATUSES.HAS_CONTENT,
+  },
+  {
+    id: "reports",
+    fileCount: 12,
+    icon: ICON_NAMES.REPORT,
+    name: "אישורי ביצוע ודוחות שטח",
+    contentStatus: FOLDER_CONTENT_STATUSES.HAS_CONTENT,
+  },
+  {
+    id: "invoices",
+    fileCount: 0,
+    icon: ICON_NAMES.INVOICE,
+    name: "חשבוניות ומסמכים פיננסיים",
+    contentStatus: FOLDER_CONTENT_STATUSES.EMPTY,
+  },
+  {
+    id: "misc",
+    fileCount: null,
+    icon: ICON_NAMES.FOLDER,
+    name: "קבצים ומסמכים נוספים",
+    contentStatus: FOLDER_CONTENT_STATUSES.UNKNOWN,
+  },
 ];
 
 export const DEMO_PROJECT_FILES: IProjectFile[] = [
@@ -175,7 +211,7 @@ export const DEMO_PROJECT_TIMELINE: ITimelineEntry[] = [
     isHighlighted: true,
     date: "20/12/2023 16:45",
     label: "שלב א׳ — הושלם",
-    dotColor: palette.orange,
+    dotColor: palette.primary,
     author: "שונה ע״י יוסי לוי (מתקין ראשי)",
   },
   {
@@ -222,52 +258,10 @@ export const DEMO_PROJECT_ROLE_ASSIGNMENTS: IRoleAssignment[] = [
 ];
 
 export const DEMO_STATUS_STAGES: IStatusStage[] = [
-  {
-    id: "quote",
-    name: "הצעת מחיר",
-    tag: "שלב פתיחה",
-    description: "יצירת תיקיית פרויקט אוטומטית וחישובי עומס תרמי",
-  },
-  {
-    id: "order",
-    name: "הזמנה",
-    tag: "רכש והזמנות",
-    description: "אישור מול ה-ERP, הזמנת יחידות VRF ורכש ציוד",
-  },
-  {
-    id: "execution",
-    name: "בביצוע",
-    tag: "עבודות שטח",
-    description: "עבודות צנרת באתר, בדיקות לחץ והתקנת יחידות פנים",
-  },
-  {
-    id: "handover",
-    name: "מסירה/שירות",
-    tag: "מסירה ואחריות",
-    description: "פרוטוקול מסירה, תעודת אחריות וחוזה שירות",
-  },
-];
-
-export const DEMO_FOLDER_TEMPLATE_NODES: IFolderTreeNode[] = [
-  { id: "engineering", depth: 1, icon: ICON_NAMES.FOLDER, name: "01_הנדסה_ותכנון/" },
-  {
-    depth: 2,
-    isLeaf: true,
-    id: "thermal-load",
-    icon: ICON_NAMES.REPORT,
-    name: "חישוב_עומסים_תרמי.xlsx",
-  },
-  { id: "cad", depth: 2, isLeaf: true, icon: ICON_NAMES.FOLDER, name: "תוכניות_CAD/" },
-  { id: "procurement", depth: 1, icon: ICON_NAMES.FOLDER, name: "02_הזמנות_ורכש/" },
-  { id: "execution", depth: 1, icon: ICON_NAMES.FOLDER, name: "03_תיק_ביצוע/" },
-  {
-    id: "unit",
-    depth: 2,
-    isLeaf: true,
-    name: "דירה_{Unit_Number}/",
-    icon: ICON_NAMES.PROJECT_FOLDER,
-  },
-  { id: "handover", depth: 1, icon: ICON_NAMES.FOLDER, name: "04_מסירה_ותעודות_אחריות/" },
+  { id: "waiting", name: "ממתין", tag: "קבוע", description: "הפרויקט ממתין לתחילת עבודה" },
+  { id: "in-progress", name: "בעבודה", tag: "קבוע", description: "עבודה על הפרויקט מתבצעת כעת" },
+  { id: "on-hold", name: "להמתין", tag: "קבוע", description: "העבודה על הפרויקט בהמתנה" },
+  { id: "completed", name: "הסתיים", tag: "קבוע", description: "העבודה על הפרויקט הסתיימה" },
 ];
 
 export const DEMO_EMPLOYEES: IEmployee[] = [
@@ -275,7 +269,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1001",
     isDisabled: false,
     phone: "052-4418230",
-    email: "aviad@gen-air.co.il",
+    email: "aviad@genair.co.il",
     role: USER_ROLES.SYSTEM_ADMIN,
     person: {
       initials: "אכ",
@@ -288,7 +282,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1042",
     isDisabled: false,
     phone: "054-7712094",
-    email: "michal@gen-air.co.il",
+    email: "michal@genair.co.il",
     role: USER_ROLES.SECRETARY,
     person: { initials: "מר", name: "מיכל רוזנברג", caption: "מזהה: EMP-1042" },
   },
@@ -296,7 +290,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1018",
     isDisabled: false,
     phone: "050-3365817",
-    email: "yossi.b@gen-air.co.il",
+    email: "yossi.b@genair.co.il",
     role: USER_ROLES.PROJECT_MANAGER,
     person: {
       initials: "יב",
@@ -309,7 +303,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1087",
     isDisabled: false,
     phone: "053-9021446",
-    email: "roman.l@gen-air.co.il",
+    email: "roman.l@genair.co.il",
     role: USER_ROLES.LEAD_INSTALLER,
     person: { initials: "רל", name: "רומן לוין", caption: "מזהה: EMP-1087 · צוות צפון VRF" },
   },
@@ -317,7 +311,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     id: "EMP-1031",
     isDisabled: true,
     phone: "058-6634172",
-    email: "dan.s@gen-air.co.il",
+    email: "dan.s@genair.co.il",
     role: USER_ROLES.LEAD_INSTALLER,
     person: { initials: "דש", name: "דן שמיר", caption: "מזהה: EMP-1031 · מושבת" },
   },

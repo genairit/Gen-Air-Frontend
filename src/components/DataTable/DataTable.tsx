@@ -10,6 +10,7 @@ interface IDataTableProps<TRow> {
   footer?: ReactNode;
   toolbar?: ReactNode;
   getRowId: (row: TRow) => string;
+  onRowClick?: (row: TRow) => void;
   columns: IDataTableColumn<TRow>[];
   isRowDimmed?: (row: TRow) => boolean;
 }
@@ -23,6 +24,7 @@ const DataTable = <TRow,>({
   toolbar,
   columns,
   getRowId,
+  onRowClick,
   minWidth = 700,
   isRowDimmed = () => false,
 }: IDataTableProps<TRow>) => {
@@ -44,7 +46,13 @@ const DataTable = <TRow,>({
           <Box
             role="row"
             key={getRowId(row)}
-            sx={styles.row({ minWidth, gridTemplate, isDimmed: isRowDimmed(row) })}
+            onClick={onRowClick && (() => onRowClick(row))}
+            sx={styles.row({
+              minWidth,
+              gridTemplate,
+              isDimmed: isRowDimmed(row),
+              isClickable: Boolean(onRowClick),
+            })}
           >
             {columns.map(column => (
               <Box role="cell" key={column.id}>

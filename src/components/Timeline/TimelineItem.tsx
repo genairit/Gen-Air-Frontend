@@ -27,7 +27,9 @@ const TimelineItem: FC<ITimelineItemProps> = ({ entry, isLast }) => {
       </Box>
       <Box sx={styles.content}>
         <Box sx={styles.header}>
-          <Chip label={entry.label} variant={getChipVariant(entry.isHighlighted)} />
+          {entry.badge ?? (
+            <Chip label={entry.label} variant={getChipVariant(entry.isHighlighted)} />
+          )}
           <Box component="span" sx={styles.date}>
             {entry.date}
           </Box>

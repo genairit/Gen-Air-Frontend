@@ -7,6 +7,7 @@ import { TABS_VARIANTS, type TabsVariantType } from "../../constants/tabs.consta
 interface ITabsProps {
   activeId: string;
   items: ITabItem[];
+  disabled?: boolean;
   isFullWidth?: boolean;
   variant?: TabsVariantType;
   onChange: (id: string) => void;
@@ -14,6 +15,7 @@ interface ITabsProps {
 
 const Tabs: FC<ITabsProps> = ({
   items,
+  disabled = false,
   activeId,
   onChange,
   isFullWidth = false,
@@ -27,6 +29,7 @@ const Tabs: FC<ITabsProps> = ({
         <ButtonBase
           role="tab"
           key={item.id}
+          disabled={disabled}
           onClick={() => onChange(item.id)}
           aria-selected={item.id === activeId}
           sx={styles.tab({ variant, isFullWidth, isActive: item.id === activeId })}

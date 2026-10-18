@@ -1,4 +1,8 @@
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { PaymentTermsType } from "../constants/payment-terms.constant";
+import type { FolderContentStatusType } from "../constants/drive-folder.constant";
+import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
+import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
 export interface ICursorPage<TItem> {
   items: TItem[];
@@ -38,6 +42,8 @@ export interface IApiProjectType {
   icon: string | null;
   subtitle: string | null;
   description: string | null;
+  canHaveApartments: boolean;
+  detailFieldSet: ProjectDetailFieldSetType;
 }
 
 export interface IApiProjectMember {
@@ -47,18 +53,63 @@ export interface IApiProjectMember {
   role: UserRoleType;
 }
 
-export interface IApiProject {
+export interface IApiProjectCustomerDetails {
+  customerName: string | null;
+  customerCity: string | null;
+  customerUnit: string | null;
+  customerFloor: number | null;
+  customerPhone: string | null;
+  customerEmail: string | null;
+  customerAddress: string | null;
+  customerApartment: string | null;
+  customerCompanyNumber: string | null;
+  customerAssociationNumber: string | null;
+}
+
+export type CustomerDetailFieldType = keyof IApiProjectCustomerDetails;
+
+export interface IApiProjectIntake {
+  address: string | null;
+  contactName: string | null;
+  contactRole: string | null;
+  addressCity: string | null;
+  contactPhone: string | null;
+  addressPlaceId: string | null;
+  paymentTermsNote: string | null;
+  paymentTerms: PaymentTermsType | null;
+}
+
+export type InheritedProjectFieldType = keyof Pick<
+  IApiProjectIntake,
+  "address" | "addressCity" | "paymentTerms" | "addressPlaceId" | "paymentTermsNote"
+>;
+
+export interface IApiProjectReference {
+  id: string;
+  code: string;
+  name: string;
+}
+
+export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectIntake {
   id: string;
   code: string;
   name: string;
   stageId: string;
   updatedAt: string;
+  notes: string | null;
   projectTypeId: string;
+  apartmentCount?: number;
   stage?: IApiProjectStage;
+  customerId: string | null;
   erpSyncedAt: string | null;
+  parentNotes?: string | null;
   driveFolderId: string | null;
   projectType?: IApiProjectType;
   members?: IApiProjectMember[];
+  customer?: IApiCustomer | null;
+  parentProjectId: string | null;
+  parentProject?: IApiProjectReference;
+  inheritedFields?: InheritedProjectFieldType[];
 }
 
 export type TCountsByStageId = Record<string, number>;
@@ -91,7 +142,8 @@ export interface IApiDriveItem {
 export interface IApiDriveFolder {
   id: string;
   name: string;
-  fileCount: number;
+  fileCount: number | null;
+  contentStatus: FolderContentStatusType;
 }
 
 export interface IApiDriveContents {
@@ -100,12 +152,41 @@ export interface IApiDriveContents {
   folders: IApiDriveFolder[];
 }
 
-export interface IApiTemplateFolderNode {
-  id: string;
-  name: string;
-  position: number;
-  parentId: string | null;
-  children: IApiTemplateFolderNode[];
+export type TUserRoleCounts = Record<UserRoleType, number>;
+
+export interface IApiPlaceSuggestion {
+  placeId: string;
+  mainText: string;
+  secondaryText: string | null;
 }
 
-export type TUserRoleCounts = Record<UserRoleType, number>;
+export interface IApiPlaceAddress {
+  placeId: string;
+  city: string | null;
+  formattedAddress: string;
+  countryCode: string | null;
+}
+
+export interface IApiCustomer {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  taxId: string;
+  address: string;
+  createdAt: string;
+  contactName: string;
+  createdBy?: IApiUser;
+  priorityId: string | null;
+  prioritySyncAttempts: number;
+  prioritySyncedAt: string | null;
+  prioritySyncError: string | null;
+  customerType: ProjectDetailFieldSetType;
+  prioritySyncStatus: PrioritySyncStatusType;
+}
+
+export type TCustomerSyncStatusCounts = Record<PrioritySyncStatusType, number>;
+
+export interface IApiApartmentPage extends ICursorPage<IApiProject> {
+  total: number;
+}
