@@ -50,7 +50,7 @@ const ProjectDetailsCard: FC<IProjectDetailsCardProps> = ({
   const stageLabel = findOptionLabelById(stageOptions, values.stageId);
 
   const modeBadge = isEditMode ? (
-    <Chip size={CHIP_SIZES.MEDIUM} label={stageLabel ?? ""} dotColor={theme.palette.orange} />
+    <Chip size={CHIP_SIZES.MEDIUM} label={stageLabel ?? ""} dotColor={theme.palette.primary} />
   ) : (
     <Chip
       isMonospace

@@ -6,43 +6,29 @@ import { Box, type SxProps, type Theme } from "@mui/material";
 import type { INavigationItem } from "../../interfaces/navigation-item.interface";
 
 interface ISidebarProps {
-  logo?: ReactNode;
+  brand: ReactNode;
   activeId: string;
   footer: ReactNode;
-  brandTitle: string;
   sx?: SxProps<Theme>;
   sectionTitle: string;
-  brandSubtitle: string;
   items: INavigationItem[];
   onSelect: (id: string) => void;
 }
 
 const Sidebar: FC<ISidebarProps> = ({
   sx,
-  logo,
+  brand,
   items,
   footer,
   activeId,
   onSelect,
-  brandTitle,
   sectionTitle,
-  brandSubtitle,
 }) => {
   const styles = useStyles();
 
   return (
     <Box component="aside" sx={mergeSx(styles.sidebar, sx ?? null)}>
-      <Box sx={styles.brand}>
-        {logo && <Box sx={styles.logo}>{logo}</Box>}
-        <Box sx={styles.brandText}>
-          <Box component="b" sx={styles.brandTitle}>
-            {brandTitle}
-          </Box>
-          <Box component="span" sx={styles.brandSubtitle}>
-            {brandSubtitle}
-          </Box>
-        </Box>
-      </Box>
+      <Box sx={styles.brand}>{brand}</Box>
 
       <Box component="nav" sx={styles.navigation}>
         <Box component="span" sx={styles.sectionTitle}>

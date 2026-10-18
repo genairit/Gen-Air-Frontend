@@ -2,7 +2,7 @@ import { queryClient } from "../providers/query-client";
 import { projectService } from "../services/project.service";
 import { QUERY_ROOTS } from "../constants/query-key.constant";
 import { toProjectPayload } from "../utilities/project.utility";
-import type { IProjectFormValues } from "../interfaces/project.interface";
+import type { IProjectSubmission } from "../interfaces/project.interface";
 
 const invalidateProjectQueries = () =>
   Promise.all([
@@ -12,8 +12,8 @@ const invalidateProjectQueries = () =>
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.TRANSITIONS] }),
   ]);
 
-const requirePayload = (values: IProjectFormValues) => {
-  const payload = toProjectPayload(values);
+const requirePayload = (submission: IProjectSubmission) => {
+  const payload = toProjectPayload(submission);
 
   if (!payload) {
     throw new Error("A project type is required before saving");
@@ -22,8 +22,8 @@ const requirePayload = (values: IProjectFormValues) => {
   return payload;
 };
 
-export const createProjectAction = async (values: IProjectFormValues) => {
-  const project = await projectService.create(requirePayload(values));
+export const createProjectAction = async (submission: IProjectSubmission) => {
+  const project = await projectService.create(requirePayload(submission));
 
   await invalidateProjectQueries();
 
@@ -32,12 +32,9 @@ export const createProjectAction = async (values: IProjectFormValues) => {
 
 export const updateProjectAction = async ({
   projectId,
-  values,
-}: {
-  projectId: string;
-  values: IProjectFormValues;
-}) => {
-  const project = await projectService.update(projectId, requirePayload(values));
+  ...submission
+}: IProjectSubmission & { projectId: string }) => {
+  const project = await projectService.update(projectId, requirePayload(submission));
 
   await invalidateProjectQueries();
 

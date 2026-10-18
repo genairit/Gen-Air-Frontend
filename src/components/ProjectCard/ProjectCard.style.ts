@@ -18,6 +18,12 @@ export const useStyles = () =>
       alignItems: "center",
       justifyContent: "space-between",
     },
+    chips: {
+      gap: "6px",
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "center",
+    },
     footer: {
       gap: "8px",
       display: "flex",

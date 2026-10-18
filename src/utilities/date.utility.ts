@@ -1,4 +1,4 @@
-import "moment/locale/he";
+import "moment/dist/locale/he";
 import moment from "moment";
 import { DATE_FORMAT, RELATIVE_TIME_LOCALE } from "../constants/date.constants";
 import type { IDateRange } from "../components/DatePicker/interfaces/date-range.interface";

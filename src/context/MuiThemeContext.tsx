@@ -12,7 +12,7 @@ const MUI_OVERRIDES = createTheme({
     fontFamily: theme.font.body,
   },
   palette: {
-    primary: { main: theme.palette.orange },
+    primary: { main: theme.palette.primary },
     secondary: { main: theme.palette.airBlue },
     background: { default: theme.palette.iceWhite, paper: theme.palette.iceWhite },
     text: { primary: theme.palette.charcoal, secondary: theme.palette.textMuted },

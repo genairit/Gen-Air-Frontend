@@ -22,7 +22,6 @@ interface IBoardFilter {
 interface IBoardToolbarProps {
   search: string;
   typeFilter: IBoardFilter;
-  stageFilter: IBoardFilter;
   canCreateProject: boolean;
   managerFilter: IBoardFilter;
   onSearchChange: (search: string) => void;
@@ -34,7 +33,6 @@ const getSelectedLabel = ({ options, selectedId }: IBoardFilter) =>
 const BoardToolbar: FC<IBoardToolbarProps> = ({
   search,
   typeFilter,
-  stageFilter,
   managerFilter,
   onSearchChange,
   canCreateProject,
@@ -60,15 +58,6 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
           onChange={managerFilter.onChange}
           value={getSelectedLabel(managerFilter)}
           options={getOptionLabels(managerFilter.options)}
-        />
-      </Box>
-      <Box sx={styles.flexItem({ basis: "1 1 170px" })}>
-        <Autocomplete
-          isAutocomplete={false}
-          startIcon={ICON_NAMES.FILTER}
-          onChange={stageFilter.onChange}
-          value={getSelectedLabel(stageFilter)}
-          options={getOptionLabels(stageFilter.options)}
         />
       </Box>
       <Box sx={styles.flexItem({ basis: "1 1 220px" })}>

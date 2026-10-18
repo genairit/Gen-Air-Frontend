@@ -1,3 +1,5 @@
+import { theme } from "./theme.constants";
+
 export const CHIP_VARIANTS = {
   INFO: "info",
   PLAIN: "plain",
@@ -15,3 +17,12 @@ export const CHIP_SIZES = {
 } as const;
 
 export type ChipSizeType = (typeof CHIP_SIZES)[keyof typeof CHIP_SIZES];
+
+export const CHIP_ICON_COLOR_BY_VARIANT: Record<ChipVariantType, string> = {
+  info: theme.palette.charcoal,
+  plain: theme.palette.charcoal,
+  raised: theme.palette.charcoal,
+  dark: theme.palette.iceWhite,
+  alert: theme.palette.white,
+  inset: theme.palette.primary,
+};

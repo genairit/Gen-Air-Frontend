@@ -24,3 +24,21 @@ export const formatStageLabel = (stageLabel: string) => `שלב: ${stageLabel}`;
 export const formatRolesBadge = (count: number) => `${count} תפקידים מוגדרים`;
 
 export const formatErpSyncCaption = (prefix: string, syncedAt: string) => `${prefix} · ${syncedAt}`;
+
+export const keepDigits = (value: string, maxLength: number) =>
+  value.replace(/\D/g, "").slice(0, maxLength);
+
+export const keepPhoneCharacters = (value: string, maxLength: number) =>
+  value.replace(/[^\d-]/g, "").slice(0, maxLength);
+
+export const formatFieldErrorCount = (count: number) => `יש ${count} שדות לתיקון לפני השמירה`;
+
+export const formatTypeSwitchTitle = (typeName: string) =>
+  `סוג הפרויקט שונה ל${typeName} — שום מידע לא נמחק`;
+
+export const formatKeptFields = (labels: string) => `הועברו אוטומטית: ${labels}`;
+
+export const formatNeededFields = (labels: string) => `שדות חדשים למילוי: ${labels}`;
+
+export const formatHiddenFields = (labels: string) =>
+  `נשמרו בצד ולא יישלחו: ${labels}. יוחזרו אם תחזור לסוג הקודם.`;

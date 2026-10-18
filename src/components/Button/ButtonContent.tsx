@@ -23,7 +23,7 @@ const ButtonContent: FC<IButtonContentProps> = ({ text, icon, iconColor, hasIcon
     return (
       <Box component="span" sx={styles.content}>
         <Box component="span" sx={styles.iconBadge}>
-          <Icon name={icon} color={theme.palette.orange} />
+          <Icon name={icon} color={theme.palette.primary} />
         </Box>
         {text}
       </Box>

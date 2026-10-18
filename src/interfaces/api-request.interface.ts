@@ -1,4 +1,7 @@
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { PaymentTermsType } from "../constants/payment-terms.constant";
+import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
+import type { IApiProjectIntake, IApiProjectCustomerDetails } from "./api.interface";
 
 export interface IProjectQuery {
   search: string;
@@ -6,14 +9,22 @@ export interface IProjectQuery {
   projectTypeId: string | null;
 }
 
+export interface IProjectPageQuery extends IProjectQuery {
+  stageId: string | null;
+}
+
 interface IProjectMemberAssignment {
   userId: string;
   role: UserRoleType;
 }
 
-export interface IProjectPayload {
+export type TProjectIntakePayload = Partial<Omit<IApiProjectIntake, "address" | "addressCity">>;
+
+export interface IProjectPayload
+  extends Partial<IApiProjectCustomerDetails>, TProjectIntakePayload {
   name: string;
   stageId?: string;
+  customerId: string;
   projectTypeId: string;
   members: IProjectMemberAssignment[];
 }
@@ -21,6 +32,11 @@ export interface IProjectPayload {
 export interface IUserQuery {
   search: string;
   role: UserRoleType | null;
+}
+
+export interface ICustomerQuery {
+  search: string;
+  prioritySyncStatus: PrioritySyncStatusType | null;
 }
 
 export interface IUserPayload {
@@ -32,14 +48,39 @@ export interface IUserPayload {
   role: UserRoleType;
 }
 
-export interface IProjectStagePayload {
-  name: string;
-  tag: string | null;
-  description: string | null;
-}
-
 export interface ILoginPayload {
   email: string;
   password: string;
   rememberMe: boolean;
+}
+
+export interface IAddressSearch {
+  input: string;
+  signal: AbortSignal;
+  sessionToken: string;
+}
+
+export interface IAddressLookup {
+  placeId: string;
+  sessionToken: string;
+}
+
+export interface IApartmentQuery {
+  search: string;
+  stageId: string | null;
+}
+
+export interface IApartmentPayload {
+  contactName: string;
+  contactPhone: string;
+  customerFloor: number;
+  customerApartment: string;
+  customerName: string | null;
+  customerPhone: string | null;
+}
+
+export interface IApartmentChanges {
+  notes?: string | null;
+  paymentTermsNote?: string | null;
+  paymentTerms?: PaymentTermsType | null;
 }

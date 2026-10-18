@@ -9,12 +9,15 @@ import SaveRounded from "@mui/icons-material/SaveRounded";
 import type { SvgIconComponent } from "@mui/icons-material";
 import EmailRounded from "@mui/icons-material/EmailRounded";
 import PhoneRounded from "@mui/icons-material/PhoneRounded";
+import PlaceRounded from "@mui/icons-material/PlaceRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
 import GroupsRounded from "@mui/icons-material/GroupsRounded";
 import PersonRounded from "@mui/icons-material/PersonRounded";
 import DeleteRounded from "@mui/icons-material/DeleteRounded";
 import LogoutRounded from "@mui/icons-material/LogoutRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
+import ScheduleRounded from "@mui/icons-material/ScheduleRounded";
+import PaymentsRounded from "@mui/icons-material/PaymentsRounded";
 import TimelineRounded from "@mui/icons-material/TimelineRounded";
 import VerifiedRounded from "@mui/icons-material/VerifiedRounded";
 import SettingsRounded from "@mui/icons-material/SettingsRounded";
@@ -24,6 +27,7 @@ import FilterAltRounded from "@mui/icons-material/FilterAltRounded";
 import DashboardRounded from "@mui/icons-material/DashboardRounded";
 import OpenInNewRounded from "@mui/icons-material/OpenInNewRounded";
 import type { IconNameType } from "../../../constants/icon.constant";
+import AssignmentRounded from "@mui/icons-material/AssignmentRounded";
 import VisibilityRounded from "@mui/icons-material/VisibilityRounded";
 import AddToDriveRounded from "@mui/icons-material/AddToDriveRounded";
 import AssessmentRounded from "@mui/icons-material/AssessmentRounded";
@@ -31,6 +35,7 @@ import CloudUploadRounded from "@mui/icons-material/CloudUploadRounded";
 import ReceiptLongRounded from "@mui/icons-material/ReceiptLongRounded";
 import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
 import EngineeringRounded from "@mui/icons-material/EngineeringRounded";
+import PriorityHighRounded from "@mui/icons-material/PriorityHighRounded";
 import RequestQuoteRounded from "@mui/icons-material/RequestQuoteRounded";
 import FolderSpecialRounded from "@mui/icons-material/FolderSpecialRounded";
 import CreateNewFolderRounded from "@mui/icons-material/CreateNewFolderRounded";
@@ -55,15 +60,20 @@ export const ICON_COMPONENTS: Record<IconNameType, SvgIconComponent> = {
   filter: FilterAltRounded,
   folder: FolderRounded,
   logout: LogoutRounded,
+  pending: ScheduleRounded,
   report: AssessmentRounded,
   search: SearchRounded,
+  urgent: PriorityHighRounded,
+  tasks: AssignmentRounded,
   upload: CloudUploadRounded,
   gdrive: AddToDriveRounded,
   invoice: ReceiptLongRounded,
+  payment: PaymentsRounded,
   foreman: EngineeringRounded,
   building: ApartmentRounded,
   contacts: GroupsRounded,
   customer: PersonRounded,
+  location: PlaceRounded,
   document: DescriptionRounded,
   progress: TimelineRounded,
   projects: DashboardRounded,

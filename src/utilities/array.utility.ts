@@ -20,3 +20,11 @@ export const getPageItems = <TItem>(items: TItem[], { page, pageSize }: IPageOpt
 
   return items.slice(startIndex, startIndex + pageSize);
 };
+
+export const toggleItem = (items: string[], item: string) => {
+  if (items.includes(item)) {
+    return items.filter(candidate => candidate !== item);
+  }
+
+  return [...items, item];
+};

@@ -18,7 +18,7 @@ export const useStyles = () =>
       height: 72,
       fontSize: 26,
       fontWeight: 300,
-      color: palette.orange,
+      color: palette.primary,
       borderRadius: radius.pill,
       boxShadow: softShadow.raisedLarge,
     },

@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import { isRecord } from "./guards/primitive.guard";
+import { UploadValidationError } from "./drive-upload.utility";
 
 const GENERIC_ERROR_MESSAGE = "הפעולה נכשלה. נסה שוב בעוד רגע.";
 
@@ -24,6 +25,10 @@ const toMessage = (message: unknown) => {
 };
 
 export const getApiErrorMessage = (error: unknown) => {
+  if (error instanceof UploadValidationError) {
+    return error.message;
+  }
+
   if (!isAxiosError(error)) {
     return GENERIC_ERROR_MESSAGE;
   }

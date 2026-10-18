@@ -43,7 +43,7 @@ export const useStyles = () =>
       height: SIZE_BY_SHAPE[shape],
       borderRadius: RADIUS_BY_SHAPE[shape],
       transition: "background-color 0.2s ease",
-      backgroundColor: checked ? palette.orange : palette.iceWhite,
+      backgroundColor: checked ? palette.primary : palette.iceWhite,
       boxShadow: checked ? softShadow.primaryPressed : softShadow.inset,
     }),
     checkIcon: {

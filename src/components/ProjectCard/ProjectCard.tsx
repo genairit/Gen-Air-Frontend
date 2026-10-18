@@ -35,7 +35,10 @@ const ProjectCard: FC<IProjectCardProps> = ({
         onClick={() => onOpen(project.id)}
       >
         <Box sx={styles.row}>
-          <Chip label={project.type} variant={CHIP_VARIANTS.INSET} />
+          <Box sx={styles.chips}>
+            <Chip label={project.type} variant={CHIP_VARIANTS.INSET} />
+            {project.apartmentsLabel && <Chip label={project.apartmentsLabel} />}
+          </Box>
           <Box sx={styles.id} component="span">
             {project.code}
           </Box>
