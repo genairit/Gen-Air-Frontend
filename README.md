@@ -25,11 +25,7 @@ Railway builds the `Dockerfile` (see `.railway/railway.ts`): the app is built wi
 proxies `/api` to the backend over Railway's private network, exactly like the Vite dev proxy.
 The backend is never exposed publicly and needs no CORS.
 
-Service variables, declared in `.railway/railway.ts` (`railway config plan` / `railway config apply`):
-
-| Variable      | Value                                                                          |
-| ------------- | ------------------------------------------------------------------------------ |
-| `PORT`        | `8080`, the port the public domains route to                                   |
-| `BACKEND_URL` | `http://${{Gen-Air-Backend.RAILWAY_PRIVATE_DOMAIN}}:${{Gen-Air-Backend.PORT}}` |
+The service's variables live in `.railway/railway.ts` (apply with `railway config plan` and
+`railway config apply`): `BACKEND_URL` points Caddy at the backend's private Railway domain.
 
 `VITE_API_BASE_URL` keeps its `/api` default and is not set.
