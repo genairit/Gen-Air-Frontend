@@ -30,8 +30,8 @@ const ProjectPageHeader: FC<IProjectPageHeaderProps> = ({ badge, project, extraA
       title={project.name}
       projectId={project.code}
       icon={ICON_NAMES.BUILDING}
-      syncCaption={toErpSyncCaption(project.erpSyncedAt)}
       stage={formatStageLabel(project.stage?.name ?? "")}
+      syncCaption={toErpSyncCaption(project.prioritySyncedAt)}
       stageDotColor={project.stage?.color ?? theme.palette.primary}
       actions={
         canEdit && (
