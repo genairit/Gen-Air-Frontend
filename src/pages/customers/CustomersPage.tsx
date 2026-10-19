@@ -17,23 +17,39 @@ const CustomersPage = () => {
   const user = useSessionUser();
   const canCreateCustomer = hasPermission(user, "MANAGE_CUSTOMERS");
 
+  const createCustomerButton = (
+    <Button
+      icon={ICON_NAMES.ADD}
+      text={CUSTOMER_FORM_COPY.ADD}
+      onClick={() => navigate(ROUTE_PATHS.NEW_CUSTOMER)}
+    />
+  );
+
+  const managersOnlyCaption = (
+    <Box component="span" sx={styles.caption}>
+      {CUSTOMER_FORM_COPY.MANAGERS_ONLY}
+    </Box>
+  );
+
+  const headerAction = canCreateCustomer ? createCustomerButton : managersOnlyCaption;
+
   return (
     <Box sx={styles.page}>
-      <Box sx={styles.headerText}>
-        <Box component="span" sx={styles.eyebrow}>
-          <Icon size={22} name={ICON_NAMES.CUSTOMER} />
-          {CUSTOMERS_COPY.EYEBROW}
+      <Box sx={styles.header}>
+        <Box sx={styles.headerText}>
+          <Box component="span" sx={styles.eyebrow}>
+            <Icon size={22} name={ICON_NAMES.CUSTOMER} />
+            {CUSTOMERS_COPY.EYEBROW}
+          </Box>
+          <Box component="h1" sx={styles.heading}>
+            {CUSTOMERS_COPY.TITLE}
+          </Box>
+          <Box component="span" sx={styles.description}>
+            {CUSTOMERS_COPY.DESCRIPTION}
+          </Box>
         </Box>
-        <Box component="h1" sx={styles.heading}>
-          {CUSTOMERS_COPY.TITLE}
-        </Box>
-        <Box component="span" sx={styles.description}>
-          {CUSTOMERS_COPY.DESCRIPTION}
-        </Box>
+        {headerAction}
       </Box>
-      {canCreateCustomer && (
-        <Button text={CUSTOMER_FORM_COPY.ADD} onClick={() => navigate(ROUTE_PATHS.NEW_CUSTOMER)} />
-      )}
       <CustomersTable />
     </Box>
   );

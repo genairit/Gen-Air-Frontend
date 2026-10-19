@@ -1,6 +1,6 @@
-import type { ICreateCustomerPayload } from "../interfaces/customer.interface";
 import { CUSTOMER_FORM_COPY, CUSTOMER_FORM_FIELDS } from "../constants/customer-form.constant";
 import { PROJECT_DETAIL_FIELD_SET_VALUES } from "../constants/project-detail-field-set.constant";
+import type { TCustomerFormErrors, ICreateCustomerPayload } from "../interfaces/customer.interface";
 
 export const normalizeCustomerForm = (values: ICreateCustomerPayload): ICreateCustomerPayload => ({
   name: values.name.trim(),
@@ -12,7 +12,7 @@ export const normalizeCustomerForm = (values: ICreateCustomerPayload): ICreateCu
   customerType: values.customerType,
 });
 
-export const getCustomerFormErrors = (values: ICreateCustomerPayload) => {
+export const getCustomerFormErrors = (values: ICreateCustomerPayload): TCustomerFormErrors => {
   const payload = normalizeCustomerForm(values);
   const fieldErrors = CUSTOMER_FORM_FIELDS.flatMap(field => {
     const value = payload[field.field];
@@ -32,3 +32,6 @@ export const getCustomerFormErrors = (values: ICreateCustomerPayload) => {
     : [["customerType", CUSTOMER_FORM_COPY.REQUIRED_TYPE]];
   return Object.fromEntries([...fieldErrors, ...typeErrors]);
 };
+
+export const countCustomerFormErrors = (values: ICreateCustomerPayload) =>
+  Object.keys(getCustomerFormErrors(values)).length;

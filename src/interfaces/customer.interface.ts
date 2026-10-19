@@ -36,10 +36,14 @@ export interface ICreateCustomerPayload {
 
 export type CustomerFormFieldType = Exclude<keyof ICreateCustomerPayload, "customerType">;
 
+export type TCustomerFormErrors = Partial<Record<keyof ICreateCustomerPayload, string>>;
+
 export interface ICustomerFormField {
   label: string;
   isLtr: boolean;
   maxLength: number;
+  hint: string | null;
+  placeholder: string;
   inputType: TFieldType;
   field: CustomerFormFieldType;
   validator: (value: string) => IValidationResult;
