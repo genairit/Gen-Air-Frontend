@@ -29,3 +29,16 @@ The service's variables live in `.railway/railway.ts` (apply with `railway confi
 `railway config apply`): `BACKEND_URL` points Caddy at the backend's private Railway domain.
 
 `VITE_API_BASE_URL` keeps its `/api` default and is not set.
+
+## Release integration checks
+
+Only frontend release PRs run automatic Playwright: feature → `dev`, `dev` → `test`, and `test` →
+`main`. Merge backend dependencies into the matching destination first. The gate tests the
+frontend candidate merge and that destination's latest backend SHA using a pinned Automation
+revision. Unsupported promotion directions fail before running the suite.
+
+Backend destination changes invalidate prior frontend compatibility results. Wait for the backend
+promotion and its notifier, then rerun an active/stale frontend check if needed. Required checks
+are `End-to-end / Playwright` and `Backend compatibility`. See Gen-Air-Automation
+`docs/release-gate-rollout.md` for the coordinated rollout and ruleset setup; do not remove existing
+protection before installing its replacement.
