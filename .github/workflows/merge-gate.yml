@@ -2,7 +2,7 @@ name: Merge gate
 
 on:
   pull_request:
-    branches: [dev, test, main]
+    branches: [test, main]
     types: [opened, synchronize, reopened, ready_for_review, edited]
 
 permissions:
@@ -16,6 +16,6 @@ concurrency:
 jobs:
   e2e:
     name: End-to-end
-    uses: genairit/Gen-Air-Automation/.github/workflows/e2e.yml@701ffbf365b35be935fa55f941c569cc91444de6
+    uses: genairit/Gen-Air-Automation/.github/workflows/e2e.yml@b29ae222ff4ebc582fcfc797bca5cb6f4ab587a3
     with:
-      automation-ref: 701ffbf365b35be935fa55f941c569cc91444de6
+      automation-ref: b29ae222ff4ebc582fcfc797bca5cb6f4ab587a3
