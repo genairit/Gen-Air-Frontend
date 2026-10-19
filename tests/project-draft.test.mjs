@@ -62,6 +62,12 @@ test("round-trip allowed fields, omit sensitive fields, isolate users and clear 
   assert.equal(restored.typeId, values.typeId);
   assert.equal(restored.stageId, values.stageId);
   assert.deepEqual(restored.assignees, values.assignees);
+  assert.deepEqual(Object.keys(restored.assignees).sort(), [
+    "engineer",
+    "installer",
+    "project_manager",
+    "secretary",
+  ]);
   assert.equal(restored.paymentTerms.terms, "other");
   assert.equal(restored.paymentTerms.note, "");
   assert.equal(restored.contact.contactName, "");
@@ -82,6 +88,7 @@ test("empty reset removes draft; malformed and incompatible drafts are ignored",
     "null",
     '{"version":2,"values":{}}',
     '{"version":1,"values":{"name":42}}',
+    '{"version":1,"values":{"name":"Old","typeId":null,"stageId":null,"terms":null,"assignees":{"system_admin":null,"secretary":null,"project_manager":null,"lead_installer":null}}}',
   ]) {
     items.set("gen_air_project_form_draft:alice", raw);
     assert.equal(readProjectDraft("alice"), null);

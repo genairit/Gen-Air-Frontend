@@ -5,10 +5,12 @@ import Tabs from "../../../components/Tabs/Tabs";
 import ProjectMobileRow from "./ProjectMobileRow";
 import { useStyles } from "./ProjectsTable.style";
 import { Box, useMediaQuery } from "@mui/material";
+import { useSessionUser } from "../../../store/session.store";
 import DataTable from "../../../components/DataTable/DataTable";
 import { TABS_VARIANTS } from "../../../constants/tabs.constant";
 import { useScrollReached } from "../../../hooks/scroll-reached.hook";
 import InlineError from "../../../components/InlineError/InlineError";
+import { hasPermission } from "../../../utilities/permission.utility";
 import type { ITabItem } from "../../../interfaces/tab-item.interface";
 import { MOBILE_LAYOUT_QUERY } from "../../../constants/layout.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
@@ -45,6 +47,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
   const styles = usePageStyles();
   const tableStyles = useStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
+  const sessionUser = useSessionUser();
   const projectsQuery = useProjectPagesQuery(query);
   const moveMutation = useMoveProjectStageMutation();
 
@@ -52,6 +55,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
   const isEmpty = projectsQuery.isSuccess && projects.length === 0;
   const canLoadMore = projectsQuery.hasNextPage && !projectsQuery.isFetchingNextPage;
   const queryError = projectsQuery.error ?? moveMutation.error;
+  const canMoveStage = hasPermission(sessionUser, "MOVE_PROJECT_STAGE");
 
   const loadMoreRef = useScrollReached({
     isEnabled: canLoadMore,
@@ -62,7 +66,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
   const moveToStage = (project: IApiProject, stageId: string) =>
     moveMutation.mutate({ projectId: project.id, stageId });
 
-  const columns = buildProjectColumns({ stages, onStageChange: moveToStage });
+  const columns = buildProjectColumns({ stages, canMoveStage, onStageChange: moveToStage });
 
   const toolbar = (
     <Box sx={styles.stack({ gap: "16px" })}>
@@ -114,6 +118,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
             key={project.id}
             project={project}
             onOpen={onOpenProject}
+            canMoveStage={canMoveStage}
             onStageChange={moveToStage}
           />
         ))}

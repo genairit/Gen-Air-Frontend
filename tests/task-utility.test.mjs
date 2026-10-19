@@ -13,7 +13,8 @@ registerHooks({
         if (existsSync(url)) return { url: url.href, shortCircuit: true };
       }
     }
-    const isDeepPackageImport = !specifier.startsWith(".") && /^[^@][^/]*\/.+[^.]{4}$/.test(specifier);
+    const isDeepPackageImport =
+      !specifier.startsWith(".") && /^[^@][^/]*\/.+[^.]{4}$/.test(specifier);
 
     if (isDeepPackageImport) {
       try {
@@ -43,7 +44,8 @@ registerHooks({
 
 const moment = (await import("moment")).default;
 const utility = await import("../src/utilities/task.utility.ts");
-const { EMPTY_TASK_FORM, POOL_ASSIGNEE_ID } = await import("../src/constants/task.constant.ts");
+const { EMPTY_TASK_FORM, POOL_ASSIGNEE_ID, TASK_ASSIGNEES_QUERY } =
+  await import("../src/constants/task.constant.ts");
 
 const day = offset => moment().add(offset, "day").format("YYYY-MM-DD");
 
@@ -82,17 +84,25 @@ test("a task is overdue only after its due day has passed", () => {
   assert.match(utility.formatTaskDueLabel(task({ dueDate: day(2) })), /^עד /);
 });
 
-test("an unassigned task reads as the open pool and only employees may claim it", () => {
+test("an unassigned task reads as the open pool and only claim-permitted users may claim it", () => {
   assert.equal(utility.formatAssigneeLabel(task()), "מאגר פתוח");
-  assert.equal(utility.canClaimTask(task(), false), true);
-  assert.equal(utility.canClaimTask(task(), true), false);
-  assert.equal(utility.canClaimTask(task({ assigneeId: "u" }), false), false);
+  assert.equal(utility.canClaimTask(task(), true), true);
+  assert.equal(utility.canClaimTask(task(), false), false);
+  assert.equal(utility.canClaimTask(task({ assigneeId: "u" }), true), false);
   assert.equal(utility.formatTaskContext(task()), "וילה · עמותת אור");
 });
 
 test("tabs map to status and urgency filters", () => {
-  assert.deepEqual(utility.toTaskQuery("urgent", "x"), { search: "x", isUrgent: true, status: null });
-  assert.deepEqual(utility.toTaskQuery("in_review", ""), { search: "", isUrgent: null, status: "in_review" });
+  assert.deepEqual(utility.toTaskQuery("urgent", "x"), {
+    search: "x",
+    isUrgent: true,
+    status: null,
+  });
+  assert.deepEqual(utility.toTaskQuery("in_review", ""), {
+    search: "",
+    isUrgent: null,
+    status: "in_review",
+  });
   assert.deepEqual(utility.toTaskQuery("all", ""), { search: "", isUrgent: null, status: null });
 });
 
@@ -114,13 +124,19 @@ test("the new-task form requires every field and a due date from today on", () =
 
 test("the open pool sends no assignee and picking a project pre-fills its customer", () => {
   assert.equal(utility.toCreateTaskPayload(filledForm).assigneeId, null);
-  assert.equal(utility.toCreateTaskPayload({ ...filledForm, assigneeOptionId: "u-1" }).assigneeId, "u-1");
+  assert.equal(
+    utility.toCreateTaskPayload({ ...filledForm, assigneeOptionId: "u-1" }).assigneeId,
+    "u-1",
+  );
   assert.deepEqual(utility.toProjectSelection({ id: "p", customerId: "c" }), {
     projectId: "p",
     customerId: "c",
     isCustomerFromProject: true,
   });
-  assert.deepEqual(utility.toProjectSelection(null), { projectId: null, isCustomerFromProject: false });
+  assert.deepEqual(utility.toProjectSelection(null), {
+    projectId: null,
+    isCustomerFromProject: false,
+  });
 });
 
 const transition = overrides => ({
@@ -155,4 +171,8 @@ test("a long status history shows the newest four until expanded", () => {
     caption: "עוד 2 עדכונים ישנים יותר",
   });
   assert.equal(utility.getHistoryToggleCopy({ isExpanded: true, total: 6 }).label, "הצג פחות");
+});
+
+test("task assignee pickers list engineers only", () => {
+  assert.deepEqual(TASK_ASSIGNEES_QUERY, { search: "", role: "engineer" });
 });

@@ -25,10 +25,12 @@ import UrgencyConfirmPopup from "../../../components/UrgencyConfirmPopup/Urgency
 
 interface ITaskViewProps {
   task: IApiTask;
+  canClaim: boolean;
   isManager: boolean;
+  canChangeStatus: boolean;
 }
 
-const TaskView: FC<ITaskViewProps> = ({ task, isManager }) => {
+const TaskView: FC<ITaskViewProps> = ({ task, canClaim, isManager, canChangeStatus }) => {
   const styles = usePageStyles();
   const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
   const statusMutation = useUpdateTaskStatusMutation();
@@ -57,12 +59,14 @@ const TaskView: FC<ITaskViewProps> = ({ task, isManager }) => {
     <Box sx={styles.page}>
       <TaskHeaderCard
         task={task}
+        canChangeStatus={canChangeStatus}
         onStatusChange={status => statusMutation.mutate({ taskId: task.id, status })}
       />
       <TaskUrgencyCard task={task} isManager={isManager} onRequestChange={requestUrgencyChange} />
       {mutationError && <InlineError message={getApiErrorMessage(mutationError)} />}
       <TaskDetailsCard
         task={task}
+        canClaim={canClaim}
         onUpdate={updateTask}
         isManager={isManager}
         isSaving={updateMutation.isPending}

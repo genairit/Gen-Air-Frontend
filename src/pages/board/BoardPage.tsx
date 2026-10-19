@@ -68,7 +68,7 @@ const BoardPage = () => {
       <BoardToolbar
         search={search}
         onSearchChange={setSearch}
-        canCreateProject={hasPermission(sessionUser, "EDIT_PROJECTS")}
+        canCreateProject={hasPermission(sessionUser, "CREATE_PROJECTS")}
         typeFilter={{
           options: typeOptions,
           selectedId: typeFilterId ?? ALL_OPTION_ID,

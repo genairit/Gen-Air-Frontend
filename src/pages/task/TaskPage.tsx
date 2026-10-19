@@ -19,6 +19,10 @@ const TaskPage = () => {
   const taskId = params[ROUTE_PARAMS.TASK_ID] ?? null;
   const taskQuery = useTaskQuery(taskId);
 
+  const isManager = hasPermission(sessionUser, "MANAGE_TASKS");
+  const canClaim = hasPermission(sessionUser, "CLAIM_TASKS");
+  const canChangeStatus = hasPermission(sessionUser, "UPDATE_TASK_STATUS");
+
   if (taskQuery.isPending) {
     return <LoadingState label={TASK_PAGE_COPY.LOADING} />;
   }
@@ -42,9 +46,11 @@ const TaskPage = () => {
 
   return (
     <TaskView
+      canClaim={canClaim}
       task={taskQuery.data}
+      isManager={isManager}
       key={taskQuery.data.id}
-      isManager={hasPermission(sessionUser, "MANAGE_TASKS")}
+      canChangeStatus={canChangeStatus}
     />
   );
 };

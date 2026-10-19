@@ -1,8 +1,8 @@
 import {
   USER_ROLE_LABELS,
-  type UserRoleType,
   AVATAR_TONE_BY_ROLE,
   PROJECT_ROLE_DESCRIPTIONS,
+  type ProjectMemberRoleType,
 } from "../../constants/user-role.constant";
 
 import { getInitials } from "../text.utility";
@@ -33,7 +33,7 @@ export const toEmployee = (user: IApiUser): IEmployee => ({
 export const toUserOptions = (users: IApiUser[]) =>
   users.map(user => ({ id: user.id, label: toUserOptionLabel(user) }));
 
-export const toRolePerson = (role: UserRoleType): IPerson => ({
+export const toRolePerson = (role: ProjectMemberRoleType): IPerson => ({
   name: USER_ROLE_LABELS[role],
   caption: PROJECT_ROLE_DESCRIPTIONS[role],
   initials: getInitials(USER_ROLE_LABELS[role]),
