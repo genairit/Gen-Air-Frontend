@@ -55,6 +55,12 @@ export const usePageStyles = () =>
       flexDirection: "row",
       alignItems: "center",
     }),
+    endRow: {
+      gap: "12px",
+      display: "flex",
+      flexWrap: "wrap",
+      justifyContent: "flex-end",
+    },
     spacedRow: {
       gap: "16px",
       display: "flex",
