@@ -21,12 +21,6 @@ import {
 } from "../../../constants/project-form.constant";
 
 import {
-  readProjectDraft,
-  saveProjectDraft,
-  clearProjectDraft,
-} from "../../../utilities/project-draft.utility";
-
-import {
   useCreateProjectMutation,
   useDeleteProjectMutation,
   useUpdateProjectMutation,
@@ -49,6 +43,7 @@ import {
 } from "../../../utilities/customer-details.utility";
 
 import { Box } from "@mui/material";
+import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProjectTypeCard from "./ProjectTypeCard";
 import { usePageStyles } from "../../page.style";
@@ -61,11 +56,11 @@ import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
 import ProjectSiteDetailsCard from "./ProjectSiteDetailsCard";
-import { type FC, useState, type SetStateAction } from "react";
 import ProjectPaymentTermsCard from "./ProjectPaymentTermsCard";
 import ActionBar from "../../../components/ActionBar/ActionBar";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
+import { useProjectDraft } from "../../../hooks/project-draft.hook";
 import ProjectAddressContactCard from "./ProjectAddressContactCard";
 import ProjectCustomerPickerCard from "./ProjectCustomerPickerCard";
 import InlineError from "../../../components/InlineError/InlineError";
@@ -78,6 +73,7 @@ import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
+import { readProjectDraft, clearProjectDraft } from "../../../utilities/project-draft.utility";
 import { useProjectStagesQuery, useProjectTypesQuery } from "../../../hooks/queries/project.query";
 
 interface IProjectFormProps {
@@ -95,17 +91,12 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const draftUserId = !isEditMode ? (sessionUser?.id ?? null) : null;
   const [restoredDraft] = useState(() => readProjectDraft(draftUserId));
   const [wasDraftRestored, setWasDraftRestored] = useState(Boolean(restoredDraft));
-  const [values, setFormValues] = useState<IProjectFormValues>(
+  const [values, setValues] = useState<IProjectFormValues>(
     () => restoredDraft ?? toProjectFormValues(project),
   );
-  const setValues = (update: SetStateAction<IProjectFormValues>) => {
-    const next = typeof update === "function" ? update(values) : update;
-    saveProjectDraft(draftUserId, next);
-    setFormValues(next);
-  };
   const discardDraft = () => {
     clearProjectDraft(draftUserId);
-    setFormValues(toProjectFormValues(null));
+    setValues(toProjectFormValues(null));
     setWasDraftRestored(false);
     setTypeSwitch(null);
     setIsSubmitAttempted(false);
@@ -114,6 +105,8 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const [wasPaymentTermsReset, setWasPaymentTermsReset] = useState(false);
+
+  useProjectDraft(draftUserId, values);
 
   const usersQuery = useUsersQuery(ALL_USERS_QUERY);
   const typesQuery = useProjectTypesQuery();

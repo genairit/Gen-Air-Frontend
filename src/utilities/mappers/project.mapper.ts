@@ -126,12 +126,12 @@ export const toProjectFile = (item: IApiDriveItem): IProjectFile => ({
     .join(" · "),
 });
 
-export const toErpSyncCaption = (erpSyncedAt: string | null) => {
-  if (!erpSyncedAt) {
+export const toErpSyncCaption = (prioritySyncedAt: string | null) => {
+  if (!prioritySyncedAt) {
     return ERP_NOT_SYNCED_CAPTION;
   }
 
-  const syncedAt = formatDate(normalizeDate(erpSyncedAt), DATE_FORMAT.FULL_DATE);
+  const syncedAt = formatDate(normalizeDate(prioritySyncedAt), DATE_FORMAT.FULL_DATE);
 
   return formatErpSyncCaption(ERP_SYNC_PREFIX, syncedAt);
 };

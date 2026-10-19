@@ -40,7 +40,7 @@ registerHooks({
   },
 });
 
-const { normalizeCustomerForm, getCustomerFormErrors } =
+const { normalizeCustomerForm, getCustomerFormErrors, countCustomerFormErrors } =
   await import("../src/utilities/customer-form.utility.ts");
 const { customerService } = await import("../src/services/customer.service.ts");
 const { createCustomerAction } = await import("../src/actions/customer.action.ts");
@@ -115,6 +115,21 @@ test("every identity and contact field is required and every supported customer 
       "customerType",
     ]);
   }
+});
+
+test("error count drives the fields-to-fix banner and is zero for a valid form", () => {
+  const emptyForm = {
+    ...payload,
+    name: "",
+    taxId: "",
+    address: "",
+    contactName: "",
+    phone: "",
+    email: "",
+  };
+  assert.equal(countCustomerFormErrors(emptyForm), 6);
+  assert.equal(countCustomerFormErrors({ ...payload, phone: "123" }), 1);
+  assert.equal(countCustomerFormErrors(payload), 0);
 });
 
 test("tax IDs require nine digits and a valid check digit", () => {

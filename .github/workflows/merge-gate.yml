@@ -2,12 +2,20 @@ name: Merge gate
 
 on:
   pull_request:
-    branches: [main]
+    branches: [test, main]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: frontend-release-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   e2e:
     name: End-to-end
-    uses: genairit/Gen-Air-Automation/.github/workflows/e2e.yml@main
+    uses: genairit/Gen-Air-Automation/.github/workflows/e2e.yml@6492fa7346dbd424cf6e8f740bfe63e5e273acf9
     with:
-      repository-under-test: Gen-Air-Frontend
-      ref-under-test: ${{ github.event.pull_request.head.sha }}
+      automation-ref: 6492fa7346dbd424cf6e8f740bfe63e5e273acf9
