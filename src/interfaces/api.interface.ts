@@ -101,13 +101,14 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   apartmentCount?: number;
   stage?: IApiProjectStage;
   customerId: string | null;
-  erpSyncedAt: string | null;
+  priorityId: string | null;
   parentNotes?: string | null;
   driveFolderId: string | null;
   projectType?: IApiProjectType;
   members?: IApiProjectMember[];
   customer?: IApiCustomer | null;
   parentProjectId: string | null;
+  prioritySyncedAt: string | null;
   parentProject?: IApiProjectReference;
   inheritedFields?: InheritedProjectFieldType[];
 }
