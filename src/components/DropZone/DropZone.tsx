@@ -12,6 +12,7 @@ import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
 interface IDropZoneProps {
   title: string;
   accept?: string;
+  disabled?: boolean;
   description: string;
   buttonLabel: string;
   onFilesSelected: (files: File[]) => void;
@@ -20,16 +21,22 @@ interface IDropZoneProps {
 const DropZone: FC<IDropZoneProps> = ({
   title,
   accept,
+  disabled = false,
   description,
   buttonLabel,
   onFilesSelected,
 }) => {
   const styles = useStyles();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { isDragging, dropHandlers } = useFileDrop(onFilesSelected);
+  const selectFiles = (files: File[]) => {
+    if (!disabled) {
+      onFilesSelected(files);
+    }
+  };
+  const { isDragging, dropHandlers } = useFileDrop(selectFiles);
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onFilesSelected(getSelectedFiles(event));
+    selectFiles(getSelectedFiles(event));
     // Reset so picking the same file again still fires a change event.
     event.target.value = "";
   };
@@ -48,6 +55,7 @@ const DropZone: FC<IDropZoneProps> = ({
         </Box>
         <Button
           text={buttonLabel}
+          disabled={disabled}
           icon={ICON_NAMES.FOLDER}
           variant={BUTTON_VARIANTS.SECONDARY}
           onClick={() => fileInputRef.current?.click()}
@@ -59,6 +67,7 @@ const DropZone: FC<IDropZoneProps> = ({
           component="input"
           sx={styles.input}
           ref={fileInputRef}
+          disabled={disabled}
           onChange={handleInputChange}
         />
       </Card>
