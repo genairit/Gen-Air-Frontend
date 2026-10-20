@@ -3,6 +3,7 @@ import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ApartmentsTable from "./ApartmentsTable";
 import ProjectTeamCard from "../ProjectTeamCard";
+import ProjectDriveCard from "../ProjectDriveCard";
 import ProjectTasksCard from "../ProjectTasksCard";
 import { usePageStyles } from "../../../page.style";
 import Chip from "../../../../components/Chip/Chip";
@@ -57,6 +58,8 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         extraActions={addApartmentAction}
         badge={<Chip label={formatBuildingBadge(stageCounts?.total ?? 0)} />}
       />
+
+      <ProjectDriveCard projectId={project.id} />
 
       <BuildingInheritedCard building={project} />
 
