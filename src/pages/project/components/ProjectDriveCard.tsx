@@ -13,18 +13,21 @@ import {
 
 import type { FC } from "react";
 import { Box } from "@mui/material";
+import { Alert } from "@mui/material";
 import DriveFolderList from "./DriveFolderList";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import ProjectDriveActions from "./ProjectDriveActions";
-import FileRow from "../../../components/FileRow/FileRow";
+import ProjectDriveFileRow from "./ProjectDriveFileRow";
 import DriveUnavailableBanner from "./DriveUnavailableBanner";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import DriveProvisioningNotice from "./DriveProvisioningNotice";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import InlineError from "../../../components/InlineError/InlineError";
+import { DRIVE_FILE_COPY } from "../../../constants/drive-file.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { useDriveFeedbackStore } from "../../../store/drive-feedback.store";
 import { useProjectDriveQuery } from "../../../hooks/queries/project.query";
 import { DRIVE_STATUS_BADGE_SIZES } from "../../../constants/drive-folder.constant";
 import { toProjectFile, toProjectFolder } from "../../../utilities/mappers/project.mapper";
@@ -35,6 +38,8 @@ interface IProjectDriveCardProps {
 
 const ProjectDriveCard: FC<IProjectDriveCardProps> = ({ projectId }) => {
   const styles = usePageStyles();
+  const feedback = useDriveFeedbackStore();
+  const showFeedback = feedback.projectId === projectId && Boolean(feedback.message);
   const rootQuery = useProjectDriveQuery(projectId, null);
 
   const folders = (rootQuery.data?.folders ?? []).map(toProjectFolder);
@@ -64,6 +69,7 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({ projectId }) => {
             )
           }
         />
+        {showFeedback && <Alert severity="success">{feedback.message}</Alert>}
         {rootQuery.isPending && <LoadingState label={PROJECT_PAGE_STATUS_COPY.LOADING_FILES} />}
         {showUnavailableBanner && <DriveUnavailableBanner onRetry={rootQuery.refetch} />}
         {isMissingFolder && <DriveProvisioningNotice projectId={projectId} />}
@@ -80,7 +86,12 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({ projectId }) => {
           badgeSize={DRIVE_STATUS_BADGE_SIZES.ACCORDION}
         />
         {rootFiles.map(file => (
-          <FileRow file={file} key={file.id} linkLabel={PROJECT_PAGE_COPY.OPEN_IN_DRIVE} />
+          <ProjectDriveFileRow
+            file={file}
+            key={file.id}
+            projectId={projectId}
+            folderName={DRIVE_FILE_COPY.ROOT}
+          />
         ))}
       </Card>
     </Box>
