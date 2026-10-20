@@ -8,7 +8,8 @@ import type { FC } from "react";
 import { Box } from "@mui/material";
 import Button from "../Button/Button";
 import { useStyles } from "./Pagination.style";
-import { createOneBasedRange } from "../../utilities/number.utility";
+import { getVisiblePaginationItems } from "../../utilities/pagination.utility";
+import { PAGINATION, type PaginationItemType } from "../../constants/pagination.constant";
 
 interface IPaginationProps {
   page: number;
@@ -31,6 +32,30 @@ const Pagination: FC<IPaginationProps> = ({
   const styles = useStyles();
   const isFirstPage = page <= 1;
   const isLastPage = page >= pageCount;
+  const visibleItems = getVisiblePaginationItems({ page, pageCount });
+
+  const renderItem = (item: PaginationItemType, index: number) => {
+    if (item === PAGINATION.GAP) {
+      return (
+        <Box aria-hidden component="span" key={`gap-${index}`} sx={styles.ellipsis}>
+          {PAGINATION.ELLIPSIS}
+        </Box>
+      );
+    }
+
+    const isActive = item === page;
+
+    return (
+      <Button
+        key={item}
+        text={String(item)}
+        shape={BUTTON_SHAPES.CIRCLE}
+        onClick={() => onChange(item)}
+        sx={styles.page({ isActive })}
+        variant={getPageVariant(isActive)}
+      />
+    );
+  };
 
   return (
     <Box component="nav" sx={styles.container}>
@@ -42,16 +67,7 @@ const Pagination: FC<IPaginationProps> = ({
         variant={BUTTON_VARIANTS.NEUTRAL}
         onClick={() => onChange(page - 1)}
       />
-      {createOneBasedRange(pageCount).map(pageNumber => (
-        <Button
-          key={pageNumber}
-          text={String(pageNumber)}
-          shape={BUTTON_SHAPES.CIRCLE}
-          onClick={() => onChange(pageNumber)}
-          variant={getPageVariant(pageNumber === page)}
-          sx={styles.page({ isActive: pageNumber === page })}
-        />
-      ))}
+      {visibleItems.map(renderItem)}
       <Button
         text="‹"
         ariaLabel={nextLabel}

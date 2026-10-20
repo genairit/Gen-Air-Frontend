@@ -68,8 +68,8 @@ import { hasPermission } from "../../../utilities/permission.utility";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
-import type { UserRoleType } from "../../../constants/user-role.constant";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
+import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
@@ -196,7 +196,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     setTypeSwitch(null);
   };
 
-  const handleAssigneeChange = (role: UserRoleType, userId: string | null) =>
+  const handleAssigneeChange = (role: ProjectMemberRoleType, userId: string | null) =>
     setValues(current => ({ ...current, assignees: { ...current.assignees, [role]: userId } }));
 
   const handleDelete = () => {

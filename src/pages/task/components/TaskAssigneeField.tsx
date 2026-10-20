@@ -20,21 +20,27 @@ import Avatar from "../../../components/Avatar/Avatar";
 import Button from "../../../components/Button/Button";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import type { IApiTask } from "../../../interfaces/task.interface";
-import { TASKS_PAGE_COPY } from "../../../constants/task.constant";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
-import { ALL_USERS_QUERY } from "../../../constants/project-form.constant";
 import { BUTTON_SIZES } from "../../../components/Button/constants/button.constants";
+import { TASKS_PAGE_COPY, TASK_ASSIGNEES_QUERY } from "../../../constants/task.constant";
 
 interface ITaskAssigneeFieldProps {
   task: IApiTask;
+  canClaim: boolean;
   isManager: boolean;
   onClaim: () => void;
   onAssign: (assigneeId: string | null) => void;
 }
 
-const TaskAssigneeField: FC<ITaskAssigneeFieldProps> = ({ task, isManager, onClaim, onAssign }) => {
+const TaskAssigneeField: FC<ITaskAssigneeFieldProps> = ({
+  task,
+  onClaim,
+  canClaim,
+  onAssign,
+  isManager,
+}) => {
   const styles = useStyles();
-  const usersQuery = useUsersQuery(ALL_USERS_QUERY);
+  const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
   const options = toAssigneeOptions(usersQuery.data ?? []);
 
   const assign = (label: string | null) => {
@@ -64,7 +70,7 @@ const TaskAssigneeField: FC<ITaskAssigneeFieldProps> = ({ task, isManager, onCla
       <Box component="b" sx={styles.value}>
         {formatAssigneeLabel(task)}
       </Box>
-      {canClaimTask(task, isManager) && (
+      {canClaimTask(task, canClaim) && (
         <Button onClick={onClaim} size={BUTTON_SIZES.COMPACT} text={TASKS_PAGE_COPY.CLAIM} />
       )}
     </Box>

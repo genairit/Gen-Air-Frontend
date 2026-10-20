@@ -11,15 +11,17 @@ import { TASK_TABLE_HEADERS, type TaskStatusType } from "../../../constants/task
 export const TASK_TABLE_MIN_WIDTH = 860;
 
 interface ITaskColumnsOptions {
-  isManager: boolean;
+  canClaim: boolean;
+  canChangeStatus: boolean;
   onClaim: (task: IApiTask) => void;
   onStatusChange: (task: IApiTask, status: TaskStatusType) => void;
 }
 
 export const buildTaskColumns = ({
   onClaim,
-  isManager,
+  canClaim,
   onStatusChange,
+  canChangeStatus,
 }: ITaskColumnsOptions): IDataTableColumn<IApiTask>[] => [
   {
     id: "task",
@@ -31,14 +33,16 @@ export const buildTaskColumns = ({
     id: "status",
     track: "minmax(170px, 1fr)",
     header: TASK_TABLE_HEADERS.STATUS,
-    render: task => <TaskStatusCell task={task} onChange={onStatusChange} />,
+    render: task => (
+      <TaskStatusCell task={task} onChange={onStatusChange} canChange={canChangeStatus} />
+    ),
   },
   {
     id: "assignee",
     track: "minmax(180px, 1.2fr)",
     header: TASK_TABLE_HEADERS.ASSIGNEE,
     render: task => (
-      <TaskAssigneeCell task={task} onClaim={onClaim} canClaim={canClaimTask(task, isManager)} />
+      <TaskAssigneeCell task={task} onClaim={onClaim} canClaim={canClaimTask(task, canClaim)} />
     ),
   },
   {

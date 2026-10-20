@@ -35,12 +35,13 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 import { toTaskTabs, toTaskQuery, formatTaskSummary } from "../../../utilities/task.utility";
 
 interface ITasksTableProps {
-  isManager: boolean;
+  canClaim: boolean;
+  canChangeStatus: boolean;
 }
 
 const getTaskId = (task: IApiTask) => task.id;
 
-const TasksTable: FC<ITasksTableProps> = ({ isManager }) => {
+const TasksTable: FC<ITasksTableProps> = ({ canClaim, canChangeStatus }) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
@@ -72,7 +73,12 @@ const TasksTable: FC<ITasksTableProps> = ({ isManager }) => {
 
   const claimTask = (task: IApiTask) => claimMutation.mutate(task.id);
 
-  const columns = buildTaskColumns({ isManager, onClaim: claimTask, onStatusChange: changeStatus });
+  const columns = buildTaskColumns({
+    canClaim,
+    canChangeStatus,
+    onClaim: claimTask,
+    onStatusChange: changeStatus,
+  });
 
   const toolbar = (
     <Box sx={styles.stack({ gap: "16px" })}>

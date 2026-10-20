@@ -6,6 +6,7 @@ import Autocomplete from "../../../../components/Autocomplete/Autocomplete";
 import type { IApiProject, IApiProjectStage } from "../../../../interfaces/api.interface";
 
 interface IProjectStageCellProps {
+  canMove: boolean;
   project: IApiProject;
   stages: IApiProjectStage[];
   onChange: (project: IApiProject, stageId: string) => void;
@@ -13,7 +14,7 @@ interface IProjectStageCellProps {
 
 const stopRowClick = (event: MouseEvent) => event.stopPropagation();
 
-const ProjectStageCell: FC<IProjectStageCellProps> = ({ project, stages, onChange }) => {
+const ProjectStageCell: FC<IProjectStageCellProps> = ({ canMove, project, stages, onChange }) => {
   const currentStage = stages.find(stage => stage.id === project.stageId) ?? null;
 
   const changeStage = (stageName: string | null) => {
@@ -29,6 +30,7 @@ const ProjectStageCell: FC<IProjectStageCellProps> = ({ project, stages, onChang
   return (
     <Box onClick={stopRowClick} sx={PROJECT_COLUMN_STYLES.stopper}>
       <Autocomplete
+        disabled={!canMove}
         isAutocomplete={false}
         onChange={changeStage}
         value={currentStage?.name ?? null}

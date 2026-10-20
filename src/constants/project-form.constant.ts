@@ -1,3 +1,11 @@
+import {
+  USER_ROLES,
+  ROLE_PERMISSIONS,
+  USER_ROLE_LABELS,
+  type PermissionType,
+  USER_ROLE_PLURAL_LABELS,
+} from "./user-role.constant";
+
 import { ICON_NAMES, type IconNameType } from "./icon.constant";
 import type { IUserQuery } from "../interfaces/api-request.interface";
 
@@ -10,10 +18,12 @@ export type ProjectFormModeType = (typeof PROJECT_FORM_MODES)[keyof typeof PROJE
 
 interface IProjectFormModeCopy {
   title: string;
+  deniedTitle: string;
   submitLabel: string;
   detailsTitle: string;
   detailsSubtitle: string;
   submitIcon: IconNameType;
+  deniedDescription: string;
 }
 
 export const PROJECT_FORM_MODE_COPY: Record<ProjectFormModeType, IProjectFormModeCopy> = {
@@ -23,6 +33,8 @@ export const PROJECT_FORM_MODE_COPY: Record<ProjectFormModeType, IProjectFormMod
     detailsTitle: "פרטים כלליים",
     submitIcon: ICON_NAMES.ADD,
     detailsSubtitle: "הכותרת הרשמית המשמשת בכל חישובי ההנדסה וההזמנות",
+    deniedTitle: "אין הרשאה ליצירת פרויקטים",
+    deniedDescription: `רק ${USER_ROLE_LABELS[USER_ROLES.SYSTEM_ADMIN]} יכולים ליצור פרויקטים.`,
   },
   edit: {
     title: "עריכת פרויקט",
@@ -30,7 +42,14 @@ export const PROJECT_FORM_MODE_COPY: Record<ProjectFormModeType, IProjectFormMod
     submitIcon: ICON_NAMES.SAVE,
     detailsTitle: "פרטי הפרויקט וסטטוס",
     detailsSubtitle: "ניהול פרטי הזיהוי ושלב מחזור החיים של הפרויקט",
+    deniedTitle: "אין הרשאה לעריכת פרויקטים",
+    deniedDescription: `רק ${ROLE_PERMISSIONS.EDIT_PROJECTS.map(role => USER_ROLE_PLURAL_LABELS[role]).join(", ")} יכולים לערוך פרויקטים.`,
   },
+};
+
+export const PROJECT_FORM_MODE_PERMISSIONS: Record<ProjectFormModeType, PermissionType> = {
+  new: "CREATE_PROJECTS",
+  edit: "EDIT_PROJECTS",
 };
 
 export const PROJECT_FORM_COPY = {

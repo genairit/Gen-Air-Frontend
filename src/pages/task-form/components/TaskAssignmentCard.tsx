@@ -17,16 +17,15 @@ import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import TaskProjectPicker from "./TaskProjectPicker";
 import { ICON_NAMES } from "../../../constants/icon.constant";
-import { NEW_TASK_COPY } from "../../../constants/task.constant";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import FieldLabel from "../../../components/FieldLabel/FieldLabel";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { useCustomersQuery } from "../../../hooks/queries/customer.query";
-import { ALL_USERS_QUERY } from "../../../constants/project-form.constant";
 import { isCustomerSelectable } from "../../../utilities/customer.utility";
 import { ALL_CUSTOMERS_QUERY } from "../../../constants/customer.constant";
+import { NEW_TASK_COPY, TASK_ASSIGNEES_QUERY } from "../../../constants/task.constant";
 import type { TTaskFormErrors, ITaskFormValues } from "../../../interfaces/task.interface";
 
 interface ITaskAssignmentCardProps {
@@ -44,7 +43,7 @@ const TaskAssignmentCard: FC<ITaskAssignmentCardProps> = ({
 }) => {
   const styles = useStyles();
   const pageStyles = usePageStyles();
-  const usersQuery = useUsersQuery(ALL_USERS_QUERY);
+  const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
   const customersQuery = useCustomersQuery(ALL_CUSTOMERS_QUERY);
 
   const assigneeOptions = toAssigneeOptions(usersQuery.data ?? []);

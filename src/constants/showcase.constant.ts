@@ -12,6 +12,7 @@ import { SURFACE_DEPTHS } from "./surface.constant";
 import { CHIP_SIZES, CHIP_VARIANTS } from "./chip.constant";
 import type { IPerson } from "../interfaces/person.interface";
 import type { ITabItem } from "../interfaces/tab-item.interface";
+import { USER_ROLES, USER_ROLE_LABELS } from "./user-role.constant";
 import type { IChecklistTask } from "../interfaces/project.interface";
 import type { INavigationItem } from "../interfaces/navigation-item.interface";
 
@@ -146,7 +147,7 @@ export const FIELD_CHECKLIST_INITIAL_STATE: Record<string, boolean> = {
 export const FIELD_USER: IPerson = {
   initials: "רל",
   name: "רומן לוין",
-  caption: "מתקין ראשי",
+  caption: USER_ROLE_LABELS[USER_ROLES.INSTALLER],
   avatarTone: AVATAR_TONES.CHARCOAL,
 };
 
