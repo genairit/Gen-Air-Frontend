@@ -1,3 +1,4 @@
+import GoogleDriveIcon from "../GoogleDriveIcon";
 import AirRounded from "@mui/icons-material/AirRounded";
 import AddRounded from "@mui/icons-material/AddRounded";
 import HvacRounded from "@mui/icons-material/HvacRounded";
@@ -29,7 +30,6 @@ import OpenInNewRounded from "@mui/icons-material/OpenInNewRounded";
 import type { IconNameType } from "../../../constants/icon.constant";
 import AssignmentRounded from "@mui/icons-material/AssignmentRounded";
 import VisibilityRounded from "@mui/icons-material/VisibilityRounded";
-import AddToDriveRounded from "@mui/icons-material/AddToDriveRounded";
 import AssessmentRounded from "@mui/icons-material/AssessmentRounded";
 import CloudUploadRounded from "@mui/icons-material/CloudUploadRounded";
 import ReceiptLongRounded from "@mui/icons-material/ReceiptLongRounded";
@@ -66,7 +66,7 @@ export const ICON_COMPONENTS: Record<IconNameType, SvgIconComponent> = {
   urgent: PriorityHighRounded,
   tasks: AssignmentRounded,
   upload: CloudUploadRounded,
-  gdrive: AddToDriveRounded,
+  gdrive: GoogleDriveIcon,
   invoice: ReceiptLongRounded,
   payment: PaymentsRounded,
   foreman: EngineeringRounded,

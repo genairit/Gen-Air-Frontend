@@ -1,3 +1,4 @@
+import { isApiProject } from "../utilities/guards/api.guard";
 import { isArrayOf } from "../utilities/guards/primitive.guard";
 import { httpClient, ensureResponse } from "./http-client.service";
 import { validateProjectFiles } from "../utilities/drive-upload.utility";
@@ -20,6 +21,12 @@ class ProjectActivityService {
     const response = await httpClient.get<unknown>(endpoint, { params: toFolderParams(folderId) });
 
     return ensureResponse(endpoint, response.data, isApiDriveContents);
+  }
+
+  async provisionDrive(projectId: string) {
+    const endpoint = API_ENDPOINTS.projectDriveProvision(projectId);
+    const response = await httpClient.post<unknown>(endpoint);
+    return ensureResponse(endpoint, response.data, isApiProject);
   }
 
   async getUploadPolicy() {
