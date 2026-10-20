@@ -22,6 +22,9 @@ export const useStyles = () =>
     },
     name: {
       ...ELLIPSIS_TEXT,
+      color: "inherit",
+      textDecoration: "none",
+      "&:hover": { textDecoration: "underline" },
       fontSize: 14,
       fontWeight: 500,
     },
@@ -39,7 +42,7 @@ export const useStyles = () =>
       padding: "0 14px",
       alignItems: "center",
       textDecoration: "none",
-      color: theme.palette.danger,
+      color: theme.palette.charcoal,
       borderRadius: theme.radius.pill,
       boxShadow: theme.softShadow.raisedSmall,
       backgroundColor: theme.palette.iceWhite,

@@ -37,8 +37,8 @@ const FolderAccordion: FC<IFolderAccordionProps> = ({
           {title}
         </Box>
         <Box component="span" sx={styles.meta}>
-          {caption}
           {badge}
+          {caption}
           <Box component="span" sx={styles.chevron}>
             {chevron}
           </Box>

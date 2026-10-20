@@ -36,6 +36,14 @@ export const DRIVE_STATUS_LABELS: Record<DriveStatusBadgeStateType, string> = {
 
 export const DRIVE_FOLDER_COPY = {
   EMPTY: "ריקה",
+  OPEN_FOLDER: "פתח תיקייה ב-Drive",
+  PREPARE_FOLDER: "צור תיקיית פרויקט",
+  PREPARING_FOLDER: "מכין את תיקיית הפרויקט…",
+  MISSING_FOLDER_TITLE: "תיקיית הפרויקט עדיין לא נוצרה",
+  MISSING_FOLDER_LINE: "אפשר לנסות שוב ליצור את התיקייה ואת תיקיות התבנית.",
+  MISSING_FOLDER_READ_ONLY: "פנו למנהל הפרויקט כדי ליצור את התיקייה.",
+  PROVISION_FAILED: "לא ניתן ליצור את התיקייה כרגע. בדקו את החיבור ל-Google Drive ונסו שוב.",
+  AUTHENTICATION_FAILED: "החיבור ל-Google Drive אינו מוגדר כראוי. פנו למנהל המערכת.",
   UNKNOWN: "—",
   RETRY: "נסה שוב",
   CHECKING: "בודק…",
@@ -51,3 +59,9 @@ export const DRIVE_UNAVAILABLE_STATUSES: number[] = [
 ];
 
 export const DRIVE_STATUS_SPINNER_ROTATION_MS = 0.9 * TIME_UNITS.SECONDS;
+
+export const DRIVE_ERROR_CODES = {
+  AUTHENTICATION_FAILED: "DRIVE_AUTHENTICATION_FAILED",
+} as const;
+
+export const GOOGLE_DRIVE_FOLDER_URL = "https://drive.google.com/drive/folders/";

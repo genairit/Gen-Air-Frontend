@@ -12,3 +12,11 @@ export const uploadProjectFilesAction = async ({
   await projectActivityService.uploadFiles(projectId, files);
   await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT_DRIVE, projectId] });
 };
+
+export const provisionProjectDriveAction = async (projectId: string) => {
+  await projectActivityService.provisionDrive(projectId);
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT_DRIVE, projectId] }),
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT, projectId] }),
+  ]);
+};

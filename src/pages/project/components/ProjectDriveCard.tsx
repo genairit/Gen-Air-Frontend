@@ -3,6 +3,7 @@ import {
   getFolderBadgeState,
   getRootContentStatus,
   isDriveUnavailableError,
+  isDriveFolderMissingError,
 } from "../../../utilities/drive-folder.utility";
 
 import {
@@ -15,16 +16,17 @@ import { Box } from "@mui/material";
 import DriveFolderList from "./DriveFolderList";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
+import ProjectDriveActions from "./ProjectDriveActions";
 import FileRow from "../../../components/FileRow/FileRow";
 import DriveUnavailableBanner from "./DriveUnavailableBanner";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import DriveProvisioningNotice from "./DriveProvisioningNotice";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useProjectDriveQuery } from "../../../hooks/queries/project.query";
 import { DRIVE_STATUS_BADGE_SIZES } from "../../../constants/drive-folder.constant";
-import DriveStatusBadge from "../../../components/DriveStatusBadge/DriveStatusBadge";
 import { toProjectFile, toProjectFolder } from "../../../utilities/mappers/project.mapper";
 
 interface IProjectDriveCardProps {
@@ -40,7 +42,8 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({ projectId }) => {
   const isEmpty = rootQuery.isSuccess && folders.length === 0 && rootFiles.length === 0;
   const isRefreshing = rootQuery.isSuccess && rootQuery.isFetching;
   const isDriveUnavailable = isDriveUnavailableError(rootQuery.error);
-  const hasOtherError = rootQuery.isError && !isDriveUnavailable;
+  const isMissingFolder = isDriveFolderMissingError(rootQuery.error);
+  const hasOtherError = rootQuery.isError && !isDriveUnavailable && !isMissingFolder;
   const showUnavailableBanner = isDriveUnavailable || hasUnknownFolder(folders);
 
   const rootBadgeState = getFolderBadgeState({
@@ -48,36 +51,39 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({ projectId }) => {
     contentStatus: getRootContentStatus({ folders, rootFileCount: rootFiles.length }),
   });
 
-  const rootBadge = rootQuery.isSuccess && (
-    <DriveStatusBadge state={rootBadgeState} size={DRIVE_STATUS_BADGE_SIZES.CARD} />
-  );
-
   return (
-    <Card>
-      <CardHeader
-        action={rootBadge}
-        icon={ICON_NAMES.GDRIVE}
-        title={PROJECT_PAGE_COPY.FOLDERS_TITLE}
-        subtitle={PROJECT_PAGE_COPY.FOLDERS_SUBTITLE}
-      />
-      {rootQuery.isPending && <LoadingState label={PROJECT_PAGE_STATUS_COPY.LOADING_FILES} />}
-      {showUnavailableBanner && <DriveUnavailableBanner onRetry={rootQuery.refetch} />}
-      {hasOtherError && <InlineError message={getApiErrorMessage(rootQuery.error)} />}
-      {isEmpty && (
-        <Box component="span" sx={styles.caption}>
-          {PROJECT_PAGE_STATUS_COPY.NO_FOLDERS}
-        </Box>
-      )}
-      <DriveFolderList
-        folders={folders}
-        projectId={projectId}
-        isRefreshing={isRefreshing}
-        badgeSize={DRIVE_STATUS_BADGE_SIZES.ACCORDION}
-      />
-      {rootFiles.map(file => (
-        <FileRow file={file} key={file.id} linkLabel={PROJECT_PAGE_COPY.OPEN_IN_DRIVE} />
-      ))}
-    </Card>
+    <Box component="section" aria-label={PROJECT_PAGE_COPY.FOLDERS_TITLE}>
+      <Card>
+        <CardHeader
+          icon={ICON_NAMES.GDRIVE}
+          title={PROJECT_PAGE_COPY.FOLDERS_TITLE}
+          subtitle={PROJECT_PAGE_COPY.FOLDERS_SUBTITLE}
+          action={
+            rootQuery.isSuccess && (
+              <ProjectDriveActions state={rootBadgeState} folderId={rootQuery.data.folderId} />
+            )
+          }
+        />
+        {rootQuery.isPending && <LoadingState label={PROJECT_PAGE_STATUS_COPY.LOADING_FILES} />}
+        {showUnavailableBanner && <DriveUnavailableBanner onRetry={rootQuery.refetch} />}
+        {isMissingFolder && <DriveProvisioningNotice projectId={projectId} />}
+        {hasOtherError && <InlineError message={getApiErrorMessage(rootQuery.error)} />}
+        {isEmpty && (
+          <Box component="span" sx={styles.caption}>
+            {PROJECT_PAGE_STATUS_COPY.NO_FOLDERS}
+          </Box>
+        )}
+        <DriveFolderList
+          folders={folders}
+          projectId={projectId}
+          isRefreshing={isRefreshing}
+          badgeSize={DRIVE_STATUS_BADGE_SIZES.ACCORDION}
+        />
+        {rootFiles.map(file => (
+          <FileRow file={file} key={file.id} linkLabel={PROJECT_PAGE_COPY.OPEN_IN_DRIVE} />
+        ))}
+      </Card>
+    </Box>
   );
 };
 
