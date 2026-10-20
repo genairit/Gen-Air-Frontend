@@ -8,6 +8,7 @@ export const useStyles = () =>
       gap: "12px",
       minHeight: 52,
       display: "flex",
+      flexWrap: "wrap",
       padding: "8px 16px",
       alignItems: "center",
       borderRadius: theme.radius.pill,

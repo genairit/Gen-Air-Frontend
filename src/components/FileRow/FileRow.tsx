@@ -1,6 +1,6 @@
-import type { FC } from "react";
 import Icon from "../Icon/Icon";
 import { Box } from "@mui/material";
+import type { FC, ReactNode } from "react";
 import { useStyles } from "./FileRow.style";
 import { theme } from "../../constants/theme.constants";
 import { ICON_NAMES } from "../../constants/icon.constant";
@@ -9,9 +9,10 @@ import type { IProjectFile } from "../../interfaces/project.interface";
 interface IFileRowProps {
   linkLabel: string;
   file: IProjectFile;
+  actions?: ReactNode;
 }
 
-const FileRow: FC<IFileRowProps> = ({ file, linkLabel }) => {
+const FileRow: FC<IFileRowProps> = ({ file, linkLabel, actions }) => {
   const styles = useStyles();
 
   return (
@@ -35,6 +36,7 @@ const FileRow: FC<IFileRowProps> = ({ file, linkLabel }) => {
         <Icon size={18} name={ICON_NAMES.OPEN} />
         {linkLabel}
       </Box>
+      {actions}
     </Box>
   );
 };
