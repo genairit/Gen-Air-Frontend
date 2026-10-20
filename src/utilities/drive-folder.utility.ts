@@ -1,5 +1,7 @@
 import {
   DRIVE_FOLDER_COPY,
+  DRIVE_ERROR_CODES,
+  GOOGLE_DRIVE_FOLDER_URL,
   FOLDER_CONTENT_STATUSES,
   DRIVE_STATUS_BADGE_STATES,
   DRIVE_UNAVAILABLE_STATUSES,
@@ -9,6 +11,8 @@ import {
 
 import { isAxiosError } from "axios";
 import { formatFileCount } from "./text.utility";
+import { isRecord } from "./guards/primitive.guard";
+import { HTTP_STATUS } from "../constants/api.constant";
 import type { IProjectFolder } from "../interfaces/project.interface";
 
 interface IFolderBadgeOptions {
@@ -94,3 +98,17 @@ export const getEmptyFolderNote = (subfolders: IProjectFolder[]) => {
 
   return DRIVE_FOLDER_COPY.NO_FILES;
 };
+
+export const isDriveFolderMissingError = (error: unknown) =>
+  isAxiosError(error) && error.response?.status === HTTP_STATUS.CONFLICT;
+
+export const getDriveRecoveryError = (error: unknown) => {
+  const body: unknown = isAxiosError(error) ? error.response?.data : null;
+  if (isRecord(body) && body.code === DRIVE_ERROR_CODES.AUTHENTICATION_FAILED) {
+    return DRIVE_FOLDER_COPY.AUTHENTICATION_FAILED;
+  }
+  return DRIVE_FOLDER_COPY.PROVISION_FAILED;
+};
+
+export const toDriveFolderUrl = (folderId: string) =>
+  GOOGLE_DRIVE_FOLDER_URL + encodeURIComponent(folderId);

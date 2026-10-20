@@ -3,6 +3,7 @@ import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import ProjectTeamCard from "./ProjectTeamCard";
 import { usePageStyles } from "../../page.style";
+import ProjectDriveCard from "./ProjectDriveCard";
 import ProjectTasksCard from "./ProjectTasksCard";
 import ProjectPageHeader from "./ProjectPageHeader";
 import ProjectIntakeCard from "./ProjectIntakeCard";
@@ -28,6 +29,8 @@ const StandaloneProjectView: FC<IStandaloneProjectViewProps> = ({ project }) => 
   return (
     <Box sx={styles.page}>
       <ProjectPageHeader project={project} />
+
+      <ProjectDriveCard projectId={project.id} />
 
       <ProjectTasksCard projectId={project.id} />
 

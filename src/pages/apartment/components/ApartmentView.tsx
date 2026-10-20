@@ -10,6 +10,7 @@ import { useSessionUser } from "../../../store/session.store";
 import ApartmentEndCustomerCard from "./ApartmentEndCustomerCard";
 import { hasPermission } from "../../../utilities/permission.utility";
 import ProjectTeamCard from "../../project/components/ProjectTeamCard";
+import ProjectDriveCard from "../../project/components/ProjectDriveCard";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 
 interface IApartmentViewProps {
@@ -26,6 +27,8 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
   return (
     <Box sx={styles.page}>
       <ApartmentHeaderCard stages={stages} building={building} apartment={apartment} />
+
+      <ProjectDriveCard projectId={apartment.id} />
 
       <Box sx={styles.grid({ minColumnWidth: 380 })}>
         <Box sx={styles.stack({})}>
