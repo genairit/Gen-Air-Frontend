@@ -11,9 +11,9 @@ import type {
 import { theme } from "./theme.constants";
 import { ICON_NAMES } from "./icon.constant";
 import { AVATAR_TONES } from "./tone.constant";
-import { USER_ROLES } from "./user-role.constant";
 import type { IPerson } from "../interfaces/person.interface";
 import { FOLDER_CONTENT_STATUSES } from "./drive-folder.constant";
+import { USER_ROLES, USER_ROLE_LABELS } from "./user-role.constant";
 import type { IEmployee, IRoleAssignment } from "../interfaces/employee.interface";
 
 const { palette } = theme;
@@ -137,10 +137,20 @@ export const DEMO_PROJECT_TYPE_OPTIONS: IProjectTypeOption[] = [
 ];
 
 export const DEMO_PROJECT_TEAM: IPerson[] = [
-  { initials: "דב", name: "דוד בן שחר", caption: "מנהל מערכת", avatarTone: AVATAR_TONES.CHARCOAL },
-  { initials: "מל", name: "מיכל לוי", caption: "מזכירה" },
-  { initials: "אכ", name: "אביעד כהן", caption: "מנהל פרויקט" },
-  { initials: "ימ", name: "יוסי מזרחי", caption: "מתקין ראשי", avatarTone: AVATAR_TONES.CHARCOAL },
+  {
+    initials: "דב",
+    name: "דוד בן שחר",
+    caption: USER_ROLE_LABELS[USER_ROLES.SYSTEM_ADMIN],
+    avatarTone: AVATAR_TONES.CHARCOAL,
+  },
+  { initials: "מל", name: "מיכל לוי", caption: USER_ROLE_LABELS[USER_ROLES.SECRETARY] },
+  { initials: "אכ", name: "אביעד כהן", caption: USER_ROLE_LABELS[USER_ROLES.PROJECT_MANAGER] },
+  {
+    initials: "ימ",
+    name: "יוסי מזרחי",
+    caption: USER_ROLE_LABELS[USER_ROLES.INSTALLER],
+    avatarTone: AVATAR_TONES.CHARCOAL,
+  },
 ];
 
 export const DEMO_PROJECT_FOLDERS: IProjectFolder[] = [
@@ -212,7 +222,7 @@ export const DEMO_PROJECT_TIMELINE: ITimelineEntry[] = [
     date: "20/12/2023 16:45",
     label: "שלב א׳ — הושלם",
     dotColor: palette.primary,
-    author: "שונה ע״י יוסי לוי (מתקין ראשי)",
+    author: `שונה ע״י יוסי לוי (${USER_ROLE_LABELS[USER_ROLES.INSTALLER]})`,
   },
   {
     id: "execution",
@@ -304,7 +314,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     isDisabled: false,
     phone: "053-9021446",
     email: "roman.l@genair.co.il",
-    role: USER_ROLES.LEAD_INSTALLER,
+    role: USER_ROLES.INSTALLER,
     person: { initials: "רל", name: "רומן לוין", caption: "מזהה: EMP-1087 · צוות צפון VRF" },
   },
   {
@@ -312,7 +322,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     isDisabled: true,
     phone: "058-6634172",
     email: "dan.s@genair.co.il",
-    role: USER_ROLES.LEAD_INSTALLER,
+    role: USER_ROLES.INSTALLER,
     person: { initials: "דש", name: "דן שמיר", caption: "מזהה: EMP-1031 · מושבת" },
   },
 ];

@@ -14,13 +14,16 @@ import { useIsTaskStatusPending } from "../../../../hooks/mutations/task.mutatio
 
 interface ITaskStatusCellProps {
   task: IApiTask;
+  canChange: boolean;
   onChange: (task: IApiTask, status: TaskStatusType) => void;
 }
 
 const stopRowClick = (event: MouseEvent) => event.stopPropagation();
 
-const TaskStatusCell: FC<ITaskStatusCellProps> = ({ task, onChange }) => {
+const TaskStatusCell: FC<ITaskStatusCellProps> = ({ task, canChange, onChange }) => {
   const isPending = useIsTaskStatusPending(task.id);
+  const isStatusLocked = isPending || !canChange;
+
   const changeStatus = (label: string | null) => {
     const status = findTaskStatusByLabel(label);
 
@@ -34,9 +37,9 @@ const TaskStatusCell: FC<ITaskStatusCellProps> = ({ task, onChange }) => {
   return (
     <Box onClick={stopRowClick} sx={TASK_COLUMN_STYLES.stopper}>
       <Autocomplete
-        disabled={isPending}
         isAutocomplete={false}
         onChange={changeStatus}
+        disabled={isStatusLocked}
         options={TASK_STATUS_OPTION_LABELS}
         value={TASK_STATUS_LABELS[task.status]}
       />

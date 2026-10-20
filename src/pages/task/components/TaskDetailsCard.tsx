@@ -26,6 +26,7 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 interface ITaskDetailsCardProps {
   task: IApiTask;
   isSaving: boolean;
+  canClaim: boolean;
   isManager: boolean;
   onClaim: () => void;
   onUpdate: (payload: TUpdateTaskPayload) => void;
@@ -34,6 +35,7 @@ interface ITaskDetailsCardProps {
 const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
   task,
   onClaim,
+  canClaim,
   isSaving,
   onUpdate,
   isManager,
@@ -80,6 +82,7 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
           <TaskAssigneeField
             task={task}
             onClaim={onClaim}
+            canClaim={canClaim}
             isManager={isManager}
             onAssign={assigneeId => onUpdate({ assigneeId })}
           />

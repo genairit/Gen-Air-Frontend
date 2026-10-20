@@ -9,6 +9,7 @@ import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.inte
 
 interface IProjectMobileRowProps {
   project: IApiProject;
+  canMoveStage: boolean;
   stages: IApiProjectStage[];
   onOpen: (projectId: string) => void;
   onStageChange: (project: IApiProject, stageId: string) => void;
@@ -18,6 +19,7 @@ const ProjectMobileRow: FC<IProjectMobileRowProps> = ({
   stages,
   onOpen,
   project,
+  canMoveStage,
   onStageChange,
 }) => {
   const summary = toProjectSummary(project);
@@ -38,7 +40,12 @@ const ProjectMobileRow: FC<IProjectMobileRowProps> = ({
         </Box>
         {summary.apartmentsLabel && <Chip label={summary.apartmentsLabel} />}
       </Box>
-      <ProjectStageCell stages={stages} project={project} onChange={onStageChange} />
+      <ProjectStageCell
+        stages={stages}
+        project={project}
+        canMove={canMoveStage}
+        onChange={onStageChange}
+      />
     </Card>
   );
 };

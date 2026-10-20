@@ -176,12 +176,13 @@ test("failed writes are surfaced without claiming a saved task or refreshing cac
   fixture.error = null;
 });
 
-test("task management is manager-only while employee status permission matches the reconciled API", () => {
-  assert.equal(hasPermission({ role: "project_manager" }, "MANAGE_TASKS"), true);
+test("task management is management-only while engineers update task status", () => {
   assert.equal(hasPermission({ role: "system_admin" }, "MANAGE_TASKS"), true);
-  assert.equal(hasPermission({ role: "lead_installer" }, "MANAGE_TASKS"), false);
+  assert.equal(hasPermission({ role: "project_manager" }, "MANAGE_TASKS"), false);
+  assert.equal(hasPermission({ role: "installer" }, "MANAGE_TASKS"), false);
   assert.equal(hasPermission({ role: "secretary" }, "MANAGE_TASKS"), false);
-  assert.equal(hasPermission({ role: "lead_installer" }, "UPDATE_TASK_STATUS"), true);
+  assert.equal(hasPermission({ role: "engineer" }, "UPDATE_TASK_STATUS"), true);
+  assert.equal(hasPermission({ role: "installer" }, "UPDATE_TASK_STATUS"), false);
   assert.equal(hasPermission(null, "MANAGE_TASKS"), false);
 });
 
