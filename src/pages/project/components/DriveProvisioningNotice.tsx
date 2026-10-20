@@ -36,6 +36,7 @@ const DriveProvisioningNotice: FC<IDriveProvisioningNoticeProps> = ({ projectId 
             <Button
               isLoading={mutation.isPending}
               text={buttonLabel}
+              ariaLabel={buttonLabel}
               onClick={() => mutation.mutate(projectId)}
             />
           )
