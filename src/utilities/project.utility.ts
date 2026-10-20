@@ -10,20 +10,20 @@ import type {
   IProjectSubmission,
 } from "../interfaces/project.interface";
 
-import { mapUserRoles } from "./user-role.utility";
 import { BOARD_COPY } from "../constants/board.constant";
+import { mapProjectMemberRoles } from "./user-role.utility";
 import type { IProjectPayload } from "../interfaces/api-request.interface";
 import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
-import { USER_ROLE_VALUES, type UserRoleType } from "../constants/user-role.constant";
+import { PROJECT_MEMBER_ROLES, type ProjectMemberRoleType } from "../constants/user-role.constant";
 import { toIntakeValues, toIntakePayload, createEmptyIntakeValues } from "./project-intake.utility";
 
-const createEmptyAssignees = (): TRoleAssignees => mapUserRoles(() => null);
+const createEmptyAssignees = (): TRoleAssignees => mapProjectMemberRoles(() => null);
 
-const findMemberUserId = (project: IApiProject, role: UserRoleType) =>
+const findMemberUserId = (project: IApiProject, role: ProjectMemberRoleType) =>
   project.members?.find(member => member.role === role)?.userId ?? null;
 
 const toAssignees = (project: IApiProject): TRoleAssignees =>
-  mapUserRoles(role => findMemberUserId(project, role));
+  mapProjectMemberRoles(role => findMemberUserId(project, role));
 
 export const toProjectFormValues = (project: IApiProject | null): IProjectFormValues => {
   if (!project) {
@@ -50,7 +50,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
 };
 
 const toMemberAssignments = (assignees: TRoleAssignees) =>
-  USER_ROLE_VALUES.flatMap(role => {
+  PROJECT_MEMBER_ROLES.flatMap(role => {
     const userId = assignees[role];
 
     return userId ? [{ role, userId }] : [];

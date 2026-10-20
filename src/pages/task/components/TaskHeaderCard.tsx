@@ -22,12 +22,14 @@ import { useIsTaskStatusPending } from "../../../hooks/mutations/task.mutation";
 
 interface ITaskHeaderCardProps {
   task: IApiTask;
+  canChangeStatus: boolean;
   onStatusChange: (status: TaskStatusType) => void;
 }
 
-const TaskHeaderCard: FC<ITaskHeaderCardProps> = ({ task, onStatusChange }) => {
+const TaskHeaderCard: FC<ITaskHeaderCardProps> = ({ task, canChangeStatus, onStatusChange }) => {
   const styles = useStyles();
   const isPending = useIsTaskStatusPending(task.id);
+  const isStatusLocked = isPending || !canChangeStatus;
 
   const changeStatus = (tabId: string) => {
     if (isPending || !isTaskStatus(tabId) || tabId === task.status) {
@@ -66,10 +68,10 @@ const TaskHeaderCard: FC<ITaskHeaderCardProps> = ({ task, onStatusChange }) => {
       </Box>
       <Tabs
         isFullWidth
-        disabled={isPending}
         activeId={task.status}
         onChange={changeStatus}
         items={TASK_STATUS_TABS}
+        disabled={isStatusLocked}
       />
     </Card>
   );

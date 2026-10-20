@@ -4,6 +4,11 @@ import {
   findOptionLabelById,
 } from "../../../utilities/option.utility";
 
+import {
+  PROJECT_MEMBER_ROLES,
+  type ProjectMemberRoleType,
+} from "../../../constants/user-role.constant";
+
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import { usePageStyles } from "../../page.style";
@@ -20,12 +25,11 @@ import type { TRoleAssignees } from "../../../interfaces/project.interface";
 import { PROJECT_FORM_COPY } from "../../../constants/project-form.constant";
 import { SURFACE_DEPTHS, SURFACE_RADII } from "../../../constants/surface.constant";
 import { toRolePerson, toUserOptions } from "../../../utilities/mappers/user.mapper";
-import { PROJECT_ROLE_SLOTS, type UserRoleType } from "../../../constants/user-role.constant";
 
 interface IProjectRolesCardProps {
   users: IApiUser[];
   assignees: TRoleAssignees;
-  onAssigneeChange: (role: UserRoleType, userId: string | null) => void;
+  onAssigneeChange: (role: ProjectMemberRoleType, userId: string | null) => void;
 }
 
 const ProjectRolesCard: FC<IProjectRolesCardProps> = ({ users, assignees, onAssigneeChange }) => {
@@ -38,11 +42,11 @@ const ProjectRolesCard: FC<IProjectRolesCardProps> = ({ users, assignees, onAssi
         title={PROJECT_FORM_COPY.ROLES_TITLE}
         subtitle={PROJECT_FORM_COPY.ROLES_SUBTITLE}
         action={
-          <Chip size={CHIP_SIZES.MEDIUM} label={formatRolesBadge(PROJECT_ROLE_SLOTS.length)} />
+          <Chip size={CHIP_SIZES.MEDIUM} label={formatRolesBadge(PROJECT_MEMBER_ROLES.length)} />
         }
       />
       <Box sx={styles.grid({ minColumnWidth: 220, gap: "20px" })}>
-        {PROJECT_ROLE_SLOTS.map(role => {
+        {PROJECT_MEMBER_ROLES.map(role => {
           const roleOptions = toUserOptions(users.filter(user => user.role === role));
 
           return (

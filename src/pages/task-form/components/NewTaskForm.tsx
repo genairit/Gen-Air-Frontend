@@ -18,14 +18,13 @@ import TaskUrgencyChoiceCard from "./TaskUrgencyChoiceCard";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { buildTaskPath } from "../../../utilities/route.utility";
-import { NEW_TASK_COPY } from "../../../constants/task.constant";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import InlineError from "../../../components/InlineError/InlineError";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
-import { ALL_USERS_QUERY } from "../../../constants/project-form.constant";
 import { useCreateTaskMutation } from "../../../hooks/mutations/task.mutation";
+import { NEW_TASK_COPY, TASK_ASSIGNEES_QUERY } from "../../../constants/task.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import UrgencyConfirmPopup from "../../../components/UrgencyConfirmPopup/UrgencyConfirmPopup";
 import type { ITaskFormValues, IUrgencyConfirmation } from "../../../interfaces/task.interface";
@@ -43,7 +42,7 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject }) => {
   const [projectName, setProjectName] = useState(initialProject?.name ?? "");
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
-  const usersQuery = useUsersQuery(ALL_USERS_QUERY);
+  const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
   const createMutation = useCreateTaskMutation();
 
   const errors = isSubmitAttempted ? getTaskFormErrors(values) : {};

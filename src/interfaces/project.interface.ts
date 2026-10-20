@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { IconNameType } from "../constants/icon.constant";
-import type { UserRoleType } from "../constants/user-role.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
+import type { ProjectMemberRoleType } from "../constants/user-role.constant";
 import type { FolderContentStatusType } from "../constants/drive-folder.constant";
 import type { IApiProjectIntake, CustomerDetailFieldType } from "./api.interface";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
@@ -17,7 +17,7 @@ export interface IProjectSummary {
   apartmentsLabel: string | null;
 }
 
-export type TRoleAssignees = Record<UserRoleType, string | null>;
+export type TRoleAssignees = Record<ProjectMemberRoleType, string | null>;
 
 export type TCustomerDetailValues = Record<CustomerDetailFieldType, string>;
 

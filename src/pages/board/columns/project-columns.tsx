@@ -10,12 +10,14 @@ import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.inte
 export const PROJECT_TABLE_MIN_WIDTH = 860;
 
 interface IProjectColumnsOptions {
+  canMoveStage: boolean;
   stages: IApiProjectStage[];
   onStageChange: (project: IApiProject, stageId: string) => void;
 }
 
 export const buildProjectColumns = ({
   stages,
+  canMoveStage,
   onStageChange,
 }: IProjectColumnsOptions): IDataTableColumn<IApiProject>[] => [
   {
@@ -47,7 +49,12 @@ export const buildProjectColumns = ({
     track: "minmax(200px, 1.1fr)",
     header: PROJECT_TABLE_HEADERS.STAGE,
     render: project => (
-      <ProjectStageCell stages={stages} project={project} onChange={onStageChange} />
+      <ProjectStageCell
+        stages={stages}
+        project={project}
+        canMove={canMoveStage}
+        onChange={onStageChange}
+      />
     ),
   },
 ];

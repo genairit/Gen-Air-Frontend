@@ -113,7 +113,7 @@ export const formatUrgencyText = (task: IApiTask) => {
   return `סומנה ע״י ${formatPersonName(task.urgencyMarkedBy)} · ${formatTimestamp(task.urgencyMarkedAt)}`;
 };
 
-export const canClaimTask = (task: IApiTask, isManager: boolean) => !task.assigneeId && !isManager;
+export const canClaimTask = (task: IApiTask, canClaim: boolean) => !task.assigneeId && canClaim;
 
 export const toTaskTabs = (counts: ITaskCounts | null): ITabItem[] => [
   { id: TASK_FILTER_IDS.ALL, label: TASKS_PAGE_COPY.ALL, count: counts?.total ?? 0 },
