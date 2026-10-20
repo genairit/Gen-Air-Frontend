@@ -37,6 +37,8 @@ export const API_ENDPOINTS = {
   projectDriveContents: (projectId: string) => `/project-drive/${projectId}/contents`,
   projectDriveProvision: (projectId: string) => `/project-drive/${projectId}/provision`,
   projectDriveFiles: (projectId: string) => `/project-drive/${projectId}/files`,
+  projectDriveFile: (projectId: string, fileId: string) =>
+    `/project-drive/${projectId}/files/${encodeURIComponent(fileId)}`,
   DRIVE_UPLOAD_POLICY: "/project-drive/upload-policy",
   ADDRESS_SUGGESTIONS: "/address/suggestions",
   addressPlace: (placeId: string) => `/address/places/${encodeURIComponent(placeId)}`,

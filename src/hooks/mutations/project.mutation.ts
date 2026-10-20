@@ -1,4 +1,11 @@
 import {
+  uploadProjectFilesAction,
+  moveProjectDriveFileAction,
+  trashProjectDriveFileAction,
+  provisionProjectDriveAction,
+} from "../../actions/drive.action";
+
+import {
   createProjectAction,
   deleteProjectAction,
   updateProjectAction,
@@ -8,7 +15,6 @@ import {
 
 import { useMutation } from "@tanstack/react-query";
 import { clearProjectDraft } from "../../utilities/project-draft.utility";
-import { provisionProjectDriveAction, uploadProjectFilesAction } from "../../actions/drive.action";
 
 export const useMoveProjectStageMutation = () =>
   useMutation({ mutationFn: moveProjectToStageAction, onSettled: refreshProjectQueriesAction });
@@ -29,3 +35,8 @@ export const useUploadProjectFilesMutation = () =>
 
 export const useProvisionProjectDriveMutation = () =>
   useMutation({ mutationFn: provisionProjectDriveAction });
+
+export const useMoveProjectDriveFileMutation = () =>
+  useMutation({ mutationFn: moveProjectDriveFileAction });
+export const useTrashProjectDriveFileMutation = () =>
+  useMutation({ mutationFn: trashProjectDriveFileAction });

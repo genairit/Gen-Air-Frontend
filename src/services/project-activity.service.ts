@@ -35,14 +35,27 @@ class ProjectActivityService {
     return ensureResponse(endpoint, response.data, isDriveUploadPolicy);
   }
 
-  async uploadFiles(projectId: string, files: File[]) {
+  async moveDriveFile(projectId: string, fileId: string, folderId: string | null) {
+    await httpClient.patch(
+      API_ENDPOINTS.projectDriveFile(projectId, fileId),
+      toFolderParams(folderId),
+    );
+  }
+
+  async trashDriveFile(projectId: string, fileId: string) {
+    await httpClient.delete(API_ENDPOINTS.projectDriveFile(projectId, fileId));
+  }
+
+  async uploadFiles(projectId: string, files: File[], folderId: string | null = null) {
     const policy = await this.getUploadPolicy();
     await validateProjectFiles(files, policy);
     const formData = new FormData();
 
     files.forEach(file => formData.append(DRIVE_UPLOAD_FIELD_NAME, file));
 
-    await httpClient.post(API_ENDPOINTS.projectDriveFiles(projectId), formData);
+    await httpClient.post(API_ENDPOINTS.projectDriveFiles(projectId), formData, {
+      params: toFolderParams(folderId),
+    });
   }
 }
 
