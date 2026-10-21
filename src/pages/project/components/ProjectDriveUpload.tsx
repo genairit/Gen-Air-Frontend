@@ -3,6 +3,11 @@ import {
   PROJECT_PAGE_STATUS_COPY,
 } from "../../../constants/project-page.constant";
 
+import {
+  BUTTON_SIZES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { usePageStyles } from "../../page.style";
@@ -42,14 +47,18 @@ const ProjectDriveUpload: FC<IProjectDriveUploadProps> = ({ projectId }) => {
 
   return (
     <Box sx={styles.stack({})}>
-      <Box component="span" sx={styles.caption}>
-        {destinationLabel}
+      <Box sx={styles.spacedRow}>
+        <Box component="span" sx={styles.caption}>
+          {destinationLabel}
+        </Box>
+        <Button
+          size={BUTTON_SIZES.COMPACT}
+          variant={BUTTON_VARIANTS.SECONDARY}
+          disabled={uploadMutation.isPending}
+          onClick={() => setIsChoosing(true)}
+          text={DRIVE_FILE_COPY.CHOOSE_FOLDER}
+        />
       </Box>
-      <Button
-        disabled={uploadMutation.isPending}
-        onClick={() => setIsChoosing(true)}
-        text={DRIVE_FILE_COPY.CHOOSE_FOLDER}
-      />
       {isChoosing && (
         <DriveFolderDialog
           error={null}
