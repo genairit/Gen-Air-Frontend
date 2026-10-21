@@ -17,6 +17,7 @@ import { Alert } from "@mui/material";
 import DriveFolderList from "./DriveFolderList";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
+import ProjectDriveUpload from "./ProjectDriveUpload";
 import ProjectDriveActions from "./ProjectDriveActions";
 import ProjectDriveFileRow from "./ProjectDriveFileRow";
 import DriveUnavailableBanner from "./DriveUnavailableBanner";
@@ -93,6 +94,7 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({ projectId }) => {
             folderName={DRIVE_FILE_COPY.ROOT}
           />
         ))}
+        <ProjectDriveUpload projectId={projectId} />
       </Card>
     </Box>
   );

@@ -12,6 +12,7 @@ import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
 interface IDropZoneProps {
   title: string;
   accept?: string;
+  compact?: boolean;
   disabled?: boolean;
   description: string;
   buttonLabel: string;
@@ -21,11 +22,13 @@ interface IDropZoneProps {
 const DropZone: FC<IDropZoneProps> = ({
   title,
   accept,
+  compact = false,
   disabled = false,
   description,
   buttonLabel,
   onFilesSelected,
 }) => {
+  const padding = compact ? "20px 24px" : "40px 24px";
   const styles = useStyles();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectFiles = (files: File[]) => {
@@ -43,7 +46,7 @@ const DropZone: FC<IDropZoneProps> = ({
 
   return (
     <Box {...dropHandlers}>
-      <Card padding="40px 24px" sx={styles.zone({ isDragging })}>
+      <Card padding={padding} sx={styles.zone({ isDragging, compact })}>
         <Box sx={styles.plus}>
           <Icon size={44} name={ICON_NAMES.UPLOAD} />
         </Box>
