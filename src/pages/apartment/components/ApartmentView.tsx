@@ -11,7 +11,7 @@ import ApartmentEndCustomerCard from "./ApartmentEndCustomerCard";
 import { hasPermission } from "../../../utilities/permission.utility";
 import ProjectTeamCard from "../../project/components/ProjectTeamCard";
 import ProjectDriveCard from "../../project/components/ProjectDriveCard";
-import ProjectFilesSection from "../../project/components/ProjectFilesSection";
+import ProjectTimelineCard from "../../project/components/ProjectTimelineCard";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 
 interface IApartmentViewProps {
@@ -44,7 +44,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
         <ParentNotesCard apartment={apartment} />
         <ApartmentNotesCard canEdit={canEdit} apartment={apartment} />
       </Box>
-      <ProjectFilesSection projectId={apartment.id} />
+      <ProjectTimelineCard projectId={apartment.id} />
     </Box>
   );
 };
