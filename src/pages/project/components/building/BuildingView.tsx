@@ -8,7 +8,7 @@ import ProjectTasksCard from "../ProjectTasksCard";
 import { usePageStyles } from "../../../page.style";
 import Chip from "../../../../components/Chip/Chip";
 import ProjectPageHeader from "../ProjectPageHeader";
-import ProjectFilesSection from "../ProjectFilesSection";
+import ProjectTimelineCard from "../ProjectTimelineCard";
 import ProjectCustomerCard from "../ProjectCustomerCard";
 import Button from "../../../../components/Button/Button";
 import BuildingInheritedCard from "./BuildingInheritedCard";
@@ -90,7 +90,7 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         />
       )}
 
-      <ProjectFilesSection projectId={project.id} />
+      <ProjectTimelineCard projectId={project.id} />
     </Box>
   );
 };

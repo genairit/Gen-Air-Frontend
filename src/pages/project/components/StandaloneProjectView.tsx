@@ -7,7 +7,7 @@ import ProjectDriveCard from "./ProjectDriveCard";
 import ProjectTasksCard from "./ProjectTasksCard";
 import ProjectPageHeader from "./ProjectPageHeader";
 import ProjectIntakeCard from "./ProjectIntakeCard";
-import ProjectFilesSection from "./ProjectFilesSection";
+import ProjectTimelineCard from "./ProjectTimelineCard";
 import ProjectCustomerCard from "./ProjectCustomerCard";
 import { useSessionUser } from "../../../store/session.store";
 import type { IApiProject } from "../../../interfaces/api.interface";
@@ -47,7 +47,7 @@ const StandaloneProjectView: FC<IStandaloneProjectViewProps> = ({ project }) => 
         />
       )}
 
-      <ProjectFilesSection projectId={project.id} />
+      <ProjectTimelineCard projectId={project.id} />
     </Box>
   );
 };
