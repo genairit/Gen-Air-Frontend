@@ -1,7 +1,11 @@
 import {
+  getTaskLinkName,
   toDateInputValue,
+  buildTaskLinkPath,
   formatTaskDueFull,
   getTodayInputValue,
+  getTaskProjectCustomer,
+  formatTaskLinkedToLabel,
 } from "../../../utilities/task.utility";
 
 import { Box } from "@mui/material";
@@ -16,11 +20,11 @@ import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import TextField from "../../../components/TextField/TextField";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { buildCustomerPath } from "../../../utilities/route.utility";
 import { toErrorValidator } from "../../../utilities/field-feedback.utility";
 import { TASK_PAGE_COPY, NEW_TASK_COPY } from "../../../constants/task.constant";
 import { FIELD_INPUT_LIMITS } from "../../../constants/field-validation.constant";
 import type { IApiTask, TUpdateTaskPayload } from "../../../interfaces/task.interface";
-import { buildCustomerPath, buildProjectPath } from "../../../utilities/route.utility";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 
 interface ITaskDetailsCardProps {
@@ -45,6 +49,8 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
   const [description, setDescription] = useState(task.description ?? "");
 
   const isLocked = !isManager;
+  const linkPath = buildTaskLinkPath(task);
+  const projectCustomer = getTaskProjectCustomer(task);
   const trimmedDescription = description.trim();
   const isDescriptionChanged = trimmedDescription !== (task.description ?? "");
   const canSaveDescription = isDescriptionChanged && Boolean(trimmedDescription);
@@ -68,16 +74,20 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
         subtitle={TASK_PAGE_COPY.DETAILS_SUBTITLE}
       />
       <Box sx={pageStyles.grid({ minColumnWidth: 220, gap: "14px" })}>
-        <TaskFieldTile label={TASK_PAGE_COPY.PROJECT}>
-          <Box component={Link} sx={styles.link} to={buildProjectPath(task.projectId)}>
-            {task.project?.name ?? task.projectId}
-          </Box>
+        <TaskFieldTile label={formatTaskLinkedToLabel(task)}>
+          {linkPath && (
+            <Box to={linkPath} component={Link} sx={styles.link}>
+              {getTaskLinkName(task)}
+            </Box>
+          )}
         </TaskFieldTile>
-        <TaskFieldTile label={TASK_PAGE_COPY.CUSTOMER}>
-          <Box component={Link} sx={styles.link} to={buildCustomerPath(task.customerId)}>
-            {task.customer?.name ?? task.customerId}
-          </Box>
-        </TaskFieldTile>
+        {projectCustomer && (
+          <TaskFieldTile label={TASK_PAGE_COPY.PROJECT_CUSTOMER}>
+            <Box component={Link} sx={styles.link} to={buildCustomerPath(projectCustomer.id)}>
+              {projectCustomer.name}
+            </Box>
+          </TaskFieldTile>
+        )}
         <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.ASSIGNEE}>
           <TaskAssigneeField
             task={task}

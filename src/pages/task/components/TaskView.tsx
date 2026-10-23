@@ -19,8 +19,8 @@ import TaskDetailsCard from "./TaskDetailsCard";
 import TaskHistoryCard from "./TaskHistoryCard";
 import { usePageStyles } from "../../page.style";
 import InlineError from "../../../components/InlineError/InlineError";
-import { formatUrgencyRecipient } from "../../../utilities/task.utility";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { getTaskLinkName, formatUrgencyRecipient } from "../../../utilities/task.utility";
 import UrgencyConfirmPopup from "../../../components/UrgencyConfirmPopup/UrgencyConfirmPopup";
 
 interface ITaskViewProps {
@@ -76,8 +76,8 @@ const TaskView: FC<ITaskViewProps> = ({ task, canClaim, isManager, canChangeStat
       <UrgencyConfirmPopup
         confirmation={confirmation}
         onConfirm={confirmUrgencyChange}
+        detailLine={getTaskLinkName(task)}
         onClose={() => setConfirmation(null)}
-        detailLine={task.project?.name ?? ""}
       />
     </Box>
   );

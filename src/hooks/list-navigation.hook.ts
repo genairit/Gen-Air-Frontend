@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
+import { wrapIndex } from "../utilities/keyboard.utility";
 import { KEY_TYPES, type KeyType } from "../constants/keyboard.constant";
 
 interface IUseListNavigationOptions {
@@ -12,8 +13,6 @@ type TListKeyHandler = () => void;
 
 const isListKey = (key: string): key is KeyType =>
   Object.values(KEY_TYPES).some(listKey => listKey === key);
-
-const wrapIndex = (index: number, itemCount: number) => (index + itemCount) % itemCount;
 
 export const useListNavigation = ({
   onSelect,

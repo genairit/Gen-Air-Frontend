@@ -1,30 +1,31 @@
-import type { IApiUser } from "./api.interface";
 import type { QueryKey } from "@tanstack/react-query";
-import type { TaskStatusType } from "../constants/task.constant";
+import type { TaskStatusType, TaskLinkKindType } from "../constants/task.constant";
+import type { IApiUser, IApiProjectReference, IApiCustomerReference } from "./api.interface";
 
-export interface IApiTaskProject {
-  id: string;
-  code: string;
-  name: string;
+export interface IProjectParentCustomerSource {
+  customer?: IApiCustomerReference | null;
 }
 
-export interface IApiTaskCustomer {
-  id: string;
-  name: string;
+export interface IProjectCustomerSource extends IProjectParentCustomerSource {
+  parentProject?: IProjectParentCustomerSource | null;
+}
+
+export interface IApiTaskProject extends IApiProjectReference {
+  parentProject?: IApiProjectReference | null;
 }
 
 export interface IApiTask {
   id: string;
   title: string;
-  projectId: string;
   isUrgent: boolean;
   createdAt: string;
   updatedAt: string;
-  customerId: string;
   createdById: string;
   dueDate: string | null;
   status: TaskStatusType;
+  projectId: string | null;
   deletedAt: string | null;
+  customerId: string | null;
   assigneeId: string | null;
   description: string | null;
   assignee?: IApiUser | null;
@@ -33,7 +34,7 @@ export interface IApiTask {
   urgencyMarkedById: string | null;
   project?: IApiTaskProject | null;
   urgencyMarkedBy?: IApiUser | null;
-  customer?: IApiTaskCustomer | null;
+  customer?: IApiCustomerReference | null;
 }
 
 export interface ITaskQuery {
@@ -54,11 +55,14 @@ export interface ITaskCounts {
   byStatus: TTaskStatusCounts;
 }
 
-export interface ICreateTaskPayload {
+export interface ITaskLinkPayload {
+  projectId?: string;
+  customerId?: string;
+}
+
+export interface ICreateTaskPayload extends ITaskLinkPayload {
   title: string;
   dueDate: string;
-  projectId: string;
-  customerId: string;
   description: string;
   assigneeId: string | null;
 }
@@ -77,12 +81,39 @@ export interface ITaskFormValues {
   description: string;
   projectId: string | null;
   customerId: string | null;
-  isCustomerFromProject: boolean;
   assigneeOptionId: string | null;
+  linkKind: TaskLinkKindType | null;
+}
+
+export type TTaskFormLink = Pick<ITaskFormValues, "linkKind" | "projectId" | "customerId">;
+
+export interface ITaskFormLinkSelection {
+  name: string;
+  link: TTaskFormLink;
+}
+
+export interface ITaskLinkReader {
+  getName: (task: IApiTask) => string;
+  buildPath: (linkedId: string) => string;
+  getId: (task: IApiTask) => string | null;
+  getContextCustomer: (task: IApiTask) => IApiCustomerReference | null;
+}
+
+export interface ITaskLinkOption {
+  id: string;
+  name: string;
+  caption: string;
+  tag: string | null;
 }
 
 export type TaskFormFieldType =
-  "title" | "dueDate" | "projectId" | "customerId" | "description" | "assigneeOptionId";
+  | "title"
+  | "dueDate"
+  | "linkKind"
+  | "projectId"
+  | "customerId"
+  | "description"
+  | "assigneeOptionId";
 
 export type TTaskFormErrors = Partial<Record<TaskFormFieldType, string>>;
 

@@ -4,24 +4,41 @@ import {
   EMPTY_TASK_FORM,
   TASK_FILTER_IDS,
   TASKS_PAGE_COPY,
+  TASK_LINK_KINDS,
   POOL_ASSIGNEE_ID,
   TASK_STATUS_TABS,
   TASK_HISTORY_COPY,
   TASK_STATUS_LABELS,
   TASK_STATUS_VALUES,
+  TASK_LINK_ID_FIELDS,
   URGENCY_CONFIRM_COPY,
+  TASK_LINK_KIND_LABELS,
+  TASK_LINK_PICKER_COPY,
+  type TaskLinkKindType,
   TASK_HISTORY_PREVIEW_COUNT,
 } from "../constants/task.constant";
+
+import type {
+  IApiUser,
+  IApiProject,
+  IApiCustomer,
+  IApiCustomerReference,
+} from "../interfaces/api.interface";
 
 import type {
   IApiTask,
   ITaskQuery,
   ITaskCounts,
+  TTaskFormLink,
   TTaskFormErrors,
   ITaskFormValues,
+  ITaskLinkReader,
+  ITaskLinkOption,
+  ITaskLinkPayload,
   ICreateTaskPayload,
   IApiTaskTransition,
   IUrgencyConfirmation,
+  IProjectCustomerSource,
 } from "../interfaces/task.interface";
 
 import moment from "moment";
@@ -29,9 +46,11 @@ import { formatDate } from "./date.utility";
 import { getInitials } from "./text.utility";
 import { isTaskStatus } from "./guards/task.guard";
 import { getFullName } from "./mappers/user.mapper";
+import { formatCustomerTaxId } from "./customer.utility";
 import { DATE_FORMAT } from "../constants/date.constants";
 import type { ITabItem } from "../interfaces/tab-item.interface";
-import type { IApiUser, IApiProject } from "../interfaces/api.interface";
+import { buildCustomerPath, buildProjectPath } from "./route.utility";
+import { PRIORITY_SYNC_STATUSES } from "../constants/priority-sync.constant";
 
 const toDueDate = (task: IApiTask) => (task.dueDate ? new Date(task.dueDate) : null);
 
@@ -94,8 +113,65 @@ export const getAssigneeInitials = (task: IApiTask) => {
   return getInitials(getFullName(task.assignee));
 };
 
-export const formatTaskContext = (task: IApiTask) =>
-  [task.project?.name, task.customer?.name].filter(Boolean).join(" · ");
+export const getTaskLinkKind = (task: IApiTask): TaskLinkKindType => {
+  if (task.projectId) {
+    return TASK_LINK_KINDS.PROJECT;
+  }
+
+  return TASK_LINK_KINDS.CUSTOMER;
+};
+
+export const getProjectCustomer = (project?: IProjectCustomerSource | null) =>
+  project?.customer ?? project?.parentProject?.customer ?? null;
+
+export const getTaskCustomer = (task: IApiTask): IApiCustomerReference | null =>
+  task.customer ?? getProjectCustomer(task.project);
+
+const TASK_LINK_READERS: Record<TaskLinkKindType, ITaskLinkReader> = {
+  project: {
+    getId: task => task.projectId,
+    buildPath: buildProjectPath,
+    getContextCustomer: getTaskCustomer,
+    getName: task => task.project?.name ?? task.projectId ?? "",
+  },
+  customer: {
+    getId: task => task.customerId,
+    buildPath: buildCustomerPath,
+    getContextCustomer: () => null,
+    getName: task => task.customer?.name ?? task.customerId ?? "",
+  },
+};
+
+const getTaskLinkReader = (task: IApiTask) => TASK_LINK_READERS[getTaskLinkKind(task)];
+
+export const getTaskLinkName = (task: IApiTask) => getTaskLinkReader(task).getName(task);
+
+export const getTaskProjectCustomer = (task: IApiTask) =>
+  getTaskLinkReader(task).getContextCustomer(task);
+
+export const formatTaskLinkContext = (task: IApiTask) => {
+  const projectCustomer = getTaskProjectCustomer(task);
+
+  if (!projectCustomer) {
+    return "";
+  }
+
+  return `· ${projectCustomer.name}`;
+};
+
+export const formatTaskLinkedToLabel = (task: IApiTask) =>
+  `${TASK_PAGE_COPY.LINKED_TO}${TASK_LINK_KIND_LABELS[getTaskLinkKind(task)]}`;
+
+export const buildTaskLinkPath = (task: IApiTask) => {
+  const reader = getTaskLinkReader(task);
+  const linkedId = reader.getId(task);
+
+  if (!linkedId) {
+    return null;
+  }
+
+  return reader.buildPath(linkedId);
+};
 
 const formatPersonName = (user?: IApiUser | null) => (user ? getFullName(user) : "—");
 
@@ -161,10 +237,22 @@ const getDueDateError = (dueDate: string) => {
   return null;
 };
 
+const getLinkErrors = ({
+  linkKind,
+  ...ids
+}: TTaskFormLink): [keyof TTaskFormErrors, string | null][] => {
+  if (!linkKind) {
+    return [["linkKind", NEW_TASK_COPY.CHOOSE_LINK_KIND]];
+  }
+
+  const field = TASK_LINK_ID_FIELDS[linkKind];
+
+  return [[field, ids[field] ? null : TASK_LINK_PICKER_COPY[linkKind].REQUIRED]];
+};
+
 export const getTaskFormErrors = (values: ITaskFormValues): TTaskFormErrors => {
   const errors: [keyof TTaskFormErrors, string | null][] = [
-    ["projectId", values.projectId ? null : NEW_TASK_COPY.CHOOSE_PROJECT],
-    ["customerId", values.customerId ? null : NEW_TASK_COPY.REQUIRED],
+    ...getLinkErrors(values),
     ["assigneeOptionId", values.assigneeOptionId ? null : NEW_TASK_COPY.REQUIRED],
     ["title", values.title.trim() ? null : NEW_TASK_COPY.REQUIRED],
     ["dueDate", getDueDateError(values.dueDate)],
@@ -174,16 +262,54 @@ export const getTaskFormErrors = (values: ITaskFormValues): TTaskFormErrors => {
   return Object.fromEntries(errors.filter(([, message]) => message !== null));
 };
 
+const TASK_LINK_PAYLOADS: Record<TaskLinkKindType, (linkedId: string) => ITaskLinkPayload> = {
+  customer: customerId => ({ customerId }),
+  project: projectId => ({ projectId }),
+};
+
+const TASK_LINK_SELECTIONS: Record<TaskLinkKindType, (linkedId: string | null) => TTaskFormLink> = {
+  customer: customerId => ({ linkKind: TASK_LINK_KINDS.CUSTOMER, customerId, projectId: null }),
+  project: projectId => ({ linkKind: TASK_LINK_KINDS.PROJECT, projectId, customerId: null }),
+};
+
+const toTaskLinkPayload = ({ linkKind, ...ids }: TTaskFormLink): ITaskLinkPayload | null => {
+  if (!linkKind) {
+    return null;
+  }
+
+  const linkedId = ids[TASK_LINK_ID_FIELDS[linkKind]];
+
+  if (!linkedId) {
+    return null;
+  }
+
+  return TASK_LINK_PAYLOADS[linkKind](linkedId);
+};
+
+export const toTaskLinkSelection = (linkKind: TaskLinkKindType, linkedId: string | null) =>
+  TASK_LINK_SELECTIONS[linkKind](linkedId);
+
+export const toTaskFormLink = ({
+  linkKind,
+  projectId,
+  customerId,
+}: TTaskFormLink): TTaskFormLink => ({
+  linkKind,
+  projectId,
+  customerId,
+});
+
 export const toCreateTaskPayload = (values: ITaskFormValues): ICreateTaskPayload | null => {
-  if (!values.projectId || !values.customerId) {
+  const link = toTaskLinkPayload(values);
+
+  if (!link) {
     return null;
   }
 
   return {
+    ...link,
     dueDate: values.dueDate,
     title: values.title.trim(),
-    projectId: values.projectId,
-    customerId: values.customerId,
     assigneeId: toAssigneeId(values.assigneeOptionId),
     description: values.description.trim(),
   };
@@ -229,29 +355,29 @@ export const getAssigneeHint = (assigneeOptionId: string | null) => {
   return null;
 };
 
-export const getCustomerHint = (isCustomerFromProject: boolean) => {
-  if (isCustomerFromProject) {
-    return NEW_TASK_COPY.CUSTOMER_FROM_PROJECT;
-  }
-
-  return null;
-};
-
 export const formatUrgentSaveLead = (recipient: string) =>
   `בשמירה תישלח התראת Push אל ${recipient}`;
 
-export const toProjectSelection = (project: IApiProject | null): Partial<ITaskFormValues> => {
-  if (!project?.customerId) {
-    return { projectId: project?.id ?? null, isCustomerFromProject: false };
+export const toLinkKindChange = (linkKind: TaskLinkKindType) => toTaskLinkSelection(linkKind, null);
+
+export const hasTaskLinkSelection = (values: TTaskFormLink) =>
+  values.projectId != null || values.customerId != null;
+
+export const formatClearedLinkNotice = ({ linkKind }: TTaskFormLink, name: string) => {
+  if (!linkKind) {
+    return "";
   }
 
-  return { projectId: project.id, customerId: project.customerId, isCustomerFromProject: true };
+  return `השיוך הקודם (${TASK_LINK_KIND_LABELS[linkKind]}: ${name}) נוקה`;
 };
 
-export const toInitialTaskFormValues = (project: IApiProject | null): ITaskFormValues => ({
-  ...EMPTY_TASK_FORM,
-  ...toProjectSelection(project),
-});
+export const toInitialTaskFormValues = (project: IApiProject | null): ITaskFormValues => {
+  if (!project) {
+    return EMPTY_TASK_FORM;
+  }
+
+  return { ...EMPTY_TASK_FORM, ...toTaskLinkSelection(TASK_LINK_KINDS.PROJECT, project.id) };
+};
 
 export const formatHistoryCount = (count: number) => {
   if (count === 1) {
@@ -293,4 +419,31 @@ export const getVisibleHistory = (transitions: IApiTaskTransition[], isExpanded:
   }
 
   return transitions.slice(0, TASK_HISTORY_PREVIEW_COUNT);
+};
+
+export const toProjectLinkOption = (project: IApiProject): ITaskLinkOption => ({
+  id: project.id,
+  name: project.name,
+  caption: project.code,
+  tag: project.projectType?.name ?? null,
+});
+
+export const findLinkOption = (options: ITaskLinkOption[], optionId: string) =>
+  options.find(option => option.id === optionId) ?? null;
+
+export const toCustomerLinkOption = (customer: IApiCustomer): ITaskLinkOption => ({
+  tag: null,
+  id: customer.id,
+  name: customer.name,
+  caption: formatCustomerTaxId(customer),
+});
+
+export const toSelectedCustomerOption = (customer: IApiCustomer): ITaskLinkOption => {
+  const option = toCustomerLinkOption(customer);
+
+  if (customer.prioritySyncStatus !== PRIORITY_SYNC_STATUSES.SYNCED) {
+    return option;
+  }
+
+  return { ...option, caption: `${option.caption} · ${NEW_TASK_COPY.PRIORITY_SYNCED}` };
 };
