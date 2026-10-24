@@ -115,10 +115,26 @@ test("a customer task reads as linked to the customer with no project context", 
   assert.equal(utility.buildTaskLinkPath(customerTask), "/customers/c");
 });
 
-test("a legacy task with both links stays a project task and keeps its stored customer", () => {
+test("a legacy task with both links stays a project task and falls back to its stored customer", () => {
   const legacyTask = task({ projectId: "p", customerId: "c" });
   assert.equal(utility.getTaskLinkKind(legacyTask), "project");
   assert.equal(utility.formatTaskLinkContext(legacyTask), "· עמותת אור");
+});
+
+test("a legacy apartment task shows its building's customer, not its stored customer", () => {
+  const legacyApartmentTask = task({
+    projectId: "a",
+    customerId: "c",
+    project: {
+      id: "a",
+      code: "GA-2",
+      name: "דירה 4",
+      customer: null,
+      parentProject: { id: "b", code: "GA-1", name: "בניין", customer: { id: "o", name: "בעלים" } },
+    },
+  });
+  assert.deepEqual(utility.getTaskProjectCustomer(legacyApartmentTask), { id: "o", name: "בעלים" });
+  assert.equal(utility.formatTaskLinkContext(legacyApartmentTask), "· בעלים");
 });
 
 test("tabs map to status and urgency filters", () => {

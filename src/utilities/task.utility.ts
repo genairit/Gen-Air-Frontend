@@ -126,7 +126,7 @@ export const getProjectCustomer = (project?: IProjectCustomerSource | null) =>
   project?.customer ?? project?.parentProject?.customer ?? null;
 
 export const getTaskCustomer = (task: IApiTask): IApiCustomerReference | null =>
-  task.customer ?? getProjectCustomer(task.project);
+  getProjectCustomer(task.project) ?? task.customer ?? null;
 
 const TASK_LINK_READERS: Record<TaskLinkKindType, ITaskLinkReader> = {
   project: {
