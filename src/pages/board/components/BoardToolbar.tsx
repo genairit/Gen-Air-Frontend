@@ -21,6 +21,7 @@ interface IBoardFilter {
 
 interface IBoardToolbarProps {
   search: string;
+  canCreateTask: boolean;
   typeFilter: IBoardFilter;
   canCreateProject: boolean;
   managerFilter: IBoardFilter;
@@ -35,47 +36,58 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
   typeFilter,
   managerFilter,
   onSearchChange,
+  canCreateTask,
   canCreateProject,
 }) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
 
   return (
-    <Card padding="20px" sx={styles.row({})}>
-      <Box sx={styles.flexItem({ basis: "2 1 280px" })}>
-        <TextField
-          value={search}
-          onChange={onSearchChange}
-          type={FIELD_TYPES.SEARCH}
-          startIcon={ICON_NAMES.SEARCH}
-          placeholder={BOARD_COPY.SEARCH_PLACEHOLDER}
-        />
+    <Card padding="20px" sx={styles.stack({ gap: "20px" })}>
+      <Box sx={styles.row({})}>
+        <Box sx={styles.flexItem({ basis: "2 1 280px" })}>
+          <TextField
+            value={search}
+            onChange={onSearchChange}
+            type={FIELD_TYPES.SEARCH}
+            startIcon={ICON_NAMES.SEARCH}
+            placeholder={BOARD_COPY.SEARCH_PLACEHOLDER}
+          />
+        </Box>
+        <Box sx={styles.flexItem({ basis: "1 1 170px" })}>
+          <Autocomplete
+            isAutocomplete={false}
+            startIcon={ICON_NAMES.FOREMAN}
+            onChange={managerFilter.onChange}
+            value={getSelectedLabel(managerFilter)}
+            options={getOptionLabels(managerFilter.options)}
+          />
+        </Box>
+        <Box sx={styles.flexItem({ basis: "1 1 220px" })}>
+          <Autocomplete
+            isAutocomplete={false}
+            onChange={typeFilter.onChange}
+            startIcon={ICON_NAMES.BUILDING}
+            value={getSelectedLabel(typeFilter)}
+            options={getOptionLabels(typeFilter.options)}
+          />
+        </Box>
       </Box>
-      <Box sx={styles.flexItem({ basis: "1 1 170px" })}>
-        <Autocomplete
-          isAutocomplete={false}
-          startIcon={ICON_NAMES.FOREMAN}
-          onChange={managerFilter.onChange}
-          value={getSelectedLabel(managerFilter)}
-          options={getOptionLabels(managerFilter.options)}
-        />
-      </Box>
-      <Box sx={styles.flexItem({ basis: "1 1 220px" })}>
-        <Autocomplete
-          isAutocomplete={false}
-          onChange={typeFilter.onChange}
-          startIcon={ICON_NAMES.BUILDING}
-          value={getSelectedLabel(typeFilter)}
-          options={getOptionLabels(typeFilter.options)}
-        />
-      </Box>
-      {canCreateProject && (
+      <Box sx={styles.row({})}>
         <Button
           icon={ICON_NAMES.ADD}
-          text={BOARD_COPY.NEW_PROJECT}
-          onClick={() => navigate(ROUTE_PATHS.NEW_PROJECT)}
+          disabled={!canCreateTask}
+          text={BOARD_COPY.NEW_TASK}
+          onClick={() => navigate(ROUTE_PATHS.NEW_TASK)}
         />
-      )}
+        {canCreateProject && (
+          <Button
+            icon={ICON_NAMES.ADD}
+            text={BOARD_COPY.NEW_PROJECT}
+            onClick={() => navigate(ROUTE_PATHS.NEW_PROJECT)}
+          />
+        )}
+      </Box>
     </Card>
   );
 };
