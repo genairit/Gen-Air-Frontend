@@ -1,8 +1,8 @@
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import { TASK_COLUMN_STYLES } from "../task-columns.style";
+import TaskLinkCaption from "../../components/TaskLinkCaption";
 import type { IApiTask } from "../../../../interfaces/task.interface";
-import { formatTaskContext } from "../../../../utilities/task.utility";
 
 interface ITaskTitleCellProps {
   task: IApiTask;
@@ -13,9 +13,7 @@ const TaskTitleCell: FC<ITaskTitleCellProps> = ({ task }) => (
     <Box component="b" sx={TASK_COLUMN_STYLES.title}>
       {task.title}
     </Box>
-    <Box component="span" sx={TASK_COLUMN_STYLES.caption}>
-      {formatTaskContext(task)}
-    </Box>
+    <TaskLinkCaption task={task} />
   </Box>
 );
 

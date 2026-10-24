@@ -6,21 +6,22 @@ import {
   isNullableString,
 } from "./primitive.guard";
 
+import type {
+  IApiTask,
+  ITaskCounts,
+  IApiTaskProject,
+  IApiTaskTransition,
+} from "../../interfaces/task.interface";
+
 import { isApiUser } from "./api.guard";
 import { TASK_STATUS_VALUES, type TaskStatusType } from "../../constants/task.constant";
-import type { IApiTask, ITaskCounts, IApiTaskTransition } from "../../interfaces/task.interface";
+import type { IApiProjectReference, IApiCustomerReference } from "../../interfaces/api.interface";
 
-const TASK_TEXT_FIELDS = [
-  "id",
-  "title",
-  "projectId",
-  "customerId",
-  "createdById",
-  "createdAt",
-  "updatedAt",
-];
+const TASK_TEXT_FIELDS = ["id", "title", "createdById", "createdAt", "updatedAt"];
 
 const TASK_NULLABLE_TEXT_FIELDS = [
+  "projectId",
+  "customerId",
   "assigneeId",
   "description",
   "dueDate",
@@ -32,15 +33,35 @@ const TASK_NULLABLE_TEXT_FIELDS = [
 export const isTaskStatus = (value: unknown): value is TaskStatusType =>
   TASK_STATUS_VALUES.some(status => status === value);
 
-const isTaskReference = (value: unknown) =>
+const isCustomerReference = (value: unknown): value is IApiCustomerReference =>
   isRecord(value) && hasStringFields(value, ["id", "name"]);
+
+const isProjectReference = (value: unknown): value is IApiProjectReference => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const hasIdentity = hasStringFields(value, ["id", "code", "name"]);
+
+  return hasIdentity && isOptionalOf(isCustomerReference)(value.customer);
+};
+
+const isTaskProjectReference = (value: unknown): value is IApiTaskProject => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const hasValidParent = isOptionalOf(isProjectReference)(value.parentProject);
+
+  return isProjectReference(value) && hasValidParent;
+};
 
 const hasValidRelations = (value: Record<string, unknown>) =>
   isOptionalOf(isApiUser)(value.assignee) &&
   isOptionalOf(isApiUser)(value.createdBy) &&
   isOptionalOf(isApiUser)(value.urgencyMarkedBy) &&
-  (value.project == null || isTaskReference(value.project)) &&
-  (value.customer == null || isTaskReference(value.customer));
+  isOptionalOf(isTaskProjectReference)(value.project) &&
+  isOptionalOf(isCustomerReference)(value.customer);
 
 export const isApiTask = (value: unknown): value is IApiTask => {
   if (!isRecord(value)) {

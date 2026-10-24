@@ -84,10 +84,16 @@ export type InheritedProjectFieldType = keyof Pick<
   "address" | "addressCity" | "paymentTerms" | "addressPlaceId" | "paymentTermsNote"
 >;
 
+export interface IApiCustomerReference {
+  id: string;
+  name: string;
+}
+
 export interface IApiProjectReference {
   id: string;
   code: string;
   name: string;
+  customer?: IApiCustomerReference | null;
 }
 
 export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectIntake {

@@ -19,6 +19,18 @@ export const TASK_COLUMN_STYLES = createStyles({
     ...MUTED_CAPTION,
     fontSize: 12,
   },
+  linkCaption: {
+    ...MUTED_CAPTION,
+    gap: "6px",
+    fontSize: 12,
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+  },
+  linkName: {
+    fontWeight: 700,
+    color: theme.palette.charcoal,
+  },
   assignee: {
     gap: "8px",
     minWidth: 0,

@@ -6,7 +6,6 @@ import type {
 
 import { ICON_NAMES, type IconNameType } from "./icon.constant";
 import { CHIP_VARIANTS, type ChipVariantType } from "./chip.constant";
-import type { ICustomerQuery } from "../interfaces/api-request.interface";
 import type { ProjectDetailFieldSetType } from "./project-detail-field-set.constant";
 import { PRIORITY_SYNC_STATUSES, type PrioritySyncStatusType } from "./priority-sync.constant";
 
@@ -115,5 +114,3 @@ export const CUSTOMER_PICKER_COPY = {
   REPLACE: "החלף לקוח",
   NOT_SELECTED: "לא נבחר לקוח",
 } as const;
-
-export const ALL_CUSTOMERS_QUERY: ICustomerQuery = { search: "", prioritySyncStatus: null };
