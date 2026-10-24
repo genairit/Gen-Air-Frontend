@@ -9,6 +9,24 @@ export const useStyles = () =>
     card: (hasError: boolean) => ({
       boxShadow: hasError ? `inset 0 0 0 2px ${palette.danger}` : softShadow.raised,
     }),
+    highlightedSelected: {
+      gap: "16px",
+      display: "flex",
+      flexWrap: "wrap",
+      borderRadius: "22px",
+      padding: "18px 20px",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: palette.airBlue,
+    },
+    apartmentList: {
+      gap: "2px",
+      padding: "8px",
+      display: "flex",
+      flexDirection: "column",
+      borderRadius: "24px",
+      boxShadow: softShadow.inset,
+    },
     list: {
       gap: "6px",
       display: "flex",

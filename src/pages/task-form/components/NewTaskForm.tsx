@@ -1,11 +1,28 @@
 import {
+  toTaskFormLink,
+  toLinkKindChange,
   getTaskFormErrors,
-  toProjectSelection,
+  toTaskLinkSelection,
   toCreateTaskPayload,
   countTaskFormErrors,
+  hasTaskLinkSelection,
   formatUrgencyRecipient,
+  formatClearedLinkNotice,
   toInitialTaskFormValues,
 } from "../../../utilities/task.utility";
+
+import {
+  NEW_TASK_COPY,
+  TASK_ASSIGNEES_QUERY,
+  type TaskLinkKindType,
+} from "../../../constants/task.constant";
+
+import type {
+  ITaskFormValues,
+  ITaskLinkOption,
+  IUrgencyConfirmation,
+  ITaskFormLinkSelection,
+} from "../../../interfaces/task.interface";
 
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
@@ -24,10 +41,8 @@ import InlineError from "../../../components/InlineError/InlineError";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useCreateTaskMutation } from "../../../hooks/mutations/task.mutation";
-import { NEW_TASK_COPY, TASK_ASSIGNEES_QUERY } from "../../../constants/task.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import UrgencyConfirmPopup from "../../../components/UrgencyConfirmPopup/UrgencyConfirmPopup";
-import type { ITaskFormValues, IUrgencyConfirmation } from "../../../interfaces/task.interface";
 
 interface INewTaskFormProps {
   initialProject: IApiProject | null;
@@ -39,7 +54,8 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject }) => {
   const [values, setValues] = useState<ITaskFormValues>(() =>
     toInitialTaskFormValues(initialProject),
   );
-  const [projectName, setProjectName] = useState(initialProject?.name ?? "");
+  const [linkName, setLinkName] = useState(initialProject?.name ?? "");
+  const [clearedLink, setClearedLink] = useState<ITaskFormLinkSelection | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
   const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
@@ -50,13 +66,41 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject }) => {
   const assignee = (usersQuery.data ?? []).find(user => user.id === values.assigneeOptionId);
   const recipient = formatUrgencyRecipient(assignee);
   const saveLabel = values.isUrgent ? NEW_TASK_COPY.SAVE_URGENT : NEW_TASK_COPY.SAVE;
+  const clearedNotice = clearedLink && formatClearedLinkNotice(clearedLink.link, clearedLink.name);
 
   const updateValues = (changes: Partial<ITaskFormValues>) =>
     setValues(current => ({ ...current, ...changes }));
 
-  const changeProject = (project: IApiProject | null) => {
-    setProjectName(project?.name ?? "");
-    updateValues(toProjectSelection(project));
+  const changeLinkKind = (linkKind: TaskLinkKindType) => {
+    if (linkKind === values.linkKind) {
+      return;
+    }
+
+    const previousLink = { name: linkName, link: toTaskFormLink(values) };
+
+    setClearedLink(hasTaskLinkSelection(values) ? previousLink : null);
+    setLinkName("");
+    updateValues(toLinkKindChange(linkKind));
+  };
+
+  const changeLink = (option: ITaskLinkOption | null) => {
+    if (!values.linkKind) {
+      return;
+    }
+
+    setClearedLink(null);
+    setLinkName(option?.name ?? "");
+    updateValues(toTaskLinkSelection(values.linkKind, option?.id ?? null));
+  };
+
+  const undoLinkClear = () => {
+    if (!clearedLink) {
+      return;
+    }
+
+    setLinkName(clearedLink.name);
+    updateValues(clearedLink.link);
+    setClearedLink(null);
   };
 
   const createTask = () => {
@@ -94,12 +138,16 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject }) => {
         errors={errors}
         values={values}
         onChange={updateValues}
-        onProjectChange={changeProject}
+        onLinkChange={changeLink}
+        clearedNotice={clearedNotice}
+        onUndoLinkClear={undoLinkClear}
+        onLinkKindChange={changeLinkKind}
+        onDismissNotice={() => setClearedLink(null)}
       />
       <TaskContentCard errors={errors} values={values} onChange={updateValues} />
       <TaskUrgencyChoiceCard
         recipient={recipient}
-        detailLine={projectName}
+        detailLine={linkName}
         taskTitle={values.title}
         isUrgent={values.isUrgent}
         onChange={isUrgent => updateValues({ isUrgent })}
@@ -120,8 +168,8 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject }) => {
         />
       </Box>
       <UrgencyConfirmPopup
+        detailLine={linkName}
         onConfirm={createTask}
-        detailLine={projectName}
         confirmation={confirmation}
         onClose={() => setConfirmation(null)}
       />

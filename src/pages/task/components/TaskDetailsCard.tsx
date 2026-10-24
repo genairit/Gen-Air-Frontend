@@ -1,8 +1,20 @@
 import {
+  getTaskLinkKind,
+  getTaskLinkName,
   toDateInputValue,
+  buildTaskLinkPath,
   formatTaskDueFull,
   getTodayInputValue,
+  getTaskProjectCustomer,
+  formatTaskLinkedToLabel,
 } from "../../../utilities/task.utility";
+
+import {
+  NEW_TASK_COPY,
+  TASK_PAGE_COPY,
+  TASK_LINK_KIND_LABELS,
+  TASK_LINK_CHIP_VARIANTS,
+} from "../../../constants/task.constant";
 
 import { Box } from "@mui/material";
 import { Link } from "react-router-dom";
@@ -11,16 +23,17 @@ import TaskFieldTile from "./TaskFieldTile";
 import { useStyles } from "./TaskPanels.style";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
+import Chip from "../../../components/Chip/Chip";
 import TaskAssigneeField from "./TaskAssigneeField";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import { CHIP_SIZES } from "../../../constants/chip.constant";
 import TextField from "../../../components/TextField/TextField";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { buildCustomerPath } from "../../../utilities/route.utility";
 import { toErrorValidator } from "../../../utilities/field-feedback.utility";
-import { TASK_PAGE_COPY, NEW_TASK_COPY } from "../../../constants/task.constant";
 import { FIELD_INPUT_LIMITS } from "../../../constants/field-validation.constant";
 import type { IApiTask, TUpdateTaskPayload } from "../../../interfaces/task.interface";
-import { buildCustomerPath, buildProjectPath } from "../../../utilities/route.utility";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 
 interface ITaskDetailsCardProps {
@@ -45,6 +58,9 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
   const [description, setDescription] = useState(task.description ?? "");
 
   const isLocked = !isManager;
+  const linkKind = getTaskLinkKind(task);
+  const linkPath = buildTaskLinkPath(task);
+  const projectCustomer = getTaskProjectCustomer(task);
   const trimmedDescription = description.trim();
   const isDescriptionChanged = trimmedDescription !== (task.description ?? "");
   const canSaveDescription = isDescriptionChanged && Boolean(trimmedDescription);
@@ -68,16 +84,27 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
         subtitle={TASK_PAGE_COPY.DETAILS_SUBTITLE}
       />
       <Box sx={pageStyles.grid({ minColumnWidth: 220, gap: "14px" })}>
-        <TaskFieldTile label={TASK_PAGE_COPY.PROJECT}>
-          <Box component={Link} sx={styles.link} to={buildProjectPath(task.projectId)}>
-            {task.project?.name ?? task.projectId}
+        <TaskFieldTile label={formatTaskLinkedToLabel(task)}>
+          <Box sx={styles.linkRow}>
+            <Chip
+              size={CHIP_SIZES.SMALL}
+              label={TASK_LINK_KIND_LABELS[linkKind]}
+              variant={TASK_LINK_CHIP_VARIANTS[linkKind]}
+            />
+            {linkPath && (
+              <Box to={linkPath} component={Link} sx={styles.link}>
+                {getTaskLinkName(task)}
+              </Box>
+            )}
           </Box>
         </TaskFieldTile>
-        <TaskFieldTile label={TASK_PAGE_COPY.CUSTOMER}>
-          <Box component={Link} sx={styles.link} to={buildCustomerPath(task.customerId)}>
-            {task.customer?.name ?? task.customerId}
-          </Box>
-        </TaskFieldTile>
+        {projectCustomer && (
+          <TaskFieldTile label={TASK_PAGE_COPY.PROJECT_CUSTOMER}>
+            <Box component={Link} sx={styles.link} to={buildCustomerPath(projectCustomer.id)}>
+              {projectCustomer.name}
+            </Box>
+          </TaskFieldTile>
+        )}
         <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.ASSIGNEE}>
           <TaskAssigneeField
             task={task}

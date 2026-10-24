@@ -1,27 +1,32 @@
+import {
+  findLinkOption,
+  getProjectCustomer,
+  toProjectLinkOption,
+} from "../../../utilities/task.utility";
+
+import {
+  TASK_LINK_KINDS,
+  TASK_LINK_PICKER_COPY,
+  TASK_LINK_RESULT_LIMITS,
+} from "../../../constants/task.constant";
+
 import { type FC, useState } from "react";
-import { useStyles } from "./TaskForm.style";
-import { Box, ButtonBase } from "@mui/material";
-import Chip from "../../../components/Chip/Chip";
-import Button from "../../../components/Button/Button";
-import { ICON_NAMES } from "../../../constants/icon.constant";
-import TextField from "../../../components/TextField/TextField";
-import type { IApiProject } from "../../../interfaces/api.interface";
+import TaskLinkPicker from "./TaskLinkPicker";
+import TaskLinkSelection from "./TaskLinkSelection";
+import TaskLinkSelectionStatus from "./TaskLinkSelectionStatus";
+import TaskProjectCustomerNote from "./TaskProjectCustomerNote";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
-import LoadingState from "../../../components/LoadingState/LoadingState";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import type { ITaskLinkOption } from "../../../interfaces/task.interface";
 import { useProjectQuery, useProjectsQuery } from "../../../hooks/queries/project.query";
-import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
-import { NEW_TASK_COPY, TASK_PROJECT_RESULT_LIMIT } from "../../../constants/task.constant";
 
 interface ITaskProjectPickerProps {
   error: string | null;
   projectId: string | null;
-  onChange: (project: IApiProject | null) => void;
+  onChange: (option: ITaskLinkOption | null) => void;
 }
 
 const TaskProjectPicker: FC<ITaskProjectPickerProps> = ({ projectId, error, onChange }) => {
-  const styles = useStyles();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   const selectedQuery = useProjectQuery(projectId);
@@ -31,74 +36,47 @@ const TaskProjectPicker: FC<ITaskProjectPickerProps> = ({ projectId, error, onCh
     search: debouncedSearch,
   });
 
-  const results = (projectsQuery.data ?? []).slice(0, TASK_PROJECT_RESULT_LIMIT);
-  const hasNoResults = projectsQuery.isSuccess && results.length === 0;
+  const options = (projectsQuery.data ?? [])
+    .slice(0, TASK_LINK_RESULT_LIMITS.project)
+    .map(toProjectLinkOption);
+  const selectedCustomerName = getProjectCustomer(selectedQuery.data)?.name ?? null;
 
   if (projectId && selectedQuery.data) {
     return (
-      <Box sx={styles.selected}>
-        <Box sx={styles.optionText}>
-          <Box component="b" sx={styles.optionName}>
-            {selectedQuery.data.name}
-          </Box>
-          <Box component="span" sx={styles.caption}>
-            {selectedQuery.data.code}
-          </Box>
-        </Box>
-        <Box sx={styles.urgencyOptions}>
-          <Chip label={selectedQuery.data.projectType?.name ?? ""} />
-          <Button
-            onClick={() => onChange(null)}
-            variant={BUTTON_VARIANTS.NEUTRAL}
-            text={NEW_TASK_COPY.REPLACE_PROJECT}
-          />
-        </Box>
-      </Box>
+      <TaskLinkSelection
+        onReplace={() => onChange(null)}
+        option={toProjectLinkOption(selectedQuery.data)}
+        replaceLabel={TASK_LINK_PICKER_COPY.project.REPLACE}
+        context={
+          selectedCustomerName && <TaskProjectCustomerNote customerName={selectedCustomerName} />
+        }
+      />
+    );
+  }
+
+  if (projectId) {
+    return (
+      <TaskLinkSelectionStatus
+        kind={TASK_LINK_KINDS.PROJECT}
+        isError={selectedQuery.isError}
+        onReplace={() => onChange(null)}
+        onRetry={() => selectedQuery.refetch()}
+      />
     );
   }
 
   return (
-    <>
-      <TextField
-        value={search}
-        onChange={setSearch}
-        type={FIELD_TYPES.SEARCH}
-        startIcon={ICON_NAMES.SEARCH}
-        placeholder={NEW_TASK_COPY.PROJECT_SEARCH}
-      />
-      <Box role="listbox" sx={styles.list}>
-        {projectsQuery.isPending && <LoadingState label={NEW_TASK_COPY.PROJECT_SEARCH} />}
-        {results.map(project => (
-          <ButtonBase
-            role="option"
-            key={project.id}
-            sx={styles.option}
-            aria-selected={false}
-            onClick={() => onChange(project)}
-          >
-            <Box sx={styles.optionText}>
-              <Box component="b" sx={styles.optionName}>
-                {project.name}
-              </Box>
-              <Box component="span" sx={styles.caption}>
-                {project.code}
-              </Box>
-            </Box>
-            <Chip label={project.projectType?.name ?? ""} />
-          </ButtonBase>
-        ))}
-        {hasNoResults && (
-          <Box component="span" sx={styles.hint}>
-            {NEW_TASK_COPY.NO_PROJECTS}
-          </Box>
-        )}
-      </Box>
-      {error && (
-        <Box component="span" sx={styles.error}>
-          {error}
-        </Box>
-      )}
-    </>
+    <TaskLinkPicker
+      error={error}
+      search={search}
+      options={options}
+      onSearch={setSearch}
+      kind={TASK_LINK_KINDS.PROJECT}
+      isError={projectsQuery.isError}
+      isLoading={projectsQuery.isPending}
+      onRetry={() => projectsQuery.refetch()}
+      onSelect={optionId => onChange(findLinkOption(options, optionId))}
+    />
   );
 };
 
