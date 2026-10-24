@@ -13,6 +13,7 @@ export const BOARD_FILTER_ALL = {
 } as const;
 
 export const BOARD_COPY = {
+  NEW_TASK: "משימה חדשה",
   NEW_PROJECT: "פרויקט חדש",
   LOADING: "טוען את לוח הפרויקטים...",
   LOADING_MORE: "טוען עוד פרויקטים...",
