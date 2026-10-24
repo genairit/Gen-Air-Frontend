@@ -1,5 +1,6 @@
 import {
   isTaskOverdue,
+  getTaskCustomer,
   formatTaskDueLabel,
   formatAssigneeLabel,
   formatProjectTasksSubtitle,
@@ -75,7 +76,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
                 {task.title}
               </Box>
               <Box component="span" sx={TASK_COLUMN_STYLES.caption}>
-                {task.customer?.name}
+                {getTaskCustomer(task)?.name}
               </Box>
             </Box>
             <Box sx={styles.row({ gap: "8px" })}>

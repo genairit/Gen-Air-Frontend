@@ -13,7 +13,7 @@ export interface IProjectPageQuery extends IProjectQuery {
   stageId: string | null;
 }
 
-interface IProjectMemberAssignment {
+export interface IProjectMemberAssignment {
   userId: string;
   role: UserRoleType;
 }
@@ -71,16 +71,18 @@ export interface IApartmentQuery {
 }
 
 export interface IApartmentPayload {
-  contactName: string;
-  contactPhone: string;
+  customerId: string;
   customerFloor: number;
   customerApartment: string;
-  customerName: string | null;
-  customerPhone: string | null;
+  paymentTerms?: PaymentTermsType;
+  paymentTermsNote?: string | null;
+  members?: IProjectMemberAssignment[];
 }
 
 export interface IApartmentChanges {
+  hasOwnTeam?: boolean;
   notes?: string | null;
   paymentTermsNote?: string | null;
+  members?: IProjectMemberAssignment[];
   paymentTerms?: PaymentTermsType | null;
 }

@@ -17,18 +17,21 @@ import type {
 } from "../interfaces/apartment.interface";
 
 import { isPaymentTerms } from "./guards/api.guard";
+import { getFullName } from "./mappers/user.mapper";
 import { findOptionIdByLabel } from "./option.utility";
+import { validatePaymentTermsNote } from "./validators";
 import { formatCustomerDetailValue } from "./customer-details.utility";
-import type { IApartmentChanges } from "../interfaces/api-request.interface";
+import { APARTMENT_UNIT_FIELDS } from "../constants/apartment.constant";
 import type { IApartmentPayload } from "../interfaces/api-request.interface";
+import type { IApiProjectMember, IApiUser } from "../interfaces/api.interface";
 import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
+import { PROJECT_MEMBER_ROLES, USER_ROLE_LABELS } from "../constants/user-role.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
-import { APARTMENT_PEOPLE_FIELDS, APARTMENT_UNIT_FIELDS } from "../constants/apartment.constant";
 import { PAYMENT_TERMS_LABELS, type PaymentTermsType } from "../constants/payment-terms.constant";
 
 export type ProjectKindType = "building" | "apartment" | "standalone";
 
-const APARTMENT_FORM_FIELDS = [...APARTMENT_UNIT_FIELDS, ...APARTMENT_PEOPLE_FIELDS];
+const APARTMENT_FORM_FIELDS = APARTMENT_UNIT_FIELDS;
 
 export const getProjectKind = (project: IApiProject): ProjectKindType => {
   if (project.parentProjectId) {
@@ -70,16 +73,49 @@ export const formatApartmentPosition = (position: IApartmentPosition, buildingNa
 export const toOptionalText = (value: string) => value.trim() || null;
 
 export const toApartmentPayload = (values: IApartmentFormValues): IApartmentPayload => ({
+  customerId: values.customerId ?? "",
   customerFloor: Number(values.floor),
-  contactName: values.contactName.trim(),
-  contactPhone: values.contactPhone.trim(),
   customerApartment: values.apartmentNumber.trim(),
-  customerName: toOptionalText(values.customerName),
-  customerPhone: toOptionalText(values.customerPhone),
+  ...(values.members === null ? {} : { members: toApartmentAssignments(values.members) }),
+  ...(values.paymentTerms
+    ? toPaymentTermsOverride(values.paymentTerms, values.paymentTermsNote)
+    : {}),
 });
 
-export const countInvalidApartmentFields = (values: IApartmentFormValues) =>
-  APARTMENT_FORM_FIELDS.filter(config => !config.validate(values[config.field]).isValid).length;
+export const countInvalidApartmentFields = (values: IApartmentFormValues) => {
+  const unitErrors = APARTMENT_FORM_FIELDS.filter(
+    config => !config.validate(values[config.field]).isValid,
+  ).length;
+  const customerErrors = Number(!values.customerId);
+  const noteRequired = isPaymentTermsNoteRequired(values.paymentTerms);
+  const noteErrors = Number(
+    noteRequired && !validatePaymentTermsNote(values.paymentTermsNote).isValid,
+  );
+  return unitErrors + customerErrors + noteErrors;
+};
+
+export const toApartmentAssignments = (members: IApiProjectMember[]) =>
+  members.map(({ userId, role }) => ({ userId, role }));
+
+export const getApartmentTeamCandidates = (users: IApiUser[], members: IApiProjectMember[]) =>
+  users.filter(user => {
+    const isActive = !user.deletedAt;
+    const hasEligibleRole = PROJECT_MEMBER_ROLES.some(role => role === user.role);
+    const isRoleAvailable = !members.some(member => member.role === user.role);
+    return isActive && hasEligibleRole && isRoleAvailable;
+  });
+
+export const toApartmentTeamOptions = (users: IApiUser[]) =>
+  users.map(user => ({
+    user,
+    label: `${getFullName(user)} · ${USER_ROLE_LABELS[user.role]} (${user.employeeNumber})`,
+  }));
+
+export const formatParentCustomerNote = (building: IApiProject) =>
+  `לקוח הפרויקט האב: ${building.customer?.name ?? building.customerName ?? "לא שויך לקוח"}. הוא אינו לקוח הקצה של הדירה ואינו עובר אליה.`;
+
+export const formatApartmentValidationCount = (count: number) =>
+  `יש ${count} שדות לתיקון לפני ההוספה`;
 
 export const getPaymentTermsSource = (apartment: IApiProject): TInheritanceSourceType => {
   const isInherited = apartment.inheritedFields?.includes("paymentTerms") ?? false;
@@ -158,10 +194,7 @@ export const findPaymentTermsByLabel = (
   return terms;
 };
 
-export const toPaymentTermsOverride = (
-  terms: PaymentTermsType,
-  note: string,
-): IApartmentChanges => ({
+export const toPaymentTermsOverride = (terms: PaymentTermsType, note: string) => ({
   paymentTerms: terms,
   paymentTermsNote: isPaymentTermsNoteRequired(terms) ? note.trim() : null,
 });

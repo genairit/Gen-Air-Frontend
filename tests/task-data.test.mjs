@@ -75,6 +75,27 @@ test("task guards accept legacy nulls and reject malformed task/status/count con
   assert.equal(isApiTask({ ...sample, status: "unknown" }), false);
   assert.equal(isApiTask({ ...sample, urgencyMarkedById: 123 }), false);
   assert.equal(isApiTask({ ...sample, assigneeId: {} }), false);
+  assert.equal(isApiTask({ ...sample, projectId: null }), true);
+  assert.equal(isApiTask({ ...sample, customerId: null }), true);
+  assert.equal(
+    isApiTask({
+      ...sample,
+      customerId: null,
+      project: { id: "project-1", code: "GA-1", name: "P", customer: { id: "c", name: "C" } },
+    }),
+    true,
+  );
+  assert.equal(
+    isApiTask({ ...sample, project: { id: "project-1", code: "GA-1", name: "P", customer: 7 } }),
+    false,
+  );
+  const building = { id: "b", code: "GA-1", name: "B", customer: { id: "c", name: "C" } };
+  const apartment = { id: "a", code: "GA-2", name: "A", customer: null };
+  assert.equal(isApiTask({ ...sample, project: { ...apartment, parentProject: building } }), true);
+  assert.equal(
+    isApiTask({ ...sample, project: { ...apartment, parentProject: { id: "b" } } }),
+    false,
+  );
   const counts = {
     total: 1,
     urgent: 0,
@@ -131,7 +152,6 @@ test("creation and urgency use separate requests and successful writes invalidat
     title: "Task",
     description: "Description",
     projectId: "project-1",
-    customerId: "customer-1",
     assigneeId: null,
     dueDate: "2099-01-01",
   };
@@ -154,7 +174,6 @@ test("creating an urgent task marks it urgent right after it is created", async 
     title: "Urgent task",
     description: "Description",
     projectId: "project-1",
-    customerId: "customer-1",
     assigneeId: null,
     dueDate: "2099-01-01",
   };

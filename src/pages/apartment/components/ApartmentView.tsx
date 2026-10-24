@@ -9,7 +9,6 @@ import ApartmentInheritedCard from "./ApartmentInheritedCard";
 import { useSessionUser } from "../../../store/session.store";
 import ApartmentEndCustomerCard from "./ApartmentEndCustomerCard";
 import { hasPermission } from "../../../utilities/permission.utility";
-import ProjectTeamCard from "../../project/components/ProjectTeamCard";
 import ProjectDriveCard from "../../project/components/ProjectDriveCard";
 import ProjectTimelineCard from "../../project/components/ProjectTimelineCard";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
@@ -33,9 +32,8 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
 
       <Box sx={styles.grid({ minColumnWidth: 380 })}>
         <Box sx={styles.stack({})}>
-          <ApartmentEndCustomerCard apartment={apartment} />
-          <ApartmentContactCard apartment={apartment} />
-          <ProjectTeamCard members={apartment.members ?? []} />
+          <ApartmentEndCustomerCard building={building} apartment={apartment} />
+          <ApartmentContactCard canEdit={canEdit} apartment={apartment} />
         </Box>
         <ApartmentInheritedCard canEdit={canEdit} building={building} apartment={apartment} />
       </Box>

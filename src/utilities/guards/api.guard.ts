@@ -152,11 +152,18 @@ export const isApiProject = (value: unknown): value is IApiProject => {
 
   const hasDetails = hasCustomerDetails(value) && hasProjectIntake(value);
   const hasHierarchy = isNullableString(value.parentProjectId) && isNullableString(value.notes);
+  const hasValidOwnTeam = !("hasOwnTeam" in value) || typeof value.hasOwnTeam === "boolean";
   const hasValidCustomer =
     isNullableString(value.customerId) && isOptionalOf(isApiCustomer)(value.customer);
 
   return (
-    hasIdentity && hasRelations && hasValidMembers && hasDetails && hasHierarchy && hasValidCustomer
+    hasIdentity &&
+    hasRelations &&
+    hasValidMembers &&
+    hasDetails &&
+    hasHierarchy &&
+    hasValidCustomer &&
+    hasValidOwnTeam
   );
 };
 
