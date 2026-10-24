@@ -5,6 +5,7 @@ import { useStyles } from "./DetailTile.style";
 interface IDetailTileProps {
   label: string;
   value: string;
+  href?: string;
   isLtr?: boolean;
   badge?: ReactNode;
   note?: string | null;
@@ -13,6 +14,7 @@ interface IDetailTileProps {
 
 const DetailTile: FC<IDetailTileProps> = ({
   note,
+  href,
   label,
   value,
   badge,
@@ -20,6 +22,7 @@ const DetailTile: FC<IDetailTileProps> = ({
   isFullWidth = false,
 }) => {
   const styles = useStyles();
+  const valueComponent = href ? "a" : "span";
 
   return (
     <Box sx={styles.tile(isFullWidth)}>
@@ -27,7 +30,7 @@ const DetailTile: FC<IDetailTileProps> = ({
         {label}
       </Box>
       <Box sx={styles.valueRow}>
-        <Box component="span" sx={styles.value}>
+        <Box href={href} sx={styles.value} component={valueComponent}>
           <bdi dir={isLtr ? "ltr" : "rtl"}>{value}</bdi>
         </Box>
         {badge}

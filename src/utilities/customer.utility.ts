@@ -93,8 +93,12 @@ export const getCustomerSyncSteps = (customer: IApiCustomer): ICustomerSyncStep[
   },
 ];
 
-export const isCustomerSelectable = (customer: IApiCustomer) =>
-  customer.prioritySyncStatus !== PRIORITY_SYNC_STATUSES.FAILED;
+export const isCustomerSelectable = (customer?: IApiCustomer | null) => {
+  if (!customer) {
+    return false;
+  }
+  return customer.prioritySyncStatus !== PRIORITY_SYNC_STATUSES.FAILED;
+};
 
 export const getCustomerPickerLabel = (search: string) => {
   if (search.trim()) {

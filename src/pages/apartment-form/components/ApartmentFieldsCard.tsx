@@ -65,7 +65,7 @@ const ApartmentFieldsCard: FC<IApartmentFieldsCardProps> = ({
   };
 
   return (
-    <Card gap="22px" padding="28px">
+    <Card gap="22px" padding="24px">
       <CardHeader icon={icon} title={title} subtitle={subtitle} />
       <Box sx={styles.grid({ minColumnWidth, gap: "16px" })}>{fields.map(renderField)}</Box>
     </Card>

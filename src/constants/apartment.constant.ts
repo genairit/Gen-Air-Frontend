@@ -1,11 +1,3 @@
-import {
-  validateFloor,
-  validateContactName,
-  validateRequiredValue,
-  validateIsraeliMobilePhone,
-  validateOptionalIsraeliPhone,
-} from "../utilities/validators";
-
 import type {
   IApartmentFormValues,
   TInheritanceSourceType,
@@ -14,9 +6,10 @@ import type {
 } from "../interfaces/apartment.interface";
 
 import { CHIP_VARIANTS } from "./chip.constant";
-import { VALID_FIELD } from "../utilities/field-feedback.utility";
+import { validateFloor } from "../utilities/validators";
 import type { IApartmentChanges } from "../interfaces/api-request.interface";
 import { FIELD_TYPES } from "../components/TextField/constants/textfield.constants";
+import { validateApartmentNumber } from "../utilities/validators/apartment-number.validator";
 
 export const PAYMENT_TERMS_RESET: IApartmentChanges = {
   paymentTerms: null,
@@ -27,10 +20,10 @@ export const APARTMENT_SCROLL_ROOT_MARGIN = "200px";
 
 export const EMPTY_APARTMENT_FORM: IApartmentFormValues = {
   floor: "",
-  contactName: "",
-  contactPhone: "",
-  customerName: "",
-  customerPhone: "",
+  customerId: null,
+  members: null,
+  paymentTerms: null,
+  paymentTermsNote: "",
   apartmentNumber: "",
 };
 
@@ -49,42 +42,7 @@ export const APARTMENT_UNIT_FIELDS: IApartmentFormFieldConfig[] = [
     isRequired: true,
     placeholder: "לדוגמה: 24",
     type: FIELD_TYPES.TEXT,
-    validate: validateRequiredValue,
-  },
-];
-
-export const APARTMENT_PEOPLE_FIELDS: IApartmentFormFieldConfig[] = [
-  {
-    field: "customerName",
-    isRequired: false,
-    label: "לקוח קצה: שם מלא",
-    placeholder: "ישראל ישראלי",
-    type: FIELD_TYPES.TEXT,
-    validate: () => VALID_FIELD,
-  },
-  {
-    field: "customerPhone",
-    isRequired: false,
-    label: "לקוח קצה: טלפון נייד",
-    placeholder: "052-1234567",
-    type: FIELD_TYPES.PHONE,
-    validate: validateOptionalIsraeliPhone,
-  },
-  {
-    field: "contactName",
-    isRequired: true,
-    label: "איש קשר: שם מלא",
-    placeholder: "ישראל ישראלי",
-    type: FIELD_TYPES.TEXT,
-    validate: validateContactName,
-  },
-  {
-    field: "contactPhone",
-    isRequired: true,
-    label: "איש קשר: טלפון נייד",
-    placeholder: "052-1234567",
-    type: FIELD_TYPES.PHONE,
-    validate: validateIsraeliMobilePhone,
+    validate: validateApartmentNumber,
   },
 ];
 
@@ -149,8 +107,8 @@ export const APARTMENT_PAGE_COPY = {
   PHONE: "טלפון",
   NO_END_CUSTOMER: "לא שויך לקוח קצה לדירה זו",
   PARENT_CUSTOMER_NOTE: "לקוח הפרויקט האב אינו לקוח הקצה של הדירה ואינו עובר אליה.",
-  CONTACT_TITLE: "איש קשר",
-  CONTACT_SUBTITLE: "איש הקשר נקבע לכל דירה בנפרד",
+  CONTACT_TITLE: "איש קשר וצוות",
+  CONTACT_SUBTITLE: "איש הקשר והצוות נקבעים לכל דירה בנפרד",
   CONTACT_NAME: "איש קשר",
   CONTACT_PHONE: "טלפון נייד",
   INHERITED_TITLE: "נתונים מהפרויקט האב",
@@ -186,10 +144,10 @@ export const ADD_APARTMENT_COPY = {
   TITLE: "הוספת דירה",
   DESCRIPTION: "רק הפרטים של הדירה. כל השאר עובר מהבניין.",
   UNIT_TITLE: "פרטי הדירה",
-  PEOPLE_TITLE: "לקוח קצה ואיש קשר",
-  PEOPLE_SUBTITLE: "לקוח הקצה אופציונלי, איש הקשר חובה",
+  PEOPLE_TITLE: "לקוח הדירה *",
+  PEOPLE_SUBTITLE: "בחירת לקוח קיים. איש הקשר והטלפון נלקחים מכרטיס הלקוח ולא מוקלדים מחדש",
   INHERITED_TITLE: "עובר מהבניין",
-  INHERITED_SUBTITLE: "קריאה בלבד, אפשר לשנות לדירה זו אחרי השמירה",
+  INHERITED_SUBTITLE: "קריאה בלבד, אפשר לשנות לדירה זו",
   FROM_PARENT: "מפרויקט האב",
   TYPE_LABEL: "סוג פרויקט",
   ADDRESS_LABEL: "כתובת הבניין",
@@ -204,4 +162,22 @@ export const ADD_APARTMENT_COPY = {
   CANCEL: "ביטול",
   SUBMIT: "הוסף דירה",
   FIX_FIELDS: "יש שדות לתיקון לפני השמירה",
+} as const;
+
+export const APARTMENT_TEAM_COPY = {
+  TITLE: "צוות הדירה",
+  DESCRIPTION: "כברירת מחדל הצוות של הבניין. אפשר להרכיב לדירה צוות משלה",
+  INHERITED: "עובר מהבניין",
+  OWN: "שונה בדירה זו",
+  OVERRIDE: "שנה לדירה זו",
+  RESET: "חזור לצוות הבניין",
+  ADD: "הוסף חבר צוות…",
+  REMOVE: "הסר חבר צוות",
+  EMPTY: "לדירה אין צוות. הוסף חבר צוות או חזור לצוות הבניין.",
+  EMPTY_PARENT: "עדיין לא הוגדר צוות בבניין",
+  LOADING: "טוען חברי צוות…",
+  RETRY: "נסה שוב",
+  SAVE: "שמור צוות",
+  NEW_CUSTOMER: "+ לקוח חדש",
+  INVALID_CUSTOMER: "בחר לקוח לדירה לפני השמירה",
 } as const;

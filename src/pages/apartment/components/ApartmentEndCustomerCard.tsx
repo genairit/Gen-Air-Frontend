@@ -8,13 +8,15 @@ import CardHeader from "../../../components/CardHeader/CardHeader";
 import DetailTile from "../../../components/DetailTile/DetailTile";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { APARTMENT_PAGE_COPY } from "../../../constants/apartment.constant";
+import { formatParentCustomerNote } from "../../../utilities/apartment.utility";
 import { formatCustomerDetailValue } from "../../../utilities/customer-details.utility";
 
 interface IApartmentEndCustomerCardProps {
+  building: IApiProject;
   apartment: IApiProject;
 }
 
-const ApartmentEndCustomerCard: FC<IApartmentEndCustomerCardProps> = ({ apartment }) => {
+const ApartmentEndCustomerCard: FC<IApartmentEndCustomerCardProps> = ({ apartment, building }) => {
   const styles = usePageStyles();
   const hasEndCustomer = Boolean(apartment.customerName);
 
@@ -41,7 +43,7 @@ const ApartmentEndCustomerCard: FC<IApartmentEndCustomerCardProps> = ({ apartmen
         </Box>
       )}
       <Box component="span" sx={styles.caption}>
-        {APARTMENT_PAGE_COPY.PARENT_CUSTOMER_NOTE}
+        {formatParentCustomerNote(building)}
       </Box>
     </Card>
   );
