@@ -32,7 +32,7 @@ const TaskLinkSelection: FC<ITaskLinkSelectionProps> = ({
             {option.caption}
           </Box>
         </Box>
-        <Box sx={styles.urgencyOptions}>
+        <Box sx={styles.actionRow}>
           {option.tag && <Chip label={option.tag} />}
           <Button onClick={onReplace} text={replaceLabel} variant={BUTTON_VARIANTS.NEUTRAL} />
         </Box>

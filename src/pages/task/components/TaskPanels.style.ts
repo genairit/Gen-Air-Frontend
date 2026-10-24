@@ -86,6 +86,12 @@ export const useStyles = () =>
       alignItems: "center",
       color: palette.textMuted,
     },
+    linkRow: {
+      gap: "8px",
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "center",
+    },
     link: {
       fontSize: 15,
       fontWeight: 700,

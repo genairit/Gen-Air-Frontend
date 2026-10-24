@@ -37,6 +37,7 @@ import type {
   ITaskLinkPayload,
   ICreateTaskPayload,
   IApiTaskTransition,
+  TTaskFormErrorEntry,
   IUrgencyConfirmation,
   IProjectCustomerSource,
 } from "../interfaces/task.interface";
@@ -237,10 +238,7 @@ const getDueDateError = (dueDate: string) => {
   return null;
 };
 
-const getLinkErrors = ({
-  linkKind,
-  ...ids
-}: TTaskFormLink): [keyof TTaskFormErrors, string | null][] => {
+const getLinkErrors = ({ linkKind, ...ids }: TTaskFormLink): TTaskFormErrorEntry[] => {
   if (!linkKind) {
     return [["linkKind", NEW_TASK_COPY.CHOOSE_LINK_KIND]];
   }
@@ -251,7 +249,7 @@ const getLinkErrors = ({
 };
 
 export const getTaskFormErrors = (values: ITaskFormValues): TTaskFormErrors => {
-  const errors: [keyof TTaskFormErrors, string | null][] = [
+  const errors: TTaskFormErrorEntry[] = [
     ...getLinkErrors(values),
     ["assigneeOptionId", values.assigneeOptionId ? null : NEW_TASK_COPY.REQUIRED],
     ["title", values.title.trim() ? null : NEW_TASK_COPY.REQUIRED],

@@ -117,6 +117,8 @@ export type TaskFormFieldType =
 
 export type TTaskFormErrors = Partial<Record<TaskFormFieldType, string>>;
 
+export type TTaskFormErrorEntry = [keyof TTaskFormErrors, string | null];
+
 export type UrgencyChangeType = "set" | "clear";
 
 export interface IUrgencyConfirmation {

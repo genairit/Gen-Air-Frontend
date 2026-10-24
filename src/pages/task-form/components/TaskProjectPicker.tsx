@@ -13,6 +13,7 @@ import {
 import { type FC, useState } from "react";
 import TaskLinkPicker from "./TaskLinkPicker";
 import TaskLinkSelection from "./TaskLinkSelection";
+import TaskLinkSelectionStatus from "./TaskLinkSelectionStatus";
 import TaskProjectCustomerNote from "./TaskProjectCustomerNote";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
@@ -49,6 +50,17 @@ const TaskProjectPicker: FC<ITaskProjectPickerProps> = ({ projectId, error, onCh
         context={
           selectedCustomerName && <TaskProjectCustomerNote customerName={selectedCustomerName} />
         }
+      />
+    );
+  }
+
+  if (projectId) {
+    return (
+      <TaskLinkSelectionStatus
+        kind={TASK_LINK_KINDS.PROJECT}
+        isError={selectedQuery.isError}
+        onReplace={() => onChange(null)}
+        onRetry={() => selectedQuery.refetch()}
       />
     );
   }

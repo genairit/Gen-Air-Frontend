@@ -1,5 +1,5 @@
 import { useState, type KeyboardEvent } from "react";
-import { wrapIndex } from "../utilities/keyboard.utility";
+import { wrapIndex, isKeyType } from "../utilities/keyboard.utility";
 import { KEY_TYPES, type KeyType } from "../constants/keyboard.constant";
 
 interface IUseListNavigationOptions {
@@ -10,9 +10,6 @@ interface IUseListNavigationOptions {
 }
 
 type TListKeyHandler = () => void;
-
-const isListKey = (key: string): key is KeyType =>
-  Object.values(KEY_TYPES).some(listKey => listKey === key);
 
 export const useListNavigation = ({
   onSelect,
@@ -49,7 +46,7 @@ export const useListNavigation = ({
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
-    if (!isEnabled || !isListKey(event.key)) {
+    if (!isEnabled || !isKeyType(event.key)) {
       return;
     }
 

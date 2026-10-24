@@ -114,6 +114,11 @@ export const useStyles = () =>
       fontFamily: theme.font.body,
       ...URGENCY_OPTION_SURFACES[toUrgencySurfaceKey({ isSelected, isUrgent })],
     }),
+    actionRow: {
+      gap: "16px",
+      display: "flex",
+      flexWrap: "wrap",
+    },
     urgencyOptions: {
       gap: "16px",
       display: "flex",

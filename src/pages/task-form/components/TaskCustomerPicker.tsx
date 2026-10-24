@@ -16,6 +16,7 @@ import TaskLinkPicker from "./TaskLinkPicker";
 import { useNavigate } from "react-router-dom";
 import TaskLinkSelection from "./TaskLinkSelection";
 import Button from "../../../components/Button/Button";
+import TaskLinkSelectionStatus from "./TaskLinkSelectionStatus";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
@@ -48,6 +49,17 @@ const TaskCustomerPicker: FC<ITaskCustomerPickerProps> = ({ customerId, error, o
         onReplace={() => onChange(null)}
         option={toSelectedCustomerOption(selectedQuery.data)}
         replaceLabel={TASK_LINK_PICKER_COPY.customer.REPLACE}
+      />
+    );
+  }
+
+  if (customerId) {
+    return (
+      <TaskLinkSelectionStatus
+        kind={TASK_LINK_KINDS.CUSTOMER}
+        isError={selectedQuery.isError}
+        onReplace={() => onChange(null)}
+        onRetry={() => selectedQuery.refetch()}
       />
     );
   }
