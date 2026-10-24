@@ -7,38 +7,49 @@ import {
   ADD_APARTMENT_COPY,
   EMPTY_APARTMENT_FORM,
   APARTMENT_UNIT_FIELDS,
-  APARTMENT_PEOPLE_FIELDS,
 } from "../../../constants/apartment.constant";
 
 import { Box } from "@mui/material";
+import { Link } from "react-router-dom";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
 import ApartmentFieldsCard from "./ApartmentFieldsCard";
 import InheritedPreviewCard from "./InheritedPreviewCard";
+import ApartmentTeamDraftCard from "./ApartmentTeamDraftCard";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import { ROUTE_PATHS } from "../../../constants/routes.constant";
+import { buildProjectPath } from "../../../utilities/route.utility";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import InlineError from "../../../components/InlineError/InlineError";
-import { formatFieldErrorCount } from "../../../utilities/text.utility";
+import { useCustomerQuery } from "../../../hooks/queries/customer.query";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { isCustomerSelectable } from "../../../utilities/customer.utility";
+import { APARTMENT_TEAM_COPY } from "../../../constants/apartment.constant";
 import type { IApartmentFormValues } from "../../../interfaces/apartment.interface";
-import { buildApartmentPath, buildProjectPath } from "../../../utilities/route.utility";
+import { formatApartmentValidationCount } from "../../../utilities/apartment.utility";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { useCreateApartmentMutation } from "../../../hooks/mutations/apartment.mutation";
+import ProjectCustomerPickerCard from "../../project-form/components/ProjectCustomerPickerCard";
+import { useStyles as useCustomerPickerStyles } from "../../project-form/components/ProjectCustomerPicker.style";
 
 interface INewApartmentFormProps {
   building: IApiProject;
 }
 
 const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
-  const navigate = useNavigate();
   const styles = usePageStyles();
+  const pickerStyles = useCustomerPickerStyles();
+  const navigate = useNavigate();
   const [values, setValues] = useState<IApartmentFormValues>(EMPTY_APARTMENT_FORM);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const createMutation = useCreateApartmentMutation();
+  const customerQuery = useCustomerQuery(values.customerId);
 
-  const invalidFieldCount = countInvalidApartmentFields(values);
+  const isCustomerReady = isCustomerSelectable(customerQuery.data);
+  const invalidSelectedCustomerCount = Number(Boolean(values.customerId) && !isCustomerReady);
+  const invalidFieldCount = countInvalidApartmentFields(values) + invalidSelectedCustomerCount;
   const showFieldErrors = isSubmitAttempted && invalidFieldCount > 0;
 
   const updateValues = (changes: Partial<IApartmentFormValues>) =>
@@ -47,13 +58,13 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const handleSubmit = () => {
     setIsSubmitAttempted(true);
 
-    if (invalidFieldCount > 0) {
+    if (invalidFieldCount > 0 || createMutation.isPending) {
       return;
     }
 
     createMutation.mutate(
       { buildingId: building.id, values },
-      { onSuccess: apartmentId => navigate(buildApartmentPath(building.id, apartmentId)) },
+      { onSuccess: () => navigate(buildProjectPath(building.id)) },
     );
   };
 
@@ -81,33 +92,54 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
         isSubmitAttempted={isSubmitAttempted}
       />
 
-      <ApartmentFieldsCard
-        values={values}
-        minColumnWidth={200}
-        onChange={updateValues}
-        icon={ICON_NAMES.CUSTOMER}
-        fields={APARTMENT_PEOPLE_FIELDS}
+      <ProjectCustomerPickerCard
+        isApartment
+        customerId={values.customerId}
         isSubmitAttempted={isSubmitAttempted}
         title={ADD_APARTMENT_COPY.PEOPLE_TITLE}
         subtitle={ADD_APARTMENT_COPY.PEOPLE_SUBTITLE}
+        onChange={customerId => updateValues({ customerId })}
+        action={
+          <Box
+            component={Link}
+            to={ROUTE_PATHS.NEW_CUSTOMER}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={pickerStyles.link}
+          >
+            {APARTMENT_TEAM_COPY.NEW_CUSTOMER}
+          </Box>
+        }
+      />
+      <ApartmentTeamDraftCard
+        building={building}
+        members={values.members}
+        onChange={members => updateValues({ members })}
+      />
+      <InheritedPreviewCard
+        values={values}
+        building={building}
+        onChange={updateValues}
+        isSubmitAttempted={isSubmitAttempted}
       />
 
-      <InheritedPreviewCard building={building} />
-
-      {showFieldErrors && <InlineError message={formatFieldErrorCount(invalidFieldCount)} />}
+      {showFieldErrors && (
+        <InlineError message={formatApartmentValidationCount(invalidFieldCount)} />
+      )}
       {createMutation.isError && <InlineError message={getApiErrorMessage(createMutation.error)} />}
 
-      <Box sx={styles.row({})}>
+      <Box sx={styles.endRow}>
+        <Button
+          text={ADD_APARTMENT_COPY.CANCEL}
+          variant={BUTTON_VARIANTS.NEUTRAL}
+          disabled={createMutation.isPending}
+          onClick={() => navigate(buildProjectPath(building.id))}
+        />
         <Button
           icon={ICON_NAMES.ADD}
           onClick={handleSubmit}
           text={ADD_APARTMENT_COPY.SUBMIT}
           isLoading={createMutation.isPending}
-        />
-        <Button
-          text={ADD_APARTMENT_COPY.CANCEL}
-          variant={BUTTON_VARIANTS.NEUTRAL}
-          onClick={() => navigate(buildProjectPath(building.id))}
         />
       </Box>
     </Box>

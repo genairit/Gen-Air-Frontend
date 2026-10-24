@@ -216,6 +216,8 @@ test("customer creation is management-only and pending CRM customers remain sele
     assert.equal(hasPermission({ role }, "MANAGE_CUSTOMERS"), false);
   }
   assert.equal(hasPermission(null, "MANAGE_CUSTOMERS"), false);
+  assert.equal(isCustomerSelectable(null), false);
+  assert.equal(isCustomerSelectable(), false);
   assert.equal(isCustomerSelectable(customer), true);
   assert.equal(isCustomerSelectable({ ...customer, prioritySyncStatus: "failed" }), false);
 });

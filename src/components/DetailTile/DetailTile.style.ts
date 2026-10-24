@@ -27,6 +27,8 @@ export const useStyles = () =>
       alignItems: "center",
     },
     value: {
+      color: "inherit",
+      textDecoration: "none",
       fontSize: 15,
       fontWeight: 600,
       overflowWrap: "anywhere",

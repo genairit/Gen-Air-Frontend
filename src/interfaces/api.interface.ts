@@ -103,6 +103,7 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   stageId: string;
   updatedAt: string;
   notes: string | null;
+  hasOwnTeam?: boolean;
   projectTypeId: string;
   apartmentCount?: number;
   stage?: IApiProjectStage;

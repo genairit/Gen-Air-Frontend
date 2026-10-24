@@ -24,11 +24,13 @@ interface IAutocompleteProps {
   noOptionsText?: string;
   startIcon?: IconNameType;
   isAutocomplete?: boolean;
+  onSearch?: (value: string) => void;
   onChange?: (value: string | null) => void;
 }
 
 const Autocomplete: FC<IAutocompleteProps> = ({
   title,
+  onSearch,
   startIcon,
   isRequired,
   value = "",
@@ -49,6 +51,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   const handleInputChange = (_: SyntheticEvent, newInputValue: string) => {
     if (!isAutocomplete || disabled) return;
     setInputValue(newInputValue);
+    onSearch?.(newInputValue);
   };
 
   const handleSelectChange = (_: SyntheticEvent, newValue: string | null) => {
@@ -71,6 +74,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
       onChange={e => {
         if (!isAutocomplete || disabled) return;
         setInputValue(e.target.value);
+        onSearch?.(e.target.value);
       }}
       slotProps={{
         htmlInput: {
@@ -88,6 +92,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
                   onClick={() => {
                     if (disabled) return;
                     setInputValue("");
+                    onSearch?.("");
                     onChange(null);
                   }}
                 />
@@ -122,6 +127,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
                         onClick={() => {
                           if (disabled) return;
                           setInputValue("");
+                          onSearch?.("");
                           onChange(null);
                         }}
                       />
