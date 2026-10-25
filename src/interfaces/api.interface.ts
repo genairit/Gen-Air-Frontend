@@ -1,4 +1,5 @@
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { PermissionType } from "../constants/permission.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { FolderContentStatusType } from "../constants/drive-folder.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
@@ -20,9 +21,13 @@ export interface IApiUser {
   deletedAt: string | null;
 }
 
+export interface IApiAuthorizedUser extends IApiUser {
+  permissions: PermissionType[];
+}
+
 export interface ILoginResponse {
-  user: IApiUser;
   accessToken: string;
+  user: IApiAuthorizedUser;
 }
 
 export interface IApiProjectStage {

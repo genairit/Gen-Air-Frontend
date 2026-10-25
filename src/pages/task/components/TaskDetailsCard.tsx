@@ -38,9 +38,10 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 
 interface ITaskDetailsCardProps {
   task: IApiTask;
+  canEdit: boolean;
   isSaving: boolean;
   canClaim: boolean;
-  isManager: boolean;
+  canAssign: boolean;
   onClaim: () => void;
   onUpdate: (payload: TUpdateTaskPayload) => void;
 }
@@ -51,13 +52,15 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
   canClaim,
   isSaving,
   onUpdate,
-  isManager,
+  canEdit,
+  canAssign,
 }) => {
   const styles = useStyles();
   const pageStyles = usePageStyles();
   const [description, setDescription] = useState(task.description ?? "");
 
-  const isLocked = !isManager;
+  const isLocked = !canEdit;
+  const isAssignmentLocked = !canAssign;
   const linkKind = getTaskLinkKind(task);
   const linkPath = buildTaskLinkPath(task);
   const projectCustomer = getTaskProjectCustomer(task);
@@ -105,17 +108,17 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
             </Box>
           </TaskFieldTile>
         )}
-        <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.ASSIGNEE}>
+        <TaskFieldTile isLocked={isAssignmentLocked} label={TASK_PAGE_COPY.ASSIGNEE}>
           <TaskAssigneeField
             task={task}
             onClaim={onClaim}
             canClaim={canClaim}
-            isManager={isManager}
+            isManager={canAssign}
             onAssign={assigneeId => onUpdate({ assigneeId })}
           />
         </TaskFieldTile>
         <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.DUE_DATE}>
-          {isManager && (
+          {canEdit && (
             <TextField
               type={FIELD_TYPES.DATE}
               onChange={changeDueDate}
@@ -131,7 +134,7 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
         </TaskFieldTile>
       </Box>
       <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.DESCRIPTION}>
-        {isManager && (
+        {canEdit && (
           <>
             <TextField
               multiline

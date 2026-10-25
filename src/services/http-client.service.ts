@@ -1,6 +1,9 @@
 import axios, { isAxiosError } from "axios";
+import { queryClient } from "../providers/query-client";
 import { getAccessToken } from "../store/session.store";
+import { API_ENDPOINTS } from "../constants/api.constant";
 import { clearSessionAction } from "../actions/session-reset.action";
+import { SESSION_USER_QUERY_KEY } from "../constants/permission.constant";
 import { EnvironmentManager } from "../utilities/environment-manager.utility";
 import { HTTP_STATUS, ENVIRONMENT_KEYS, DEFAULT_API_BASE_URL } from "../constants/api.constant";
 
@@ -22,7 +25,7 @@ httpClient.interceptors.request.use(config => {
 
 httpClient.interceptors.response.use(
   response => response,
-  (error: unknown) => {
+  async (error: unknown) => {
     const isUnauthorized =
       isAxiosError(error) && error.response?.status === HTTP_STATUS.UNAUTHORIZED;
 
@@ -30,7 +33,16 @@ httpClient.interceptors.response.use(
       clearSessionAction();
     }
 
-    return Promise.reject(error);
+    const shouldRefreshPermissions =
+      isAxiosError(error) &&
+      error.response?.status === HTTP_STATUS.FORBIDDEN &&
+      error.config?.url !== API_ENDPOINTS.MY_USER;
+
+    if (shouldRefreshPermissions && getAccessToken()) {
+      await queryClient.invalidateQueries({ queryKey: SESSION_USER_QUERY_KEY });
+    }
+
+    throw error;
   },
 );
 

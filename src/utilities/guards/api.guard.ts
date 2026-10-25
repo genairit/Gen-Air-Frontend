@@ -22,6 +22,7 @@ import type {
   IApiApartmentPage,
   IApiProjectMember,
   IApiDriveContents,
+  IApiAuthorizedUser,
   IApiPlaceSuggestion,
   IProjectStageCounts,
   IApiStageTransition,
@@ -48,6 +49,7 @@ import {
   PROJECT_DETAIL_FIELD_SET_VALUES,
 } from "../../constants/project-detail-field-set.constant";
 
+import { isPermission } from "./permission.guard";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
 
 export const isUserRole = (value?: unknown): value is UserRoleType =>
@@ -63,6 +65,9 @@ export const isApiUser = (value: unknown): value is IApiUser => {
 
   return hasIdentity && hasContact && isUserRole(value.role);
 };
+
+export const isAuthorizedUser = (value: unknown): value is IApiAuthorizedUser =>
+  isRecord(value) && isApiUser(value) && isArrayOf(isPermission)(value.permissions);
 
 export const isDetailFieldSet = (value?: unknown): value is ProjectDetailFieldSetType =>
   PROJECT_DETAIL_FIELD_SET_VALUES.some(fieldSet => fieldSet === value);
@@ -173,7 +178,7 @@ export const isCursorPageOf =
     isRecord(value) && isArrayOf(isItem)(value.items) && isNullableString(value.nextCursor);
 
 export const isLoginResponse = (value: unknown): value is ILoginResponse =>
-  isRecord(value) && typeof value.accessToken === "string" && isApiUser(value.user);
+  isRecord(value) && typeof value.accessToken === "string" && isAuthorizedUser(value.user);
 
 const isNumberRecord = (value: unknown): value is Record<string, number> =>
   isRecord(value) && Object.values(value).every(isNumber);

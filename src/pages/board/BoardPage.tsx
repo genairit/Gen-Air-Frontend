@@ -25,6 +25,7 @@ import ProjectsTable from "./components/ProjectsTable";
 import { useSessionUser } from "../../store/session.store";
 import { useUsersQuery } from "../../hooks/queries/user.query";
 import { buildProjectPath } from "../../utilities/route.utility";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import { getFullName } from "../../utilities/mappers/user.mapper";
 import { hasPermission } from "../../utilities/permission.utility";
 import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
@@ -68,8 +69,8 @@ const BoardPage = () => {
       <BoardToolbar
         search={search}
         onSearchChange={setSearch}
-        canCreateTask={hasPermission(sessionUser, "MANAGE_TASKS")}
-        canCreateProject={hasPermission(sessionUser, "CREATE_PROJECTS")}
+        canCreateTask={hasPermission(sessionUser, PERMISSIONS.TASKS_CREATE)}
+        canCreateProject={hasPermission(sessionUser, PERMISSIONS.PROJECTS_CREATE)}
         typeFilter={{
           options: typeOptions,
           selectedId: typeFilterId ?? ALL_OPTION_ID,

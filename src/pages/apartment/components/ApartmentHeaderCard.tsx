@@ -16,10 +16,13 @@ import { Link, useNavigate } from "react-router-dom";
 import Button from "../../../components/Button/Button";
 import { useStyles } from "./ApartmentHeaderCard.style";
 import IconTile from "../../../components/IconTile/IconTile";
+import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { CHIP_VARIANTS } from "../../../constants/chip.constant";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { ICON_TILE_SIZES } from "../../../constants/icon-tile.constant";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
@@ -39,6 +42,8 @@ interface IApartmentHeaderCardProps {
 const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, apartment }) => {
   const styles = useStyles();
   const navigate = useNavigate();
+  const user = useSessionUser();
+  const canChangeStatus = hasPermission(user, PERMISSIONS.PROJECTS_STATUS_CHANGE);
   const siblingsQuery = useAllApartmentsQuery(building.id);
   const moveMutation = useMoveApartmentsMutation();
 
@@ -118,6 +123,7 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
       <Tabs
         isFullWidth
         onChange={moveToStage}
+        disabled={!canChangeStatus}
         items={toStageTabs(stages)}
         activeId={apartment.stageId}
       />

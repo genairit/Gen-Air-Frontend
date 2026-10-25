@@ -7,6 +7,7 @@ import CustomersTable from "./components/CustomersTable";
 import { useSessionUser } from "../../store/session.store";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import { ROUTE_PATHS } from "../../constants/routes.constant";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
 import { CUSTOMERS_COPY } from "../../constants/customer.constant";
 import { CUSTOMER_FORM_COPY } from "../../constants/customer-form.constant";
@@ -15,7 +16,7 @@ const CustomersPage = () => {
   const styles = usePageStyles();
   const navigate = useNavigate();
   const user = useSessionUser();
-  const canCreateCustomer = hasPermission(user, "MANAGE_CUSTOMERS");
+  const canCreateCustomer = hasPermission(user, PERMISSIONS.CUSTOMERS_CREATE);
 
   const createCustomerButton = (
     <Button

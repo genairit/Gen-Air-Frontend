@@ -18,10 +18,13 @@ import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Chip from "../../../components/Chip/Chip";
 import { theme } from "../../../constants/theme.constants";
+import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import TextField from "../../../components/TextField/TextField";
 import { validateFreeText } from "../../../utilities/validators";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { PERMISSIONS } from "../../../constants/permission.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import type { IApiProjectStage } from "../../../interfaces/api.interface";
 import { CHIP_SIZES, CHIP_VARIANTS } from "../../../constants/chip.constant";
@@ -44,6 +47,8 @@ const ProjectDetailsCard: FC<IProjectDetailsCardProps> = ({
   projectCode,
 }) => {
   const styles = usePageStyles();
+  const user = useSessionUser();
+  const canChangeStatus = hasPermission(user, PERMISSIONS.PROJECTS_STATUS_CHANGE);
   const copy = PROJECT_FORM_MODE_COPY[mode];
   const stageOptions = toOptions(stages);
   const isEditMode = mode === PROJECT_FORM_MODES.EDIT;
@@ -86,6 +91,7 @@ const ProjectDetailsCard: FC<IProjectDetailsCardProps> = ({
             isRequired
             value={stageLabel}
             isAutocomplete={false}
+            disabled={!canChangeStatus}
             title={PROJECT_FORM_COPY.STATUS_LABEL}
             options={getOptionLabels(stageOptions)}
             onChange={label => onChange({ stageId: findOptionIdByLabel(stageOptions, label) })}

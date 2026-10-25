@@ -3,8 +3,11 @@ import { useStyles } from "./TaskForm.style";
 import { Box, ButtonBase } from "@mui/material";
 import Card from "../../../components/Card/Card";
 import IconTile from "../../../components/IconTile/IconTile";
+import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { PERMISSIONS } from "../../../constants/permission.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
 import { formatUrgentSaveLead } from "../../../utilities/task.utility";
 import { NEW_TASK_COPY, URGENCY_CHOICES } from "../../../constants/task.constant";
 import UrgencyPushPreview from "../../../components/UrgencyConfirmPopup/UrgencyPushPreview";
@@ -25,6 +28,11 @@ const TaskUrgencyChoiceCard: FC<ITaskUrgencyChoiceCardProps> = ({
   detailLine,
 }) => {
   const styles = useStyles();
+  const user = useSessionUser();
+
+  if (!hasPermission(user, PERMISSIONS.TASKS_URGENCY_CHANGE)) {
+    return null;
+  }
 
   return (
     <Card gap="20px" padding="28px">

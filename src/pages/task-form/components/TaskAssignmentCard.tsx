@@ -25,10 +25,14 @@ import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import TaskLinkKindChoice from "./TaskLinkKindChoice";
 import Button from "../../../components/Button/Button";
+import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import FieldLabel from "../../../components/FieldLabel/FieldLabel";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { POOL_ASSIGNEE_ID } from "../../../constants/task.constant";
+import { PERMISSIONS } from "../../../constants/permission.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { getAssigneeHint, toAssigneeOptions } from "../../../utilities/task.utility";
@@ -57,6 +61,8 @@ const TaskAssignmentCard: FC<ITaskAssignmentCardProps> = ({
 }) => {
   const styles = useStyles();
   const pageStyles = usePageStyles();
+  const user = useSessionUser();
+  const canAssign = hasPermission(user, PERMISSIONS.TASKS_ASSIGN);
   const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
 
   const assigneeOptions = toAssigneeOptions(usersQuery.data ?? []);
@@ -64,6 +70,10 @@ const TaskAssignmentCard: FC<ITaskAssignmentCardProps> = ({
 
   const changeAssignee = (label: string | null) =>
     onChange({ assigneeOptionId: findOptionIdByLabel(assigneeOptions, label) });
+
+  const availableAssignees = canAssign
+    ? assigneeOptions
+    : assigneeOptions.filter(option => option.id === POOL_ASSIGNEE_ID);
 
   return (
     <Card gap="20px" padding="28px">
@@ -114,8 +124,8 @@ const TaskAssignmentCard: FC<ITaskAssignmentCardProps> = ({
           isAutocomplete={false}
           onChange={changeAssignee}
           title={NEW_TASK_COPY.ASSIGNEE}
-          options={getOptionLabels(assigneeOptions)}
           placeholder={NEW_TASK_COPY.CHOOSE_ASSIGNEE}
+          options={getOptionLabels(availableAssignees)}
           value={findOptionLabelById(assigneeOptions, values.assigneeOptionId)}
         />
         {assigneeHint && (
