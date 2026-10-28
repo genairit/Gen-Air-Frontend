@@ -12,6 +12,8 @@ import {
 import Button from "../Button/Button";
 import { Close } from "@mui/icons-material";
 import { useStyles } from "./GenericPopup.style";
+import type { SxProps, Theme } from "@mui/material";
+import { mergeSx } from "../../utilities/sx.utility";
 import UltraSignature from "../UltraSignature/UltraSignature";
 import type { TPopUpIcons } from "./constants/icons.constants";
 import { renderPopupIcon } from "./utilities/renderIcon.utility";
@@ -29,11 +31,14 @@ export interface IPopupButton {
 export interface IGenericPopupProps {
   open: boolean;
   title: string;
+  sx?: SxProps<Theme>;
   guidelines?: string;
   signature?: boolean;
   content?: ReactNode;
   onClose?: () => void;
   align?: TAlignContent;
+  closeAfterAction?: boolean;
+  maxWidth?: "sm" | "md" | "lg";
   icon?: TPopUpIcons | ReactNode;
   buttons: {
     primary: IPopupButton;
@@ -43,6 +48,7 @@ export interface IGenericPopupProps {
 
 const GenericPopup: FC<IGenericPopupProps> = ({
   open,
+  sx,
   icon,
   title,
   onClose,
@@ -51,6 +57,8 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   signature,
   guidelines,
   align = "left",
+  maxWidth = "sm",
+  closeAfterAction = true,
 }) => {
   const styles = useStyles({ align });
 
@@ -66,7 +74,9 @@ const GenericPopup: FC<IGenericPopupProps> = ({
       await buttons.primary.onClick(event);
     } finally {
       setPrimaryButtonLoading(false);
-      onClose?.();
+      if (closeAfterAction) {
+        onClose?.();
+      }
     }
   };
 
@@ -76,12 +86,20 @@ const GenericPopup: FC<IGenericPopupProps> = ({
       await buttons?.secondary?.onClick?.(event);
     } finally {
       setSecondaryButtonLoading(false);
-      onClose?.();
+      if (closeAfterAction) {
+        onClose?.();
+      }
     }
   };
 
   return (
-    <Dialog fullWidth open={open} maxWidth="sm" sx={styles.root} onClose={onClose}>
+    <Dialog
+      fullWidth
+      open={open}
+      onClose={onClose}
+      maxWidth={maxWidth}
+      sx={mergeSx(styles.root, sx ?? null)}
+    >
       <Box sx={styles.headerContainer}>
         <DialogTitle sx={styles.title}>{title ?? ""}</DialogTitle>
         <IconButton size="small" onClick={onClose}>

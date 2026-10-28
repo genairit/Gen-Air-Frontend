@@ -13,16 +13,18 @@ interface IDropZoneProps {
   title: string;
   accept?: string;
   compact?: boolean;
+  multiple?: boolean;
   disabled?: boolean;
   description: string;
   buttonLabel: string;
-  onFilesSelected: (files: File[]) => void;
+  onFilesSelected: (files: File[]) => void | Promise<void>;
 }
 
 const DropZone: FC<IDropZoneProps> = ({
   title,
   accept,
   compact = false,
+  multiple = true,
   disabled = false,
   description,
   buttonLabel,
@@ -31,17 +33,18 @@ const DropZone: FC<IDropZoneProps> = ({
   const padding = compact ? "20px 24px" : "40px 24px";
   const styles = useStyles();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const selectFiles = (files: File[]) => {
+  const selectFiles = async (files: File[]): Promise<void> => {
     if (!disabled) {
-      onFilesSelected(files);
+      await onFilesSelected(files);
     }
   };
   const { isDragging, dropHandlers } = useFileDrop(selectFiles);
 
-  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
-    selectFiles(getSelectedFiles(event));
+  const handleInputChange = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
+    const files = getSelectedFiles(event);
     // Reset so picking the same file again still fires a change event.
     event.target.value = "";
+    await selectFiles(files);
   };
 
   return (
@@ -64,12 +67,12 @@ const DropZone: FC<IDropZoneProps> = ({
           onClick={() => fileInputRef.current?.click()}
         />
         <Box
-          multiple
           type="file"
           accept={accept}
           component="input"
           sx={styles.input}
           ref={fileInputRef}
+          multiple={multiple}
           disabled={disabled}
           onChange={handleInputChange}
         />

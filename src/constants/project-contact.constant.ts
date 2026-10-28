@@ -75,7 +75,7 @@ export const CONTACT_ROLE_SUGGESTIONS = [
 export const PROJECT_CONTACT_COPY = {
   EDIT: "עריכה",
   ROLE_LABEL: "תפקיד",
-  CONTACT_LABEL: "איש קשר",
+  CONTACT_LABEL: "איש קשר היסטורי בפרויקט",
   PHONE_LABEL: "טלפון נייד",
   VERIFIED_BADGE: "✓ מאומתת",
   COMMON_ROLES: "תפקידים נפוצים:",

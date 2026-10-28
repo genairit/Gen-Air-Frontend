@@ -13,6 +13,7 @@ import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { CUSTOMER_PAGE_COPY } from "../../constants/customer.constant";
 import { NAVIGATION_LABELS } from "../../constants/navigation.constant";
 import { ROUTE_PARAMS, ROUTE_PATHS } from "../../constants/routes.constant";
+import CustomerContacts from "../../components/CustomerContacts/CustomerContacts";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 
 const CustomerPage = () => {
@@ -50,6 +51,7 @@ const CustomerPage = () => {
       <CustomerHeaderCard customer={customer} />
       <CustomerSyncCard customer={customer} />
       <CustomerDetailsCard customer={customer} />
+      <CustomerContacts editable key={customer.id} customerId={customer.id} />
     </Box>
   );
 };

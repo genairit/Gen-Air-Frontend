@@ -1,7 +1,9 @@
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { ICustomerContact } from "./customer-contact.interface";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { FolderContentStatusType } from "../constants/drive-folder.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
+import type { ApartmentOwnershipType } from "../constants/apartment-commercial.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
 export interface ICursorPage<TItem> {
@@ -115,9 +117,11 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   members?: IApiProjectMember[];
   customer?: IApiCustomer | null;
   parentProjectId: string | null;
+  apartmentCredit?: string | null;
   prioritySyncedAt: string | null;
   parentProject?: IApiProjectReference;
   inheritedFields?: InheritedProjectFieldType[];
+  apartmentOwnership?: ApartmentOwnershipType | null;
 }
 
 export type TCountsByStageId = Record<string, number>;
@@ -187,6 +191,7 @@ export interface IApiCustomer {
   createdBy?: IApiUser;
   priorityId: string | null;
   prioritySyncAttempts: number;
+  contacts?: ICustomerContact[];
   prioritySyncedAt: string | null;
   prioritySyncError: string | null;
   customerType: ProjectDetailFieldSetType;

@@ -98,14 +98,18 @@ export interface IIntakeChangeSet {
   paymentTerms: boolean;
 }
 
-const ALL_INTAKE_GROUPS: IIntakeChangeSet = { address: true, contact: true, paymentTerms: true };
+const NEW_PROJECT_INTAKE_GROUPS: IIntakeChangeSet = {
+  address: true,
+  contact: false,
+  paymentTerms: true,
+};
 
 export const getChangedIntakeGroups = (
   values: IProjectIntakeValues,
   original: IProjectIntakeValues | null,
 ): IIntakeChangeSet => {
   if (!original) {
-    return ALL_INTAKE_GROUPS;
+    return NEW_PROJECT_INTAKE_GROUPS;
   }
 
   return {

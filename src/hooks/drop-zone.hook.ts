@@ -1,7 +1,7 @@
 import { useState, type DragEvent } from "react";
 
 interface IDropZoneOptions<TPayload> {
-  onDrop: (payload: TPayload) => void;
+  onDrop: (payload: TPayload) => void | Promise<void>;
   readPayload: (event: DragEvent<HTMLElement>) => TPayload;
 }
 
@@ -31,10 +31,10 @@ export const useDropZone = <TPayload>({ readPayload, onDrop }: IDropZoneOptions<
     setIsDragOver(false);
   };
 
-  const handleDrop = (event: DragEvent<HTMLElement>) => {
+  const handleDrop = async (event: DragEvent<HTMLElement>): Promise<void> => {
     event.preventDefault();
     setIsDragOver(false);
-    onDrop(readPayload(event));
+    await onDrop(readPayload(event));
   };
 
   return {
