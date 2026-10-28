@@ -195,14 +195,16 @@ test("failed writes are surfaced without claiming a saved task or refreshing cac
   fixture.error = null;
 });
 
-test("task management is management-only while engineers update task status", () => {
-  assert.equal(hasPermission({ role: "system_admin" }, "MANAGE_TASKS"), true);
-  assert.equal(hasPermission({ role: "project_manager" }, "MANAGE_TASKS"), false);
-  assert.equal(hasPermission({ role: "installer" }, "MANAGE_TASKS"), false);
-  assert.equal(hasPermission({ role: "secretary" }, "MANAGE_TASKS"), false);
-  assert.equal(hasPermission({ role: "engineer" }, "UPDATE_TASK_STATUS"), true);
-  assert.equal(hasPermission({ role: "installer" }, "UPDATE_TASK_STATUS"), false);
-  assert.equal(hasPermission(null, "MANAGE_TASKS"), false);
+test("task controls consume independently granted creation and status permissions", () => {
+  const creator = { role: "secretary", permissions: ["tasks.create"] };
+  const engineer = { role: "engineer", permissions: ["tasks.status.update"] };
+
+  assert.equal(hasPermission(creator, "tasks.create"), true);
+  assert.equal(hasPermission(creator, "tasks.status.update"), false);
+  assert.equal(hasPermission(engineer, "tasks.status.update"), true);
+  assert.equal(hasPermission(engineer, "tasks.create"), false);
+  assert.equal(hasPermission({ role: "system_admin", permissions: [] }, "tasks.create"), false);
+  assert.equal(hasPermission(null, "tasks.create"), false);
 });
 
 test("personal tasks keep search, tabs and cursor pagination on the caller-scoped endpoint", async () => {

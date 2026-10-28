@@ -1,8 +1,10 @@
+import { getSession } from "../store/session.store";
 import { queryClient } from "../providers/query-client";
 import { projectService } from "../services/project.service";
 import { QUERY_ROOTS } from "../constants/query-key.constant";
 import { toProjectPayload } from "../utilities/project.utility";
 import type { IProjectSubmission } from "../interfaces/project.interface";
+import { toAuthorizedProjectUpdate } from "../utilities/project-permission.utility";
 
 const invalidateProjectQueries = () =>
   Promise.all([
@@ -34,7 +36,8 @@ export const updateProjectAction = async ({
   projectId,
   ...submission
 }: IProjectSubmission & { projectId: string }) => {
-  const project = await projectService.update(projectId, requirePayload(submission));
+  const payload = toAuthorizedProjectUpdate(requirePayload(submission), getSession()?.user ?? null);
+  const project = await projectService.update(projectId, payload);
 
   await invalidateProjectQueries();
 

@@ -8,6 +8,7 @@ import ApartmentContactCard from "./ApartmentContactCard";
 import ApartmentInheritedCard from "./ApartmentInheritedCard";
 import { useSessionUser } from "../../../store/session.store";
 import ApartmentEndCustomerCard from "./ApartmentEndCustomerCard";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import ProjectDriveCard from "../../project/components/ProjectDriveCard";
 import ProjectTimelineCard from "../../project/components/ProjectTimelineCard";
@@ -22,13 +23,14 @@ interface IApartmentViewProps {
 const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment }) => {
   const styles = usePageStyles();
   const sessionUser = useSessionUser();
-  const canEdit = hasPermission(sessionUser, "EDIT_PROJECTS");
+  const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
+  const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
 
   return (
     <Box sx={styles.page}>
       <ApartmentHeaderCard stages={stages} building={building} apartment={apartment} />
 
-      <ProjectDriveCard projectId={apartment.id} />
+      {canReadDrive && <ProjectDriveCard projectId={apartment.id} />}
 
       <Box sx={styles.grid({ minColumnWidth: 380 })}>
         <Box sx={styles.stack({})}>

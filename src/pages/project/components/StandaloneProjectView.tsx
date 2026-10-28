@@ -10,6 +10,7 @@ import ProjectIntakeCard from "./ProjectIntakeCard";
 import ProjectTimelineCard from "./ProjectTimelineCard";
 import ProjectCustomerCard from "./ProjectCustomerCard";
 import { useSessionUser } from "../../../store/session.store";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { hasPermission } from "../../../utilities/permission.utility";
 import { buildEditProjectPath } from "../../../utilities/route.utility";
@@ -23,16 +24,18 @@ const StandaloneProjectView: FC<IStandaloneProjectViewProps> = ({ project }) => 
   const styles = usePageStyles();
   const sessionUser = useSessionUser();
   const fieldSet = project.projectType?.detailFieldSet ?? null;
-  const canEdit = hasPermission(sessionUser, "EDIT_PROJECTS");
+  const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
+  const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
+  const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const openEditForm = () => navigate(buildEditProjectPath(project.id));
 
   return (
     <Box sx={styles.page}>
       <ProjectPageHeader project={project} />
 
-      <ProjectDriveCard projectId={project.id} />
+      {canReadDrive && <ProjectDriveCard projectId={project.id} />}
 
-      <ProjectTasksCard projectId={project.id} />
+      {canReadTasks && <ProjectTasksCard projectId={project.id} />}
 
       <ProjectTeamCard members={project.members ?? []} />
 
