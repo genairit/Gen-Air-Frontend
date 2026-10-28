@@ -14,6 +14,9 @@ import { usePageStyles } from "../../page.style";
 import DriveFolderDialog from "./DriveFolderDialog";
 import Button from "../../../components/Button/Button";
 import DropZone from "../../../components/DropZone/DropZone";
+import { useSessionUser } from "../../../store/session.store";
+import { PERMISSIONS } from "../../../constants/permission.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
@@ -29,6 +32,8 @@ interface IProjectDriveUploadProps {
 
 const ProjectDriveUpload: FC<IProjectDriveUploadProps> = ({ projectId }) => {
   const styles = usePageStyles();
+  const user = useSessionUser();
+  const canUpload = hasPermission(user, PERMISSIONS.DRIVE_UPLOAD);
   const [path, setPath] = useState<IDriveFolderLocation[]>([ROOT_DRIVE_LOCATION]);
   const [isChoosing, setIsChoosing] = useState(false);
   const uploadMutation = useUploadProjectFilesMutation();
@@ -44,6 +49,10 @@ const ProjectDriveUpload: FC<IProjectDriveUploadProps> = ({ projectId }) => {
       uploadMutation.mutate({ projectId, files, folderId: location.folderId });
     }
   };
+
+  if (!canUpload) {
+    return null;
+  }
 
   return (
     <Box sx={styles.stack({})}>

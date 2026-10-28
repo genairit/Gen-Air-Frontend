@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import Button from "../../../components/Button/Button";
 import { useSessionUser } from "../../../store/session.store";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
@@ -15,7 +16,7 @@ interface IDriveProvisioningNoticeProps {
 const DriveProvisioningNotice: FC<IDriveProvisioningNoticeProps> = ({ projectId }) => {
   const user = useSessionUser();
   const mutation = useProvisionProjectDriveMutation();
-  const canProvision = hasPermission(user, "EDIT_PROJECTS");
+  const canProvision = hasPermission(user, PERMISSIONS.DRIVE_PROVISION);
 
   const noticeLines = [
     canProvision

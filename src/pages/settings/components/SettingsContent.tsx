@@ -8,8 +8,9 @@ import type { IStatusStage } from "../../../interfaces/project.interface";
 
 interface ISettingsContentProps {
   stages: IStatusStage[];
+  canReadStages: boolean;
 }
-const SettingsContent: FC<ISettingsContentProps> = ({ stages }) => {
+const SettingsContent: FC<ISettingsContentProps> = ({ stages, canReadStages }) => {
   const styles = usePageStyles();
   return (
     <Box sx={styles.page}>
@@ -24,7 +25,7 @@ const SettingsContent: FC<ISettingsContentProps> = ({ stages }) => {
         </Box>
       </Box>
       <Box sx={styles.grid({ minColumnWidth: 400 })}>
-        <StatusStagesCard stages={stages} />
+        {canReadStages && <StatusStagesCard stages={stages} />}
         <Box sx={styles.stack({})}>
           <PasswordCard />
         </Box>

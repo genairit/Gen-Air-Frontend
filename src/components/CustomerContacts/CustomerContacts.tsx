@@ -14,6 +14,7 @@ import CustomerContactItem from "./CustomerContactItem";
 import { useSessionUser } from "../../store/session.store";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import CustomerContactEditor from "./CustomerContactEditor";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { CUSTOMER_CONTACT_COPY } from "../../constants/customer-contact.constant";
@@ -29,9 +30,10 @@ const CustomerContacts: FC<ICustomerContactsProps> = ({ customerId, editable = f
   const styles = usePageStyles();
   const user = useSessionUser();
   const [editor, setEditor] = useState<ICustomerContactEditor | null>(null);
-  const contactsQuery = useCustomerContactsQuery(customerId);
+  const canRead = hasPermission(user, PERMISSIONS.CUSTOMERS_READ);
+  const contactsQuery = useCustomerContactsQuery(customerId, canRead);
   const saveMutation = useSaveCustomerContactMutation();
-  const canManage = editable && hasPermission(user, "MANAGE_CUSTOMERS");
+  const canManage = editable && hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
   const canStart = canManage && editor === null;
   const contacts = contactsQuery.data ?? [];
   const isEmpty = contactsQuery.isSuccess && contacts.length === 0;
@@ -56,6 +58,10 @@ const CustomerContacts: FC<ICustomerContactsProps> = ({ customerId, editable = f
   const addAction = canStart ? (
     <Button text={CUSTOMER_CONTACT_COPY.ADD} onClick={() => startEditing(null)} />
   ) : null;
+  if (!canRead) {
+    return null;
+  }
+
   return (
     <Card gap="18px" padding="24px">
       <CardHeader

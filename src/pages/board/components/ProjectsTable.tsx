@@ -8,6 +8,7 @@ import { Box, useMediaQuery } from "@mui/material";
 import { useSessionUser } from "../../../store/session.store";
 import DataTable from "../../../components/DataTable/DataTable";
 import { TABS_VARIANTS } from "../../../constants/tabs.constant";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import { useScrollReached } from "../../../hooks/scroll-reached.hook";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
@@ -55,7 +56,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
   const isEmpty = projectsQuery.isSuccess && projects.length === 0;
   const canLoadMore = projectsQuery.hasNextPage && !projectsQuery.isFetchingNextPage;
   const queryError = projectsQuery.error ?? moveMutation.error;
-  const canMoveStage = hasPermission(sessionUser, "MOVE_PROJECT_STAGE");
+  const canMoveStage = hasPermission(sessionUser, PERMISSIONS.PROJECTS_STATUS_CHANGE);
 
   const loadMoreRef = useScrollReached({
     isEnabled: canLoadMore,

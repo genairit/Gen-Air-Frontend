@@ -1,7 +1,16 @@
+import {
+  toOptions,
+  getOptionLabels,
+  findOptionIdByLabel,
+} from "../../../../utilities/option.utility";
+
 import type { FC } from "react";
 import Button from "../../../../components/Button/Button";
+import { useSessionUser } from "../../../../store/session.store";
 import { ICON_NAMES } from "../../../../constants/icon.constant";
 import ActionBar from "../../../../components/ActionBar/ActionBar";
+import { PERMISSIONS } from "../../../../constants/permission.constant";
+import { hasPermission } from "../../../../utilities/permission.utility";
 import InlineError from "../../../../components/InlineError/InlineError";
 import Autocomplete from "../../../../components/Autocomplete/Autocomplete";
 import type { IApiProjectStage } from "../../../../interfaces/api.interface";
@@ -10,11 +19,6 @@ import { BUILDING_PAGE_COPY } from "../../../../constants/apartment.constant";
 import { formatSelectedApartments } from "../../../../utilities/apartment.utility";
 import { useMoveApartmentsMutation } from "../../../../hooks/mutations/apartment.mutation";
 import { BUTTON_VARIANTS } from "../../../../components/Button/constants/button.constants";
-import {
-  toOptions,
-  getOptionLabels,
-  findOptionIdByLabel,
-} from "../../../../utilities/option.utility";
 
 interface IApartmentSelectionBarProps {
   onClear: () => void;
@@ -27,6 +31,8 @@ const ApartmentSelectionBar: FC<IApartmentSelectionBarProps> = ({
   onClear,
   apartmentIds,
 }) => {
+  const user = useSessionUser();
+  const canChangeStatus = hasPermission(user, PERMISSIONS.PROJECTS_STATUS_CHANGE);
   const moveMutation = useMoveApartmentsMutation();
   const stageOptions = toOptions(stages);
 
@@ -39,6 +45,10 @@ const ApartmentSelectionBar: FC<IApartmentSelectionBarProps> = ({
 
     moveMutation.mutate({ stageId, apartmentIds }, { onSuccess: onClear });
   };
+
+  if (!canChangeStatus) {
+    return null;
+  }
 
   return (
     <>

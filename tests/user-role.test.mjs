@@ -33,10 +33,6 @@ const { hasPermission } = await import("../src/utilities/permission.utility.ts")
 const { EMPLOYEE_FILTERS } = await import("../src/constants/employee.constant.ts");
 
 const { USER_ROLES, USER_ROLE_VALUES, USER_ROLE_LABELS, PROJECT_MEMBER_ROLES } = roles;
-const userWithRole = role => ({ id: role, role });
-const rolesAllowed = permission =>
-  USER_ROLE_VALUES.filter(role => hasPermission(userWithRole(role), permission));
-
 test("exactly the six app roles exist, each with its spec label", () => {
   assert.deepEqual(USER_ROLE_LABELS, {
     system_admin: "הנהלה / מנהל מערכת",
@@ -59,32 +55,23 @@ test("projects are staffed only by engineer, secretary, project manager and inst
   ]);
 });
 
-test("management alone creates projects, customers and tasks", () => {
-  for (const permission of [
-    "CREATE_PROJECTS",
-    "MANAGE_CUSTOMERS",
-    "MANAGE_TASKS",
-    "DELETE_PROJECTS",
-  ]) {
-    assert.deepEqual(rolesAllowed(permission), [USER_ROLES.SYSTEM_ADMIN], permission);
+test("feature grants come from the server rather than the role name", () => {
+  const permission = "projects.create";
+
+  for (const role of USER_ROLE_VALUES) {
+    assert.equal(hasPermission({ role, permissions: [permission] }, permission), true);
+    assert.equal(hasPermission({ role, permissions: [] }, permission), false);
+    assert.equal(hasPermission({ role }, permission), false);
   }
 });
 
-test("engineers claim tasks and update task status alongside management", () => {
-  assert.deepEqual(rolesAllowed("CLAIM_TASKS"), [USER_ROLES.ENGINEER]);
-  assert.deepEqual(rolesAllowed("UPDATE_TASK_STATUS"), [
-    USER_ROLES.SYSTEM_ADMIN,
-    USER_ROLES.ENGINEER,
-  ]);
-});
+test("a grant permits only its specific feature action", () => {
+  const user = { role: USER_ROLES.SYSTEM_ADMIN, permissions: ["tasks.create"] };
 
-test("only management, secretary and project manager move project status", () => {
-  assert.deepEqual(rolesAllowed("MOVE_PROJECT_STAGE"), [
-    USER_ROLES.SYSTEM_ADMIN,
-    USER_ROLES.SECRETARY,
-    USER_ROLES.PROJECT_MANAGER,
-  ]);
-  assert.equal(hasPermission(null, "MOVE_PROJECT_STAGE"), false);
+  assert.equal(hasPermission(user, "tasks.create"), true);
+  assert.equal(hasPermission(user, "tasks.assign"), false);
+  assert.equal(hasPermission(user, "tasks.urgency.change"), false);
+  assert.equal(hasPermission(null, "tasks.create"), false);
 });
 
 test("the employees page filters by every app role", () => {
@@ -94,19 +81,19 @@ test("the employees page filters by every app role", () => {
   );
 });
 
-test("project form modes require the create or edit project permission", async () => {
+test("project form modes require their independent create or update grant", async () => {
   const { PROJECT_FORM_MODE_PERMISSIONS } =
     await import("../src/constants/project-form.constant.ts");
-  const rolesAllowedFor = mode => rolesAllowed(PROJECT_FORM_MODE_PERMISSIONS[mode]);
 
   assert.deepEqual(PROJECT_FORM_MODE_PERMISSIONS, {
-    new: "CREATE_PROJECTS",
-    edit: "EDIT_PROJECTS",
+    new: "projects.create",
+    edit: "projects.update",
   });
-  assert.deepEqual(rolesAllowedFor("new"), [USER_ROLES.SYSTEM_ADMIN]);
-  assert.deepEqual(rolesAllowedFor("edit"), [
-    USER_ROLES.SYSTEM_ADMIN,
-    USER_ROLES.SECRETARY,
-    USER_ROLES.PROJECT_MANAGER,
-  ]);
+  const creator = { role: USER_ROLES.SECRETARY, permissions: ["projects.create"] };
+  const editor = { role: USER_ROLES.SYSTEM_ADMIN, permissions: ["projects.update"] };
+
+  assert.equal(hasPermission(creator, PROJECT_FORM_MODE_PERMISSIONS.new), true);
+  assert.equal(hasPermission(creator, PROJECT_FORM_MODE_PERMISSIONS.edit), false);
+  assert.equal(hasPermission(editor, PROJECT_FORM_MODE_PERMISSIONS.new), false);
+  assert.equal(hasPermission(editor, PROJECT_FORM_MODE_PERMISSIONS.edit), true);
 });

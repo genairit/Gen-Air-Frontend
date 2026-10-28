@@ -1,6 +1,6 @@
 import { theme } from "./theme.constants";
 import { ICON_NAMES } from "./icon.constant";
-import { USER_ROLES, USER_ROLE_LABELS } from "./user-role.constant";
+import { USER_ROLES } from "./user-role.constant";
 import { CHIP_VARIANTS, type ChipVariantType } from "./chip.constant";
 import type { IUserQuery } from "../interfaces/api-request.interface";
 import type { ITaskFormValues, ITaskLinkPayload } from "../interfaces/task.interface";
@@ -120,13 +120,13 @@ export const TASK_PAGE_COPY = {
   NOT_FOUND_TITLE: "המשימה לא נמצאה",
   BACK_TO_TASKS: "חזרה למשימות",
   STATUS_TITLE: "סטטוס",
-  STATUS_HINT: `${USER_ROLE_LABELS[USER_ROLES.SYSTEM_ADMIN]} ו${USER_ROLE_LABELS[USER_ROLES.ENGINEER]} יכולים לעדכן`,
+  STATUS_HINT: "עדכון סטטוס זמין לבעלי ההרשאה המתאימה",
   URGENT_TITLE: "משימה דחופה",
   REGULAR_TITLE: "משימה רגילה",
   REGULAR_TEXT: "ללא התראה. רק מנהל יכול לסמן משימה כדחופה.",
   MARK_URGENT: "סמן כדחופה…",
   CLEAR_URGENT: "הסר דחיפות…",
-  URGENCY_MANAGERS_ONLY: `רק ${USER_ROLE_LABELS[USER_ROLES.SYSTEM_ADMIN]} יכולים לשנות דחיפות`,
+  URGENCY_MANAGERS_ONLY: "אין לך הרשאה לשנות דחיפות",
   DETAILS_TITLE: "פרטי המשימה",
   DETAILS_SUBTITLE: "שיוך, תאריך יעד ותיאור",
   LINKED_TO: "משויכת ל",
@@ -134,7 +134,7 @@ export const TASK_PAGE_COPY = {
   ASSIGNEE: "אחראי",
   DUE_DATE: "תאריך יעד",
   DESCRIPTION: "תיאור",
-  MANAGERS_ONLY: "מנהל בלבד",
+  MANAGERS_ONLY: "נדרשת הרשאה",
   SAVE_DESCRIPTION: "שמור תיאור",
   SAVED: "השינויים נשמרו",
 } as const;
@@ -144,7 +144,7 @@ export const NEW_TASK_COPY = {
   TITLE: "משימה חדשה",
   DESCRIPTION: "הקצאת משימה ללקוח או לפרויקט, ולעובד.",
   DENIED_TITLE: "אין הרשאה להקצאת משימות",
-  DENIED_DESCRIPTION: `רק ${USER_ROLE_LABELS[USER_ROLES.SYSTEM_ADMIN]} יכולים ליצור ולהקצות משימות.`,
+  DENIED_DESCRIPTION: "לחשבון שלך אין הרשאה ליצור משימות.",
   BACK_TO_TASKS: "חזרה למשימות",
   ASSIGNMENT_TITLE: "שיוך",
   ASSIGNMENT_SUBTITLE: "לקוח או פרויקט, ואחראי",

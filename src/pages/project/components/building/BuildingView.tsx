@@ -14,6 +14,7 @@ import Button from "../../../../components/Button/Button";
 import BuildingInheritedCard from "./BuildingInheritedCard";
 import { ICON_NAMES } from "../../../../constants/icon.constant";
 import { useSessionUser } from "../../../../store/session.store";
+import { PERMISSIONS } from "../../../../constants/permission.constant";
 import type { IApiProject } from "../../../../interfaces/api.interface";
 import { hasPermission } from "../../../../utilities/permission.utility";
 import { useApartmentImport } from "../../../../hooks/apartment-import.hook";
@@ -44,7 +45,10 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
   const stages = stagesQuery.data ?? [];
   const stageCounts = stageCountsQuery.data ?? null;
   const fieldSet = project.projectType?.detailFieldSet ?? null;
-  const canEdit = hasPermission(sessionUser, "EDIT_PROJECTS");
+  const canCreateApartment = hasPermission(sessionUser, PERMISSIONS.APARTMENTS_CREATE);
+  const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
+  const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
+  const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canImport = canImportApartments(sessionUser);
   const importOpen = canImport && apartmentImport.open;
   const openEditForm = () => navigate(buildEditProjectPath(project.id));
@@ -58,11 +62,13 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
   ) : null;
   const addApartmentAction = (
     <>
-      <Button
-        icon={ICON_NAMES.ADD}
-        text={BUILDING_PAGE_COPY.ADD_APARTMENT}
-        onClick={() => navigate(buildNewApartmentPath(project.id))}
-      />
+      {canCreateApartment && (
+        <Button
+          icon={ICON_NAMES.ADD}
+          text={BUILDING_PAGE_COPY.ADD_APARTMENT}
+          onClick={() => navigate(buildNewApartmentPath(project.id))}
+        />
+      )}
       {importAction}
     </>
   );
@@ -87,7 +93,7 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         badge={<Chip label={formatBuildingBadge(stageCounts?.total ?? 0)} />}
       />
 
-      <ProjectDriveCard projectId={project.id} />
+      {canReadDrive && <ProjectDriveCard projectId={project.id} />}
 
       <BuildingInheritedCard building={project} />
 
@@ -105,7 +111,7 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         stageId={toStageFilter(activeTileId)}
       />
 
-      <ProjectTasksCard projectId={project.id} />
+      {canReadTasks && <ProjectTasksCard projectId={project.id} />}
 
       <ProjectTeamCard members={project.members ?? []} />
 

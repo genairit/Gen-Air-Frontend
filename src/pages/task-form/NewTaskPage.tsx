@@ -7,6 +7,7 @@ import { useSessionUser } from "../../store/session.store";
 import { ROUTE_PATHS } from "../../constants/routes.constant";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
 import { useProjectQuery } from "../../hooks/queries/project.query";
 import LoadingState from "../../components/LoadingState/LoadingState";
@@ -22,7 +23,7 @@ const NewTaskPage = () => {
   const projectId = searchParams.get(NEW_TASK_PROJECT_PARAM);
   const projectQuery = useProjectQuery(projectId);
 
-  if (!hasPermission(sessionUser, "MANAGE_TASKS")) {
+  if (!hasPermission(sessionUser, PERMISSIONS.TASKS_CREATE)) {
     return (
       <EmptyState
         icon={ICON_NAMES.TASKS}

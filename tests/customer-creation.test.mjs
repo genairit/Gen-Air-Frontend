@@ -210,12 +210,13 @@ test("duplicate conflict and transport failure propagate without caching success
   }
 });
 
-test("customer creation is management-only and pending CRM customers remain selectable for projects", () => {
-  assert.equal(hasPermission({ role: "system_admin" }, "MANAGE_CUSTOMERS"), true);
-  for (const role of ["engineer", "secretary", "project_manager", "finance", "installer"]) {
-    assert.equal(hasPermission({ role }, "MANAGE_CUSTOMERS"), false);
-  }
-  assert.equal(hasPermission(null, "MANAGE_CUSTOMERS"), false);
+test("customer creation requires its grant and pending CRM customers remain selectable for projects", () => {
+  assert.equal(
+    hasPermission({ role: "secretary", permissions: ["customers.create"] }, "customers.create"),
+    true,
+  );
+  assert.equal(hasPermission({ role: "system_admin", permissions: [] }, "customers.create"), false);
+  assert.equal(hasPermission(null, "customers.create"), false);
   assert.equal(isCustomerSelectable(null), false);
   assert.equal(isCustomerSelectable(), false);
   assert.equal(isCustomerSelectable(customer), true);

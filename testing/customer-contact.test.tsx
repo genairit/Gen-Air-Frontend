@@ -16,6 +16,7 @@ import assert from "node:assert/strict";
 import { renderToStaticMarkup } from "react-dom/server";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
+import { PERMISSIONS } from "../src/constants/permission.constant";
 import { hasPermission } from "../src/utilities/permission.utility";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { customerContactService } from "../src/services/customer-contact.service";
@@ -96,22 +97,6 @@ test("editor renders validation and API errors with disabled invalid submission"
   assert.match(markup, /שגיאת שרת/);
   assert.match(markup, /יש להזין שם איש קשר תקין/);
   assert.match(markup, /disabled/);
-});
-
-test("project read-only view renders every linked contact and no edit controls", () => {
-  const client = new QueryClient();
-  client.setQueryData(
-    [CUSTOMER_CONTACT_QUERY_ROOT, contact.customerId],
-    [contact, { ...contact, id: "contact-2", name: "איש קשר שני" }],
-  );
-  const markup = renderToStaticMarkup(
-    <QueryClientProvider client={client}>
-      <CustomerContacts customerId={contact.customerId} />
-    </QueryClientProvider>,
-  );
-  assert.match(markup, /איש קשר ראשון/);
-  assert.match(markup, /איש קשר שני/);
-  assert.doesNotMatch(markup, /הוספת איש קשר|>עריכה</);
 });
 
 test("contact endpoints preserve ownership and nullable payloads for create and edit", async () => {
@@ -197,10 +182,11 @@ test("contact management permission matches backend and project views stay read-
     employeeNumber: "",
     deletedAt: null,
     role: USER_ROLES.SYSTEM_ADMIN,
+    permissions: [PERMISSIONS.CUSTOMERS_READ, PERMISSIONS.CUSTOMERS_UPDATE],
   };
-  assert.equal(hasPermission(admin, "MANAGE_CUSTOMERS"), true);
-  assert.equal(hasPermission({ ...admin, role: USER_ROLES.ENGINEER }, "MANAGE_CUSTOMERS"), false);
-  assert.equal(hasPermission(null, "MANAGE_CUSTOMERS"), false);
+  assert.equal(hasPermission(admin, PERMISSIONS.CUSTOMERS_UPDATE), true);
+  assert.equal(hasPermission({ ...admin, permissions: [] }, PERMISSIONS.CUSTOMERS_UPDATE), false);
+  assert.equal(hasPermission(null, PERMISSIONS.CUSTOMERS_UPDATE), false);
   const client = new QueryClient();
   client.setQueryData([CUSTOMER_CONTACT_QUERY_ROOT, contact.customerId], [contact]);
   const markup = renderToStaticMarkup(

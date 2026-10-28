@@ -16,6 +16,7 @@ import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useSessionUser } from "../../../store/session.store";
 import { useTasksQuery } from "../../../hooks/queries/task.query";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { PROJECT_TASKS_COPY } from "../../../constants/task.constant";
@@ -38,7 +39,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
   const tasksQuery = useTasksQuery({ projectId });
 
   const tasks = (tasksQuery.data?.pages ?? []).flatMap(page => page.items);
-  const isManager = hasPermission(sessionUser, "MANAGE_TASKS");
+  const isManager = hasPermission(sessionUser, PERMISSIONS.TASKS_CREATE);
   const isEmpty = tasksQuery.isSuccess && tasks.length === 0;
 
   const action = isManager ? (

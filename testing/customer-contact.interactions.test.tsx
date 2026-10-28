@@ -5,6 +5,7 @@ import Button from "../src/components/Button/Button";
 import { setSession } from "../src/store/session.store";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
+import { PERMISSIONS } from "../src/constants/permission.constant";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CustomerContacts from "../src/components/CustomerContacts/CustomerContacts";
 import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
@@ -36,6 +37,7 @@ test("failed contact save retains editable draft until successful retry", async 
       employeeNumber: "",
       deletedAt: null,
       role: USER_ROLES.SYSTEM_ADMIN,
+      permissions: [PERMISSIONS.CUSTOMERS_READ, PERMISSIONS.CUSTOMERS_UPDATE],
     },
   });
   httpClient.defaults.adapter = async () => {
@@ -82,6 +84,56 @@ test("failed contact save retains editable draft until successful retry", async 
   } finally {
     await act(async () => rendererState.current?.unmount());
     httpClient.defaults.adapter = previousAdapter;
+    setSession(null);
+    client.clear();
+  }
+});
+
+test("contact read permission gates fetching and rendering while read-only views hide edits", async () => {
+  Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+  const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } });
+  client.setQueryData(
+    [CUSTOMER_CONTACT_QUERY_ROOT, contact.customerId],
+    [contact, { ...contact, id: "contact-2", name: "איש קשר שני" }],
+  );
+  const user = {
+    id: "test",
+    email: "test@example.com",
+    phone: "",
+    firstName: "Test",
+    lastName: "Test",
+    employeeNumber: "",
+    deletedAt: null,
+    role: USER_ROLES.ENGINEER,
+    permissions: [PERMISSIONS.CUSTOMERS_READ],
+  };
+  setSession({ accessToken: "test", user });
+  const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={client}>
+          <CustomerContacts customerId={contact.customerId} />
+        </QueryClientProvider>,
+      );
+    });
+    assert.ok(state.renderer);
+    const output = JSON.stringify(state.renderer.toJSON());
+    assert.match(output, /איש קשר ראשון/);
+    assert.match(output, /איש קשר שני/);
+    assert.doesNotMatch(output, /הוספת איש קשר/);
+    await act(async () => {
+      setSession({ accessToken: "test", user: { ...user, permissions: [] } });
+    });
+    assert.equal(state.renderer.toJSON(), null);
+    const query = client
+      .getQueryCache()
+      .find({ queryKey: [CUSTOMER_CONTACT_QUERY_ROOT, contact.customerId] });
+    assert.equal(query?.isActive(), false);
+  } finally {
+    await act(async () => {
+      state.renderer?.unmount();
+    });
     setSession(null);
     client.clear();
   }

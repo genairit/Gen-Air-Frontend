@@ -1,8 +1,10 @@
 import { hasPermission } from "./permission.utility";
-import type { IApiUser } from "../interfaces/api.interface";
+import { PERMISSIONS } from "../constants/permission.constant";
+import type { IApiAuthorizedUser } from "../interfaces/api.interface";
 
-export const canImportApartments = (user: IApiUser | null): boolean => {
-  const canEditProjects = hasPermission(user, "EDIT_PROJECTS");
-  const canManageCustomers = hasPermission(user, "MANAGE_CUSTOMERS");
-  return canEditProjects && canManageCustomers;
+export const canImportApartments = (user: IApiAuthorizedUser | null): boolean => {
+  const canCreateApartments = hasPermission(user, PERMISSIONS.APARTMENTS_CREATE);
+  const canCreateCustomers = hasPermission(user, PERMISSIONS.CUSTOMERS_CREATE);
+  const canUpdateCustomers = hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
+  return canCreateApartments && canCreateCustomers && canUpdateCustomers;
 };

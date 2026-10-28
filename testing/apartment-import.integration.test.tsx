@@ -19,6 +19,7 @@ import { act, create } from "react-test-renderer";
 import { setSession } from "../src/store/session.store";
 import { queryClient } from "../src/providers/query-client";
 import { httpClient } from "../src/services/http-client.service";
+import { PERMISSIONS } from "../src/constants/permission.constant";
 import { useApartmentImport } from "../src/hooks/apartment-import.hook";
 import { FileDownloadManager } from "../src/managers/file-download.manager";
 import { apartmentImportService } from "../src/services/apartment-import.service";
@@ -228,7 +229,7 @@ test("native download cleans its temporary link and object URL on success or cli
   }
 });
 
-test("import requires both project-edit and customer-management permissions", () => {
+test("import requires all explicit capabilities regardless of role", () => {
   const user = {
     id: "test",
     email: "test@example.com",
@@ -238,8 +239,24 @@ test("import requires both project-edit and customer-management permissions", ()
     employeeNumber: "",
     deletedAt: null,
   };
+  const permissions = [
+    PERMISSIONS.APARTMENTS_CREATE,
+    PERMISSIONS.CUSTOMERS_CREATE,
+    PERMISSIONS.CUSTOMERS_UPDATE,
+  ];
   for (const role of USER_ROLE_VALUES) {
-    assert.equal(canImportApartments({ ...user, role }), role === USER_ROLES.SYSTEM_ADMIN);
+    assert.equal(canImportApartments({ ...user, role, permissions }), true);
+    assert.equal(canImportApartments({ ...user, role, permissions: [] }), false);
+    for (const missing of permissions) {
+      assert.equal(
+        canImportApartments({
+          ...user,
+          role,
+          permissions: permissions.filter(value => value !== missing),
+        }),
+        false,
+      );
+    }
   }
   assert.equal(canImportApartments(null), false);
 });
@@ -305,6 +322,7 @@ test("shared HTTP client attaches bearer authentication to template and import r
       employeeNumber: "",
       deletedAt: null,
       role: USER_ROLES.SYSTEM_ADMIN,
+      permissions: [],
     },
   });
   httpClient.defaults.adapter = async config => {
