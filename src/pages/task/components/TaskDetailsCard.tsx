@@ -114,7 +114,7 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
             </Box>
           </TaskFieldTile>
         )}
-        <TaskFieldTile isLocked label={PROJECT_TASK_COPY.TYPE}>
+        <TaskFieldTile label={PROJECT_TASK_COPY.TYPE}>
           <Box component="b" sx={styles.value}>
             {TASK_TYPE_LABELS[task.taskType]}
           </Box>

@@ -41,6 +41,12 @@ const toUrgencySurfaceKey = ({
 
 export const useStyles = () =>
   createStyles({
+    footerActions: {
+      gap: "12px",
+      display: "flex",
+      flexWrap: "wrap",
+      flexDirection: "row-reverse",
+    },
     createLink: {
       color: palette.charcoal,
       textDecoration: "none",

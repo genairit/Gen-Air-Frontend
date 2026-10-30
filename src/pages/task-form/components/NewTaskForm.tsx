@@ -23,6 +23,7 @@ import TaskUrgencyChoiceCard from "./TaskUrgencyChoiceCard";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { buildTaskPath } from "../../../utilities/route.utility";
+import { useStyles as useTaskFormStyles } from "./TaskForm.style";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import { buildProjectPath } from "../../../utilities/route.utility";
 import InlineError from "../../../components/InlineError/InlineError";
@@ -41,6 +42,7 @@ interface INewTaskFormProps {
 const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
+  const taskFormStyles = useTaskFormStyles();
   const [values, setValues] = useState<ITaskFormValues>(() => ({
     ...toInitialTaskFormValues(null),
     projectId: initialProjectId,
@@ -114,7 +116,7 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
       />
       {errorCount > 0 && <InlineError message={formatFieldErrorCount(errorCount)} />}
       {createMutation.isError && <InlineError message={getApiErrorMessage(createMutation.error)} />}
-      <Box sx={styles.row({})}>
+      <Box sx={taskFormStyles.footerActions}>
         <Button
           text={saveLabel}
           icon={ICON_NAMES.SAVE}
