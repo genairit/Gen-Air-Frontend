@@ -39,6 +39,7 @@ export const ADDRESS_CITY_REQUIRED_BY_FIELD_SET: Record<ProjectDetailFieldSetTyp
 };
 
 export const PROJECT_ADDRESS_COPY = {
+  SUBTITLE: "שדה חובה · הכתובת חייבת להיות מאומתת מול Google Maps",
   CITY_LABEL: "עיר",
   VERIFIED: "מאומתת",
   SOURCE: "Google Maps",

@@ -18,7 +18,7 @@ interface IApartmentEndCustomerCardProps {
 
 const ApartmentEndCustomerCard: FC<IApartmentEndCustomerCardProps> = ({ apartment, building }) => {
   const styles = usePageStyles();
-  const hasEndCustomer = Boolean(apartment.customerName);
+  const hasEndCustomer = Boolean(apartment.customer);
 
   return (
     <Card gap="18px">
@@ -29,11 +29,11 @@ const ApartmentEndCustomerCard: FC<IApartmentEndCustomerCardProps> = ({ apartmen
       />
       {hasEndCustomer && (
         <Box sx={styles.grid({ minColumnWidth: 180, gap: "14px" })}>
-          <DetailTile label={APARTMENT_PAGE_COPY.NAME} value={apartment.customerName ?? ""} />
+          <DetailTile label={APARTMENT_PAGE_COPY.NAME} value={apartment.customer?.name ?? ""} />
           <DetailTile
             isLtr
             label={APARTMENT_PAGE_COPY.PHONE}
-            value={formatCustomerDetailValue(apartment.customerPhone)}
+            value={formatCustomerDetailValue(apartment.customer?.phone ?? null)}
           />
         </Box>
       )}

@@ -18,6 +18,7 @@ import { useStyles } from "./ApartmentHeaderCard.style";
 import IconTile from "../../../components/IconTile/IconTile";
 import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import { TABS_VARIANTS } from "../../../constants/tabs.constant";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { CHIP_VARIANTS } from "../../../constants/chip.constant";
 import { PERMISSIONS } from "../../../constants/permission.constant";
@@ -126,6 +127,7 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
         disabled={!canChangeStatus}
         items={toStageTabs(stages)}
         activeId={apartment.stageId}
+        variant={TABS_VARIANTS.STATUS}
       />
       {moveMutation.isError && <InlineError message={getApiErrorMessage(moveMutation.error)} />}
     </Card>

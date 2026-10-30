@@ -42,27 +42,39 @@ export const toCustomerContactInput = (draft: ICustomerContactDraft): ICustomerC
   phone: draft.phone.trim() || null,
 });
 
-export const validateCustomerContactDraft = (draft: ICustomerContactDraft): string[] => {
+export const getCustomerContactFieldErrors = (draft: ICustomerContactDraft) => {
   const input = toCustomerContactInput(draft);
-  const errors: string[] = [];
   const invalidName =
     input.name.length < FIELD_INPUT_LIMITS.MIN_TEXT_LENGTH ||
     input.name.length > FIELD_INPUT_LIMITS.CUSTOMER_NAME_CHARACTERS;
-  if (invalidName) {
-    errors.push(CUSTOMER_CONTACT_COPY.NAME_ERROR);
+  const invalidPhone = Boolean(
+    input.phone && !FIELD_VALIDATION_REGEX.ISRAELI_PHONE.test(input.phone),
+  );
+  const invalidEmail = Boolean(input.email && !isEmail(input.email));
+  const invalidRole = Boolean(
+    input.role && input.role.length > FIELD_INPUT_LIMITS.CONTACT_ROLE_CHARACTERS,
+  );
+
+  return {
+    name: invalidName ? CUSTOMER_CONTACT_COPY.NAME_ERROR : null,
+    phone: invalidPhone ? CUSTOMER_CONTACT_COPY.PHONE_ERROR : null,
+    email: invalidEmail ? CUSTOMER_CONTACT_COPY.EMAIL_ERROR : null,
+    role: invalidRole ? CUSTOMER_CONTACT_COPY.ROLE_ERROR : null,
+  };
+};
+
+export const validateCustomerContactDraft = (draft: ICustomerContactDraft): string[] =>
+  Object.values(getCustomerContactFieldErrors(draft)).filter(error => error !== null);
+
+export const formatCustomerContactCount = (contacts: ICustomerContact[]) =>
+  contacts.length === 1 ? "איש קשר אחד" : `${contacts.length} אנשי קשר`;
+
+export const formatCustomerPrimaryContact = (contacts: ICustomerContact[]) => {
+  const primary = contacts[0];
+  if (!primary) {
+    return CUSTOMER_CONTACT_COPY.EMPTY;
   }
 
-  if (input.phone && !FIELD_VALIDATION_REGEX.ISRAELI_PHONE.test(input.phone)) {
-    errors.push(CUSTOMER_CONTACT_COPY.PHONE_ERROR);
-  }
-
-  if (input.email && !isEmail(input.email)) {
-    errors.push(CUSTOMER_CONTACT_COPY.EMAIL_ERROR);
-  }
-
-  if (input.role && input.role.length > FIELD_INPUT_LIMITS.CONTACT_ROLE_CHARACTERS) {
-    errors.push(CUSTOMER_CONTACT_COPY.ROLE_ERROR);
-  }
-
-  return errors;
+  const additionalCount = contacts.length - 1;
+  return additionalCount > 0 ? `${primary.name} (+${additionalCount})` : primary.name;
 };

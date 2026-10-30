@@ -1,3 +1,4 @@
+import Dot from "../Dot/Dot";
 import type { FC } from "react";
 import { useStyles } from "./Tabs.style";
 import { Box, ButtonBase } from "@mui/material";
@@ -34,6 +35,7 @@ const Tabs: FC<ITabsProps> = ({
           aria-selected={item.id === activeId}
           sx={styles.tab({ variant, isFullWidth, isActive: item.id === activeId })}
         >
+          {item.dotColor && <Dot size={7} color={item.dotColor} />}
           {item.label}
           {item.count != null && <Box component="span" sx={styles.count}>{`(${item.count})`}</Box>}
         </ButtonBase>

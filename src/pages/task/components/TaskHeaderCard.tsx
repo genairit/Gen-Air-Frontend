@@ -11,6 +11,7 @@ import Tabs from "../../../components/Tabs/Tabs";
 import Card from "../../../components/Card/Card";
 import IconTile from "../../../components/IconTile/IconTile";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import { TABS_VARIANTS } from "../../../constants/tabs.constant";
 import type { IApiTask } from "../../../interfaces/task.interface";
 import { isTaskStatus } from "../../../utilities/guards/task.guard";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
@@ -72,6 +73,7 @@ const TaskHeaderCard: FC<ITaskHeaderCardProps> = ({ task, canChangeStatus, onSta
         onChange={changeStatus}
         items={TASK_STATUS_TABS}
         disabled={isStatusLocked}
+        variant={TABS_VARIANTS.STATUS}
       />
     </Card>
   );

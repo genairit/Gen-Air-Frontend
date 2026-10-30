@@ -19,7 +19,11 @@ const ProjectAddressCard: FC<IProjectAddressCardProps> = ({
   showMissingError,
 }) => (
   <Card gap="22px" padding="28px">
-    <CardHeader icon={ICON_NAMES.LOCATION} title={PROJECT_ADDRESS_COPY.LABEL} />
+    <CardHeader
+      icon={ICON_NAMES.LOCATION}
+      title={PROJECT_ADDRESS_COPY.LABEL}
+      subtitle={PROJECT_ADDRESS_COPY.SUBTITLE}
+    />
     <AddressAutocomplete
       value={address}
       onChange={onChange}

@@ -8,14 +8,13 @@ import ApartmentTeamPicker from "./ApartmentTeamPicker";
 import ApartmentTeamMembers from "./ApartmentTeamMembers";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import CardHeader from "../../../components/CardHeader/CardHeader";
-import DetailTile from "../../../components/DetailTile/DetailTile";
 import InlineError from "../../../components/InlineError/InlineError";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { toApartmentAssignments } from "../../../utilities/apartment.utility";
 import type { IApiProject, IApiProjectMember } from "../../../interfaces/api.interface";
-import { formatCustomerDetailValue } from "../../../utilities/customer-details.utility";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { useUpdateApartmentMutation } from "../../../hooks/mutations/apartment.mutation";
+import CustomerContactPreview from "../../../components/CustomerContacts/CustomerContactPreview";
 import { APARTMENT_PAGE_COPY, APARTMENT_TEAM_COPY } from "../../../constants/apartment.constant";
 
 interface IApartmentContactCardProps {
@@ -30,8 +29,6 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
   const isOwn = apartment.hasOwnTeam === true || isEditing;
   const members = draft ?? apartment.members ?? [];
   const badge = isOwn ? APARTMENT_TEAM_COPY.OWN : APARTMENT_TEAM_COPY.INHERITED;
-  const phoneHref = apartment.contactPhone ? `tel:${apartment.contactPhone}` : null;
-  const phoneLinkProps = phoneHref ? { href: phoneHref } : {};
   const teamChangeProps = isEditing ? { onChange: setDraft } : {};
   const saveTeam = () =>
     updateMutation.mutate(
@@ -53,18 +50,9 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
         title={APARTMENT_PAGE_COPY.CONTACT_TITLE}
         subtitle={APARTMENT_PAGE_COPY.CONTACT_SUBTITLE}
       />
-      <Box sx={styles.grid({ minColumnWidth: 180, gap: "14px" })}>
-        <DetailTile
-          label={APARTMENT_PAGE_COPY.CONTACT_NAME}
-          value={formatCustomerDetailValue(apartment.contactName)}
-        />
-        <DetailTile
-          isLtr
-          label={APARTMENT_PAGE_COPY.CONTACT_PHONE}
-          value={formatCustomerDetailValue(apartment.contactPhone)}
-          {...phoneLinkProps}
-        />
-      </Box>
+      {apartment.customerId && (
+        <CustomerContactPreview key={apartment.customerId} customerId={apartment.customerId} />
+      )}
       <Box sx={styles.spacedRow}>
         <Box sx={styles.row({})}>
           <b>{APARTMENT_TEAM_COPY.TITLE}</b>

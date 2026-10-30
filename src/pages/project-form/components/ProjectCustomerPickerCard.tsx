@@ -5,15 +5,20 @@ import {
 
 import { Box } from "@mui/material";
 import type { ReactNode } from "react";
+import { Link } from "react-router-dom";
 import { type FC, useState } from "react";
 import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
 import { useStyles } from "./ProjectCustomerPicker.style";
 import CustomerPickerOption from "./CustomerPickerOption";
+import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import SelectedCustomerSummary from "./SelectedCustomerSummary";
 import TextField from "../../../components/TextField/TextField";
+import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { PERMISSIONS } from "../../../constants/permission.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
@@ -46,6 +51,8 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
   subtitle = CUSTOMER_PICKER_COPY.SUBTITLE,
 }) => {
   const styles = useStyles();
+  const sessionUser = useSessionUser();
+  const canCreateCustomer = hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_CREATE);
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   const selectedQuery = useCustomerQuery(customerId);
@@ -55,12 +62,25 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
   const isMissing = isSubmitAttempted && !customerId;
   const hasNoResults = customersQuery.isSuccess && results.length === 0;
   const cardPadding = isApartment ? "24px" : "28px";
-  const listStyle = isApartment ? styles.apartmentList : styles.list;
+  const listStyle = styles.list;
   const requiredMessage = isApartment
     ? APARTMENT_TEAM_COPY.INVALID_CUSTOMER
     : CUSTOMER_PICKER_COPY.REQUIRED;
   const isSelectionBlocked = selectedQuery.isSuccess && !isCustomerSelectable(selectedQuery.data);
   const queryError = selectedQuery.error ?? customersQuery.error;
+
+  const createCustomerAction = canCreateCustomer ? (
+    <Box
+      target="_blank"
+      component={Link}
+      sx={styles.link}
+      rel="noopener noreferrer"
+      to={ROUTE_PATHS.NEW_CUSTOMER}
+    >
+      {APARTMENT_TEAM_COPY.NEW_CUSTOMER}
+    </Box>
+  ) : null;
+  const cardAction = action ?? createCustomerAction;
 
   const pickCustomer = (pickedId: string) => {
     setSearch("");
@@ -69,13 +89,14 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
 
   return (
     <Card gap="18px" padding={cardPadding} sx={styles.card(isMissing)}>
-      <CardHeader title={title} action={action} subtitle={subtitle} icon={ICON_NAMES.CUSTOMER} />
+      <CardHeader
+        title={title}
+        action={cardAction}
+        subtitle={subtitle}
+        icon={ICON_NAMES.CUSTOMER}
+      />
       {customerId && selectedQuery.data && (
-        <SelectedCustomerSummary
-          isHighlighted={isApartment}
-          customer={selectedQuery.data}
-          onReplace={() => onChange(null)}
-        />
+        <SelectedCustomerSummary customer={selectedQuery.data} onReplace={() => onChange(null)} />
       )}
       {customerId && selectedQuery.isPending && (
         <LoadingState label={CUSTOMER_PICKER_COPY.LOADING} />

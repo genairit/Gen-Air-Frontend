@@ -26,6 +26,7 @@ import StageTilesCard from "../../../../components/StageTilesCard/StageTilesCard
 import ApartmentImport from "../../../../components/ApartmentImport/ApartmentImport";
 import { toStageTiles, toStageFilter } from "../../../../utilities/stage-tile.utility";
 import { useApartmentStageCountsQuery } from "../../../../hooks/queries/apartment.query";
+import { BUTTON_VARIANTS } from "../../../../components/Button/constants/button.constants";
 import { canImportApartments } from "../../../../utilities/apartment-import-permission.utility";
 import { buildEditProjectPath, buildNewApartmentPath } from "../../../../utilities/route.utility";
 
@@ -57,6 +58,7 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
     <Button
       icon={ICON_NAMES.UPLOAD}
       text="ייבוא דירות מאקסל"
+      variant={BUTTON_VARIANTS.NEUTRAL}
       onClick={apartmentImport.openImport}
     />
   ) : null;

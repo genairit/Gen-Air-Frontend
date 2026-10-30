@@ -1,5 +1,7 @@
 import {
+  toIntakeValues,
   toIntakePayload,
+  countIntakeErrors,
   createEmptyIntakeValues,
   getRequiredIntakeGroups,
 } from "../src/utilities/project-intake.utility";
@@ -8,7 +10,10 @@ import {
   isCustomerContactList,
   toCustomerContactDraft,
   toCustomerContactInput,
+  formatCustomerContactCount,
+  formatCustomerPrimaryContact,
   validateCustomerContactDraft,
+  getCustomerContactFieldErrors,
 } from "../src/utilities/customer-contact.utility";
 
 import { test } from "node:test";
@@ -17,15 +22,19 @@ import { AxiosError, AxiosHeaders } from "axios";
 import { renderToStaticMarkup } from "react-dom/server";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
+import type { IApiProject } from "../src/interfaces/api.interface";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import { hasPermission } from "../src/utilities/permission.utility";
+import { PAYMENT_TERMS } from "../src/constants/payment-terms.constant";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { customerContactService } from "../src/services/customer-contact.service";
 import { saveCustomerContactAction } from "../src/actions/customer-contact.action";
 import CustomerContacts from "../src/components/CustomerContacts/CustomerContacts";
+import { toProjectPayload, toProjectFormValues } from "../src/utilities/project.utility";
 import CustomerContactItem from "../src/components/CustomerContacts/CustomerContactItem";
 import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
 import CustomerContactEditor from "../src/components/CustomerContacts/CustomerContactEditor";
+import { PROJECT_DETAIL_FIELD_SETS } from "../src/constants/project-detail-field-set.constant";
 import { getCustomerImportErrorMessage } from "../src/utilities/customer-import-error.utility";
 import { CUSTOMER_IMPORT_ERROR_MESSAGES } from "../src/constants/customer-import-error.constant";
 
@@ -49,6 +58,16 @@ test("name is required; optional contact fields serialize to null", () => {
     role: null,
   });
   assert.equal(validateCustomerContactDraft(toCustomerContactDraft(null)).length, 1);
+});
+
+test("customer contact labels use current customer-owned rows for empty, one and many contacts", () => {
+  assert.equal(formatCustomerContactCount([]), "0 אנשי קשר");
+  assert.equal(formatCustomerContactCount([contact]), "איש קשר אחד");
+  const contacts = [contact, { ...contact, id: "contact-2", name: "איש קשר שני" }];
+  assert.equal(formatCustomerContactCount(contacts), "2 אנשי קשר");
+  assert.equal(formatCustomerPrimaryContact([]), "טרם נוספו אנשי קשר ללקוח");
+  assert.equal(formatCustomerPrimaryContact([contact]), contact.name);
+  assert.equal(formatCustomerPrimaryContact(contacts), `${contact.name} (+1)`);
 });
 
 test("invalid supplied email, phone, role and name are rejected", () => {
@@ -100,6 +119,79 @@ test("editor renders validation and API errors with disabled invalid submission"
   assert.match(markup, /שגיאת שרת/);
   assert.match(markup, /יש להזין שם איש קשר תקין/);
   assert.match(markup, /disabled/);
+});
+
+test("contact editor accepts English text, landline phone and email with domain-specific validators", () => {
+  const values = {
+    name: "John Smith",
+    role: "Site manager",
+    phone: "03-1234567",
+    email: "john@example.com",
+  };
+  assert.deepEqual(getCustomerContactFieldErrors(values), {
+    name: null,
+    role: null,
+    phone: null,
+    email: null,
+  });
+  const markup = renderToStaticMarkup(
+    <CustomerContactEditor
+      busy={false}
+      error={null}
+      onSave={noop}
+      values={values}
+      onCancel={noop}
+      onChange={noop}
+    />,
+  );
+  assert.match(markup, /John Smith/);
+  assert.match(markup, /Site manager/);
+  assert.match(markup, /03-1234567/);
+  assert.match(markup, /john@example.com/);
+  assert.doesNotMatch(markup, /יש להזין|אינו תקין|אינה תקינה|ארוך מהמותר|עברית| disabled/);
+});
+
+test("contact editor allows empty optional fields and reports the correct invalid field", () => {
+  const optionalEmpty = { name: "Valid Name", phone: "", email: "", role: "" };
+  assert.deepEqual(getCustomerContactFieldErrors(optionalEmpty), {
+    name: null,
+    role: null,
+    phone: null,
+    email: null,
+  });
+  const optionalMarkup = renderToStaticMarkup(
+    <CustomerContactEditor
+      busy={false}
+      error={null}
+      onSave={noop}
+      onCancel={noop}
+      onChange={noop}
+      values={optionalEmpty}
+    />,
+  );
+  assert.doesNotMatch(optionalMarkup, /יש להזין|אינו תקין|אינה תקינה|ארוך מהמותר| disabled/);
+  const invalid = { name: "א", phone: "bad", email: "invalid", role: "a".repeat(61) };
+  assert.deepEqual(getCustomerContactFieldErrors(invalid), {
+    name: "יש להזין שם איש קשר תקין",
+    phone: "מספר הטלפון אינו תקין",
+    email: "כתובת הדוא״ל אינה תקינה",
+    role: "התפקיד ארוך מהמותר",
+  });
+  const markup = renderToStaticMarkup(
+    <CustomerContactEditor
+      busy={false}
+      error={null}
+      onSave={noop}
+      onCancel={noop}
+      onChange={noop}
+      values={invalid}
+    />,
+  );
+  assert.match(markup, /יש להזין שם איש קשר תקין/);
+  assert.match(markup, /מספר הטלפון אינו תקין/);
+  assert.match(markup, /כתובת הדוא״ל אינה תקינה/);
+  assert.match(markup, /התפקיד ארוך מהמותר/);
+  assert.match(markup, / disabled/);
 });
 
 test("contact endpoints preserve ownership and nullable payloads for create and edit", async () => {
@@ -200,35 +292,116 @@ test("contact management permission matches backend and project views stay read-
   assert.doesNotMatch(markup, /הוספת איש קשר/);
 });
 
-test("new project payload excludes duplicate contact fields but retains site address and terms", () => {
-  const values = createEmptyIntakeValues();
-  values.contact = {
-    contactName: "old unsaved draft",
-    contactPhone: "0501234567",
-    contactRole: "role",
+const legacyProject: IApiProject = {
+  id: "legacy-project",
+  code: "GA-1",
+  name: "פרויקט קיים",
+  stageId: "stage-1",
+  projectTypeId: "type-1",
+  customerId: "customer-1",
+  updatedAt: "2026-10-30T00:00:00.000Z",
+  notes: null,
+  priorityId: null,
+  driveFolderId: null,
+  parentProjectId: null,
+  prioritySyncedAt: null,
+  address: "רחוב לדוגמה 1, תל אביב",
+  addressCity: "תל אביב",
+  addressPlaceId: "place-1",
+  paymentTerms: PAYMENT_TERMS.PREPAID,
+  paymentTermsNote: null,
+  contactName: "שם היסטורי",
+  contactPhone: null,
+  contactRole: null,
+  customerName: null,
+  customerCity: null,
+  customerUnit: null,
+  customerFloor: null,
+  customerPhone: null,
+  customerEmail: null,
+  customerAddress: null,
+  customerApartment: null,
+  customerCompanyNumber: null,
+  customerAssociationNumber: null,
+};
+
+test("new project payload ignores stale contact drafts and retains address and payment terms", () => {
+  const values = {
+    ...toProjectFormValues(null),
+    name: "פרויקט חדש",
+    typeId: legacyProject.projectTypeId,
+    customerId: legacyProject.customerId,
+    ...toIntakeValues(legacyProject),
+    contact: { contactName: "old draft", contactPhone: "0501234567", contactRole: "old role" },
   };
-  const payload = toIntakePayload(values, null);
+  const payload = toProjectPayload({
+    values,
+    originalIntake: null,
+    fieldSet: PROJECT_DETAIL_FIELD_SETS.PRIVATE_CLIENT,
+  });
+  assert.ok(payload);
   assert.equal(Reflect.has(payload, "contactName"), false);
   assert.equal(Reflect.has(payload, "contactPhone"), false);
   assert.equal(Reflect.has(payload, "contactRole"), false);
-  assert.equal(Reflect.has(payload, "addressPlaceId"), true);
-  assert.equal(Reflect.has(payload, "paymentTerms"), true);
-  assert.equal(getRequiredIntakeGroups(values, null).contact, false);
+  assert.equal(payload.addressPlaceId, legacyProject.addressPlaceId);
+  assert.equal(payload.paymentTerms, PAYMENT_TERMS.PREPAID);
+  assert.deepEqual(getRequiredIntakeGroups(values, null), { address: true, paymentTerms: true });
 });
 
-test("legacy project edit keeps unchanged contact data untouched", () => {
-  const original = createEmptyIntakeValues();
-  original.contact = {
-    contactName: "legacy name",
-    contactPhone: "0501234567",
-    contactRole: "site role",
+test("editing a legacy project excludes contact fields even when stale contact values change", () => {
+  const original = toIntakeValues(legacyProject);
+  const values = {
+    ...toProjectFormValues(legacyProject),
+    name: "שם חדש לפרויקט",
+    paymentTerms: { terms: PAYMENT_TERMS.OTHER, note: "תנאי תשלום מותאמים" },
+    contact: { contactName: "stale changed name", contactPhone: "bad", contactRole: "role" },
   };
+  const payload = toProjectPayload({
+    values,
+    originalIntake: original,
+    fieldSet: PROJECT_DETAIL_FIELD_SETS.PRIVATE_CLIENT,
+  });
+  assert.ok(payload);
+  assert.equal(payload.name, values.name);
+  assert.equal(payload.customerId, legacyProject.customerId);
+  assert.equal(payload.paymentTerms, PAYMENT_TERMS.OTHER);
+  assert.equal(payload.paymentTermsNote, values.paymentTerms.note);
+  assert.equal(Reflect.has(payload, "contactName"), false);
+  assert.equal(Reflect.has(payload, "contactPhone"), false);
+  assert.equal(Reflect.has(payload, "contactRole"), false);
   assert.deepEqual(toIntakePayload(original, original), {});
-  const changed = { ...original, contact: { ...original.contact, contactRole: "new site role" } };
-  assert.deepEqual(toIntakePayload(changed, original), {
-    contactName: "legacy name",
-    contactPhone: "0501234567",
-    contactRole: "new site role",
+});
+
+test("incomplete legacy project contacts cannot block saving unrelated project edits", () => {
+  const values = toIntakeValues(legacyProject);
+  assert.equal(Reflect.has(values, "contact"), false);
+  assert.equal(
+    countIntakeErrors({
+      values,
+      original: values,
+      fieldSet: PROJECT_DETAIL_FIELD_SETS.PRIVATE_CLIENT,
+    }),
+    0,
+  );
+  assert.equal(
+    countIntakeErrors({
+      values: { ...values, address: null },
+      original: values,
+      fieldSet: PROJECT_DETAIL_FIELD_SETS.PRIVATE_CLIENT,
+    }),
+    1,
+  );
+  assert.equal(
+    countIntakeErrors({
+      values: { ...values, paymentTerms: { terms: PAYMENT_TERMS.OTHER, note: "" } },
+      original: values,
+      fieldSet: PROJECT_DETAIL_FIELD_SETS.PRIVATE_CLIENT,
+    }),
+    1,
+  );
+  assert.deepEqual(getRequiredIntakeGroups(createEmptyIntakeValues(), null), {
+    address: true,
+    paymentTerms: true,
   });
 });
 

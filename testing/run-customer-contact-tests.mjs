@@ -11,3 +11,8 @@ await runBundledTest({
   output: "customer-contact.interactions.test.mjs",
   external: ["@tanstack/react-query"],
 });
+
+await runBundledTest({
+  input: "testing/design-alignment.components.test.tsx",
+  output: "design-alignment.components.test.mjs",
+});

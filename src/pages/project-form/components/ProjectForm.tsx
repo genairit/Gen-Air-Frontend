@@ -6,7 +6,6 @@ import {
 
 import type {
   ITypeSwitch,
-  ContactFieldType,
   IVerifiedAddress,
   IProjectFormValues,
   IPaymentTermsValues,
@@ -62,7 +61,6 @@ import ActionBar from "../../../components/ActionBar/ActionBar";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import { useProjectDraft } from "../../../hooks/project-draft.hook";
-import ProjectAddressContactCard from "./ProjectAddressContactCard";
 import ProjectCustomerPickerCard from "./ProjectCustomerPickerCard";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import InlineError from "../../../components/InlineError/InlineError";
@@ -72,7 +70,6 @@ import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
 import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
-import CustomerContacts from "../../../components/CustomerContacts/CustomerContacts";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
@@ -164,9 +161,6 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       customerDetails: { ...current.customerDetails, [field]: value },
     }));
 
-  const handleContactChange = (field: ContactFieldType, value: string) =>
-    setValues(current => ({ ...current, contact: { ...current.contact, [field]: value } }));
-
   const handleAddressChange = (address: IVerifiedAddress | null) => updateValues({ address });
 
   const handleCustomerChange = (customerId: string | null) => updateValues({ customerId });
@@ -211,25 +205,6 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   };
 
   const showAddressError = isSubmitAttempted && requiredIntake.address;
-  const addressCard = isEditMode ? (
-    <ProjectAddressContactCard
-      address={values.address}
-      contact={values.contact}
-      isSubmitAttempted={isSubmitAttempted}
-      onAddressChange={handleAddressChange}
-      onContactChange={handleContactChange}
-      requiresCity={isCityRequired(fieldSet)}
-      isAddressRequired={requiredIntake.address}
-      isContactRequired={requiredIntake.contact}
-    />
-  ) : (
-    <ProjectAddressCard
-      address={values.address}
-      onChange={handleAddressChange}
-      showMissingError={showAddressError}
-      requiresCity={isCityRequired(fieldSet)}
-    />
-  );
 
   return (
     <Box sx={styles.page}>
@@ -267,7 +242,12 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         selectedTypeId={values.typeId}
         options={projectTypes.map(toProjectTypeOption)}
       />
-      {addressCard}
+      <ProjectAddressCard
+        address={values.address}
+        onChange={handleAddressChange}
+        showMissingError={showAddressError}
+        requiresCity={isCityRequired(fieldSet)}
+      />
       {isSubmitAttempted && formErrorCount > 0 && (
         <InlineError message={formatFieldErrorCount(formErrorCount)} />
       )}
@@ -276,9 +256,6 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         onChange={handleCustomerChange}
         isSubmitAttempted={isSubmitAttempted}
       />
-      {values.customerId && (
-        <CustomerContacts key={values.customerId} customerId={values.customerId} />
-      )}
       {fieldSet && hasSiteDetails && (
         <ProjectSiteDetailsCard
           fieldSet={fieldSet}
