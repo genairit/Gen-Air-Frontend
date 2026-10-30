@@ -9,6 +9,7 @@ import type { IApartmentFormValues } from "../interfaces/apartment.interface";
 const invalidateApartmentQueries = () =>
   Promise.all([
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.APARTMENTS] }),
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.CUSTOMER_PROJECTS] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.APARTMENT_STAGE_COUNTS] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECTS] }),

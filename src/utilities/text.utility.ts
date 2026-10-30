@@ -42,3 +42,4 @@ export const formatNeededFields = (labels: string) => `שדות חדשים למ�
 
 export const formatHiddenFields = (labels: string) =>
   `נשמרו בצד ולא יישלחו: ${labels}. יוחזרו אם תחזור לסוג הקודם.`;
+export const formatParenthesizedCount = (count: number): string => `(${count})`;

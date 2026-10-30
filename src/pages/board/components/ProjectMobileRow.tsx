@@ -4,15 +4,16 @@ import Card from "../../../components/Card/Card";
 import Chip from "../../../components/Chip/Chip";
 import ProjectStageCell from "../columns/cells/ProjectStageCell";
 import { PROJECT_COLUMN_STYLES } from "../columns/project-columns.style";
+import type { IApiProjectStage } from "../../../interfaces/api.interface";
 import { toProjectSummary } from "../../../utilities/mappers/project.mapper";
-import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
+import type { IProjectListItem } from "../../../interfaces/project-list.interface";
 
 interface IProjectMobileRowProps {
-  project: IApiProject;
   canMoveStage: boolean;
+  project: IProjectListItem;
   stages: IApiProjectStage[];
   onOpen: (projectId: string) => void;
-  onStageChange: (project: IApiProject, stageId: string) => void;
+  onStageChange: (project: IProjectListItem, stageId: string) => void;
 }
 
 const ProjectMobileRow: FC<IProjectMobileRowProps> = ({

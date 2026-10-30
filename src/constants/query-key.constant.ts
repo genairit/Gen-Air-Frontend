@@ -7,6 +7,7 @@ import type {
 } from "../interfaces/api-request.interface";
 
 import type { ITaskQuery } from "../interfaces/task.interface";
+import type { ICustomerProjectQuery } from "../interfaces/customer-project.interface";
 
 export const QUERY_ROOTS = {
   TASKS: "tasks",
@@ -16,6 +17,7 @@ export const QUERY_ROOTS = {
   USERS: "users",
   CUSTOMER: "customer",
   CUSTOMERS: "customers",
+  CUSTOMER_PROJECTS: "customer-projects",
   PROJECT: "project",
   PROJECTS: "projects",
   APARTMENTS: "apartments",
@@ -50,6 +52,11 @@ export const QUERY_KEYS = {
   users: (query: IUserQuery) => [QUERY_ROOTS.USERS, query],
   customers: (query: ICustomerQuery) => [QUERY_ROOTS.CUSTOMERS, query],
   customer: (customerId: string) => [QUERY_ROOTS.CUSTOMER, customerId],
+  customerProjects: (customerId: string, query: ICustomerProjectQuery) => [
+    QUERY_ROOTS.CUSTOMER_PROJECTS,
+    customerId,
+    query,
+  ],
   projects: (query: IProjectQuery) => [QUERY_ROOTS.PROJECTS, query],
   projectPages: (query: IProjectPageQuery) => [QUERY_ROOTS.PROJECTS, "pages", query],
   stageCounts: (query: IProjectQuery) => [QUERY_ROOTS.STAGE_COUNTS, query],

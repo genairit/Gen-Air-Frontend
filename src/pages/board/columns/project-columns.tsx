@@ -5,6 +5,7 @@ import ProjectStageCell from "./cells/ProjectStageCell";
 import ProjectUpdatedCell from "./cells/ProjectUpdatedCell";
 import { PROJECT_TABLE_HEADERS } from "../../../constants/board.constant";
 import type { IDataTableColumn } from "../../../interfaces/data-table.interface";
+import type { IProjectListItem } from "../../../interfaces/project-list.interface";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 
 export const PROJECT_TABLE_MIN_WIDTH = 860;
@@ -12,7 +13,7 @@ export const PROJECT_TABLE_MIN_WIDTH = 860;
 interface IProjectColumnsOptions {
   canMoveStage: boolean;
   stages: IApiProjectStage[];
-  onStageChange: (project: IApiProject, stageId: string) => void;
+  onStageChange: (project: IProjectListItem, stageId: string) => void;
 }
 
 export const buildProjectColumns = ({
