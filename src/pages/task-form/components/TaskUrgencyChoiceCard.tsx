@@ -35,7 +35,7 @@ const TaskUrgencyChoiceCard: FC<ITaskUrgencyChoiceCardProps> = ({
   }
 
   return (
-    <Card gap="20px" padding="28px">
+    <Card gap="20px" padding="24px">
       <CardHeader
         icon={ICON_NAMES.URGENT}
         title={NEW_TASK_COPY.URGENCY_TITLE}

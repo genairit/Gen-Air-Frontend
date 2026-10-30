@@ -41,6 +41,21 @@ const toUrgencySurfaceKey = ({
 
 export const useStyles = () =>
   createStyles({
+    footerActions: {
+      gap: "12px",
+      display: "flex",
+      flexWrap: "wrap",
+      flexDirection: "row-reverse",
+    },
+    createLink: {
+      color: palette.charcoal,
+      textDecoration: "none",
+      padding: "10px 16px",
+      borderRadius: "999px",
+      fontSize: 13,
+      fontWeight: 600,
+      boxShadow: softShadow.raisedCompact,
+    },
     fieldLabel: {
       gap: "4px",
       fontSize: 14,
@@ -128,38 +143,6 @@ export const useStyles = () =>
       gap: "2px",
       display: "flex",
       flexDirection: "column",
-    },
-    linkKindOptions: {
-      gap: "16px",
-      display: "grid",
-      gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 240px), 1fr))",
-    },
-    linkKindOption: (isSelected: boolean) => ({
-      gap: "14px",
-      width: "100%",
-      minHeight: 76,
-      display: "flex",
-      textAlign: "start",
-      padding: "16px 18px",
-      borderRadius: "22px",
-      alignItems: "center",
-      fontFamily: theme.font.body,
-      ...URGENCY_OPTION_SURFACES[toUrgencySurfaceKey({ isSelected, isUrgent: false })],
-      "&.Mui-focusVisible": { outline: `3px solid ${palette.primary}`, outlineOffset: "2px" },
-    }),
-    linkKindText: {
-      gap: "2px",
-      flex: 1,
-      minWidth: 0,
-      display: "flex",
-      flexDirection: "column",
-    },
-    placeholder: {
-      ...MUTED_CAPTION,
-      padding: "18px",
-      textAlign: "center",
-      borderRadius: "20px",
-      border: `2px dashed ${palette.outline}`,
     },
     context: {
       ...MUTED_CAPTION,

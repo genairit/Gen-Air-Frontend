@@ -12,6 +12,7 @@ export const TASK_COLUMN_STYLES = createStyles({
   },
   title: {
     fontSize: 15,
+    overflowWrap: "anywhere",
     fontWeight: 700,
     color: theme.palette.charcoal,
   },

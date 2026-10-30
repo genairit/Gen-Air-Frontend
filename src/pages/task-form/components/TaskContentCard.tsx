@@ -22,13 +22,13 @@ const TaskContentCard: FC<ITaskContentCardProps> = ({ errors, values, onChange }
   const styles = usePageStyles();
 
   return (
-    <Card gap="20px" padding="28px">
+    <Card gap="18px" padding="24px">
       <CardHeader
         icon={ICON_NAMES.INFO}
         title={NEW_TASK_COPY.DETAILS_TITLE}
         subtitle={NEW_TASK_COPY.DETAILS_SUBTITLE}
       />
-      <Box sx={styles.grid({ minColumnWidth: 240, gap: "16px" })}>
+      <Box sx={styles.grid({ minColumnWidth: 260, gap: "20px" })}>
         <TextField
           isRequired
           value={values.title}
@@ -40,7 +40,6 @@ const TaskContentCard: FC<ITaskContentCardProps> = ({ errors, values, onChange }
           maxLength={FIELD_INPUT_LIMITS.TASK_TITLE_CHARACTERS}
         />
         <TextField
-          isRequired
           value={values.dueDate}
           type={FIELD_TYPES.DATE}
           title={NEW_TASK_COPY.DUE_DATE}

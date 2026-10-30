@@ -1,5 +1,7 @@
 import type { QueryKey } from "@tanstack/react-query";
-import type { TaskStatusType, TaskLinkKindType } from "../constants/task.constant";
+import type { TaskType } from "../constants/task-type.constant";
+import type { TaskStatusType } from "../constants/task.constant";
+import type { TASK_TYPES } from "../constants/task-type.constant";
 import type { IApiUser, IApiProjectReference, IApiCustomerReference } from "./api.interface";
 
 export interface IProjectParentCustomerSource {
@@ -20,6 +22,7 @@ export interface IApiTask {
   isUrgent: boolean;
   createdAt: string;
   updatedAt: string;
+  taskType: TaskType;
   createdById: string;
   dueDate: string | null;
   status: TaskStatusType;
@@ -55,19 +58,16 @@ export interface ITaskCounts {
   byStatus: TTaskStatusCounts;
 }
 
-export interface ITaskLinkPayload {
-  projectId?: string;
-  customerId?: string;
-}
-
-export interface ICreateTaskPayload extends ITaskLinkPayload {
+export interface ICreateTaskPayload {
   title: string;
-  dueDate: string;
+  projectId: string;
   description: string;
+  dueDate: string | null;
   assigneeId: string | null;
+  taskType: typeof TASK_TYPES.GENERAL;
 }
 
-export type TUpdateTaskPayload = Partial<ICreateTaskPayload>;
+export type TUpdateTaskPayload = Partial<Omit<ICreateTaskPayload, "taskType">>;
 
 export interface ITaskCreation {
   isUrgent: boolean;
@@ -80,16 +80,7 @@ export interface ITaskFormValues {
   isUrgent: boolean;
   description: string;
   projectId: string | null;
-  customerId: string | null;
   assigneeOptionId: string | null;
-  linkKind: TaskLinkKindType | null;
-}
-
-export type TTaskFormLink = Pick<ITaskFormValues, "linkKind" | "projectId" | "customerId">;
-
-export interface ITaskFormLinkSelection {
-  name: string;
-  link: TTaskFormLink;
 }
 
 export interface ITaskLinkReader {
@@ -107,13 +98,7 @@ export interface ITaskLinkOption {
 }
 
 export type TaskFormFieldType =
-  | "title"
-  | "dueDate"
-  | "linkKind"
-  | "projectId"
-  | "customerId"
-  | "description"
-  | "assigneeOptionId";
+  "title" | "dueDate" | "projectId" | "description" | "assigneeOptionId";
 
 export type TTaskFormErrors = Partial<Record<TaskFormFieldType, string>>;
 
