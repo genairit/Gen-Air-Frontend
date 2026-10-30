@@ -218,7 +218,7 @@ export const useStyles = () =>
       backgroundColor: IMPORT_DESIGN.STATUS[status].surface,
       color: IMPORT_DESIGN.STATUS[status].foreground,
     }),
-    code: { fontFamily: theme.font.mono, direction: "ltr", textAlign: "end", fontSize: 12 },
+    code: { fontFamily: theme.font.mono, textAlign: "end", fontSize: 12 },
     report: {
       borderRadius: radius.panel,
       padding: "14px 18px",

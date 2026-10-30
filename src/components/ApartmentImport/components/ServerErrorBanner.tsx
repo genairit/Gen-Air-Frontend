@@ -31,7 +31,11 @@ const ServerErrorBanner: FC<IServerErrorBannerProps> = ({
         <Box component="b">{title}</Box>
         <Box>{failure.message}</Box>
         {invalidTemplate && <Box>לא נוצרה ולא עודכנה אף דירה. יש להשתמש בתבנית הרשמית.</Box>}
-        {errorCode && <Box sx={styles.code}>{errorCode}</Box>}
+        {errorCode && (
+          <Box dir="ltr" sx={styles.code}>
+            {errorCode}
+          </Box>
+        )}
       </Box>
       <Box sx={styles.actions}>
         {invalidTemplate && (
