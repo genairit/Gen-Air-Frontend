@@ -11,10 +11,11 @@ import moment from "moment";
 import { test } from "node:test";
 import { AxiosError } from "axios";
 import assert from "node:assert/strict";
-import { MemoryRouter } from "react-router-dom";
 import { act, create } from "react-test-renderer";
 import Button from "../src/components/Button/Button";
 import { setSession } from "../src/store/session.store";
+import { MemoryRouter, useLocation } from "react-router-dom";
+import NewTaskPage from "../src/pages/task-form/NewTaskPage";
 import TextField from "../src/components/TextField/TextField";
 import { DATE_FORMAT } from "../src/constants/date.constants";
 import { httpClient } from "../src/services/http-client.service";
@@ -203,7 +204,7 @@ test("an unavailable initial project remains selected and blocks submission inst
       state.renderer = create(
         <QueryClientProvider client={client}>
           <MemoryRouter>
-            <NewTaskForm initialProject={null} initialProjectId={projectId} />
+            <NewTaskForm initialProjectId={projectId} />
           </MemoryRouter>
         </QueryClientProvider>,
         { createNodeMock },
@@ -270,7 +271,7 @@ test("cached project refetch failure exposes retry and blocks save until recover
       state.renderer = create(
         <QueryClientProvider client={client}>
           <MemoryRouter>
-            <NewTaskForm initialProject={project} initialProjectId={project.id} />
+            <NewTaskForm initialProjectId={project.id} />
           </MemoryRouter>
         </QueryClientProvider>,
         { createNodeMock },
@@ -332,6 +333,101 @@ test("cached project refetch failure exposes retry and blocks save until recover
       dueDate: null,
       assigneeId: null,
     });
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    httpClient.defaults.adapter = previousAdapter;
+    setSession(null);
+    client.clear();
+    notifyManager.setScheduler(callback => setTimeout(callback, 0));
+  }
+});
+
+test("routed new-task page retains the form and URL after initial project failure and recovers on retry", async () => {
+  notifyManager.setScheduler(queueMicrotask);
+  const client = createClient();
+  client.removeQueries({ queryKey: QUERY_KEYS.project(project.id), exact: true });
+  const state: {
+    renderer: ReturnType<typeof create> | null;
+    failing: boolean;
+    requests: number;
+    url: string;
+  } = {
+    renderer: null,
+    failing: true,
+    requests: 0,
+    url: "",
+  };
+  const LocationProbe = () => {
+    const location = useLocation();
+    state.url = location.pathname + location.search;
+    return null;
+  };
+  const previousAdapter = httpClient.defaults.adapter;
+  httpClient.defaults.adapter = async config => {
+    state.requests += 1;
+    if (state.failing) {
+      throw new AxiosError("Project unavailable", "ERR_BAD_RESPONSE", config, null, {
+        config,
+        status: 500,
+        statusText: "Unavailable",
+        headers: {},
+        data: { message: "Project unavailable" },
+      });
+    }
+    return { config, data: project, status: 200, statusText: "OK", headers: {} };
+  };
+  setSession({
+    accessToken: "unit-test-token",
+    user: { ...engineer, permissions: [PERMISSIONS.TASKS_CREATE] },
+  });
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={client}>
+          <MemoryRouter initialEntries={[`/tasks/new?projectId=${project.id}`]}>
+            <LocationProbe />
+            <NewTaskPage />
+          </MemoryRouter>
+        </QueryClientProvider>,
+        { createNodeMock },
+      );
+      await new Promise(resolve => setImmediate(resolve));
+    });
+    const renderer = state.renderer;
+    assert.ok(renderer);
+    const form = renderer.root.findByType(NewTaskForm);
+    assert.equal(state.requests, 1);
+    assert.equal(renderer.root.findByType(TaskLinkSelectionStatus).props.isError, true);
+    assert.equal(renderer.root.findByType(TaskAssignmentCard).props.values.projectId, project.id);
+    assert.equal(state.url, `/tasks/new?projectId=${project.id}`);
+    await act(async () =>
+      renderer.root
+        .findByType(TaskContentCard)
+        .props.onChange({ title: "טיוטה נשמרת", description: "תיאור" }),
+    );
+    const save = renderer.root
+      .findAllByType(Button)
+      .find(button => button.props.text === NEW_TASK_COPY.SAVE);
+    assert.ok(save);
+    assert.equal(save.props.disabled, true);
+    await act(async () => save.props.onClick());
+    assert.equal(state.requests, 1);
+    state.failing = false;
+    await act(async () => {
+      await renderer.root.findByType(TaskLinkSelectionStatus).props.onRetry();
+      await new Promise(resolve => setImmediate(resolve));
+    });
+    assert.equal(state.requests, 2);
+    assert.equal(renderer.root.findByType(NewTaskForm), form);
+    assert.equal(renderer.root.findAllByType(TaskLinkSelectionStatus).length, 0);
+    assert.equal(renderer.root.findAllByType(TaskLinkSelection).length, 1);
+    assert.equal(renderer.root.findByType(TaskContentCard).props.values.title, "טיוטה נשמרת");
+    assert.equal(state.url, `/tasks/new?projectId=${project.id}`);
+    assert.equal(
+      renderer.root.findAllByType(Button).find(button => button.props.text === NEW_TASK_COPY.SAVE)
+        ?.props.disabled,
+      false,
+    );
   } finally {
     await act(async () => state.renderer?.unmount());
     httpClient.defaults.adapter = previousAdapter;

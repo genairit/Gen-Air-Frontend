@@ -25,7 +25,6 @@ import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { buildTaskPath } from "../../../utilities/route.utility";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import { buildProjectPath } from "../../../utilities/route.utility";
-import type { IApiProject } from "../../../interfaces/api.interface";
 import InlineError from "../../../components/InlineError/InlineError";
 import { useProjectQuery } from "../../../hooks/queries/project.query";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
@@ -37,22 +36,21 @@ import UrgencyConfirmPopup from "../../../components/UrgencyConfirmPopup/Urgency
 
 interface INewTaskFormProps {
   initialProjectId: string | null;
-  initialProject: IApiProject | null;
 }
 
-const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject, initialProjectId }) => {
+const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
   const [values, setValues] = useState<ITaskFormValues>(() => ({
-    ...toInitialTaskFormValues(initialProject),
-    projectId: initialProject?.id ?? initialProjectId,
+    ...toInitialTaskFormValues(null),
+    projectId: initialProjectId,
   }));
-  const [linkName, setLinkName] = useState(initialProject?.name ?? "");
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
   const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
   const createMutation = useCreateTaskMutation();
   const selectedProjectQuery = useProjectQuery(values.projectId);
+  const linkName = selectedProjectQuery.data?.name ?? "";
   const isProjectUnavailable = Boolean(values.projectId) && !selectedProjectQuery.isSuccess;
   const cancelPath = initialProjectId ? buildProjectPath(initialProjectId) : ROUTE_PATHS.BOARD;
 
@@ -66,7 +64,6 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject, initialProjectId }
     setValues(current => ({ ...current, ...changes }));
 
   const changeLink = (option: ITaskLinkOption | null) => {
-    setLinkName(option?.name ?? "");
     updateValues({ projectId: option?.id ?? null });
   };
 
