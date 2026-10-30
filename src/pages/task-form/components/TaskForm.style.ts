@@ -50,14 +50,6 @@ export const useStyles = () =>
       fontWeight: 600,
       boxShadow: softShadow.raisedCompact,
     },
-    typeField: {
-      display: "flex",
-      flexDirection: "column",
-      gap: "10px",
-      borderRadius: "20px",
-      padding: "16px 18px",
-      boxShadow: softShadow.inset,
-    },
     fieldLabel: {
       gap: "4px",
       fontSize: 14,
