@@ -16,8 +16,7 @@ export const CUSTOMER_PAGE_SIZE = 7;
 export const CUSTOMERS_COPY = {
   TITLE: "לקוחות",
   EYEBROW: "לקוחות · ניהול ב-CRM",
-  DESCRIPTION:
-    "לקוח הוא הבעלים של פרויקטים ובניינים. דיירי דירות מנוהלים בתוך הדירה ולא מופיעים כאן.",
+  DESCRIPTION: "ניהול לקוחות ואנשי הקשר שלהם, לשיוך לפרויקטים, לבניינים ולדירות.",
   SEARCH_PLACEHOLDER: "חיפוש לפי שם, ח.פ, איש קשר, טלפון או מזהה Priority...",
   LOADING: "טוען לקוחות...",
   EMPTY: "לא נמצאו לקוחות שמתאימים לחיפוש או לסינון",
@@ -81,7 +80,7 @@ export const CUSTOMER_DETAIL_FIELDS: ICustomerDetailField[] = [
   { field: "name", label: "שם הלקוח", isLtr: false },
   { field: "taxId", label: "ח.פ / ת.פ / ת.ז", isLtr: true },
   { field: "address", label: "כתובת", isLtr: false },
-  { field: "contactName", label: "איש קשר ראשי", isLtr: false },
+  { field: "contactName", label: "איש קשר היסטורי", isLtr: false },
   { field: "phone", label: "טלפון", isLtr: true },
   { field: "email", label: "דוא״ל", isLtr: true },
 ];

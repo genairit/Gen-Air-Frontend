@@ -109,7 +109,7 @@ export const APARTMENT_PAGE_COPY = {
   PARENT_CUSTOMER_NOTE: "לקוח הפרויקט האב אינו לקוח הקצה של הדירה ואינו עובר אליה.",
   CONTACT_TITLE: "איש קשר וצוות",
   CONTACT_SUBTITLE: "איש הקשר והצוות נקבעים לכל דירה בנפרד",
-  CONTACT_NAME: "איש קשר",
+  CONTACT_NAME: "איש קשר היסטורי בדירה",
   CONTACT_PHONE: "טלפון נייד",
   INHERITED_TITLE: "נתונים מהפרויקט האב",
   INHERITED_SUBTITLE: "ערך שהוגדר באב מתעדכן אוטומטית, אלא אם שונה בדירה",

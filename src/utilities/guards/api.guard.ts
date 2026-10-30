@@ -50,7 +50,9 @@ import {
 } from "../../constants/project-detail-field-set.constant";
 
 import { isPermission } from "./permission.guard";
+import { isCustomerContactList } from "../customer-contact.utility";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
+import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial.utility";
 
 export const isUserRole = (value?: unknown): value is UserRoleType =>
   USER_ROLE_VALUES.some(role => role === value);
@@ -157,6 +159,8 @@ export const isApiProject = (value: unknown): value is IApiProject => {
 
   const hasDetails = hasCustomerDetails(value) && hasProjectIntake(value);
   const hasHierarchy = isNullableString(value.parentProjectId) && isNullableString(value.notes);
+  const hasValidCredit = isOptionalOf(isApartmentCredit)(value.apartmentCredit);
+  const hasValidOwnership = isOptionalOf(isApartmentOwnership)(value.apartmentOwnership);
   const hasValidOwnTeam = !("hasOwnTeam" in value) || typeof value.hasOwnTeam === "boolean";
   const hasValidCustomer =
     isNullableString(value.customerId) && isOptionalOf(isApiCustomer)(value.customer);
@@ -168,7 +172,9 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     hasDetails &&
     hasHierarchy &&
     hasValidCustomer &&
-    hasValidOwnTeam
+    hasValidOwnTeam &&
+    hasValidCredit &&
+    hasValidOwnership
   );
 };
 
@@ -278,9 +284,16 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     isNullableString(value[field]),
   );
   const hasValidCreator = isOptionalOf(isApiUser)(value.createdBy);
+  const hasValidContacts = isOptionalOf(isCustomerContactList)(value.contacts);
 
   return (
-    hasIdentity && hasType && hasSyncStatus && hasSyncAttempts && hasSyncDetails && hasValidCreator
+    hasIdentity &&
+    hasType &&
+    hasSyncStatus &&
+    hasSyncAttempts &&
+    hasSyncDetails &&
+    hasValidCreator &&
+    hasValidContacts
   );
 };
 

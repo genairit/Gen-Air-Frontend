@@ -6,6 +6,7 @@ import {
   validateCompanyNumber,
 } from "../utilities/validators";
 
+import { FIELD_INPUT_LIMITS } from "./field-validation.constant";
 import type { ICustomerFormField } from "../interfaces/customer.interface";
 import { PROJECT_DETAIL_FIELD_SETS } from "./project-detail-field-set.constant";
 import { FIELD_TYPES } from "../components/TextField/constants/textfield.constants";
@@ -18,7 +19,7 @@ export const CUSTOMER_FORM_COPY = {
   CANCEL: "ביטול",
   TYPE: "סוג הלקוח",
   IDENTITY: "זהות הלקוח",
-  CONTACT: "איש קשר ראשי",
+  CONTACT: "איש קשר ראשון",
   TOO_LONG: "הערך ארוך מדי",
   REQUIRED_TYPE: "בחר סוג לקוח",
   SUMMARY: "מה יישמר",
@@ -27,7 +28,7 @@ export const CUSTOMER_FORM_COPY = {
   SUMMARY_SUBTITLE: "שדות המערכת נוצרים אוטומטית",
   IDENTITY_SUBTITLE: "סוג, שם, מספר רישום וכתובת",
   MANAGERS_ONLY: "רק מנהלים עם הרשאת ניהול לקוחות יכולים ליצור לקוחות",
-  CONTACT_SUBTITLE: "לקשר שוטף עם הלקוח · דיירי דירות לא נכללים כאן",
+  CONTACT_SUBTITLE: "לאחר יצירת הלקוח ניתן להוסיף אנשי קשר נוספים בכרטיס הלקוח",
   DENIED_DESCRIPTION: "רק מנהלים עם הרשאת ניהול לקוחות יכולים ליצור לקוחות חדשים.",
   DESCRIPTION: "הלקוח נשמר ב-CRM וזמין מיד לשיוך לפרויקטים. סנכרון עם Priority יתווסף בהמשך.",
 } as const;
@@ -62,7 +63,7 @@ export const CUSTOMER_IDENTITY_FIELDS: ICustomerFormField[] = [
     label: "שם הלקוח",
     placeholder: "בבלי נדל״ן ופיתוח בע״מ",
     hint: null,
-    maxLength: 200,
+    maxLength: FIELD_INPUT_LIMITS.CUSTOMER_NAME_CHARACTERS,
     inputType: FIELD_TYPES.TEXT,
     validator: validateRequiredText,
     isLtr: false,
@@ -91,7 +92,7 @@ export const CUSTOMER_IDENTITY_FIELDS: ICustomerFormField[] = [
 export const CUSTOMER_CONTACT_FIELDS: ICustomerFormField[] = [
   {
     field: "contactName",
-    label: "איש קשר ראשי",
+    label: "איש קשר ראשון",
     placeholder: "ישראל ישראלי",
     hint: null,
     maxLength: 120,
