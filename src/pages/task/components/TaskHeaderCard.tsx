@@ -16,6 +16,7 @@ import type { IApiTask } from "../../../interfaces/task.interface";
 import { isTaskStatus } from "../../../utilities/guards/task.guard";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
 import { ICON_TILE_SIZES } from "../../../constants/icon-tile.constant";
+import TaskTypeChip from "../../../components/TaskTypeChip/TaskTypeChip";
 import { formatTaskCreatedCaption } from "../../../utilities/task.utility";
 import TaskStatusChip from "../../../components/TaskStatusChip/TaskStatusChip";
 import TaskUrgentChip from "../../../components/TaskUrgentChip/TaskUrgentChip";
@@ -53,6 +54,7 @@ const TaskHeaderCard: FC<ITaskHeaderCardProps> = ({ task, canChangeStatus, onSta
             {task.title}
           </Box>
           <Box sx={styles.metaRow}>
+            <TaskTypeChip taskType={task.taskType} />
             <TaskStatusChip status={task.status} />
             {task.isUrgent && <TaskUrgentChip />}
             <Box component="span" sx={styles.caption}>

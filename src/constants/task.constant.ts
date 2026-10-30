@@ -1,9 +1,9 @@
 import { theme } from "./theme.constants";
 import { ICON_NAMES } from "./icon.constant";
 import { USER_ROLES } from "./user-role.constant";
+import type { ITaskFormValues } from "../interfaces/task.interface";
 import { CHIP_VARIANTS, type ChipVariantType } from "./chip.constant";
 import type { IUserQuery } from "../interfaces/api-request.interface";
-import type { ITaskFormValues, ITaskLinkPayload } from "../interfaces/task.interface";
 
 export const TASK_STATUSES = {
   WAITING_FOR_RESPONSE: "waiting_for_response",
@@ -65,13 +65,6 @@ export const TASK_LINK_CHIP_VARIANTS: Record<TaskLinkKindType, ChipVariantType> 
   project: CHIP_VARIANTS.INSET,
 };
 
-export const TASK_LINK_ID_FIELDS = {
-  customer: "customerId",
-  project: "projectId",
-} as const satisfies Record<TaskLinkKindType, keyof ITaskLinkPayload>;
-
-export const TASK_LINK_KIND_LABEL_ID = "task-link-kind-label";
-
 export const POOL_ASSIGNEE_ID = "__pool";
 
 export const TASK_SCROLL_ROOT_MARGIN = "200px";
@@ -84,9 +77,7 @@ export const EMPTY_TASK_FORM: ITaskFormValues = {
   isUrgent: false,
   description: "",
   projectId: null,
-  linkKind: null,
-  customerId: null,
-  assigneeOptionId: null,
+  assigneeOptionId: POOL_ASSIGNEE_ID,
 };
 
 export const TASKS_PAGE_COPY = {
@@ -106,6 +97,7 @@ export const TASKS_PAGE_COPY = {
   URGENT_CHIP: "דחופה",
   OVERDUE: "באיחור",
   DUE_PREFIX: "עד",
+  NO_DUE: "ללא תאריך יעד",
 } as const;
 
 export const TASK_TABLE_HEADERS = {
@@ -143,23 +135,17 @@ export const TASK_PAGE_COPY = {
 export const NEW_TASK_COPY = {
   EYEBROW: "משימות",
   TITLE: "משימה חדשה",
-  DESCRIPTION: "הקצאת משימה ללקוח או לפרויקט, ולעובד.",
+  DESCRIPTION: "הוספת משימה כללית לפרויקט והקצאת אחראי או מאגר פתוח.",
   DENIED_TITLE: "אין הרשאה להקצאת משימות",
   DENIED_DESCRIPTION: "לחשבון שלך אין הרשאה ליצור משימות.",
   BACK_TO_TASKS: "חזרה למשימות",
   ASSIGNMENT_TITLE: "שיוך",
-  ASSIGNMENT_SUBTITLE: "לקוח או פרויקט, ואחראי",
-  LINK_KIND: "המשימה קשורה ל...",
-  CHOOSE_LINK_KIND: "בחר אם המשימה קשורה ללקוח או לפרויקט",
-  NO_LINK_KIND: "בחר לקוח או פרויקט כדי לשייך את המשימה",
+  ASSIGNMENT_SUBTITLE: "פרויקט ואחראי · פרטי הלקוח מוצגים כמידע בלבד",
   INFO_ONLY: "מידע בלבד",
   PROJECT_CUSTOMER: "לקוח הפרויקט:",
   PROJECT_CUSTOMER_NOTE: "לא נשמר כשיוך נוסף למשימה",
-  PRIORITY_SYNCED: "סונכרן ל-Priority",
-  NEW_CUSTOMER: "צור לקוח חדש",
+  NEW_PROJECT: "צור פרויקט חדש",
   RETRY: "נסה שוב",
-  UNDO: "בטל",
-  DISMISS: "סגור",
   ASSIGNEE: "אחראי",
   CHOOSE_ASSIGNEE: "בחר...",
   POOL_OPTION: "מאגר פתוח — כל מהנדס יכול למשוך",
@@ -167,8 +153,8 @@ export const NEW_TASK_COPY = {
   DETAILS_TITLE: "פרטי המשימה",
   DETAILS_SUBTITLE: "מה צריך לעשות ועד מתי",
   TASK_TITLE: "כותרת",
-  TASK_TITLE_PLACEHOLDER: "לדוגמה: הכנת הצעת מחיר ליחידות VRF",
-  DUE_DATE: "תאריך יעד",
+  TASK_TITLE_PLACEHOLDER: "לדוגמה: תיאום ביקור באתר",
+  DUE_DATE: "תאריך יעד (לא חובה)",
   TASK_DESCRIPTION: "תיאור",
   TASK_DESCRIPTION_PLACEHOLDER: "פרט מה צריך לעשות, מה כבר ידוע ומה מצופה כתוצאה",
   URGENCY_TITLE: "דחיפות",
@@ -181,6 +167,7 @@ export const NEW_TASK_COPY = {
   SAVE: "שמור משימה",
   SAVE_URGENT: "שמור ושלח התראה",
   REQUIRED: "שדה חובה",
+  INVALID_DUE: "יש להזין תאריך יעד תקין",
   PAST_DUE: "תאריך היעד לא יכול להיות בעבר",
 } as const;
 
@@ -204,50 +191,19 @@ export const PROJECT_TASKS_COPY = {
   EMPTY: "עדיין אין משימות בפרויקט הזה",
 } as const;
 
-export const TASK_LINK_PICKER_COPY = {
-  customer: {
-    LABEL: TASK_LINK_KIND_LABELS.customer,
-    SEARCH: "חיפוש לקוח לפי שם או מזהה...",
-    EMPTY: "לא נמצא לקוח שמתאים לחיפוש",
-    LOADING: "טוען לקוחות…",
-    ERROR: "לא הצלחנו לטעון את רשימת הלקוחות",
-    SELECTED_LOADING: "טוען את הלקוח שנבחר…",
-    SELECTED_ERROR: "לא הצלחנו לטעון את הלקוח שנבחר",
-    REPLACE: "החלף לקוח",
-    REQUIRED: "בחר לקוח",
-  },
-  project: {
-    LABEL: TASK_LINK_KIND_LABELS.project,
-    SEARCH: "חיפוש פרויקט לפי שם או מזהה...",
-    EMPTY: "לא נמצא פרויקט שמתאים לחיפוש",
-    LOADING: "טוען פרויקטים…",
-    ERROR: "לא הצלחנו לטעון את רשימת הפרויקטים",
-    SELECTED_LOADING: "טוען את הפרויקט שנבחר…",
-    SELECTED_ERROR: "לא הצלחנו לטעון את הפרויקט שנבחר",
-    REPLACE: "החלף פרויקט",
-    REQUIRED: "בחר פרויקט",
-  },
-} as const satisfies Record<TaskLinkKindType, Record<string, string>>;
+export const TASK_PROJECT_PICKER_COPY = {
+  LABEL: TASK_LINK_KIND_LABELS.project,
+  SEARCH: "חיפוש פרויקט לפי שם או מזהה...",
+  EMPTY: "לא נמצא פרויקט שמתאים לחיפוש",
+  LOADING: "טוען פרויקטים…",
+  ERROR: "לא הצלחנו לטעון את רשימת הפרויקטים",
+  SELECTED_LOADING: "טוען את הפרויקט שנבחר…",
+  SELECTED_ERROR: "לא הצלחנו לטעון את הפרויקט שנבחר",
+  REPLACE: "החלף פרויקט",
+  REQUIRED: "בחר פרויקט",
+} as const;
 
-export const TASK_LINK_CHOICES = [
-  {
-    kind: TASK_LINK_KINDS.CUSTOMER,
-    icon: ICON_NAMES.CUSTOMER,
-    title: TASK_LINK_KIND_LABELS.customer,
-    subtitle: "משימה כללית מול לקוח, ללא פרויקט מסוים",
-  },
-  {
-    kind: TASK_LINK_KINDS.PROJECT,
-    icon: ICON_NAMES.PROJECTS,
-    title: TASK_LINK_KIND_LABELS.project,
-    subtitle: "משימה בתוך פרויקט או בניין. הלקוח יוצג כמידע בלבד",
-  },
-] as const;
-
-export const TASK_LINK_RESULT_LIMITS: Record<TaskLinkKindType, number> = {
-  customer: 6,
-  project: 5,
-};
+export const TASK_PROJECT_RESULT_LIMIT = 5;
 
 export const URGENCY_CHOICES = [
   {

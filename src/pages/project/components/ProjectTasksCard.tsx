@@ -20,6 +20,7 @@ import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { PROJECT_TASKS_COPY } from "../../../constants/task.constant";
+import TaskTypeChip from "../../../components/TaskTypeChip/TaskTypeChip";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { TASK_COLUMN_STYLES } from "../../tasks/columns/task-columns.style";
@@ -81,6 +82,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
               </Box>
             </Box>
             <Box sx={styles.row({ gap: "8px" })}>
+              <TaskTypeChip taskType={task.taskType} />
               <TaskStatusChip status={task.status} />
               {task.isUrgent && <TaskUrgentChip />}
             </Box>

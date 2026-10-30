@@ -1,9 +1,3 @@
-import {
-  NEW_TASK_COPY,
-  TASK_LINK_PICKER_COPY,
-  type TaskLinkKindType,
-} from "../../../constants/task.constant";
-
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import { useStyles } from "./TaskForm.style";
@@ -11,22 +5,21 @@ import Button from "../../../components/Button/Button";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { NEW_TASK_COPY, TASK_PROJECT_PICKER_COPY } from "../../../constants/task.constant";
 
 interface ITaskLinkSelectionStatusProps {
   isError: boolean;
   onRetry: () => void;
   onReplace: () => void;
-  kind: TaskLinkKindType;
 }
 
 const TaskLinkSelectionStatus: FC<ITaskLinkSelectionStatusProps> = ({
-  kind,
   isError,
   onRetry,
   onReplace,
 }) => {
   const styles = useStyles();
-  const copy = TASK_LINK_PICKER_COPY[kind];
+  const copy = TASK_PROJECT_PICKER_COPY;
 
   if (!isError) {
     return <LoadingState label={copy.SELECTED_LOADING} />;

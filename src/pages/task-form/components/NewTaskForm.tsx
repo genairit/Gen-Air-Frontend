@@ -1,27 +1,15 @@
 import {
-  toTaskFormLink,
-  toLinkKindChange,
   getTaskFormErrors,
-  toTaskLinkSelection,
   toCreateTaskPayload,
   countTaskFormErrors,
-  hasTaskLinkSelection,
   formatUrgencyRecipient,
-  formatClearedLinkNotice,
   toInitialTaskFormValues,
 } from "../../../utilities/task.utility";
-
-import {
-  NEW_TASK_COPY,
-  TASK_ASSIGNEES_QUERY,
-  type TaskLinkKindType,
-} from "../../../constants/task.constant";
 
 import type {
   ITaskFormValues,
   ITaskLinkOption,
   IUrgencyConfirmation,
-  ITaskFormLinkSelection,
 } from "../../../interfaces/task.interface";
 
 import { Box } from "@mui/material";
@@ -36,71 +24,50 @@ import { ICON_NAMES } from "../../../constants/icon.constant";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { buildTaskPath } from "../../../utilities/route.utility";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
+import { buildProjectPath } from "../../../utilities/route.utility";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import InlineError from "../../../components/InlineError/InlineError";
+import { useProjectQuery } from "../../../hooks/queries/project.query";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useCreateTaskMutation } from "../../../hooks/mutations/task.mutation";
+import { NEW_TASK_COPY, TASK_ASSIGNEES_QUERY } from "../../../constants/task.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import UrgencyConfirmPopup from "../../../components/UrgencyConfirmPopup/UrgencyConfirmPopup";
 
 interface INewTaskFormProps {
+  initialProjectId: string | null;
   initialProject: IApiProject | null;
 }
 
-const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject }) => {
+const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject, initialProjectId }) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
-  const [values, setValues] = useState<ITaskFormValues>(() =>
-    toInitialTaskFormValues(initialProject),
-  );
+  const [values, setValues] = useState<ITaskFormValues>(() => ({
+    ...toInitialTaskFormValues(initialProject),
+    projectId: initialProject?.id ?? initialProjectId,
+  }));
   const [linkName, setLinkName] = useState(initialProject?.name ?? "");
-  const [clearedLink, setClearedLink] = useState<ITaskFormLinkSelection | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
   const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
   const createMutation = useCreateTaskMutation();
+  const selectedProjectQuery = useProjectQuery(values.projectId);
+  const isProjectUnavailable = Boolean(values.projectId) && !selectedProjectQuery.isSuccess;
+  const cancelPath = initialProjectId ? buildProjectPath(initialProjectId) : ROUTE_PATHS.BOARD;
 
   const errors = isSubmitAttempted ? getTaskFormErrors(values) : {};
   const errorCount = isSubmitAttempted ? countTaskFormErrors(values) : 0;
   const assignee = (usersQuery.data ?? []).find(user => user.id === values.assigneeOptionId);
   const recipient = formatUrgencyRecipient(assignee);
   const saveLabel = values.isUrgent ? NEW_TASK_COPY.SAVE_URGENT : NEW_TASK_COPY.SAVE;
-  const clearedNotice = clearedLink && formatClearedLinkNotice(clearedLink.link, clearedLink.name);
 
   const updateValues = (changes: Partial<ITaskFormValues>) =>
     setValues(current => ({ ...current, ...changes }));
 
-  const changeLinkKind = (linkKind: TaskLinkKindType) => {
-    if (linkKind === values.linkKind) {
-      return;
-    }
-
-    const previousLink = { name: linkName, link: toTaskFormLink(values) };
-
-    setClearedLink(hasTaskLinkSelection(values) ? previousLink : null);
-    setLinkName("");
-    updateValues(toLinkKindChange(linkKind));
-  };
-
   const changeLink = (option: ITaskLinkOption | null) => {
-    if (!values.linkKind) {
-      return;
-    }
-
-    setClearedLink(null);
     setLinkName(option?.name ?? "");
-    updateValues(toTaskLinkSelection(values.linkKind, option?.id ?? null));
-  };
-
-  const undoLinkClear = () => {
-    if (!clearedLink) {
-      return;
-    }
-
-    setLinkName(clearedLink.name);
-    updateValues(clearedLink.link);
-    setClearedLink(null);
+    updateValues({ projectId: option?.id ?? null });
   };
 
   const createTask = () => {
@@ -119,7 +86,7 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject }) => {
   const handleSubmit = () => {
     setIsSubmitAttempted(true);
 
-    if (countTaskFormErrors(values) > 0) {
+    if (countTaskFormErrors(values) > 0 || isProjectUnavailable) {
       return;
     }
 
@@ -139,10 +106,6 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject }) => {
         values={values}
         onChange={updateValues}
         onLinkChange={changeLink}
-        clearedNotice={clearedNotice}
-        onUndoLinkClear={undoLinkClear}
-        onLinkKindChange={changeLinkKind}
-        onDismissNotice={() => setClearedLink(null)}
       />
       <TaskContentCard errors={errors} values={values} onChange={updateValues} />
       <TaskUrgencyChoiceCard
@@ -159,12 +122,13 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProject }) => {
           text={saveLabel}
           icon={ICON_NAMES.SAVE}
           onClick={handleSubmit}
+          disabled={isProjectUnavailable}
           isLoading={createMutation.isPending}
         />
         <Button
           text={NEW_TASK_COPY.CANCEL}
           variant={BUTTON_VARIANTS.NEUTRAL}
-          onClick={() => navigate(ROUTE_PATHS.TASKS)}
+          onClick={() => navigate(cancelPath)}
         />
       </Box>
       <UrgencyConfirmPopup

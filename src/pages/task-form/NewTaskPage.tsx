@@ -57,7 +57,11 @@ const NewTaskPage = () => {
           {NEW_TASK_COPY.DESCRIPTION}
         </Box>
       </Box>
-      <NewTaskForm key={projectId ?? "new"} initialProject={projectQuery.data ?? null} />
+      <NewTaskForm
+        key={projectId ?? "new"}
+        initialProjectId={projectId}
+        initialProject={projectQuery.data ?? null}
+      />
     </Box>
   );
 };

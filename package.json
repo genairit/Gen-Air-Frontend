@@ -11,7 +11,8 @@
     "format": "prettier --write",
     "typecheck": "tsc -b",
     "test:apartment-import": "node testing/run-apartment-import-tests.mjs",
-    "test:customer-contacts": "node testing/run-customer-contact-tests.mjs"
+    "test:customer-contacts": "node testing/run-customer-contact-tests.mjs",
+    "test:project-tasks": "node testing/run-project-task-tests.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
