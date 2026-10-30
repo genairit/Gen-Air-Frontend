@@ -13,7 +13,6 @@ import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import ProjectDriveCard from "../../project/components/ProjectDriveCard";
 import ProjectTimelineCard from "../../project/components/ProjectTimelineCard";
-import CustomerContacts from "../../../components/CustomerContacts/CustomerContacts";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 
 interface IApartmentViewProps {
@@ -32,12 +31,6 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
     <Box sx={styles.page}>
       <ApartmentHeaderCard stages={stages} building={building} apartment={apartment} />
 
-      <ApartmentCommercialCard apartment={apartment} />
-      {canReadDrive && <ProjectDriveCard projectId={apartment.id} />}
-      {apartment.customerId && (
-        <CustomerContacts key={apartment.customerId} customerId={apartment.customerId} />
-      )}
-
       <Box sx={styles.grid({ minColumnWidth: 380 })}>
         <Box sx={styles.stack({})}>
           <ApartmentEndCustomerCard building={building} apartment={apartment} />
@@ -45,6 +38,9 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
         </Box>
         <ApartmentInheritedCard canEdit={canEdit} building={building} apartment={apartment} />
       </Box>
+
+      <ApartmentCommercialCard apartment={apartment} />
+      {canReadDrive && <ProjectDriveCard projectId={apartment.id} />}
 
       <Box sx={styles.grid({ minColumnWidth: 380 })}>
         <ParentNotesCard apartment={apartment} />

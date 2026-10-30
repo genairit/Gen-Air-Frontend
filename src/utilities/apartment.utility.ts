@@ -62,7 +62,7 @@ export const formatApartmentHeading = (apartment: IApiProject) =>
   `${formatApartmentNumber(apartment)} · ${formatFloor(apartment)}`;
 
 export const formatEndCustomer = (apartment: IApiProject) =>
-  apartment.customerName ?? BUILDING_PAGE_COPY.NO_END_CUSTOMER;
+  apartment.customer?.name ?? apartment.customerName ?? BUILDING_PAGE_COPY.NO_END_CUSTOMER;
 
 export const formatVisibleApartments = ({ visible, total }: { visible: number; total: number }) =>
   `מציג ${visible} מתוך ${total} דירות`;
@@ -173,7 +173,7 @@ export const formatBuildingEyebrow = (buildingName: string) =>
   `${APARTMENT_PAGE_COPY.BUILDING_PREFIX} ${buildingName}`;
 
 export const toStageTabs = (stages: IApiProjectStage[]) =>
-  stages.map(stage => ({ id: stage.id, label: stage.name }));
+  stages.map(stage => ({ id: stage.id, label: stage.name, dotColor: stage.color }));
 
 export const toPaymentTermsOptions = (fieldSet: ProjectDetailFieldSetType | null) =>
   getPaymentTermsOptions(fieldSet).map(terms => ({

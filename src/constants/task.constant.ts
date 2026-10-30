@@ -29,11 +29,6 @@ export const TASK_STATUS_OPTION_LABELS = TASK_STATUS_VALUES.map(
   status => TASK_STATUS_LABELS[status],
 );
 
-export const TASK_STATUS_TABS = TASK_STATUS_VALUES.map(status => ({
-  id: status,
-  label: TASK_STATUS_LABELS[status],
-}));
-
 export const TASK_STATUS_DOT_COLORS: Record<TaskStatusType, string> = {
   waiting_for_response: theme.palette.statusGray,
   not_started: theme.palette.charcoal,
@@ -41,6 +36,12 @@ export const TASK_STATUS_DOT_COLORS: Record<TaskStatusType, string> = {
   in_review: theme.palette.airBlueOutline,
   proposal_sent: theme.palette.danger,
 };
+
+export const TASK_STATUS_TABS = TASK_STATUS_VALUES.map(status => ({
+  id: status,
+  label: TASK_STATUS_LABELS[status],
+  dotColor: TASK_STATUS_DOT_COLORS[status],
+}));
 
 export const TASK_FILTER_IDS = {
   ALL: "all",

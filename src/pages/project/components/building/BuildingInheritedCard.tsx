@@ -11,7 +11,7 @@ import { hasTamaNote } from "../../../../utilities/apartment.utility";
 import type { IApiProject } from "../../../../interfaces/api.interface";
 import { BUILDING_PAGE_COPY } from "../../../../constants/apartment.constant";
 import { formatPaymentTerms } from "../../../../utilities/project-intake.utility";
-import { PROJECT_CONTACT_COPY } from "../../../../constants/project-contact.constant";
+import { PROJECT_INTAKE_COPY } from "../../../../constants/project-intake.constant";
 import { formatCustomerDetailValue } from "../../../../utilities/customer-details.utility";
 
 interface IBuildingInheritedCardProps {
@@ -22,7 +22,7 @@ const BuildingInheritedCard: FC<IBuildingInheritedCardProps> = ({ building }) =>
   const styles = usePageStyles();
 
   const verifiedBadge = building.addressPlaceId && (
-    <Chip variant={CHIP_VARIANTS.ALERT} label={PROJECT_CONTACT_COPY.VERIFIED_BADGE} />
+    <Chip variant={CHIP_VARIANTS.ALERT} label={PROJECT_INTAKE_COPY.VERIFIED_BADGE} />
   );
 
   const tamaBadge = hasTamaNote(building.notes) && <Chip label={BUILDING_PAGE_COPY.TAMA_BADGE} />;

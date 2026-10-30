@@ -8,6 +8,7 @@ import { Box } from "@mui/material";
 import Button from "../Button/Button";
 import { type FC, useState } from "react";
 import CardHeader from "../CardHeader/CardHeader";
+import { useStyles } from "./CustomerContacts.style";
 import InlineError from "../InlineError/InlineError";
 import { usePageStyles } from "../../pages/page.style";
 import CustomerContactItem from "./CustomerContactItem";
@@ -18,6 +19,7 @@ import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
 import { CUSTOMER_CONTACT_COPY } from "../../constants/customer-contact.constant";
 import { toCustomerContactDraft } from "../../utilities/customer-contact.utility";
+import { BUTTON_SIZES, BUTTON_VARIANTS } from "../Button/constants/button.constants";
 import { useCustomerContactsQuery } from "../../hooks/queries/customer-contact.query";
 import { getCustomerImportErrorMessage } from "../../utilities/customer-import-error.utility";
 import { useSaveCustomerContactMutation } from "../../hooks/mutations/customer-contact.mutation";
@@ -28,6 +30,7 @@ interface ICustomerContactsProps {
 }
 const CustomerContacts: FC<ICustomerContactsProps> = ({ customerId, editable = false }) => {
   const styles = usePageStyles();
+  const contactStyles = useStyles();
   const user = useSessionUser();
   const [editor, setEditor] = useState<ICustomerContactEditor | null>(null);
   const canRead = hasPermission(user, PERMISSIONS.CUSTOMERS_READ);
@@ -58,7 +61,12 @@ const CustomerContacts: FC<ICustomerContactsProps> = ({ customerId, editable = f
   }));
   const showEditor = editor !== null && canManage;
   const addAction = canStart ? (
-    <Button text={CUSTOMER_CONTACT_COPY.ADD} onClick={() => startEditing(null)} />
+    <Button
+      size={BUTTON_SIZES.COMPACT}
+      text={CUSTOMER_CONTACT_COPY.ADD}
+      variant={BUTTON_VARIANTS.NEUTRAL}
+      onClick={() => startEditing(null)}
+    />
   ) : null;
   if (!canRead) {
     return null;
@@ -74,7 +82,14 @@ const CustomerContacts: FC<ICustomerContactsProps> = ({ customerId, editable = f
       />
       {contactsQuery.isPending && <span role="status">{CUSTOMER_CONTACT_COPY.LOADING}</span>}
       {queryError && <InlineError message={queryError} />}
-      {isEmpty && <span>{CUSTOMER_CONTACT_COPY.EMPTY}</span>}
+      {isEmpty && (
+        <Box sx={contactStyles.empty}>
+          <b>{CUSTOMER_CONTACT_COPY.EMPTY_TITLE}</b>
+          <Box component="span" sx={contactStyles.caption}>
+            {CUSTOMER_CONTACT_COPY.EMPTY_SUBTITLE}
+          </Box>
+        </Box>
+      )}
       <Box sx={styles.stack({})}>
         {contactItems.map(({ contact, onEdit }) => (
           <CustomerContactItem onEdit={onEdit} key={contact.id} contact={contact} />

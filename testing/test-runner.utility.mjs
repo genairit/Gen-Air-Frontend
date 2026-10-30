@@ -33,6 +33,7 @@ export const runBundledTest = async ({ input, output, external = [] }) => {
   await build({
     input: resolve(TEST_ROOT, input),
     platform: "node",
+    moduleTypes: { ".png": "dataurl" },
     external: [...EXTERNAL_PACKAGES, ...external],
     transform: { define: { "import.meta.env": "{}" } },
     output: { file, format: "esm", codeSplitting: false },

@@ -1,9 +1,3 @@
-import type {
-  TContactValues,
-  IPaymentTermsValues,
-  IProjectIntakeValues,
-} from "../interfaces/project.interface";
-
 import {
   PAYMENT_TERMS,
   PAYMENT_TERMS_LABELS,
@@ -13,32 +7,20 @@ import {
 
 import { validatePaymentTermsNote } from "./validators";
 import type { IApiProject } from "../interfaces/api.interface";
-import { CONTACT_FIELDS } from "../constants/project-contact.constant";
 import { isAddressAccepted, toProjectAddress } from "./address.utility";
 import type { TProjectIntakePayload } from "../interfaces/api-request.interface";
 import { ADDRESS_CITY_REQUIRED_BY_FIELD_SET } from "../constants/project-address.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
-
-const EMPTY_CONTACT_VALUES: TContactValues = {
-  contactName: "",
-  contactRole: "",
-  contactPhone: "",
-};
+import type { IPaymentTermsValues, IProjectIntakeValues } from "../interfaces/project.interface";
 
 export const createEmptyIntakeValues = (): IProjectIntakeValues => ({
   address: null,
-  contact: { ...EMPTY_CONTACT_VALUES },
   paymentTerms: { terms: null, note: "" },
 });
 
 export const toIntakeValues = (project: IApiProject): IProjectIntakeValues => ({
   address: toProjectAddress(project),
   paymentTerms: { terms: project.paymentTerms, note: project.paymentTermsNote ?? "" },
-  contact: {
-    contactName: project.contactName ?? "",
-    contactRole: project.contactRole ?? "",
-    contactPhone: project.contactPhone ?? "",
-  },
 });
 
 export const isCityRequired = (fieldSet: ProjectDetailFieldSetType | null) =>
@@ -66,9 +48,6 @@ export const fitPaymentTermsToFieldSet = (
 export const isPaymentTermsNoteRequired = (terms: PaymentTermsType | null) =>
   terms === PAYMENT_TERMS.OTHER;
 
-const countContactErrors = (contact: TContactValues) =>
-  CONTACT_FIELDS.filter(config => !config.validate(contact[config.field]).isValid).length;
-
 const countPaymentTermsErrors = ({ terms, note }: IPaymentTermsValues) => {
   if (!terms) {
     return 1;
@@ -80,12 +59,6 @@ const countPaymentTermsErrors = ({ terms, note }: IPaymentTermsValues) => {
   return hasInvalidNote ? 1 : 0;
 };
 
-const hasContactValue = (contact: TContactValues) =>
-  Object.values(contact).some(value => Boolean(value.trim()));
-
-const isSameContact = (current: TContactValues, original: TContactValues) =>
-  CONTACT_FIELDS.every(({ field }) => current[field].trim() === original[field].trim());
-
 const isSamePaymentTerms = (current: IPaymentTermsValues, original: IPaymentTermsValues) =>
   current.terms === original.terms && current.note.trim() === original.note.trim();
 
@@ -94,13 +67,11 @@ const isSameAddress = (current: IProjectIntakeValues, original: IProjectIntakeVa
 
 export interface IIntakeChangeSet {
   address: boolean;
-  contact: boolean;
   paymentTerms: boolean;
 }
 
 const NEW_PROJECT_INTAKE_GROUPS: IIntakeChangeSet = {
   address: true,
-  contact: false,
   paymentTerms: true,
 };
 
@@ -114,7 +85,6 @@ export const getChangedIntakeGroups = (
 
   return {
     address: !isSameAddress(values, original),
-    contact: !isSameContact(values.contact, original.contact),
     paymentTerms: !isSamePaymentTerms(values.paymentTerms, original.paymentTerms),
   };
 };
@@ -132,7 +102,6 @@ export const getRequiredIntakeGroups = (
 
   return {
     address: changed.address || Boolean(original.address),
-    contact: changed.contact || hasContactValue(original.contact),
     paymentTerms: changed.paymentTerms || Boolean(original.paymentTerms.terms),
   };
 };
@@ -149,22 +118,15 @@ export const countIntakeErrors = ({ values, original, fieldSet }: IIntakeValidat
   const isAddressValid = isAddressAccepted({ address: values.address, requiresCity });
 
   const addressErrors = required.address && !isAddressValid ? 1 : 0;
-  const contactErrors = required.contact ? countContactErrors(values.contact) : 0;
   const paymentErrors = required.paymentTerms ? countPaymentTermsErrors(values.paymentTerms) : 0;
 
-  return addressErrors + contactErrors + paymentErrors;
+  return addressErrors + paymentErrors;
 };
 
 const toNullableText = (value: string) => value.trim() || null;
 
 const toAddressPayload = ({ address }: IProjectIntakeValues): TProjectIntakePayload => ({
   addressPlaceId: address?.placeId ?? null,
-});
-
-const toContactPayload = ({ contact }: IProjectIntakeValues): TProjectIntakePayload => ({
-  contactName: toNullableText(contact.contactName),
-  contactRole: toNullableText(contact.contactRole),
-  contactPhone: toNullableText(contact.contactPhone),
 });
 
 const toPaymentTermsPayload = ({ paymentTerms }: IProjectIntakeValues): TProjectIntakePayload => ({
@@ -179,7 +141,6 @@ const PAYLOAD_BUILDERS: Record<
   (values: IProjectIntakeValues) => TProjectIntakePayload
 > = {
   address: toAddressPayload,
-  contact: toContactPayload,
   paymentTerms: toPaymentTermsPayload,
 };
 

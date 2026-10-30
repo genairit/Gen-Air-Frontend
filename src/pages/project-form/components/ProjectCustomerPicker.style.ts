@@ -19,7 +19,7 @@ export const useStyles = () =>
       justifyContent: "space-between",
       backgroundColor: palette.airBlue,
     },
-    apartmentList: {
+    list: {
       gap: "2px",
       padding: "8px",
       display: "flex",
@@ -27,15 +27,10 @@ export const useStyles = () =>
       borderRadius: "24px",
       boxShadow: softShadow.inset,
     },
-    list: {
-      gap: "6px",
-      display: "flex",
-      flexDirection: "column",
-    },
     listLabel: {
       ...MUTED_CAPTION,
       fontWeight: 600,
-      padding: "0 14px",
+      padding: "8px 14px 4px",
     },
     option: (isSelectable: boolean) => ({
       gap: "8px 14px",
@@ -94,6 +89,7 @@ export const useStyles = () =>
       minWidth: 0,
       display: "flex",
       flexDirection: "column",
+      flex: "1 1 280px",
     },
     selectedName: {
       gap: "10px",
