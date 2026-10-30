@@ -12,7 +12,8 @@
     "typecheck": "tsc -b",
     "test:apartment-import": "node testing/run-apartment-import-tests.mjs",
     "test:customer-contacts": "node testing/run-customer-contact-tests.mjs",
-    "test:project-tasks": "node testing/run-project-task-tests.mjs"
+    "test:project-tasks": "node testing/run-project-task-tests.mjs",
+    "test:customer-projects": "node testing/run-customer-project-tests.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

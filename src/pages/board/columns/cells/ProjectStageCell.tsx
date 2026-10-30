@@ -3,13 +3,14 @@ import type { FC, MouseEvent } from "react";
 import { PROJECT_COLUMN_STYLES } from "../project-columns.style";
 import { findStageByName } from "../../../../utilities/project.utility";
 import Autocomplete from "../../../../components/Autocomplete/Autocomplete";
-import type { IApiProject, IApiProjectStage } from "../../../../interfaces/api.interface";
+import type { IApiProjectStage } from "../../../../interfaces/api.interface";
+import type { IProjectListItem } from "../../../../interfaces/project-list.interface";
 
 interface IProjectStageCellProps {
   canMove: boolean;
-  project: IApiProject;
+  project: IProjectListItem;
   stages: IApiProjectStage[];
-  onChange: (project: IApiProject, stageId: string) => void;
+  onChange: (project: IProjectListItem, stageId: string) => void;
 }
 
 const stopRowClick = (event: MouseEvent) => event.stopPropagation();

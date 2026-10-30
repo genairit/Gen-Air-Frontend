@@ -1,10 +1,10 @@
 import type { FC } from "react";
-import type { IApiProject } from "../../../../interfaces/api.interface";
 import AvatarStack from "../../../../components/AvatarStack/AvatarStack";
 import { toProjectSummary } from "../../../../utilities/mappers/project.mapper";
+import type { IProjectListItem } from "../../../../interfaces/project-list.interface";
 
 interface IProjectTeamCellProps {
-  project: IApiProject;
+  project: IProjectListItem;
 }
 
 const ProjectTeamCell: FC<IProjectTeamCellProps> = ({ project }) => (

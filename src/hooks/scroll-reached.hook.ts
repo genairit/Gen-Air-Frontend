@@ -4,6 +4,7 @@ interface IUseScrollReachedOptions {
   isEnabled: boolean;
   rootMargin?: string;
   onReach: () => void;
+  root?: Element | null;
 }
 
 const isReached = (entry: IntersectionObserverEntry) => {
@@ -15,6 +16,7 @@ const isReached = (entry: IntersectionObserverEntry) => {
 export const useScrollReached = ({
   onReach,
   isEnabled,
+  root = null,
   rootMargin = "0px",
 }: IUseScrollReachedOptions) => {
   const [element, setElement] = useState<Element | null>(null);
@@ -30,13 +32,13 @@ export const useScrollReached = ({
           onReach();
         }
       },
-      { rootMargin },
+      { root, rootMargin },
     );
 
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, [element, isEnabled, onReach, rootMargin]);
+  }, [element, isEnabled, onReach, rootMargin, root]);
 
   return setElement;
 };

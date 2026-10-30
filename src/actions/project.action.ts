@@ -9,6 +9,7 @@ import { toAuthorizedProjectUpdate } from "../utilities/project-permission.utili
 const invalidateProjectQueries = () =>
   Promise.all([
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECTS] }),
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.CUSTOMER_PROJECTS] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.STAGE_COUNTS] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.TRANSITIONS] }),
