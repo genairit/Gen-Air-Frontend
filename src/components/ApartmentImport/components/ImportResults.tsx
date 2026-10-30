@@ -22,7 +22,7 @@ const ImportResults: FC<IImportResultsProps> = ({ result, onRetry, onDownloadRep
     <Box sx={styles.stack}>
       <Box role="status" sx={styles.panel}>
         <Box component="b">{summary}</Box>
-        <Box sx={styles.muted}>דירות קיימות לא עודכנו ולא נמחקו. תוצאות כל השורות מוצגות להלן.</Box>
+        <Box sx={styles.muted}>דירות קיימות לא עודכנו ולא נמחקו. השורות שלא נקלטו מוצגות להלן.</Box>
       </Box>
       <ImportSummaryTiles counts={result.counts} />
       {hasSkipped && (

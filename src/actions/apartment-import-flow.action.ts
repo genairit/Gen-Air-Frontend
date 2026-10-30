@@ -10,6 +10,16 @@ import type {
   IApartmentImportStateActions,
 } from "../interfaces/apartment-import.interface";
 
+import {
+  getCustomerImportErrorCode,
+  getCustomerImportErrorMessage,
+} from "../utilities/customer-import-error.utility";
+
+import {
+  CUSTOMER_IMPORT_ERROR_COPY,
+  CUSTOMER_IMPORT_ERROR_MESSAGES,
+} from "../constants/customer-import-error.constant";
+
 import { isAxiosError } from "axios";
 import { logger } from "../utilities/logger.utility";
 import { queryClient } from "../providers/query-client";
@@ -17,6 +27,7 @@ import { isRecord } from "../utilities/guards/primitive.guard";
 import { FileDownloadManager } from "../managers/file-download.manager";
 import { QUERY_KEYS, QUERY_ROOTS } from "../constants/query-key.constant";
 import { apartmentImportService } from "../services/apartment-import.service";
+import { CUSTOMER_CONTACT_QUERY_ROOT } from "../constants/customer-contact.constant";
 
 interface IStartImportOptions extends IApartmentImportStateActions {
   file: File;
@@ -32,8 +43,18 @@ const getImportFailure = (error: unknown): IImportFailure => {
   if (isTemplateError) {
     return {
       title: "הייבוא נכשל: מבנה הקובץ לא תואם",
-      message: typeof body.message === "string" ? body.message : "יש להשתמש בתבנית הרשמית",
+      message: CUSTOMER_IMPORT_ERROR_COPY.TEMPLATE,
       code: APARTMENT_IMPORT.INVALID_TEMPLATE,
+    };
+  }
+
+  const code = getCustomerImportErrorCode(error);
+  const knownCode = code !== null && Object.hasOwn(CUSTOMER_IMPORT_ERROR_MESSAGES, code);
+  if (knownCode) {
+    return {
+      title: "הייבוא נכשל",
+      message: getCustomerImportErrorMessage(error),
+      code,
     };
   }
 
@@ -116,5 +137,10 @@ export const refreshImportedApartmentsAction = async (buildingId: string): Promi
       { throwOnError: true },
     ),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.CUSTOMERS] }, { throwOnError: true }),
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.CUSTOMER] }, { throwOnError: true }),
+    queryClient.invalidateQueries(
+      { queryKey: [CUSTOMER_CONTACT_QUERY_ROOT] },
+      { throwOnError: true },
+    ),
   ]);
 };

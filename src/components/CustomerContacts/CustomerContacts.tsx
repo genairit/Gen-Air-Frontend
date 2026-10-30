@@ -16,10 +16,10 @@ import { ICON_NAMES } from "../../constants/icon.constant";
 import CustomerContactEditor from "./CustomerContactEditor";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
-import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { CUSTOMER_CONTACT_COPY } from "../../constants/customer-contact.constant";
 import { toCustomerContactDraft } from "../../utilities/customer-contact.utility";
 import { useCustomerContactsQuery } from "../../hooks/queries/customer-contact.query";
+import { getCustomerImportErrorMessage } from "../../utilities/customer-import-error.utility";
 import { useSaveCustomerContactMutation } from "../../hooks/mutations/customer-contact.mutation";
 
 interface ICustomerContactsProps {
@@ -37,8 +37,10 @@ const CustomerContacts: FC<ICustomerContactsProps> = ({ customerId, editable = f
   const canStart = canManage && editor === null;
   const contacts = contactsQuery.data ?? [];
   const isEmpty = contactsQuery.isSuccess && contacts.length === 0;
-  const queryError = contactsQuery.isError ? getApiErrorMessage(contactsQuery.error) : null;
-  const saveError = saveMutation.isError ? getApiErrorMessage(saveMutation.error) : null;
+  const queryError = contactsQuery.isError
+    ? getCustomerImportErrorMessage(contactsQuery.error)
+    : null;
+  const saveError = saveMutation.isError ? getCustomerImportErrorMessage(saveMutation.error) : null;
   const startEditing = (contact: ICustomerContact | null) => {
     saveMutation.reset();
     setEditor({ id: contact?.id ?? null, values: toCustomerContactDraft(contact) });

@@ -13,6 +13,7 @@ import {
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { AxiosError, AxiosHeaders } from "axios";
 import { renderToStaticMarkup } from "react-dom/server";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
@@ -25,6 +26,8 @@ import CustomerContacts from "../src/components/CustomerContacts/CustomerContact
 import CustomerContactItem from "../src/components/CustomerContacts/CustomerContactItem";
 import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
 import CustomerContactEditor from "../src/components/CustomerContacts/CustomerContactEditor";
+import { getCustomerImportErrorMessage } from "../src/utilities/customer-import-error.utility";
+import { CUSTOMER_IMPORT_ERROR_MESSAGES } from "../src/constants/customer-import-error.constant";
 
 const contact = {
   id: "contact-1",
@@ -236,4 +239,55 @@ test("contact name and email length boundaries match backend limits", () => {
   assert.deepEqual(validateCustomerContactDraft(draft), []);
   assert.equal(validateCustomerContactDraft({ ...draft, name: `${draft.name}א` }).length, 1);
   assert.equal(validateCustomerContactDraft({ ...draft, email: `${email}d` }).length, 1);
+});
+
+test("contact API codes are localized without reflecting raw server values", () => {
+  const config = { headers: new AxiosHeaders() };
+  Object.entries(CUSTOMER_IMPORT_ERROR_MESSAGES).forEach(([code, message]) => {
+    const error = new AxiosError("failure", "ERR_BAD_REQUEST", config, null, {
+      config,
+      status: 409,
+      statusText: "Conflict",
+      headers: {},
+      data: { code, message: "private server detail person@example.com" },
+    });
+    assert.equal(getCustomerImportErrorMessage(error), message);
+  });
+  ["UNKNOWN_CODE", "toString", "__proto__"].forEach(code => {
+    const error = new AxiosError("failure", "ERR_BAD_REQUEST", config, null, {
+      config,
+      status: 400,
+      statusText: "Bad Request",
+      headers: {},
+      data: { code, message: ["private validation detail"] },
+    });
+    assert.equal(getCustomerImportErrorMessage(error), "הנתונים שנשלחו אינם תקינים");
+  });
+  assert.equal(
+    getCustomerImportErrorMessage(new Error("private")),
+    "הפעולה נכשלה. נסה שוב בעוד רגע.",
+  );
+});
+
+test("unrecognized contact responses use safe status-specific Hebrew fallbacks", () => {
+  const config = { headers: new AxiosHeaders() };
+  const cases = [
+    { status: 401, message: "פג תוקף החיבור. יש להתחבר מחדש" },
+    { status: 403, message: "אין לך הרשאה לבצע פעולה זו" },
+    { status: 404, message: "הפריט המבוקש לא נמצא" },
+    { status: 409, message: "הפעולה מתנגשת בנתונים קיימים" },
+    { status: 500, message: "הפעולה נכשלה. נסה שוב בעוד רגע." },
+  ];
+  cases.forEach(({ status, message }) => {
+    [null, [], "raw", { code: 7 }, { code: null }, { message: "private" }].forEach(data => {
+      const error = new AxiosError("failure", "ERR_BAD_RESPONSE", config, null, {
+        config,
+        status,
+        statusText: "Failure",
+        headers: {},
+        data,
+      });
+      assert.equal(getCustomerImportErrorMessage(error), message);
+    });
+  });
 });

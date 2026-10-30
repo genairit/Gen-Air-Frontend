@@ -1,4 +1,5 @@
 import { test } from "node:test";
+import { AxiosError } from "axios";
 import assert from "node:assert/strict";
 import { act, create } from "react-test-renderer";
 import Button from "../src/components/Button/Button";
@@ -40,8 +41,17 @@ test("failed contact save retains editable draft until successful retry", async 
       permissions: [PERMISSIONS.CUSTOMERS_READ, PERMISSIONS.CUSTOMERS_UPDATE],
     },
   });
-  httpClient.defaults.adapter = async () => {
-    throw new Error("failed contact save");
+  httpClient.defaults.adapter = async config => {
+    throw new AxiosError("duplicate", "ERR_BAD_REQUEST", config, null, {
+      config,
+      status: 409,
+      statusText: "Conflict",
+      headers: {},
+      data: {
+        code: "DUPLICATE_CUSTOMER_CONTACT",
+        message: "A contact with these details already exists",
+      },
+    });
   };
   try {
     await act(async () => {
@@ -69,6 +79,7 @@ test("failed contact save retains editable draft until successful retry", async 
     });
     const editor = renderer.root.findByType(CustomerContactEditor);
     assert.equal(editor.props.values.name, "איש קשר חדש");
+    assert.equal(editor.props.error, "איש קשר עם פרטים אלה כבר קיים אצל הלקוח");
     httpClient.defaults.adapter = async config => ({
       data: contact,
       status: 200,

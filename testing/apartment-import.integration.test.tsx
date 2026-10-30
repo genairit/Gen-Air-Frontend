@@ -18,15 +18,18 @@ import { AxiosError, AxiosHeaders } from "axios";
 import { act, create } from "react-test-renderer";
 import { setSession } from "../src/store/session.store";
 import { queryClient } from "../src/providers/query-client";
+import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import { useApartmentImport } from "../src/hooks/apartment-import.hook";
 import { FileDownloadManager } from "../src/managers/file-download.manager";
 import { apartmentImportService } from "../src/services/apartment-import.service";
 import { USER_ROLES, USER_ROLE_VALUES } from "../src/constants/user-role.constant";
+import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
 import type { TApartmentImportView } from "../src/interfaces/apartment-import.interface";
 import { canImportApartments } from "../src/utilities/apartment-import-permission.utility";
 import { isApartmentImportResponse } from "../src/utilities/guards/apartment-import.guard";
+import { CUSTOMER_IMPORT_ERROR_COPY } from "../src/constants/customer-import-error.constant";
 
 const response = {
   counts: { created: 1, existing: 1, duplicate: 0, error: 0 },
@@ -109,14 +112,14 @@ test("422 template rejection differs from uncertain network failure", async cont
     statusText: "Unprocessable Entity",
     headers: {},
     config,
-    data: { code: "INVALID_TEMPLATE", message: "עמודה חסרה" },
+    data: { code: "INVALID_TEMPLATE", message: "Invalid workbook: private internal detail" },
   });
   context.mock.method(httpClient, "post", async () => {
     throw error;
   });
   await startApartmentImportAction(options);
   assert.equal(views.at(-1)?.failure?.code, "INVALID_TEMPLATE");
-  assert.equal(views.at(-1)?.failure?.message, "עמודה חסרה");
+  assert.equal(views.at(-1)?.failure?.message, CUSTOMER_IMPORT_ERROR_COPY.TEMPLATE);
   assert.equal(views.at(-1)?.refreshRequired, true);
   context.mock.restoreAll();
   const nonTemplateError = new AxiosError("server", "ERR_BAD_RESPONSE", config, null, {
@@ -355,4 +358,42 @@ test("commercial display preserves zero and exact decimal credit distinct from m
   assert.equal(isApartmentCredit("1.234"), false);
   assert.equal(isApartmentCredit("0"), true);
   assert.equal(isApartmentOwnership("other"), false);
+});
+
+test("known import API errors are localized without exposing server messages", async context => {
+  const views: TApartmentImportView[] = [];
+  const config = { headers: new AxiosHeaders() };
+  context.mock.method(httpClient, "post", async () => {
+    throw new AxiosError("missing", "ERR_BAD_REQUEST", config, null, {
+      config,
+      status: 404,
+      statusText: "Not Found",
+      headers: {},
+      data: {
+        code: "APARTMENT_IMPORT_BUILDING_NOT_FOUND",
+        message: "Internal building identifier",
+      },
+    });
+  });
+  await startApartmentImportAction({
+    file,
+    buildingId: "b",
+    setView: view => views.push(view),
+    setReport: () => {},
+  });
+  assert.equal(views.at(-1)?.failure?.message, "הבניין שנבחר לא נמצא");
+  assert.equal(views.at(-1)?.failure?.code, "APARTMENT_IMPORT_BUILDING_NOT_FOUND");
+});
+
+test("import completion invalidates cached customer details and contacts", async () => {
+  const contactKey = [CUSTOMER_CONTACT_QUERY_ROOT, "cached-customer"];
+  const customerKey = QUERY_KEYS.customer("cached-customer");
+  queryClient.setQueryData(contactKey, [{ id: "old-contact" }]);
+  queryClient.setQueryData(customerKey, { id: "cached-customer" });
+  assert.equal(queryClient.getQueryState(contactKey)?.isInvalidated, false);
+  await refreshImportedApartmentsAction("building-1");
+  assert.equal(queryClient.getQueryState(contactKey)?.isInvalidated, true);
+  assert.equal(queryClient.getQueryState(customerKey)?.isInvalidated, true);
+  queryClient.removeQueries({ queryKey: contactKey });
+  queryClient.removeQueries({ queryKey: customerKey });
 });
