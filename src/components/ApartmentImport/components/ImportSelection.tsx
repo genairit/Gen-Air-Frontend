@@ -1,9 +1,8 @@
 import type { FC } from "react";
 import { Box } from "@mui/material";
-import Button from "../../Button/Button";
 import DropZone from "../../DropZone/DropZone";
 import { useStyles } from "../ApartmentImport.style";
-import { BUTTON_VARIANTS } from "../../Button/constants/button.constants";
+import { DROP_ZONE_APPEARANCE } from "../../../constants/drop-zone.constant";
 import { APARTMENT_IMPORT } from "../../../constants/apartment-import.constant";
 
 interface IImportSelectionProps {
@@ -34,21 +33,20 @@ const ImportSelection: FC<IImportSelectionProps> = ({
       <DropZone
         multiple={false}
         buttonLabel={buttonLabel}
-        title="גרור לכאן קובץ אקסל"
         onFilesSelected={onFilesSelected}
         accept={APARTMENT_IMPORT.EXTENSION}
-        description="קובץ xlsx אחד, עד 5 MB. בחירת הקובץ תתחיל מיד את הייבוא."
+        appearance={DROP_ZONE_APPEARANCE.OUTLINED}
+        title="גרור לכאן את קובץ האקסל או לחץ לבחירה"
+        description="‎.xlsx · הקובץ יועלה ויעובד מיד · גיליון ״דירות״ · עד 5 MB"
       />
+      <Box type="button" sx={styles.link} component="button" onClick={onDownloadTemplate}>
+        הורד תבנית אקסל
+      </Box>
       <Box sx={styles.muted}>
         יש להשתמש בגיליון ״דירות״ ובכותרות התבנית הרשמית, ללא שינוי הסדר. אין שלב תצוגה מקדימה. מספר
         מזהה לקוח (ח״פ / ת״ז) נדרש בכל שורה. ללקוח חדש נדרשים גם סוג לקוח וכתובת לקוח, לצד שם, טלפון
         ודוא״ל תקינים.
       </Box>
-      <Button
-        text="הורד תבנית אקסל"
-        onClick={onDownloadTemplate}
-        variant={BUTTON_VARIANTS.SECONDARY}
-      />
     </Box>
   );
 };

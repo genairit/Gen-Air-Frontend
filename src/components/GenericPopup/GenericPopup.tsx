@@ -31,6 +31,7 @@ export interface IPopupButton {
 export interface IGenericPopupProps {
   open: boolean;
   title: string;
+  header?: ReactNode;
   sx?: SxProps<Theme>;
   guidelines?: string;
   signature?: boolean;
@@ -54,6 +55,7 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   onClose,
   buttons,
   content,
+  header,
   signature,
   guidelines,
   align = "left",
@@ -92,6 +94,18 @@ const GenericPopup: FC<IGenericPopupProps> = ({
     }
   };
 
+  const popupHeader = header ?? (
+    <>
+      <Box sx={styles.headerContainer}>
+        <DialogTitle sx={styles.title}>{title ?? ""}</DialogTitle>
+        <IconButton size="small" onClick={onClose}>
+          <Close />
+        </IconButton>
+      </Box>
+      <Divider />
+    </>
+  );
+
   return (
     <Dialog
       fullWidth
@@ -100,13 +114,7 @@ const GenericPopup: FC<IGenericPopupProps> = ({
       maxWidth={maxWidth}
       sx={mergeSx(styles.root, sx ?? null)}
     >
-      <Box sx={styles.headerContainer}>
-        <DialogTitle sx={styles.title}>{title ?? ""}</DialogTitle>
-        <IconButton size="small" onClick={onClose}>
-          <Close />
-        </IconButton>
-      </Box>
-      <Divider />
+      {popupHeader}
       <DialogContent sx={styles.contentContainer}>
         {icon && <Box sx={styles.iconContainer}>{renderPopupIcon(icon) ?? null}</Box>}
 

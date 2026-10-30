@@ -5,8 +5,8 @@ import type {
 
 import { Box } from "@mui/material";
 import { useStyles } from "./ApartmentImport.style";
+import ImportHeader from "./components/ImportHeader";
 import ImportResults from "./components/ImportResults";
-import WizardStepper from "./components/WizardStepper";
 import GenericPopup from "../GenericPopup/GenericPopup";
 import { type FC, type ReactNode, useState } from "react";
 import ImportSelection from "./components/ImportSelection";
@@ -47,7 +47,8 @@ const ApartmentImport: FC<IApartmentImportProps> = ({
   const isFinished = view.stage === IMPORT_STAGE.RESULTS;
   const requiresRefresh = isFinished || view.refreshRequired === true;
   const activeStep = isFinished ? 1 : 0;
-  const buttonText = isFinished ? "סיום ורענון הדירות" : "סגור";
+  const buttonText = isFinished ? "סיום" : "סגור";
+  const popupStyle = styles.popup({ finished: isFinished });
   const handleClose = async (): Promise<void> => {
     if (isProcessing) {
       return;
@@ -87,14 +88,20 @@ const ApartmentImport: FC<IApartmentImportProps> = ({
   const failure = selectionFailure ?? view.failure;
   const selectionButtonLabel = failure ? "נסה קובץ אחר" : "בחירת קובץ";
   const renderers: Record<ImportStageType, () => ReactNode> = {
-    [IMPORT_STAGE.SELECT]: () => (
-      <ImportSelection
-        existingCount={existingCount}
-        buttonLabel={selectionButtonLabel}
-        onFilesSelected={handleFilesSelected}
-        onDownloadTemplate={handleDownloadTemplate}
-      />
-    ),
+    [IMPORT_STAGE.SELECT]: () => {
+      if (failure) {
+        return null;
+      }
+
+      return (
+        <ImportSelection
+          existingCount={existingCount}
+          buttonLabel={selectionButtonLabel}
+          onFilesSelected={handleFilesSelected}
+          onDownloadTemplate={handleDownloadTemplate}
+        />
+      );
+    },
     [IMPORT_STAGE.PROCESSING]: () => (
       <ImportProcessing fileName={view.fileName} progress={view.progress} />
     ),
@@ -110,11 +117,23 @@ const ApartmentImport: FC<IApartmentImportProps> = ({
   const stageContent = renderers[view.stage]();
   const content = (
     <Box dir="rtl" sx={styles.stack}>
-      <Box sx={styles.muted}>אקסל רשימת דיירים · {buildingName}</Box>
-      <WizardStepper activeStep={activeStep} steps={APARTMENT_IMPORT.STEPS} />
-      {failure && <ServerErrorBanner failure={failure} />}
+      {failure && (
+        <ServerErrorBanner
+          failure={failure}
+          onRetry={handleRetry}
+          onDownloadTemplate={handleDownloadTemplate}
+        />
+      )}
       {stageContent}
     </Box>
+  );
+  const header = (
+    <ImportHeader
+      onClose={handleClose}
+      activeStep={activeStep}
+      disabled={isProcessing}
+      buildingName={buildingName}
+    />
   );
   const buttons = {
     primary: { text: buttonText, onClick: handleClose, isDisabled: isProcessing },
@@ -124,12 +143,13 @@ const ApartmentImport: FC<IApartmentImportProps> = ({
       open={open}
       align="right"
       maxWidth="lg"
-      sx={styles.popup}
+      sx={popupStyle}
+      header={header}
       content={content}
       buttons={buttons}
       onClose={handleClose}
       closeAfterAction={false}
-      title="ייבוא דירות מקובץ אקסל"
+      title={APARTMENT_IMPORT.TITLE}
     />
   );
 };

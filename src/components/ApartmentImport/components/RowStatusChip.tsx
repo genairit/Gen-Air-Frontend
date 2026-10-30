@@ -11,8 +11,9 @@ interface IRowStatusChipProps {
 const RowStatusChip: FC<IRowStatusChipProps> = ({ status }) => {
   const styles = useStyles();
   const label = IMPORT_STATUS_LABELS[status];
+  const chipStyle = styles.chip({ status });
   return (
-    <Box component="span" sx={styles.chip}>
+    <Box sx={chipStyle} component="span">
       {label}
     </Box>
   );

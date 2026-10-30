@@ -17,12 +17,15 @@ const ImportSummaryTiles: FC<IImportSummaryTilesProps> = ({ counts }) => {
   const statuses = Object.values(IMPORT_ROW_STATUS);
   return (
     <Box sx={styles.tiles}>
-      {statuses.map(status => (
-        <Box key={status} sx={styles.panel}>
-          <Box sx={styles.count}>{counts[status]}</Box>
-          <Box sx={styles.muted}>{IMPORT_STATUS_LABELS[status]}</Box>
-        </Box>
-      ))}
+      {statuses.map(status => {
+        const countStyle = styles.count({ status });
+        return (
+          <Box key={status} sx={styles.tile}>
+            <Box sx={countStyle}>{counts[status]}</Box>
+            <Box sx={styles.tileLabel}>{IMPORT_STATUS_LABELS[status]}</Box>
+          </Box>
+        );
+      })}
     </Box>
   );
 };

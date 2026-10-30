@@ -1,3 +1,8 @@
+import {
+  DROP_ZONE_APPEARANCE,
+  type DropZoneAppearanceType,
+} from "../../constants/drop-zone.constant";
+
 import Card from "../Card/Card";
 import Icon from "../Icon/Icon";
 import { Box } from "@mui/material";
@@ -17,6 +22,7 @@ interface IDropZoneProps {
   disabled?: boolean;
   description: string;
   buttonLabel: string;
+  appearance?: DropZoneAppearanceType;
   onFilesSelected: (files: File[]) => void | Promise<void>;
 }
 
@@ -29,8 +35,11 @@ const DropZone: FC<IDropZoneProps> = ({
   description,
   buttonLabel,
   onFilesSelected,
+  appearance = DROP_ZONE_APPEARANCE.SOFT,
 }) => {
-  const padding = compact ? "20px 24px" : "40px 24px";
+  const isOutlined = appearance === DROP_ZONE_APPEARANCE.OUTLINED;
+  const regularPadding = compact ? "20px 24px" : "40px 24px";
+  const padding = isOutlined ? "44px 20px" : regularPadding;
   const styles = useStyles();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const selectFiles = async (files: File[]): Promise<void> => {
@@ -39,6 +48,9 @@ const DropZone: FC<IDropZoneProps> = ({
     }
   };
   const { isDragging, dropHandlers } = useFileDrop(selectFiles);
+  const zoneStyle = styles.zone({ isDragging, compact, isOutlined });
+  const iconStyle = styles.plus({ isOutlined });
+  const inputStyle = styles.input({ isOutlined });
 
   const handleInputChange = async (event: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const files = getSelectedFiles(event);
@@ -46,34 +58,37 @@ const DropZone: FC<IDropZoneProps> = ({
     event.target.value = "";
     await selectFiles(files);
   };
+  const uploadIcon = isOutlined ? "↑" : <Icon size={44} name={ICON_NAMES.UPLOAD} />;
+  const fileButton = !isOutlined && (
+    <Button
+      text={buttonLabel}
+      disabled={disabled}
+      icon={ICON_NAMES.FOLDER}
+      variant={BUTTON_VARIANTS.SECONDARY}
+      onClick={() => fileInputRef.current?.click()}
+    />
+  );
 
   return (
     <Box {...dropHandlers}>
-      <Card padding={padding} sx={styles.zone({ isDragging, compact })}>
-        <Box sx={styles.plus}>
-          <Icon size={44} name={ICON_NAMES.UPLOAD} />
-        </Box>
+      <Card sx={zoneStyle} padding={padding}>
+        <Box sx={iconStyle}>{uploadIcon}</Box>
         <Box component="b" sx={styles.title}>
           {title}
         </Box>
         <Box component="span" sx={styles.description}>
           {description}
         </Box>
-        <Button
-          text={buttonLabel}
-          disabled={disabled}
-          icon={ICON_NAMES.FOLDER}
-          variant={BUTTON_VARIANTS.SECONDARY}
-          onClick={() => fileInputRef.current?.click()}
-        />
+        {fileButton}
         <Box
           type="file"
           accept={accept}
+          sx={inputStyle}
           component="input"
-          sx={styles.input}
           ref={fileInputRef}
           multiple={multiple}
           disabled={disabled}
+          aria-label={buttonLabel}
           onChange={handleInputChange}
         />
       </Card>

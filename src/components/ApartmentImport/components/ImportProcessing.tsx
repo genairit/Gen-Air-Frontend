@@ -14,12 +14,12 @@ const ImportProcessing: FC<IImportProcessingProps> = ({ fileName, progress }) =>
     progress === null ? (
       <LinearProgress aria-label="מעבד את הקובץ" sx={styles.processingTrack} />
     ) : (
-      <ProgressBar value={progress} title="העלאת קובץ" />
+      <ProgressBar value={progress} />
     );
   return (
-    <Box role="status" sx={styles.stack} aria-live="polite">
+    <Box role="status" aria-live="polite" sx={styles.processing}>
       <Box component="b">מעלה ומעבד את הקובץ…</Box>
-      {progressContent}
+      <Box sx={styles.progress}>{progressContent}</Box>
       <Box sx={styles.muted}>{fileName}</Box>
       <Box sx={styles.muted}>יש להמתין לתוצאות לפני העלאה נוספת.</Box>
     </Box>

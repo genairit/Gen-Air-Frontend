@@ -1,12 +1,25 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
+import { DROP_ZONE_DESIGN } from "../../constants/drop-zone.constant";
 import { CENTERED_FLEX, MUTED_CAPTION } from "../../styles/templates.style";
 
 const { palette, softShadow, radius } = theme;
 
 export const useStyles = () =>
   createStyles({
-    zone: ({ isDragging, compact }: { compact: boolean; isDragging: boolean }) => ({
+    zone: ({
+      isDragging,
+      compact,
+      isOutlined,
+    }: {
+      compact: boolean;
+      isDragging: boolean;
+      isOutlined: boolean;
+    }) => ({
+      position: "relative",
+      border: isOutlined ? `2px dashed ${DROP_ZONE_DESIGN.OUTLINE}` : "none",
+      gap: isOutlined ? "12px" : "14px",
+      "&:focus-within": { outline: `2px solid ${palette.primary}`, outlineOffset: 3 },
       display: compact ? "grid" : "flex",
       gridTemplateColumns: compact ? { xs: "1fr", md: "auto minmax(0, 1fr) auto" } : "1fr",
       alignItems: "center",
@@ -22,22 +35,22 @@ export const useStyles = () =>
       "& > b, & > span": {
         gridColumn: compact ? { xs: "auto", md: 2 } : "auto",
         textAlign: compact ? { xs: "center", md: "start" } : "center",
-        maxWidth: compact ? "none" : 360,
+        maxWidth: compact || isOutlined ? "none" : 360,
       },
       textAlign: "center",
-      boxShadow: softShadow.insetLarge,
+      boxShadow: isOutlined ? softShadow.inset : softShadow.insetLarge,
       backgroundColor: isDragging ? palette.airBlue : palette.iceWhite,
     }),
-    plus: {
+    plus: ({ isOutlined }: { isOutlined: boolean }) => ({
       ...CENTERED_FLEX,
-      width: 72,
-      height: 72,
-      fontSize: 26,
+      width: isOutlined ? 64 : 72,
+      height: isOutlined ? 64 : 72,
+      fontSize: isOutlined ? 28 : 26,
       fontWeight: 300,
       color: palette.primary,
-      borderRadius: radius.pill,
-      boxShadow: softShadow.raisedLarge,
-    },
+      borderRadius: isOutlined ? radius.panel : radius.pill,
+      boxShadow: isOutlined ? softShadow.raisedMedium : softShadow.raisedLarge,
+    }),
     title: {
       fontSize: 17,
       fontWeight: 700,
@@ -47,7 +60,13 @@ export const useStyles = () =>
       maxWidth: 360,
       textWrap: "pretty",
     },
-    input: {
-      display: "none",
-    },
+    input: ({ isOutlined }: { isOutlined: boolean }) => ({
+      display: isOutlined ? "block" : "none",
+      position: "absolute",
+      inset: 0,
+      width: "100%",
+      height: "100%",
+      opacity: 0,
+      cursor: "pointer",
+    }),
   });
