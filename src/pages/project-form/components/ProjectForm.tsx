@@ -181,8 +181,15 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     submitByMode[mode]();
   };
 
-  const updateValues = (changes: Partial<IProjectFormValues>) =>
+  const updateValues = (changes: Partial<IProjectFormValues>) => {
+    const isNameChanging = "name" in changes && changes.name !== values.name;
+    if (isNameChanging && hasServerNameConflict) {
+      createMutation.reset();
+      updateMutation.reset();
+    }
+
     setValues(current => ({ ...current, ...changes }));
+  };
 
   const handleCustomerDetailChange = (field: CustomerDetailFieldType, value: string) =>
     setValues(current => ({

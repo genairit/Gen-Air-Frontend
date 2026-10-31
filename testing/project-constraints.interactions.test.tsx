@@ -20,6 +20,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import TextField from "../src/components/TextField/TextField";
 import { API_ENDPOINTS } from "../src/constants/api.constant";
 import { httpClient } from "../src/services/http-client.service";
+import { QUERY_ROOTS } from "../src/constants/query-key.constant";
 import { SEARCH_DEBOUNCE_MS } from "../src/constants/search.constant";
 import ProjectForm from "../src/pages/project-form/components/ProjectForm";
 import { PROJECT_FORM_MODES } from "../src/constants/project-form.constant";
@@ -476,6 +477,86 @@ test("server race conflict becomes inline name feedback and does not follow the 
     );
     assert.equal(renderer.root.findByType(ProjectDetailsCard).props.nameError, "");
     assert.equal(renderer.root.findByType(ProjectDetailsCard).props.namePending, true);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    client.clear();
+    request.mock.restore();
+    patch.mock.restore();
+    setSession(null);
+  }
+});
+
+test("a cleared race conflict does not resurrect when the original name becomes available", async () => {
+  const client = createConstraintClient();
+  client.setQueryDefaults([QUERY_ROOTS.PROJECT_NAME_AVAILABILITY], { staleTime: 0 });
+  const state = rendererState();
+  const checkedNames: string[] = [];
+  const request = mock.method(
+    httpClient,
+    "get",
+    async (_url: string, config: { params: { name: string } }) => {
+      checkedNames.push(config.params.name);
+      return { data: { available: true } };
+    },
+  );
+  const conflict = new AxiosError("duplicate");
+  Reflect.set(conflict, "response", {
+    status: 409,
+    data: { code: "PROJECT_NAME_ALREADY_EXISTS", message: "duplicate" },
+  });
+  const patch = mock.method(httpClient, "patch", async () => {
+    throw conflict;
+  });
+  setSession({ accessToken: "test-token", user: constraintUser });
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={client}>
+          <MemoryRouter>
+            <ProjectForm project={project} mode={PROJECT_FORM_MODES.EDIT} />
+          </MemoryRouter>
+        </QueryClientProvider>,
+        { createNodeMock },
+      );
+      await settle();
+    });
+    await act(settle);
+    const renderer = state.renderer;
+    assert.ok(renderer);
+    const save = () =>
+      renderer.root.findAllByType(Button).find(item => item.props.text === "שמור שינויים");
+    assert.equal(save()?.props.disabled, false);
+    await act(async () => {
+      save()?.props.onClick();
+      await settle();
+    });
+    await act(settle);
+    assert.equal(patch.mock.callCount(), 1);
+    assert.equal(
+      renderer.root.findByType(ProjectDetailsCard).props.nameError,
+      PROJECT_CONSTRAINT_COPY.DUPLICATE_NAME,
+    );
+    await act(async () =>
+      renderer.root
+        .findByType(ProjectDetailsCard)
+        .props.onChange({ name: "Available alternative" }),
+    );
+    assert.equal(renderer.root.findByType(ProjectDetailsCard).props.nameError, "");
+    await act(async () => {
+      await setTimeout(SEARCH_DEBOUNCE_MS + 30);
+    });
+    await act(settle);
+    await act(async () =>
+      renderer.root.findByType(ProjectDetailsCard).props.onChange({ name: project.name }),
+    );
+    await act(async () => {
+      await setTimeout(SEARCH_DEBOUNCE_MS + 30);
+    });
+    await act(settle);
+    assert.equal(checkedNames.filter(name => name === project.name).length, 2);
+    assert.equal(renderer.root.findByType(ProjectDetailsCard).props.namePending, false);
+    assert.equal(renderer.root.findByType(ProjectDetailsCard).props.nameError, "");
+    assert.equal(save()?.props.disabled, false);
   } finally {
     await act(async () => state.renderer?.unmount());
     client.clear();
