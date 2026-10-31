@@ -7,6 +7,10 @@ export const useStyles = () =>
   createStyles({
     container: ({ disabled }: { disabled: boolean }) => ({
       gap: "12px",
+      border: 0,
+      padding: 0,
+      background: "transparent",
+      fontFamily: "inherit",
       fontSize: 15,
       minHeight: 48,
       display: "flex",

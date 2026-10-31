@@ -125,8 +125,10 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   apartmentCredit?: string | null;
   prioritySyncedAt: string | null;
   parentProject?: IApiProjectReference;
+  hasGeneralLightingCeilingLowering?: boolean;
   inheritedFields?: InheritedProjectFieldType[];
   apartmentOwnership?: ApartmentOwnershipType | null;
+  generalLightingCeilingLoweringHeight?: number | null;
 }
 
 export type TCountsByStageId = Record<string, number>;

@@ -51,6 +51,7 @@ import {
 
 import { isPermission } from "./permission.guard";
 import { isCustomerContactList } from "../customer-contact.utility";
+import { hasValidProjectLighting } from "../project-constraints.utility";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
 import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial.utility";
 
@@ -174,7 +175,8 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     hasValidCustomer &&
     hasValidOwnTeam &&
     hasValidCredit &&
-    hasValidOwnership
+    hasValidOwnership &&
+    hasValidProjectLighting(value)
   );
 };
 

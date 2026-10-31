@@ -41,6 +41,12 @@ import {
   countCustomerDetailErrors,
 } from "../../../utilities/customer-details.utility";
 
+import {
+  getProjectNameError,
+  isProjectNameConflict,
+  getLightingHeightError,
+} from "../../../utilities/project-constraints.utility";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -70,6 +76,7 @@ import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
 import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
+import { useProjectNameAvailability } from "../../../hooks/queries/project-name.query";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
@@ -114,6 +121,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const createMutation = useCreateProjectMutation(draftUserId);
   const updateMutation = useUpdateProjectMutation();
   const deleteMutation = useDeleteProjectMutation();
+  const nameAvailability = useProjectNameAvailability(values.name, projectId);
 
   const projectTypes = typesQuery.data ?? [];
   const fieldSet = findDetailFieldSet(projectTypes, values.typeId);
@@ -125,10 +133,27 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const requiredIntake = getRequiredIntakeGroups(values, originalIntake);
   const intakeErrorCount = countIntakeErrors({ values, fieldSet, original: originalIntake });
   const hasSiteDetails = getSiteDetailFields(fieldSet).length > 0;
+  const heightError = getLightingHeightError(values);
+  const mutationName =
+    (createMutation.variables ?? updateMutation.variables)?.values.name.trim() ?? null;
+  const hasServerNameConflict =
+    isProjectNameConflict(mutationError) && mutationName === values.name.trim();
+  const isNameTaken = nameAvailability.isTaken || hasServerNameConflict;
+  const nameError = getProjectNameError({
+    isTaken: isNameTaken,
+    isCheckFailed: nameAvailability.isError,
+  });
+  const isSubmitDisabled =
+    !canSubmitProjectForm(values) ||
+    nameAvailability.isPending ||
+    nameAvailability.isError ||
+    isNameTaken;
   const formErrorCount =
     countMissingCustomer(values) +
     countCustomerDetailErrors(values.customerDetails, fieldSet) +
-    intakeErrorCount;
+    intakeErrorCount +
+    Number(heightError !== "") +
+    Number(isNameTaken);
 
   const openProject = (savedProjectId: string) => navigate(buildProjectPath(savedProjectId));
 
@@ -142,8 +167,12 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       ),
   };
 
+  const handleRetryNameCheck = async () => {
+    await nameAvailability.retry();
+  };
+
   const handleSubmit = () => {
-    if (formErrorCount > 0) {
+    if (formErrorCount > 0 || isSubmitDisabled) {
       setIsSubmitAttempted(true);
 
       return;
@@ -233,9 +262,14 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       <ProjectDetailsCard
         mode={mode}
         values={values}
+        nameError={nameError}
         onChange={updateValues}
         stages={stagesQuery.data ?? []}
         projectCode={project?.code ?? null}
+        isSubmitAttempted={isSubmitAttempted}
+        onRetryNameCheck={handleRetryNameCheck}
+        namePending={nameAvailability.isPending}
+        nameCheckFailed={nameAvailability.isError}
       />
       <ProjectTypeCard
         onSelect={handleTypeSelect}
@@ -313,7 +347,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           icon={copy.submitIcon}
           onClick={handleSubmit}
           text={copy.submitLabel}
-          disabled={!canSubmitProjectForm(values)}
+          disabled={isSubmitDisabled}
         />
       </ActionBar>
     </Box>
