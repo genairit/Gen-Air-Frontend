@@ -56,3 +56,12 @@ export const PAYMENT_TERMS_COPY = {
   NOTE_PLACEHOLDER: "לדוגמה: 30% מקדמה, 40% בסיום התקנה, 30% שוטף + 30",
   RESET_NOTICE: "סוג הפרויקט השתנה ואפשרויות התשלום השתנו — בחר תנאי תשלום מחדש",
 } as const;
+
+export const CUSTOMER_PAYMENT_DEFAULT_OPTIONS = PAYMENT_TERMS_VALUES.map(value => ({
+  value,
+  label: PAYMENT_TERMS_LABELS[value].title,
+}));
+
+export const CUSTOMER_PAYMENT_DEFAULT_LABELS = CUSTOMER_PAYMENT_DEFAULT_OPTIONS.map(
+  option => option.label,
+);

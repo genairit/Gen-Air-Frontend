@@ -15,6 +15,7 @@ import { NAVIGATION_LABELS } from "../../constants/navigation.constant";
 import { ROUTE_PARAMS, ROUTE_PATHS } from "../../constants/routes.constant";
 import CustomerContacts from "../../components/CustomerContacts/CustomerContacts";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
+import CustomerPaymentDefault from "../../components/CustomerPaymentDefault/CustomerPaymentDefault";
 
 const CustomerPage = () => {
   const navigate = useNavigate();
@@ -51,6 +52,7 @@ const CustomerPage = () => {
       <CustomerHeaderCard customer={customer} />
       <CustomerSyncCard customer={customer} />
       <CustomerDetailsCard customer={customer} />
+      <CustomerPaymentDefault key={customer.id} customer={customer} />
       <CustomerContacts editable key={customer.id} customerId={customer.id} />
     </Box>
   );

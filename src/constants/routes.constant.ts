@@ -1,4 +1,5 @@
 export const ROUTE_PARAMS = {
+  QUOTATION_ID: "quotationId",
   PROJECT_ID: "projectId",
   CUSTOMER_ID: "customerId",
   APARTMENT_ID: "apartmentId",
@@ -6,6 +7,8 @@ export const ROUTE_PARAMS = {
 } as const;
 
 export const ROUTE_PATHS = {
+  QUOTATIONS: "/quotations",
+  QUOTATION: "/quotations/:quotationId",
   BOARD: "/",
   LOGIN: "/login",
   SETTINGS: "/settings",

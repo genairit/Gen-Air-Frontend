@@ -286,6 +286,8 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     isNullableString(value[field]),
   );
   const hasValidCreator = isOptionalOf(isApiUser)(value.createdBy);
+  const hasPaymentDefault =
+    !("paymentTerms" in value) || value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
   const hasValidContacts = isOptionalOf(isCustomerContactList)(value.contacts);
 
   return (
@@ -295,6 +297,7 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     hasSyncAttempts &&
     hasSyncDetails &&
     hasValidCreator &&
+    hasPaymentDefault &&
     hasValidContacts
   );
 };

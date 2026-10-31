@@ -18,9 +18,15 @@ import {
   CUSTOMER_IDENTITY_FIELDS,
 } from "../../../constants/customer-form.constant";
 
+import {
+  PAYMENT_TERMS_VALUES,
+  PAYMENT_TERMS_LABELS,
+} from "../../../constants/payment-terms.constant";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Card from "../../../components/Card/Card";
 import { usePageStyles } from "../../page.style";
 import CustomerFieldsCard from "./CustomerFieldsCard";
 import Button from "../../../components/Button/Button";
@@ -36,6 +42,7 @@ import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { ICreateCustomerPayload } from "../../../interfaces/customer.interface";
 import { useCreateCustomerMutation } from "../../../hooks/mutations/customer.mutation";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { CUSTOMER_PAYMENT_DEFAULT_LABELS } from "../../../constants/payment-terms.constant";
 
 interface INewCustomerFormProps {
   creatorName: string;
@@ -108,6 +115,22 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
         title={CUSTOMER_FORM_COPY.CONTACT}
         subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
       />
+      <Card>
+        <Autocomplete
+          isAutocomplete={false}
+          disabled={mutation.isPending}
+          title="תנאי תשלום כברירת מחדל"
+          options={CUSTOMER_PAYMENT_DEFAULT_LABELS}
+          value={values.paymentTerms ? PAYMENT_TERMS_LABELS[values.paymentTerms].title : null}
+          onChange={label =>
+            updateValues({
+              paymentTerms:
+                PAYMENT_TERMS_VALUES.find(value => PAYMENT_TERMS_LABELS[value].title === label) ??
+                null,
+            })
+          }
+        />
+      </Card>
       <CustomerSaveSummaryCard creatorName={creatorName} />
       {errorCount > 0 && <InlineError message={formatFieldErrorCount(errorCount)} />}
       {mutation.isError && <InlineError message={getApiErrorMessage(mutation.error)} />}
