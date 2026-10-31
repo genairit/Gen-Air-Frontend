@@ -16,6 +16,8 @@ const draftKey = (userId: string) => `${LOCAL_STORAGE_KEYS.PROJECT_FORM_DRAFT}:$
 // Allowlist only: never store session, customer, contact, address or payment-note data.
 const toStoredValues = (values: IProjectFormValues) => ({
   name: values.name,
+  hasGeneralLightingCeilingLowering: values.hasGeneralLightingCeilingLowering,
+  generalLightingCeilingLoweringHeight: values.generalLightingCeilingLoweringHeight,
   typeId: values.typeId,
   stageId: values.stageId,
   assignees: Object.fromEntries(PROJECT_MEMBER_ROLES.map(role => [role, values.assignees[role]])),
@@ -67,7 +69,14 @@ const isRestorableDraftValues = (values: TStoredProjectValues) => {
   );
   const hasValidTerms = values.terms === null || isPaymentTerms(values.terms);
 
-  return hasValidName && hasValidReferences && hasValidAssignees && hasValidTerms;
+  const hasValidLighting =
+    (!("hasGeneralLightingCeilingLowering" in values) ||
+      typeof values.hasGeneralLightingCeilingLowering === "boolean") &&
+    (!("generalLightingCeilingLoweringHeight" in values) ||
+      typeof values.generalLightingCeilingLoweringHeight === "string");
+  return (
+    hasValidName && hasValidReferences && hasValidAssignees && hasValidTerms && hasValidLighting
+  );
 };
 
 const isStoredProjectDraft = (value: unknown): value is IStoredProjectDraft => {
@@ -98,6 +107,8 @@ const restoreProjectFormValues = (values: TStoredProjectValues): IProjectFormVal
   return {
     ...emptyValues,
     name: values.name ?? "",
+    hasGeneralLightingCeilingLowering: values.hasGeneralLightingCeilingLowering ?? false,
+    generalLightingCeilingLoweringHeight: values.generalLightingCeilingLoweringHeight ?? "",
     typeId: values.typeId ?? null,
     stageId: values.stageId ?? null,
     assignees: mapProjectMemberRoles(role => values.assignees?.[role] ?? null),

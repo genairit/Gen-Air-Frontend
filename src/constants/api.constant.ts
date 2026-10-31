@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
   CUSTOMER_SYNC_STATUS_COUNTS: "/customer/sync-status-counts",
   customerById: (customerId: string) => `/customer/${customerId}`,
   PROJECTS: "/project",
+  PROJECT_NAME_AVAILABILITY: "/project/name-availability",
   PROJECT_STAGE_COUNTS: "/project/stage-counts",
   projectById: (projectId: string) => `/project/${projectId}`,
   projectStage: (projectId: string) => `/project/${projectId}/stage`,
