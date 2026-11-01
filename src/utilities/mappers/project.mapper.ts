@@ -1,5 +1,4 @@
 import type {
-  IApiProject,
   IApiDriveItem,
   IApiDriveFolder,
   IApiProjectType,
@@ -24,6 +23,7 @@ import { DATE_FORMAT } from "../../constants/date.constants";
 import { getInitials, formatErpSyncCaption } from "../text.utility";
 import { USER_ROLE_LABELS } from "../../constants/user-role.constant";
 import { ICON_NAMES, type IconNameType } from "../../constants/icon.constant";
+import type { IProjectListItem } from "../../interfaces/project-list.interface";
 import { formatDate, formatRelativeTime, normalizeDate } from "../date.utility";
 import { ERP_SYNC_PREFIX, ERP_NOT_SYNCED_CAPTION } from "../../constants/project.constant";
 
@@ -46,20 +46,20 @@ const getDriveItemIcon = (item: IApiDriveItem): IconNameType => {
   return ICON_NAMES.DOCUMENT;
 };
 
-const getMemberInitials = (project: IApiProject) =>
+const getMemberInitials = (project: IProjectListItem) =>
   (project.members ?? []).flatMap(member =>
     member.user ? [getInitials(getFullName(member.user))] : [],
   );
 
-const toApartmentsLabel = (project: IApiProject) => {
-  if (!project.projectType?.canHaveApartments) {
+const toApartmentsLabel = (project: IProjectListItem) => {
+  if (project.parentProjectId || !project.projectType?.canHaveApartments) {
     return null;
   }
 
   return formatApartmentCount(project.apartmentCount ?? 0);
 };
 
-export const toProjectSummary = (project: IApiProject): IProjectSummary => ({
+export const toProjectSummary = (project: IProjectListItem): IProjectSummary => ({
   id: project.id,
   apartmentsLabel: toApartmentsLabel(project),
   progress: null,

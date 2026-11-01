@@ -6,6 +6,7 @@ import { useSessionUser } from "../../store/session.store";
 import { useTaskQuery } from "../../hooks/queries/task.query";
 import { TASK_PAGE_COPY } from "../../constants/task.constant";
 import EmptyState from "../../components/EmptyState/EmptyState";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
@@ -19,9 +20,11 @@ const TaskPage = () => {
   const taskId = params[ROUTE_PARAMS.TASK_ID] ?? null;
   const taskQuery = useTaskQuery(taskId);
 
-  const isManager = hasPermission(sessionUser, "MANAGE_TASKS");
-  const canClaim = hasPermission(sessionUser, "CLAIM_TASKS");
-  const canChangeStatus = hasPermission(sessionUser, "UPDATE_TASK_STATUS");
+  const canEdit = hasPermission(sessionUser, PERMISSIONS.TASKS_UPDATE);
+  const canAssign = canEdit && hasPermission(sessionUser, PERMISSIONS.TASKS_ASSIGN);
+  const canChangeUrgency = hasPermission(sessionUser, PERMISSIONS.TASKS_URGENCY_CHANGE);
+  const canClaim = hasPermission(sessionUser, PERMISSIONS.TASKS_CLAIM);
+  const canChangeStatus = hasPermission(sessionUser, PERMISSIONS.TASKS_STATUS_UPDATE);
 
   if (taskQuery.isPending) {
     return <LoadingState label={TASK_PAGE_COPY.LOADING} />;
@@ -46,11 +49,13 @@ const TaskPage = () => {
 
   return (
     <TaskView
+      canEdit={canEdit}
       canClaim={canClaim}
       task={taskQuery.data}
-      isManager={isManager}
+      canAssign={canAssign}
       key={taskQuery.data.id}
       canChangeStatus={canChangeStatus}
+      canChangeUrgency={canChangeUrgency}
     />
   );
 };

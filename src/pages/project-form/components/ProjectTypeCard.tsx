@@ -16,6 +16,10 @@ interface IProjectTypeCardProps {
 
 const ProjectTypeCard: FC<IProjectTypeCardProps> = ({ options, selectedTypeId, onSelect }) => {
   const styles = usePageStyles();
+  const typeGridStyle = {
+    ...styles.grid({ minColumnWidth: 180, gap: "20px" }),
+    alignItems: "stretch",
+  };
 
   return (
     <Card gap="22px" padding="28px">
@@ -24,7 +28,7 @@ const ProjectTypeCard: FC<IProjectTypeCardProps> = ({ options, selectedTypeId, o
         title={PROJECT_FORM_COPY.TYPE_TITLE}
         subtitle={PROJECT_FORM_COPY.TYPE_SUBTITLE}
       />
-      <Box sx={styles.grid({ minColumnWidth: 180, gap: "20px" })}>
+      <Box sx={typeGridStyle}>
         {options.map(option => (
           <OptionCard
             key={option.id}

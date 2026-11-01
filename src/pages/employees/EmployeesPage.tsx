@@ -5,13 +5,17 @@ import EmployeesTable from "./components/EmployeesTable";
 import { useSessionUser } from "../../store/session.store";
 import AddEmployeeCard from "./components/AddEmployeeCard";
 import { ICON_NAMES } from "../../constants/icon.constant";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
 import { EMPLOYEES_COPY } from "../../constants/employee.constant";
 
 const EmployeesPage = () => {
   const styles = usePageStyles();
   const sessionUser = useSessionUser();
-  const canManageUsers = hasPermission(sessionUser, "MANAGE_USERS");
+  const canCreate =
+    hasPermission(sessionUser, PERMISSIONS.EMPLOYEES_CREATE) &&
+    hasPermission(sessionUser, PERMISSIONS.EMPLOYEES_ROLES_ASSIGN);
+  const canDelete = hasPermission(sessionUser, PERMISSIONS.EMPLOYEES_DELETE);
 
   return (
     <Box sx={styles.page}>
@@ -27,8 +31,8 @@ const EmployeesPage = () => {
           {EMPLOYEES_COPY.DESCRIPTION}
         </Box>
       </Box>
-      {canManageUsers && <AddEmployeeCard />}
-      <EmployeesTable canManageUsers={canManageUsers} />
+      {canCreate && <AddEmployeeCard />}
+      <EmployeesTable canManageUsers={canDelete} />
     </Box>
   );
 };

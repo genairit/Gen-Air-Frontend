@@ -7,10 +7,8 @@ import { useSessionUser } from "../../store/session.store";
 import { ROUTE_PATHS } from "../../constants/routes.constant";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
-import { useProjectQuery } from "../../hooks/queries/project.query";
-import LoadingState from "../../components/LoadingState/LoadingState";
-import { PROJECT_PAGE_STATUS_COPY } from "../../constants/project-page.constant";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import { NEW_TASK_COPY, NEW_TASK_PROJECT_PARAM } from "../../constants/task.constant";
 
@@ -20,9 +18,8 @@ const NewTaskPage = () => {
   const sessionUser = useSessionUser();
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get(NEW_TASK_PROJECT_PARAM);
-  const projectQuery = useProjectQuery(projectId);
 
-  if (!hasPermission(sessionUser, "MANAGE_TASKS")) {
+  if (!hasPermission(sessionUser, PERMISSIONS.TASKS_CREATE)) {
     return (
       <EmptyState
         icon={ICON_NAMES.TASKS}
@@ -39,10 +36,6 @@ const NewTaskPage = () => {
     );
   }
 
-  if (projectId && projectQuery.isPending) {
-    return <LoadingState label={PROJECT_PAGE_STATUS_COPY.LOADING} />;
-  }
-
   return (
     <Box sx={styles.page}>
       <Box sx={styles.headerText}>
@@ -56,7 +49,7 @@ const NewTaskPage = () => {
           {NEW_TASK_COPY.DESCRIPTION}
         </Box>
       </Box>
-      <NewTaskForm key={projectId ?? "new"} initialProject={projectQuery.data ?? null} />
+      <NewTaskForm key={projectId ?? "new"} initialProjectId={projectId} />
     </Box>
   );
 };

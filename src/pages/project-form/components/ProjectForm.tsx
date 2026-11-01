@@ -6,7 +6,6 @@ import {
 
 import type {
   ITypeSwitch,
-  ContactFieldType,
   IVerifiedAddress,
   IProjectFormValues,
   IPaymentTermsValues,
@@ -42,6 +41,12 @@ import {
   countCustomerDetailErrors,
 } from "../../../utilities/customer-details.utility";
 
+import {
+  getProjectNameError,
+  isProjectNameConflict,
+  getLightingHeightError,
+} from "../../../utilities/project-constraints.utility";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -50,6 +55,7 @@ import { usePageStyles } from "../../page.style";
 import Chip from "../../../components/Chip/Chip";
 import ProjectRolesCard from "./ProjectRolesCard";
 import TypeSwitchBanner from "./TypeSwitchBanner";
+import ProjectAddressCard from "./ProjectAddressCard";
 import ProjectDetailsCard from "./ProjectDetailsCard";
 import Button from "../../../components/Button/Button";
 import { useSessionUser } from "../../../store/session.store";
@@ -61,8 +67,8 @@ import ActionBar from "../../../components/ActionBar/ActionBar";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import { useProjectDraft } from "../../../hooks/project-draft.hook";
-import ProjectAddressContactCard from "./ProjectAddressContactCard";
 import ProjectCustomerPickerCard from "./ProjectCustomerPickerCard";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
@@ -70,6 +76,7 @@ import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
 import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
+import { useProjectNameAvailability } from "../../../hooks/queries/project-name.query";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
@@ -114,21 +121,39 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const createMutation = useCreateProjectMutation(draftUserId);
   const updateMutation = useUpdateProjectMutation();
   const deleteMutation = useDeleteProjectMutation();
+  const nameAvailability = useProjectNameAvailability(values.name, projectId);
 
   const projectTypes = typesQuery.data ?? [];
   const fieldSet = findDetailFieldSet(projectTypes, values.typeId);
   const selectedTypeName = projectTypes.find(type => type.id === values.typeId)?.name ?? "";
   const mutationError = createMutation.error ?? updateMutation.error ?? deleteMutation.error;
   const isSaving = createMutation.isPending || updateMutation.isPending;
-  const canDelete = isEditMode && hasPermission(sessionUser, "DELETE_PROJECTS");
+  const canDelete = isEditMode && hasPermission(sessionUser, PERMISSIONS.PROJECTS_DELETE);
   const originalIntake = project ? toIntakeValues(project) : null;
   const requiredIntake = getRequiredIntakeGroups(values, originalIntake);
   const intakeErrorCount = countIntakeErrors({ values, fieldSet, original: originalIntake });
   const hasSiteDetails = getSiteDetailFields(fieldSet).length > 0;
+  const heightError = getLightingHeightError(values);
+  const mutationName =
+    (createMutation.variables ?? updateMutation.variables)?.values.name.trim() ?? null;
+  const hasServerNameConflict =
+    isProjectNameConflict(mutationError) && mutationName === values.name.trim();
+  const isNameTaken = nameAvailability.isTaken || hasServerNameConflict;
+  const nameError = getProjectNameError({
+    isTaken: isNameTaken,
+    isCheckFailed: nameAvailability.isError,
+  });
+  const isSubmitDisabled =
+    !canSubmitProjectForm(values) ||
+    nameAvailability.isPending ||
+    nameAvailability.isError ||
+    isNameTaken;
   const formErrorCount =
     countMissingCustomer(values) +
     countCustomerDetailErrors(values.customerDetails, fieldSet) +
-    intakeErrorCount;
+    intakeErrorCount +
+    Number(heightError !== "") +
+    Number(isNameTaken);
 
   const openProject = (savedProjectId: string) => navigate(buildProjectPath(savedProjectId));
 
@@ -142,8 +167,12 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       ),
   };
 
+  const handleRetryNameCheck = async () => {
+    await nameAvailability.retry();
+  };
+
   const handleSubmit = () => {
-    if (formErrorCount > 0) {
+    if (formErrorCount > 0 || isSubmitDisabled) {
       setIsSubmitAttempted(true);
 
       return;
@@ -152,17 +181,21 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     submitByMode[mode]();
   };
 
-  const updateValues = (changes: Partial<IProjectFormValues>) =>
+  const updateValues = (changes: Partial<IProjectFormValues>) => {
+    const isNameChanging = "name" in changes && changes.name !== values.name;
+    if (isNameChanging && hasServerNameConflict) {
+      createMutation.reset();
+      updateMutation.reset();
+    }
+
     setValues(current => ({ ...current, ...changes }));
+  };
 
   const handleCustomerDetailChange = (field: CustomerDetailFieldType, value: string) =>
     setValues(current => ({
       ...current,
       customerDetails: { ...current.customerDetails, [field]: value },
     }));
-
-  const handleContactChange = (field: ContactFieldType, value: string) =>
-    setValues(current => ({ ...current, contact: { ...current.contact, [field]: value } }));
 
   const handleAddressChange = (address: IVerifiedAddress | null) => updateValues({ address });
 
@@ -207,6 +240,8 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     deleteMutation.mutate(projectId, { onSuccess: () => navigate(ROUTE_PATHS.BOARD) });
   };
 
+  const showAddressError = isSubmitAttempted && requiredIntake.address;
+
   return (
     <Box sx={styles.page}>
       <Box sx={styles.row({})}>
@@ -234,24 +269,25 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       <ProjectDetailsCard
         mode={mode}
         values={values}
+        nameError={nameError}
         onChange={updateValues}
         stages={stagesQuery.data ?? []}
         projectCode={project?.code ?? null}
+        isSubmitAttempted={isSubmitAttempted}
+        onRetryNameCheck={handleRetryNameCheck}
+        namePending={nameAvailability.isPending}
+        nameCheckFailed={nameAvailability.isError}
       />
       <ProjectTypeCard
         onSelect={handleTypeSelect}
         selectedTypeId={values.typeId}
         options={projectTypes.map(toProjectTypeOption)}
       />
-      <ProjectAddressContactCard
+      <ProjectAddressCard
         address={values.address}
-        contact={values.contact}
-        isSubmitAttempted={isSubmitAttempted}
-        onAddressChange={handleAddressChange}
-        onContactChange={handleContactChange}
+        onChange={handleAddressChange}
+        showMissingError={showAddressError}
         requiresCity={isCityRequired(fieldSet)}
-        isAddressRequired={requiredIntake.address}
-        isContactRequired={requiredIntake.contact}
       />
       {isSubmitAttempted && formErrorCount > 0 && (
         <InlineError message={formatFieldErrorCount(formErrorCount)} />
@@ -318,7 +354,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           icon={copy.submitIcon}
           onClick={handleSubmit}
           text={copy.submitLabel}
-          disabled={!canSubmitProjectForm(values)}
+          disabled={isSubmitDisabled}
         />
       </ActionBar>
     </Box>

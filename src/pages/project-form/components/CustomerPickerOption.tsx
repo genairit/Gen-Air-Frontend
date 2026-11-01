@@ -4,6 +4,7 @@ import { useStyles } from "./ProjectCustomerPicker.style";
 import type { IApiCustomer } from "../../../interfaces/api.interface";
 import { CUSTOMER_PICKER_COPY } from "../../../constants/customer.constant";
 import CustomerSyncChip from "../../../components/CustomerSyncChip/CustomerSyncChip";
+import { formatCustomerContactCount } from "../../../utilities/customer-contact.utility";
 import { formatCustomerTaxId, isCustomerSelectable } from "../../../utilities/customer.utility";
 
 interface ICustomerPickerOptionProps {
@@ -29,7 +30,7 @@ const CustomerPickerOption: FC<ICustomerPickerOptionProps> = ({ customer, onPick
         </Box>
         <Box component="span" sx={styles.caption}>
           <bdi>{formatCustomerTaxId(customer)}</bdi>
-          {` · ${customer.contactName}`}
+          {` · ${formatCustomerContactCount(customer.contacts ?? [])}`}
         </Box>
       </Box>
       <Box sx={styles.status}>

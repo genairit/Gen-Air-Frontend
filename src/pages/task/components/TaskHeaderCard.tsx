@@ -11,10 +11,12 @@ import Tabs from "../../../components/Tabs/Tabs";
 import Card from "../../../components/Card/Card";
 import IconTile from "../../../components/IconTile/IconTile";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import { TABS_VARIANTS } from "../../../constants/tabs.constant";
 import type { IApiTask } from "../../../interfaces/task.interface";
 import { isTaskStatus } from "../../../utilities/guards/task.guard";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
 import { ICON_TILE_SIZES } from "../../../constants/icon-tile.constant";
+import TaskTypeChip from "../../../components/TaskTypeChip/TaskTypeChip";
 import { formatTaskCreatedCaption } from "../../../utilities/task.utility";
 import TaskStatusChip from "../../../components/TaskStatusChip/TaskStatusChip";
 import TaskUrgentChip from "../../../components/TaskUrgentChip/TaskUrgentChip";
@@ -52,6 +54,7 @@ const TaskHeaderCard: FC<ITaskHeaderCardProps> = ({ task, canChangeStatus, onSta
             {task.title}
           </Box>
           <Box sx={styles.metaRow}>
+            <TaskTypeChip taskType={task.taskType} />
             <TaskStatusChip status={task.status} />
             {task.isUrgent && <TaskUrgentChip />}
             <Box component="span" sx={styles.caption}>
@@ -72,6 +75,7 @@ const TaskHeaderCard: FC<ITaskHeaderCardProps> = ({ task, canChangeStatus, onSta
         onChange={changeStatus}
         items={TASK_STATUS_TABS}
         disabled={isStatusLocked}
+        variant={TABS_VARIANTS.STATUS}
       />
     </Card>
   );

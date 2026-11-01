@@ -22,6 +22,7 @@ import { BRAND_LOGO_WIDTHS } from "../constants/brand-logo.constant";
 import { clearSessionAction } from "../actions/session-reset.action";
 import MobileBottomNav from "../components/MobileBottomNav/MobileBottomNav";
 import { Outlet, useLocation, useNavigate, ScrollRestoration } from "react-router-dom";
+import { filterNavigationByPermissions } from "../utilities/navigation-permission.utility";
 import { getPageTitle, getBackLinkTarget, getActiveNavigationId } from "../utilities/route.utility";
 
 const AppLayout = () => {
@@ -30,6 +31,8 @@ const AppLayout = () => {
   const { pathname } = useLocation();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
   const sessionUser = useSessionUser();
+  const navigationItems = filterNavigationByPermissions(APP_NAVIGATION_ITEMS, sessionUser);
+  const mobileItems = filterNavigationByPermissions(MOBILE_NAVIGATION_ITEMS, sessionUser);
   const activeNavigationId = getActiveNavigationId(pathname);
 
   const logout = () => {
@@ -62,8 +65,8 @@ const AppLayout = () => {
         <Box sx={styles.sidebarSlot}>
           <Sidebar
             sx={styles.sidebar}
+            items={navigationItems}
             onSelect={handleNavigate}
-            items={APP_NAVIGATION_ITEMS}
             activeId={activeNavigationId}
             sectionTitle={BRAND.SECTION_TITLE}
             brand={<BrandLogo width={BRAND_LOGO_WIDTHS.SIDEBAR} />}
@@ -90,10 +93,10 @@ const AppLayout = () => {
 
       {isMobile && (
         <MobileBottomNav
+          items={mobileItems}
           onSelect={handleNavigate}
           sx={styles.mobileNavigation}
           activeId={activeNavigationId}
-          items={MOBILE_NAVIGATION_ITEMS}
         />
       )}
     </Box>

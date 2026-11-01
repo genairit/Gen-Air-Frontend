@@ -1,4 +1,5 @@
 export const TABS_VARIANTS = {
+  STATUS: "status",
   PILLS: "pills",
   SEGMENTED: "segmented",
 } as const;

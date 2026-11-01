@@ -1,0 +1,96 @@
+import { createStyles } from "../../../create-styles";
+import { theme } from "../../../constants/theme.constants";
+import { MUTED_CAPTION, MONOSPACE_CAPTION } from "../../../styles/templates.style";
+import { CUSTOMER_PROJECT_DISPLAY } from "../../../constants/customer-project.constant";
+
+export const useStyles = () =>
+  createStyles({
+    stageControl: {
+      width: "100%",
+      maxWidth: 220,
+      position: "relative",
+      "& .MuiOutlinedInput-root.MuiAutocomplete-inputRoot": {
+        height: 44,
+        paddingInlineStart: "34px",
+        paddingInlineEnd: "28px",
+        boxShadow: theme.softShadow.raisedSmall,
+      },
+    },
+    stageDot: {
+      top: "50%",
+      right: "14px",
+      position: "absolute",
+      display: "flex",
+      pointerEvents: "none",
+      transform: "translateY(-50%)",
+    },
+    toolbar: { display: "flex", flexDirection: "column", gap: "18px" },
+    filters: { display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" },
+    search: { flex: "1 1 240px", maxWidth: 340, minWidth: 0 },
+    scroll: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "12px",
+      overflow: "auto",
+      padding: "8px",
+      maxHeight: CUSTOMER_PROJECT_DISPLAY.SCROLL_MAX_HEIGHT,
+      overscrollBehavior: "contain",
+    },
+    footer: { display: "flex", flexDirection: "column", gap: "10px", alignItems: "flex-start" },
+    sentinel: { minHeight: 1, minWidth: 1 },
+    caption: { ...MUTED_CAPTION, fontSize: 12, overflowWrap: "anywhere" },
+    code: { ...MONOSPACE_CAPTION, flexShrink: 0 },
+    link: {
+      color: theme.palette.charcoal,
+      textDecoration: "none",
+      display: "flex",
+      flexDirection: "column",
+      gap: "4px",
+      minWidth: 0,
+    },
+    name: {
+      fontSize: 15,
+      fontWeight: 700,
+      overflow: "hidden",
+      whiteSpace: "nowrap",
+      textOverflow: "ellipsis",
+    },
+    mobileName: {
+      fontSize: 16,
+      fontWeight: 700,
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",
+      overflowWrap: "anywhere",
+    },
+    mobileHeader: {
+      display: "flex",
+      justifyContent: "space-between",
+      gap: "10px",
+      alignItems: "baseline",
+      minWidth: 0,
+    },
+    type: { display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center", minWidth: 0 },
+    empty: {
+      padding: "32px 20px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "10px",
+      alignItems: "center",
+      textAlign: "center",
+      border: `2px dashed ${theme.palette.outline}`,
+      borderRadius: "20px",
+    },
+    error: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: "14px",
+      justifyContent: "space-between",
+      alignItems: "center",
+      padding: "16px 18px",
+      borderRadius: "20px",
+      boxShadow: theme.softShadow.inset,
+    },
+    skeleton: { height: 64, borderRadius: "20px", boxShadow: theme.softShadow.inset },
+  });

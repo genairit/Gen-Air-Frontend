@@ -10,7 +10,8 @@ import type { IApiUser } from "../../interfaces/api.interface";
 import type { IPerson } from "../../interfaces/person.interface";
 import type { IEmployee } from "../../interfaces/employee.interface";
 
-export const getFullName = (user: IApiUser) => `${user.firstName} ${user.lastName}`;
+export const getFullName = (user: Pick<IApiUser, "firstName" | "lastName">) =>
+  `${user.firstName} ${user.lastName}`;
 
 const toUserOptionLabel = (user: IApiUser) => `${getFullName(user)} (${user.employeeNumber})`;
 

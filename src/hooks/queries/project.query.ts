@@ -7,8 +7,12 @@ import type { ICursorPage, IApiProject } from "../../interfaces/api.interface";
 import { projectActivityService } from "../../services/project-activity.service";
 import type { IProjectQuery, IProjectPageQuery } from "../../interfaces/api-request.interface";
 
-export const useProjectStagesQuery = () =>
-  useQuery({ queryKey: QUERY_KEYS.PROJECT_STAGES, queryFn: () => projectStageService.getAll() });
+export const useProjectStagesQuery = (enabled = true) =>
+  useQuery({
+    enabled,
+    queryKey: QUERY_KEYS.PROJECT_STAGES,
+    queryFn: () => projectStageService.getAll(),
+  });
 
 export const useProjectTypesQuery = () =>
   useQuery({ queryKey: QUERY_KEYS.PROJECT_TYPES, queryFn: () => projectTypeService.getAll() });

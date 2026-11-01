@@ -11,13 +11,17 @@ export const useStyles = () =>
     },
     identity: {
       gap: "18px",
+      minWidth: 0,
       display: "flex",
+      maxWidth: "100%",
       flexWrap: "wrap",
       alignItems: "center",
     },
     details: {
       gap: "10px",
+      minWidth: 0,
       display: "flex",
+      maxWidth: "100%",
       flexDirection: "column",
     },
     titleRow: {
@@ -30,6 +34,7 @@ export const useStyles = () =>
       margin: 0,
       fontSize: 28,
       fontWeight: 800,
+      overflowWrap: "anywhere",
     },
     caption: {
       ...MUTED_CAPTION,

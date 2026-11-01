@@ -25,12 +25,21 @@ import UrgencyConfirmPopup from "../../../components/UrgencyConfirmPopup/Urgency
 
 interface ITaskViewProps {
   task: IApiTask;
+  canEdit: boolean;
   canClaim: boolean;
-  isManager: boolean;
+  canAssign: boolean;
   canChangeStatus: boolean;
+  canChangeUrgency: boolean;
 }
 
-const TaskView: FC<ITaskViewProps> = ({ task, canClaim, isManager, canChangeStatus }) => {
+const TaskView: FC<ITaskViewProps> = ({
+  task,
+  canClaim,
+  canEdit,
+  canAssign,
+  canChangeUrgency,
+  canChangeStatus,
+}) => {
   const styles = usePageStyles();
   const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
   const statusMutation = useUpdateTaskStatusMutation();
@@ -62,13 +71,18 @@ const TaskView: FC<ITaskViewProps> = ({ task, canClaim, isManager, canChangeStat
         canChangeStatus={canChangeStatus}
         onStatusChange={status => statusMutation.mutate({ taskId: task.id, status })}
       />
-      <TaskUrgencyCard task={task} isManager={isManager} onRequestChange={requestUrgencyChange} />
+      <TaskUrgencyCard
+        task={task}
+        isManager={canChangeUrgency}
+        onRequestChange={requestUrgencyChange}
+      />
       {mutationError && <InlineError message={getApiErrorMessage(mutationError)} />}
       <TaskDetailsCard
         task={task}
+        canEdit={canEdit}
         canClaim={canClaim}
         onUpdate={updateTask}
-        isManager={isManager}
+        canAssign={canAssign}
         isSaving={updateMutation.isPending}
         onClaim={() => claimMutation.mutate(task.id)}
       />

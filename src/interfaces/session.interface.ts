@@ -1,6 +1,6 @@
-import type { IApiUser } from "./api.interface";
+import type { IApiAuthorizedUser } from "./api.interface";
 
 export interface ISession {
-  user: IApiUser;
   accessToken: string;
+  user: IApiAuthorizedUser;
 }

@@ -22,6 +22,7 @@ import type {
   IApiApartmentPage,
   IApiProjectMember,
   IApiDriveContents,
+  IApiAuthorizedUser,
   IApiPlaceSuggestion,
   IProjectStageCounts,
   IApiStageTransition,
@@ -48,7 +49,11 @@ import {
   PROJECT_DETAIL_FIELD_SET_VALUES,
 } from "../../constants/project-detail-field-set.constant";
 
+import { isPermission } from "./permission.guard";
+import { isCustomerContactList } from "../customer-contact.utility";
+import { hasValidProjectLighting } from "../project-constraints.utility";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
+import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial.utility";
 
 export const isUserRole = (value?: unknown): value is UserRoleType =>
   USER_ROLE_VALUES.some(role => role === value);
@@ -63,6 +68,9 @@ export const isApiUser = (value: unknown): value is IApiUser => {
 
   return hasIdentity && hasContact && isUserRole(value.role);
 };
+
+export const isAuthorizedUser = (value: unknown): value is IApiAuthorizedUser =>
+  isRecord(value) && isApiUser(value) && isArrayOf(isPermission)(value.permissions);
 
 export const isDetailFieldSet = (value?: unknown): value is ProjectDetailFieldSetType =>
   PROJECT_DETAIL_FIELD_SET_VALUES.some(fieldSet => fieldSet === value);
@@ -152,6 +160,8 @@ export const isApiProject = (value: unknown): value is IApiProject => {
 
   const hasDetails = hasCustomerDetails(value) && hasProjectIntake(value);
   const hasHierarchy = isNullableString(value.parentProjectId) && isNullableString(value.notes);
+  const hasValidCredit = isOptionalOf(isApartmentCredit)(value.apartmentCredit);
+  const hasValidOwnership = isOptionalOf(isApartmentOwnership)(value.apartmentOwnership);
   const hasValidOwnTeam = !("hasOwnTeam" in value) || typeof value.hasOwnTeam === "boolean";
   const hasValidCustomer =
     isNullableString(value.customerId) && isOptionalOf(isApiCustomer)(value.customer);
@@ -163,7 +173,10 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     hasDetails &&
     hasHierarchy &&
     hasValidCustomer &&
-    hasValidOwnTeam
+    hasValidOwnTeam &&
+    hasValidCredit &&
+    hasValidOwnership &&
+    hasValidProjectLighting(value)
   );
 };
 
@@ -173,7 +186,7 @@ export const isCursorPageOf =
     isRecord(value) && isArrayOf(isItem)(value.items) && isNullableString(value.nextCursor);
 
 export const isLoginResponse = (value: unknown): value is ILoginResponse =>
-  isRecord(value) && typeof value.accessToken === "string" && isApiUser(value.user);
+  isRecord(value) && typeof value.accessToken === "string" && isAuthorizedUser(value.user);
 
 const isNumberRecord = (value: unknown): value is Record<string, number> =>
   isRecord(value) && Object.values(value).every(isNumber);
@@ -273,9 +286,19 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     isNullableString(value[field]),
   );
   const hasValidCreator = isOptionalOf(isApiUser)(value.createdBy);
+  const hasPaymentDefault =
+    !("paymentTerms" in value) || value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
+  const hasValidContacts = isOptionalOf(isCustomerContactList)(value.contacts);
 
   return (
-    hasIdentity && hasType && hasSyncStatus && hasSyncAttempts && hasSyncDetails && hasValidCreator
+    hasIdentity &&
+    hasType &&
+    hasSyncStatus &&
+    hasSyncAttempts &&
+    hasSyncDetails &&
+    hasValidCreator &&
+    hasPaymentDefault &&
+    hasValidContacts
   );
 };
 

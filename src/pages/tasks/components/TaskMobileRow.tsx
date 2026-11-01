@@ -4,6 +4,7 @@ import TaskLinkCaption from "./TaskLinkCaption";
 import Card from "../../../components/Card/Card";
 import { TASK_COLUMN_STYLES } from "../columns/task-columns.style";
 import type { IApiTask } from "../../../interfaces/task.interface";
+import TaskTypeChip from "../../../components/TaskTypeChip/TaskTypeChip";
 import TaskStatusChip from "../../../components/TaskStatusChip/TaskStatusChip";
 import TaskUrgentChip from "../../../components/TaskUrgentChip/TaskUrgentChip";
 import { formatTaskDueShort, formatAssigneeLabel } from "../../../utilities/task.utility";
@@ -19,6 +20,7 @@ const TaskMobileRow: FC<ITaskMobileRowProps> = ({ task, onOpen }) => (
       <Box component="b" sx={TASK_COLUMN_STYLES.title}>
         {task.title}
       </Box>
+      <TaskTypeChip taskType={task.taskType} />
       {task.isUrgent && <TaskUrgentChip />}
     </Box>
     <TaskLinkCaption task={task} />
