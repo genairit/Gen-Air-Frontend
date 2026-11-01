@@ -6,8 +6,12 @@ import Chip from "../../../components/Chip/Chip";
 import Button from "../../../components/Button/Button";
 import ApartmentTeamPicker from "./ApartmentTeamPicker";
 import ApartmentTeamMembers from "./ApartmentTeamMembers";
+import ApartmentLegacyContact from "./ApartmentLegacyContact";
+import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { PERMISSIONS } from "../../../constants/permission.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { toApartmentAssignments } from "../../../utilities/apartment.utility";
@@ -23,6 +27,8 @@ interface IApartmentContactCardProps {
 }
 const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEdit }) => {
   const styles = usePageStyles();
+  const user = useSessionUser();
+  const canReadCustomer = hasPermission(user, PERMISSIONS.CUSTOMERS_READ);
   const [draft, setDraft] = useState<IApiProjectMember[] | null>(null);
   const updateMutation = useUpdateApartmentMutation();
   const isEditing = draft !== null;
@@ -53,6 +59,7 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
       {apartment.customerId && (
         <CustomerContactPreview key={apartment.customerId} customerId={apartment.customerId} />
       )}
+      <ApartmentLegacyContact apartment={apartment} canRead={canReadCustomer} />
       <Box sx={styles.spacedRow}>
         <Box sx={styles.row({})}>
           <b>{APARTMENT_TEAM_COPY.TITLE}</b>
