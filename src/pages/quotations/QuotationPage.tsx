@@ -1,0 +1,47 @@
+import type { FC } from "react";
+import { useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import Button from "../../components/Button/Button";
+import { useSessionUser } from "../../store/session.store";
+import QuotationEditor from "./components/QuotationEditor";
+import { PERMISSIONS } from "../../constants/permission.constant";
+import { hasPermission } from "../../utilities/permission.utility";
+import { quotationService } from "../../services/quotation.service";
+import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import { QUOTATION_DETAIL_KEY } from "../../constants/quotation.constant";
+
+const QuotationPage: FC = () => {
+  const user = useSessionUser();
+  const { quotationId } = useParams();
+  const query = useQuery({
+    queryKey: QUOTATION_DETAIL_KEY(quotationId ?? ""),
+    queryFn: () => quotationService.get(quotationId ?? ""),
+    enabled: quotationId != null && quotationId.length > 0,
+    refetchOnWindowFocus: false,
+  });
+  if (query.isPending) {
+    return <p role="status">טוען הצעת מחיר...</p>;
+  }
+  if (query.isError) {
+    return (
+      <div role="alert">
+        {getApiErrorMessage(query.error)}
+        <Button
+          text="נסה שוב"
+          onClick={async () => {
+            await query.refetch();
+          }}
+        />
+      </div>
+    );
+  }
+  return (
+    <QuotationEditor
+      key={query.data.id}
+      initial={query.data}
+      editable={hasPermission(user, PERMISSIONS.QUOTATIONS_UPDATE)}
+      canApprove={hasPermission(user, PERMISSIONS.QUOTATIONS_APPROVE)}
+    />
+  );
+};
+export default QuotationPage;

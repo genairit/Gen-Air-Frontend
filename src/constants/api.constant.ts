@@ -7,6 +7,13 @@ export const DEFAULT_API_BASE_URL = "/api";
 export const API_PAGE_SIZE = 200;
 
 export const API_ENDPOINTS = {
+  QUOTATIONS: "/quotation",
+  CATALOGUE: "/catalogue-item",
+  quotationById: (id: string) => `/quotation/${id}`,
+  quotationReview: (id: string) => `/quotation/${id}/review`,
+  quotationWarnings: (id: string) => `/quotation/${id}/warnings`,
+  catalogueById: (id: string) => `/catalogue-item/${id}`,
+  customerProjects: (id: string) => `/customer/${id}/projects`,
   TASKS: "/task",
   MY_TASKS: "/task/my-tasks",
   MY_TASK_COUNTS: "/task/my-tasks/counts",
@@ -26,6 +33,7 @@ export const API_ENDPOINTS = {
   CUSTOMER_SYNC_STATUS_COUNTS: "/customer/sync-status-counts",
   customerById: (customerId: string) => `/customer/${customerId}`,
   PROJECTS: "/project",
+  PROJECT_NAME_AVAILABILITY: "/project/name-availability",
   PROJECT_STAGE_COUNTS: "/project/stage-counts",
   projectById: (projectId: string) => `/project/${projectId}`,
   projectStage: (projectId: string) => `/project/${projectId}/stage`,
@@ -48,6 +56,7 @@ export const DRIVE_UPLOAD_FIELD_NAME = "files";
 
 export const HTTP_STATUS = {
   UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
   CONFLICT: 409,
   BAD_GATEWAY: 502,
   SERVICE_UNAVAILABLE: 503,

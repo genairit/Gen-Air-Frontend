@@ -8,6 +8,7 @@ import { Box, useMediaQuery } from "@mui/material";
 import { useSessionUser } from "../../../store/session.store";
 import DataTable from "../../../components/DataTable/DataTable";
 import { TABS_VARIANTS } from "../../../constants/tabs.constant";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import { useScrollReached } from "../../../hooks/scroll-reached.hook";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
@@ -16,6 +17,7 @@ import { MOBILE_LAYOUT_QUERY } from "../../../constants/layout.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useProjectPagesQuery } from "../../../hooks/queries/project.query";
+import type { IProjectListItem } from "../../../interfaces/project-list.interface";
 import type { IProjectPageQuery } from "../../../interfaces/api-request.interface";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 import { useMoveProjectStageMutation } from "../../../hooks/mutations/project.mutation";
@@ -55,7 +57,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
   const isEmpty = projectsQuery.isSuccess && projects.length === 0;
   const canLoadMore = projectsQuery.hasNextPage && !projectsQuery.isFetchingNextPage;
   const queryError = projectsQuery.error ?? moveMutation.error;
-  const canMoveStage = hasPermission(sessionUser, "MOVE_PROJECT_STAGE");
+  const canMoveStage = hasPermission(sessionUser, PERMISSIONS.PROJECTS_STATUS_CHANGE);
 
   const loadMoreRef = useScrollReached({
     isEnabled: canLoadMore,
@@ -63,7 +65,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
     rootMargin: PROJECT_BOARD_SCROLL_ROOT_MARGIN,
   });
 
-  const moveToStage = (project: IApiProject, stageId: string) =>
+  const moveToStage = (project: IProjectListItem, stageId: string) =>
     moveMutation.mutate({ projectId: project.id, stageId });
 
   const columns = buildProjectColumns({ stages, canMoveStage, onStageChange: moveToStage });

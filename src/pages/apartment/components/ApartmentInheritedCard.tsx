@@ -11,7 +11,7 @@ import { CHIP_VARIANTS } from "../../../constants/chip.constant";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { formatApartmentUnit } from "../../../utilities/apartment.utility";
-import { PROJECT_CONTACT_COPY } from "../../../constants/project-contact.constant";
+import { PROJECT_INTAKE_COPY } from "../../../constants/project-intake.constant";
 import { formatCustomerDetailValue } from "../../../utilities/customer-details.utility";
 import { APARTMENT_PAGE_COPY, INHERITANCE_BADGES } from "../../../constants/apartment.constant";
 
@@ -30,7 +30,7 @@ const ApartmentInheritedCard: FC<IApartmentInheritedCardProps> = ({
   const pageStyles = usePageStyles();
 
   const verifiedBadge = apartment.addressPlaceId && (
-    <Chip variant={CHIP_VARIANTS.ALERT} label={PROJECT_CONTACT_COPY.VERIFIED_BADGE} />
+    <Chip variant={CHIP_VARIANTS.ALERT} label={PROJECT_INTAKE_COPY.VERIFIED_BADGE} />
   );
 
   return (

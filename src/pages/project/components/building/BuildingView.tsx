@@ -14,15 +14,20 @@ import Button from "../../../../components/Button/Button";
 import BuildingInheritedCard from "./BuildingInheritedCard";
 import { ICON_NAMES } from "../../../../constants/icon.constant";
 import { useSessionUser } from "../../../../store/session.store";
+import { PERMISSIONS } from "../../../../constants/permission.constant";
 import type { IApiProject } from "../../../../interfaces/api.interface";
 import { hasPermission } from "../../../../utilities/permission.utility";
+import { useApartmentImport } from "../../../../hooks/apartment-import.hook";
 import { formatBuildingBadge } from "../../../../utilities/apartment.utility";
 import { BUILDING_PAGE_COPY } from "../../../../constants/apartment.constant";
 import { ALL_STAGES_TILE_ID } from "../../../../constants/stage-tile.constant";
 import { useProjectStagesQuery } from "../../../../hooks/queries/project.query";
 import StageTilesCard from "../../../../components/StageTilesCard/StageTilesCard";
+import ApartmentImport from "../../../../components/ApartmentImport/ApartmentImport";
 import { toStageTiles, toStageFilter } from "../../../../utilities/stage-tile.utility";
 import { useApartmentStageCountsQuery } from "../../../../hooks/queries/apartment.query";
+import { BUTTON_VARIANTS } from "../../../../components/Button/constants/button.constants";
+import { canImportApartments } from "../../../../utilities/apartment-import-permission.utility";
 import { buildEditProjectPath, buildNewApartmentPath } from "../../../../utilities/route.utility";
 
 interface IBuildingViewProps {
@@ -34,32 +39,63 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
   const styles = usePageStyles();
   const sessionUser = useSessionUser();
   const [activeTileId, setActiveTileId] = useState<string>(ALL_STAGES_TILE_ID);
+  const apartmentImport = useApartmentImport(project.id);
   const stagesQuery = useProjectStagesQuery();
   const stageCountsQuery = useApartmentStageCountsQuery(project.id);
 
   const stages = stagesQuery.data ?? [];
   const stageCounts = stageCountsQuery.data ?? null;
   const fieldSet = project.projectType?.detailFieldSet ?? null;
-  const canEdit = hasPermission(sessionUser, "EDIT_PROJECTS");
+  const canCreateApartment = hasPermission(sessionUser, PERMISSIONS.APARTMENTS_CREATE);
+  const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
+  const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
+  const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
+  const canImport = canImportApartments(sessionUser);
+  const importOpen = canImport && apartmentImport.open;
   const openEditForm = () => navigate(buildEditProjectPath(project.id));
 
-  const addApartmentAction = (
+  const importAction = canImport ? (
     <Button
-      icon={ICON_NAMES.ADD}
-      text={BUILDING_PAGE_COPY.ADD_APARTMENT}
-      onClick={() => navigate(buildNewApartmentPath(project.id))}
+      icon={ICON_NAMES.UPLOAD}
+      text="ייבוא דירות מאקסל"
+      variant={BUTTON_VARIANTS.NEUTRAL}
+      onClick={apartmentImport.openImport}
     />
+  ) : null;
+  const addApartmentAction = (
+    <>
+      {canCreateApartment && (
+        <Button
+          icon={ICON_NAMES.ADD}
+          text={BUILDING_PAGE_COPY.ADD_APARTMENT}
+          onClick={() => navigate(buildNewApartmentPath(project.id))}
+        />
+      )}
+      {importAction}
+    </>
   );
 
   return (
     <Box sx={styles.page}>
+      <ApartmentImport
+        open={importOpen}
+        view={apartmentImport.view}
+        buildingName={project.name}
+        onRetry={apartmentImport.retry}
+        onFinish={apartmentImport.finish}
+        onClose={apartmentImport.closeImport}
+        existingCount={stageCounts?.total ?? 0}
+        onFilesSelected={apartmentImport.selectFiles}
+        onDownloadReport={apartmentImport.downloadReport}
+        onDownloadTemplate={apartmentImport.downloadTemplate}
+      />
       <ProjectPageHeader
         project={project}
         extraActions={addApartmentAction}
         badge={<Chip label={formatBuildingBadge(stageCounts?.total ?? 0)} />}
       />
 
-      <ProjectDriveCard projectId={project.id} />
+      {canReadDrive && <ProjectDriveCard projectId={project.id} />}
 
       <BuildingInheritedCard building={project} />
 
@@ -77,7 +113,7 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         stageId={toStageFilter(activeTileId)}
       />
 
-      <ProjectTasksCard projectId={project.id} />
+      {canReadTasks && <ProjectTasksCard projectId={project.id} />}
 
       <ProjectTeamCard members={project.members ?? []} />
 

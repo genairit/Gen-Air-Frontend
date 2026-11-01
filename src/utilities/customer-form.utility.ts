@@ -3,6 +3,7 @@ import { PROJECT_DETAIL_FIELD_SET_VALUES } from "../constants/project-detail-fie
 import type { TCustomerFormErrors, ICreateCustomerPayload } from "../interfaces/customer.interface";
 
 export const normalizeCustomerForm = (values: ICreateCustomerPayload): ICreateCustomerPayload => ({
+  paymentTerms: values.paymentTerms ?? null,
   name: values.name.trim(),
   taxId: values.taxId.trim(),
   address: values.address.trim(),

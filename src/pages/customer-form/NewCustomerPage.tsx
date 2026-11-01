@@ -7,6 +7,7 @@ import { useSessionUser } from "../../store/session.store";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import { ROUTE_PATHS } from "../../constants/routes.constant";
 import EmptyState from "../../components/EmptyState/EmptyState";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import { getFullName } from "../../utilities/mappers/user.mapper";
 import { hasPermission } from "../../utilities/permission.utility";
 import { CUSTOMER_FORM_COPY } from "../../constants/customer-form.constant";
@@ -17,7 +18,7 @@ const NewCustomerPage = () => {
   const navigate = useNavigate();
   const user = useSessionUser();
 
-  if (!user || !hasPermission(user, "MANAGE_CUSTOMERS")) {
+  if (!user || !hasPermission(user, PERMISSIONS.CUSTOMERS_CREATE)) {
     return (
       <EmptyState
         icon={ICON_NAMES.CUSTOMER}

@@ -1,9 +1,21 @@
+import {
+  isApiUser,
+  isCursorPageOf,
+  isAuthorizedUser,
+  isUserRoleCounts,
+} from "../utilities/guards/api.guard";
+
 import { httpClient, ensureResponse } from "./http-client.service";
 import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
 import type { IUserQuery, IUserPayload } from "../interfaces/api-request.interface";
-import { isApiUser, isCursorPageOf, isUserRoleCounts } from "../utilities/guards/api.guard";
 
 class UserService {
+  async getMe() {
+    const response = await httpClient.get<unknown>(API_ENDPOINTS.MY_USER);
+
+    return ensureResponse(API_ENDPOINTS.MY_USER, response.data, isAuthorizedUser);
+  }
+
   async getByFilter({ search, role }: IUserQuery) {
     const response = await httpClient.get<unknown>(API_ENDPOINTS.USERS, {
       params: { search: search.trim() || null, role, batchSize: API_PAGE_SIZE },

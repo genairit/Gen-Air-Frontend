@@ -5,6 +5,7 @@ import {
   buildTaskLinkPath,
   formatTaskDueFull,
   getTodayInputValue,
+  getTaskDueDateError,
   getTaskProjectCustomer,
   formatTaskLinkedToLabel,
 } from "../../../utilities/task.utility";
@@ -15,6 +16,12 @@ import {
   TASK_LINK_KIND_LABELS,
   TASK_LINK_CHIP_VARIANTS,
 } from "../../../constants/task.constant";
+
+import {
+  TASK_TYPES,
+  TASK_TYPE_LABELS,
+  PROJECT_TASK_COPY,
+} from "../../../constants/task-type.constant";
 
 import { Box } from "@mui/material";
 import { Link } from "react-router-dom";
@@ -38,9 +45,10 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 
 interface ITaskDetailsCardProps {
   task: IApiTask;
+  canEdit: boolean;
   isSaving: boolean;
   canClaim: boolean;
-  isManager: boolean;
+  canAssign: boolean;
   onClaim: () => void;
   onUpdate: (payload: TUpdateTaskPayload) => void;
 }
@@ -51,29 +59,30 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
   canClaim,
   isSaving,
   onUpdate,
-  isManager,
+  canEdit,
+  canAssign,
 }) => {
   const styles = useStyles();
   const pageStyles = usePageStyles();
   const [description, setDescription] = useState(task.description ?? "");
 
-  const isLocked = !isManager;
+  const isLocked = !canEdit;
+  const isAssignmentLocked = !canAssign;
   const linkKind = getTaskLinkKind(task);
   const linkPath = buildTaskLinkPath(task);
   const projectCustomer = getTaskProjectCustomer(task);
+  const isProtected = task.taskType !== TASK_TYPES.GENERAL;
   const trimmedDescription = description.trim();
   const isDescriptionChanged = trimmedDescription !== (task.description ?? "");
   const canSaveDescription = isDescriptionChanged && Boolean(trimmedDescription);
   const descriptionError = trimmedDescription ? null : NEW_TASK_COPY.REQUIRED;
 
   const changeDueDate = (dueDate: string) => {
-    const isPast = dueDate < getTodayInputValue();
-
-    if (!dueDate || isPast) {
+    if (getTaskDueDateError(dueDate)) {
       return;
     }
 
-    onUpdate({ dueDate });
+    onUpdate({ dueDate: dueDate || null });
   };
 
   return (
@@ -105,17 +114,27 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
             </Box>
           </TaskFieldTile>
         )}
-        <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.ASSIGNEE}>
+        <TaskFieldTile label={PROJECT_TASK_COPY.TYPE}>
+          <Box component="b" sx={styles.value}>
+            {TASK_TYPE_LABELS[task.taskType]}
+          </Box>
+          {isProtected && (
+            <Box component="span" sx={pageStyles.caption}>
+              {PROJECT_TASK_COPY.PROTECTED_HELP}
+            </Box>
+          )}
+        </TaskFieldTile>
+        <TaskFieldTile isLocked={isAssignmentLocked} label={TASK_PAGE_COPY.ASSIGNEE}>
           <TaskAssigneeField
             task={task}
             onClaim={onClaim}
             canClaim={canClaim}
-            isManager={isManager}
+            isManager={canAssign}
             onAssign={assigneeId => onUpdate({ assigneeId })}
           />
         </TaskFieldTile>
         <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.DUE_DATE}>
-          {isManager && (
+          {canEdit && (
             <TextField
               type={FIELD_TYPES.DATE}
               onChange={changeDueDate}
@@ -131,7 +150,7 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
         </TaskFieldTile>
       </Box>
       <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.DESCRIPTION}>
-        {isManager && (
+        {canEdit && (
           <>
             <TextField
               multiline

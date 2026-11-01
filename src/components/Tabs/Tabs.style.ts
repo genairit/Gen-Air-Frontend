@@ -8,6 +8,14 @@ type TTabsStyle = SystemStyleObject<Theme>;
 const { palette, softShadow, radius, controlHeight } = theme;
 
 const CONTAINER_BY_VARIANT: Record<TabsVariantType, TTabsStyle> = {
+  status: {
+    flexWrap: "wrap",
+    gap: "4px",
+    padding: "4px",
+    borderRadius: "999px",
+    boxShadow: softShadow.inset,
+    backgroundColor: palette.iceWhite,
+  },
   pills: { gap: "14px" },
   segmented: {
     gap: "6px",
@@ -19,16 +27,19 @@ const CONTAINER_BY_VARIANT: Record<TabsVariantType, TTabsStyle> = {
 };
 
 const TAB_BY_VARIANT: Record<TabsVariantType, TTabsStyle> = {
+  status: { flex: "1 1 auto", minHeight: 36, padding: "8px 14px", fontSize: 13 },
   pills: { height: controlHeight.medium, padding: "0 22px", fontSize: 15 },
   segmented: { height: controlHeight.compact, padding: "0 18px", fontSize: 14 },
 };
 
 const ACTIVE_TAB_BY_VARIANT: Record<TabsVariantType, TTabsStyle> = {
+  status: { backgroundColor: palette.iceWhite, boxShadow: softShadow.raisedSmall },
   pills: { backgroundColor: palette.airBlue, boxShadow: softShadow.inset },
   segmented: { backgroundColor: palette.airBlue, boxShadow: softShadow.raisedSmall },
 };
 
 const IDLE_TAB_BY_VARIANT: Record<TabsVariantType, TTabsStyle> = {
+  status: { backgroundColor: "transparent", boxShadow: "none" },
   pills: { backgroundColor: palette.iceWhite, boxShadow: softShadow.raisedMedium },
   segmented: { backgroundColor: "transparent", boxShadow: "none" },
 };

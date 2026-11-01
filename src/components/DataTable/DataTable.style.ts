@@ -5,6 +5,7 @@ const DIMMED_ROW_OPACITY = 0.55;
 
 interface IGridStyleOptions {
   minWidth: number;
+  isSticky?: boolean;
   gridTemplate: string;
 }
 
@@ -22,19 +23,24 @@ const createGridRow = ({ minWidth, gridTemplate }: IGridStyleOptions) => ({
 
 export const useStyles = () =>
   createStyles({
-    scroller: {
+    scroller: ({ maxHeight = "none" }: { maxHeight?: string }) => ({
+      maxHeight,
       gap: "12px",
       padding: "8px",
       display: "flex",
       overflowX: "auto",
       flexDirection: "column",
-    },
+    }),
     header: (options: IGridStyleOptions) => ({
       ...createGridRow(options),
       fontSize: 12,
       fontWeight: 600,
       padding: "0 20px",
       color: theme.palette.textMuted,
+      top: 0,
+      zIndex: 1,
+      position: options.isSticky ? "sticky" : "static",
+      backgroundColor: theme.palette.iceWhite,
     }),
     row: ({ isDimmed, isClickable, ...options }: IRowStyleOptions) => ({
       ...createGridRow(options),

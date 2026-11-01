@@ -1,12 +1,7 @@
-import type { IApiUser } from "../interfaces/api.interface";
-import { ROLE_PERMISSIONS, type PermissionType } from "../constants/user-role.constant";
+import type { IApiAuthorizedUser } from "../interfaces/api.interface";
+import type { PermissionType } from "../constants/permission.constant";
 
-export const hasPermission = (user: IApiUser | null, permission: PermissionType) => {
-  if (!user) {
-    return false;
-  }
-
-  const allowedRoles: readonly string[] = ROLE_PERMISSIONS[permission];
-
-  return allowedRoles.includes(user.role);
-};
+export const hasPermission = (
+  user: IApiAuthorizedUser | null,
+  permission: PermissionType,
+): boolean => user?.permissions?.includes(permission) ?? false;

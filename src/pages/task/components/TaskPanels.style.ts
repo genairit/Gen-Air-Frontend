@@ -20,6 +20,7 @@ export const useStyles = () =>
     title: {
       margin: 0,
       fontSize: 28,
+      overflowWrap: "anywhere",
       fontWeight: 800,
     },
     metaRow: {

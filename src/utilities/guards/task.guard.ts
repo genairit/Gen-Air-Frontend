@@ -14,6 +14,7 @@ import type {
 } from "../../interfaces/task.interface";
 
 import { isApiUser } from "./api.guard";
+import { TASK_TYPE_VALUES, type TaskType } from "../../constants/task-type.constant";
 import { TASK_STATUS_VALUES, type TaskStatusType } from "../../constants/task.constant";
 import type { IApiProjectReference, IApiCustomerReference } from "../../interfaces/api.interface";
 
@@ -29,6 +30,9 @@ const TASK_NULLABLE_TEXT_FIELDS = [
   "urgencyMarkedById",
   "urgencyMarkedAt",
 ];
+
+export const isTaskType = (value: unknown): value is TaskType =>
+  TASK_TYPE_VALUES.some(type => type === value);
 
 export const isTaskStatus = (value: unknown): value is TaskStatusType =>
   TASK_STATUS_VALUES.some(status => status === value);
@@ -72,7 +76,8 @@ export const isApiTask = (value: unknown): value is IApiTask => {
   const hasNullableFields = TASK_NULLABLE_TEXT_FIELDS.every(field =>
     isNullableString(value[field]),
   );
-  const hasState = isTaskStatus(value.status) && typeof value.isUrgent === "boolean";
+  const hasState =
+    isTaskStatus(value.status) && isTaskType(value.taskType) && typeof value.isUrgent === "boolean";
 
   return hasIdentity && hasNullableFields && hasState && hasValidRelations(value);
 };

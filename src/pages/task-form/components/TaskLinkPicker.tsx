@@ -1,9 +1,3 @@
-import {
-  NEW_TASK_COPY,
-  TASK_LINK_PICKER_COPY,
-  type TaskLinkKindType,
-} from "../../../constants/task.constant";
-
 import type { FC, ReactNode } from "react";
 import { useStyles } from "./TaskForm.style";
 import { Box, ButtonBase } from "@mui/material";
@@ -17,6 +11,7 @@ import { focusSiblingOnArrow } from "../../../utilities/keyboard.utility";
 import type { ITaskLinkOption } from "../../../interfaces/task.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
+import { NEW_TASK_COPY, TASK_PROJECT_PICKER_COPY } from "../../../constants/task.constant";
 
 interface ITaskLinkPickerProps {
   search: string;
@@ -24,7 +19,6 @@ interface ITaskLinkPickerProps {
   isLoading: boolean;
   onRetry: () => void;
   error: string | null;
-  kind: TaskLinkKindType;
   emptyAction?: ReactNode;
   options: ITaskLinkOption[];
   onSearch: (search: string) => void;
@@ -32,7 +26,6 @@ interface ITaskLinkPickerProps {
 }
 
 const TaskLinkPicker: FC<ITaskLinkPickerProps> = ({
-  kind,
   error,
   search,
   isError,
@@ -44,7 +37,7 @@ const TaskLinkPicker: FC<ITaskLinkPickerProps> = ({
   emptyAction,
 }) => {
   const styles = useStyles();
-  const copy = TASK_LINK_PICKER_COPY[kind];
+  const copy = TASK_PROJECT_PICKER_COPY;
 
   const hasLoadedOptions = !isLoading && !isError;
   const hasNoResults = hasLoadedOptions && options.length === 0;

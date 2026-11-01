@@ -105,6 +105,12 @@ const SOFT_SHADOW_VALUES = {
     darkColor: SHADOW_COLORS.airBlueDark,
     lightColor: SHADOW_COLORS.airBlueLight,
   }),
+  raisedSelectedSmall: createRaisedShadow({
+    offset: 3,
+    blur: 7,
+    darkColor: SHADOW_COLORS.airBlueDark,
+    lightColor: SHADOW_COLORS.airBlueLight,
+  }),
   primary: createRaisedShadow({
     ...surfaceShadow,
     darkColor: SHADOW_COLORS.primaryGlow,

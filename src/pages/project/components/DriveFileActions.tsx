@@ -17,6 +17,7 @@ import { useStyles } from "./DriveFileManager.style";
 import Button from "../../../components/Button/Button";
 import { type FC, type ReactNode, useState } from "react";
 import { useSessionUser } from "../../../store/session.store";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import type { IProjectFile } from "../../../interfaces/project.interface";
 import type { IDriveFolderLocation } from "../../../interfaces/drive-file.interface";
@@ -38,7 +39,9 @@ const DriveFileActions: FC<IDriveFileActionsProps> = ({ file, projectId, folderN
   const [operation, setOperation] = useState<DriveFileOperationType | null>(null);
   const move = useMoveProjectDriveFileMutation();
   const trash = useTrashProjectDriveFileMutation();
-  const canManage = hasPermission(user, "EDIT_PROJECTS");
+  const canMove = hasPermission(user, PERMISSIONS.DRIVE_MOVE);
+  const canDelete = hasPermission(user, PERMISSIONS.DRIVE_DELETE);
+  const canManage = canMove || canDelete;
   const moveError = move.isError ? DRIVE_FILE_COPY.ACTION_ERROR : null;
   const close = () => setOperation(null);
   const openMove = () => {
@@ -89,12 +92,14 @@ const DriveFileActions: FC<IDriveFileActionsProps> = ({ file, projectId, folderN
     <Box sx={styles.actions}>
       <Button
         onClick={openMove}
+        disabled={!canMove}
         ariaLabel={moveLabel}
         text={DRIVE_FILE_COPY.MOVE}
         variant={BUTTON_VARIANTS.NEUTRAL}
       />
       <Button
         onClick={openTrash}
+        disabled={!canDelete}
         ariaLabel={deleteLabel}
         text={DRIVE_FILE_COPY.DELETE}
         variant={BUTTON_VARIANTS.NEUTRAL}

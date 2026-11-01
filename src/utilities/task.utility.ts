@@ -10,31 +10,21 @@ import {
   TASK_HISTORY_COPY,
   TASK_STATUS_LABELS,
   TASK_STATUS_VALUES,
-  TASK_LINK_ID_FIELDS,
   URGENCY_CONFIRM_COPY,
-  TASK_LINK_KIND_LABELS,
-  TASK_LINK_PICKER_COPY,
   type TaskLinkKindType,
+  TASK_LINK_KIND_LABELS,
+  TASK_PROJECT_PICKER_COPY,
   TASK_HISTORY_PREVIEW_COUNT,
 } from "../constants/task.constant";
-
-import type {
-  IApiUser,
-  IApiProject,
-  IApiCustomer,
-  IApiCustomerReference,
-} from "../interfaces/api.interface";
 
 import type {
   IApiTask,
   ITaskQuery,
   ITaskCounts,
-  TTaskFormLink,
   TTaskFormErrors,
   ITaskFormValues,
   ITaskLinkReader,
   ITaskLinkOption,
-  ITaskLinkPayload,
   ICreateTaskPayload,
   IApiTaskTransition,
   TTaskFormErrorEntry,
@@ -47,11 +37,11 @@ import { formatDate } from "./date.utility";
 import { getInitials } from "./text.utility";
 import { isTaskStatus } from "./guards/task.guard";
 import { getFullName } from "./mappers/user.mapper";
-import { formatCustomerTaxId } from "./customer.utility";
 import { DATE_FORMAT } from "../constants/date.constants";
+import { TASK_TYPES } from "../constants/task-type.constant";
 import type { ITabItem } from "../interfaces/tab-item.interface";
 import { buildCustomerPath, buildProjectPath } from "./route.utility";
-import { PRIORITY_SYNC_STATUSES } from "../constants/priority-sync.constant";
+import type { IApiUser, IApiProject, IApiCustomerReference } from "../interfaces/api.interface";
 
 const toDueDate = (task: IApiTask) => (task.dueDate ? new Date(task.dueDate) : null);
 
@@ -68,6 +58,10 @@ export const isTaskOverdue = (task: IApiTask) => {
 const formatDueDay = (task: IApiTask) => formatDate(toDueDate(task), DATE_FORMAT.DATE_DOTS_NO_YEAR);
 
 export const formatTaskDueShort = (task: IApiTask) => {
+  if (!task.dueDate) {
+    return TASKS_PAGE_COPY.NO_DUE;
+  }
+
   if (isTaskOverdue(task)) {
     return `${TASKS_PAGE_COPY.OVERDUE} · ${formatDueDay(task)}`;
   }
@@ -76,6 +70,10 @@ export const formatTaskDueShort = (task: IApiTask) => {
 };
 
 export const formatTaskDueLabel = (task: IApiTask) => {
+  if (!task.dueDate) {
+    return TASKS_PAGE_COPY.NO_DUE;
+  }
+
   if (isTaskOverdue(task)) {
     return `${TASKS_PAGE_COPY.OVERDUE} · ${formatDueDay(task)}`;
   }
@@ -84,6 +82,10 @@ export const formatTaskDueLabel = (task: IApiTask) => {
 };
 
 export const formatTaskDueFull = (task: IApiTask) => {
+  if (!task.dueDate) {
+    return TASKS_PAGE_COPY.NO_DUE;
+  }
+
   const fullDate = formatDate(toDueDate(task), DATE_FORMAT.DATE_DOTS);
 
   if (isTaskOverdue(task)) {
@@ -94,7 +96,7 @@ export const formatTaskDueFull = (task: IApiTask) => {
 };
 
 export const toDateInputValue = (date: string | null) =>
-  formatDate(date ? new Date(date) : null, DATE_FORMAT.DATE_INPUT);
+  date ? formatDate(new Date(date), DATE_FORMAT.DATE_INPUT) : "";
 
 export const getTodayInputValue = () => formatDate(new Date(), DATE_FORMAT.DATE_INPUT);
 
@@ -224,89 +226,44 @@ export const toAssigneeId = (optionId: string | null) => {
 
 export const toAssigneeOptionId = (assigneeId: string | null) => assigneeId ?? POOL_ASSIGNEE_ID;
 
-const isPastDate = (dateInput: string) => moment(dateInput).isBefore(moment(), "day");
-
-const getDueDateError = (dueDate: string) => {
+export const getTaskDueDateError = (dueDate: string) => {
   if (!dueDate) {
-    return NEW_TASK_COPY.REQUIRED;
+    return null;
   }
 
-  if (isPastDate(dueDate)) {
+  const date = moment(dueDate, DATE_FORMAT.DATE_INPUT, true);
+  if (!date.isValid()) {
+    return NEW_TASK_COPY.INVALID_DUE;
+  }
+
+  if (date.isBefore(moment(), "day")) {
     return NEW_TASK_COPY.PAST_DUE;
   }
 
   return null;
 };
 
-const getLinkErrors = ({ linkKind, ...ids }: TTaskFormLink): TTaskFormErrorEntry[] => {
-  if (!linkKind) {
-    return [["linkKind", NEW_TASK_COPY.CHOOSE_LINK_KIND]];
-  }
-
-  const field = TASK_LINK_ID_FIELDS[linkKind];
-
-  return [[field, ids[field] ? null : TASK_LINK_PICKER_COPY[linkKind].REQUIRED]];
-};
-
 export const getTaskFormErrors = (values: ITaskFormValues): TTaskFormErrors => {
   const errors: TTaskFormErrorEntry[] = [
-    ...getLinkErrors(values),
+    ["projectId", values.projectId ? null : TASK_PROJECT_PICKER_COPY.REQUIRED],
     ["assigneeOptionId", values.assigneeOptionId ? null : NEW_TASK_COPY.REQUIRED],
     ["title", values.title.trim() ? null : NEW_TASK_COPY.REQUIRED],
-    ["dueDate", getDueDateError(values.dueDate)],
+    ["dueDate", getTaskDueDateError(values.dueDate)],
     ["description", values.description.trim() ? null : NEW_TASK_COPY.REQUIRED],
   ];
 
   return Object.fromEntries(errors.filter(([, message]) => message !== null));
 };
 
-const TASK_LINK_PAYLOADS: Record<TaskLinkKindType, (linkedId: string) => ITaskLinkPayload> = {
-  customer: customerId => ({ customerId }),
-  project: projectId => ({ projectId }),
-};
-
-const TASK_LINK_SELECTIONS: Record<TaskLinkKindType, (linkedId: string | null) => TTaskFormLink> = {
-  customer: customerId => ({ linkKind: TASK_LINK_KINDS.CUSTOMER, customerId, projectId: null }),
-  project: projectId => ({ linkKind: TASK_LINK_KINDS.PROJECT, projectId, customerId: null }),
-};
-
-const toTaskLinkPayload = ({ linkKind, ...ids }: TTaskFormLink): ITaskLinkPayload | null => {
-  if (!linkKind) {
-    return null;
-  }
-
-  const linkedId = ids[TASK_LINK_ID_FIELDS[linkKind]];
-
-  if (!linkedId) {
-    return null;
-  }
-
-  return TASK_LINK_PAYLOADS[linkKind](linkedId);
-};
-
-export const toTaskLinkSelection = (linkKind: TaskLinkKindType, linkedId: string | null) =>
-  TASK_LINK_SELECTIONS[linkKind](linkedId);
-
-export const toTaskFormLink = ({
-  linkKind,
-  projectId,
-  customerId,
-}: TTaskFormLink): TTaskFormLink => ({
-  linkKind,
-  projectId,
-  customerId,
-});
-
 export const toCreateTaskPayload = (values: ITaskFormValues): ICreateTaskPayload | null => {
-  const link = toTaskLinkPayload(values);
-
-  if (!link) {
+  if (!values.projectId) {
     return null;
   }
 
   return {
-    ...link,
-    dueDate: values.dueDate,
+    taskType: TASK_TYPES.GENERAL,
+    projectId: values.projectId,
+    dueDate: values.dueDate || null,
     title: values.title.trim(),
     assigneeId: toAssigneeId(values.assigneeOptionId),
     description: values.description.trim(),
@@ -356,25 +313,12 @@ export const getAssigneeHint = (assigneeOptionId: string | null) => {
 export const formatUrgentSaveLead = (recipient: string) =>
   `בשמירה תישלח התראת Push אל ${recipient}`;
 
-export const toLinkKindChange = (linkKind: TaskLinkKindType) => toTaskLinkSelection(linkKind, null);
-
-export const hasTaskLinkSelection = (values: TTaskFormLink) =>
-  values.projectId != null || values.customerId != null;
-
-export const formatClearedLinkNotice = ({ linkKind }: TTaskFormLink, name: string) => {
-  if (!linkKind) {
-    return "";
-  }
-
-  return `השיוך הקודם (${TASK_LINK_KIND_LABELS[linkKind]}: ${name}) נוקה`;
-};
-
 export const toInitialTaskFormValues = (project: IApiProject | null): ITaskFormValues => {
   if (!project) {
     return EMPTY_TASK_FORM;
   }
 
-  return { ...EMPTY_TASK_FORM, ...toTaskLinkSelection(TASK_LINK_KINDS.PROJECT, project.id) };
+  return { ...EMPTY_TASK_FORM, projectId: project.id };
 };
 
 export const formatHistoryCount = (count: number) => {
@@ -428,20 +372,3 @@ export const toProjectLinkOption = (project: IApiProject): ITaskLinkOption => ({
 
 export const findLinkOption = (options: ITaskLinkOption[], optionId: string) =>
   options.find(option => option.id === optionId) ?? null;
-
-export const toCustomerLinkOption = (customer: IApiCustomer): ITaskLinkOption => ({
-  tag: null,
-  id: customer.id,
-  name: customer.name,
-  caption: formatCustomerTaxId(customer),
-});
-
-export const toSelectedCustomerOption = (customer: IApiCustomer): ITaskLinkOption => {
-  const option = toCustomerLinkOption(customer);
-
-  if (customer.prioritySyncStatus !== PRIORITY_SYNC_STATUSES.SYNCED) {
-    return option;
-  }
-
-  return { ...option, caption: `${option.caption} · ${NEW_TASK_COPY.PRIORITY_SYNCED}` };
-};

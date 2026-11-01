@@ -1,3 +1,5 @@
+import { Box } from "@mui/material";
+import { usePageStyles } from "../page.style";
 import { PROJECT_VIEWS } from "./project-views";
 import Button from "../../components/Button/Button";
 import { useNavigate, useParams } from "react-router-dom";
@@ -8,10 +10,12 @@ import { useProjectQuery } from "../../hooks/queries/project.query";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { ROUTE_PARAMS, ROUTE_PATHS } from "../../constants/routes.constant";
+import CustomerContacts from "../../components/CustomerContacts/CustomerContacts";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import { PROJECT_PAGE_COPY, PROJECT_PAGE_STATUS_COPY } from "../../constants/project-page.constant";
 
 const ProjectPage = () => {
+  const styles = usePageStyles();
   const navigate = useNavigate();
   const params = useParams();
   const projectId = params[ROUTE_PARAMS.PROJECT_ID] ?? null;
@@ -41,7 +45,14 @@ const ProjectPage = () => {
   const project = projectQuery.data;
   const ProjectView = PROJECT_VIEWS[getProjectKind(project)];
 
-  return <ProjectView key={project.id} project={project} />;
+  return (
+    <Box sx={styles.page}>
+      <ProjectView key={project.id} project={project} />
+      {project.customerId && (
+        <CustomerContacts key={project.customerId} customerId={project.customerId} />
+      )}
+    </Box>
+  );
 };
 
 export default ProjectPage;

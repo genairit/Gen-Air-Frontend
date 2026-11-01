@@ -5,6 +5,7 @@ import { theme } from "../../../constants/theme.constants";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useSessionUser } from "../../../store/session.store";
 import { formatStageLabel } from "../../../utilities/text.utility";
+import { PERMISSIONS } from "../../../constants/permission.constant";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { hasPermission } from "../../../utilities/permission.utility";
 import { buildEditProjectPath } from "../../../utilities/route.utility";
@@ -22,7 +23,7 @@ interface IProjectPageHeaderProps {
 const ProjectPageHeader: FC<IProjectPageHeaderProps> = ({ badge, project, extraActions }) => {
   const navigate = useNavigate();
   const sessionUser = useSessionUser();
-  const canEdit = hasPermission(sessionUser, "EDIT_PROJECTS");
+  const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
 
   return (
     <ProjectHeader
@@ -34,17 +35,17 @@ const ProjectPageHeader: FC<IProjectPageHeaderProps> = ({ badge, project, extraA
       syncCaption={toErpSyncCaption(project.prioritySyncedAt)}
       stageDotColor={project.stage?.color ?? theme.palette.primary}
       actions={
-        canEdit && (
-          <>
+        <>
+          {canEdit && (
             <Button
               icon={ICON_NAMES.EDIT}
               text={PROJECT_PAGE_COPY.EDIT}
               variant={BUTTON_VARIANTS.NEUTRAL}
               onClick={() => navigate(buildEditProjectPath(project.id))}
             />
-            {extraActions}
-          </>
-        )
+          )}
+          {extraActions}
+        </>
       }
     />
   );
