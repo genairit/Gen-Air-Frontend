@@ -20,6 +20,7 @@ import { ROUTE_PARAMS, ROUTE_PATHS } from "../../constants/routes.constant";
 import { CUSTOMER_PROJECT_COPY } from "../../constants/customer-project.constant";
 import CustomerContacts from "../../components/CustomerContacts/CustomerContacts";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
+import CustomerPaymentDefault from "../../components/CustomerPaymentDefault/CustomerPaymentDefault";
 
 const CustomerPage = () => {
   const navigate = useNavigate();
@@ -57,7 +58,12 @@ const CustomerPage = () => {
       <CustomerHeaderCard customer={customer} />
       <CustomerSyncCard customer={customer} />
       <CustomerDetailsCard customer={customer} />
-      <CustomerContacts editable key={customer.id} customerId={customer.id} />
+      <CustomerPaymentDefault customer={customer} key={`customer-payment:${customer.id}`} />
+      <CustomerContacts
+        editable
+        customerId={customer.id}
+        key={`customer-contacts:${customer.id}`}
+      />
       {hasPermission(user, PERMISSIONS.PROJECTS_READ) && (
         <Box
           component="section"

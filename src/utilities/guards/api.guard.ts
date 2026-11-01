@@ -51,6 +51,7 @@ import {
 
 import { isPermission } from "./permission.guard";
 import { isCustomerContactList } from "../customer-contact.utility";
+import { hasValidProjectLighting } from "../project-constraints.utility";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
 import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial.utility";
 
@@ -174,7 +175,8 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     hasValidCustomer &&
     hasValidOwnTeam &&
     hasValidCredit &&
-    hasValidOwnership
+    hasValidOwnership &&
+    hasValidProjectLighting(value)
   );
 };
 
@@ -284,6 +286,8 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     isNullableString(value[field]),
   );
   const hasValidCreator = isOptionalOf(isApiUser)(value.createdBy);
+  const hasPaymentDefault =
+    !("paymentTerms" in value) || value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
   const hasValidContacts = isOptionalOf(isCustomerContactList)(value.contacts);
 
   return (
@@ -293,6 +297,7 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     hasSyncAttempts &&
     hasSyncDetails &&
     hasValidCreator &&
+    hasPaymentDefault &&
     hasValidContacts
   );
 };

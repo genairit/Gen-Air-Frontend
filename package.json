@@ -13,7 +13,8 @@
     "test:apartment-import": "node testing/run-apartment-import-tests.mjs",
     "test:customer-contacts": "node testing/run-customer-contact-tests.mjs",
     "test:project-tasks": "node testing/run-project-task-tests.mjs",
-    "test:customer-projects": "node testing/run-customer-project-tests.mjs"
+    "test:customer-projects": "node testing/run-customer-project-tests.mjs",
+    "test:project-constraints": "node testing/run-project-constraints-tests.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -25,6 +26,7 @@
     "axios": "^1.19.0",
     "class-validator": "^0.15.1",
     "date-fns": "^4.4.0",
+    "decimal.js": "10.6.0",
     "lodash.merge": "^4.6.2",
     "lottie-react": "^3.1.0",
     "moment": "^2.30.1",

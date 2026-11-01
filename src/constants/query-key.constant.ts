@@ -19,6 +19,7 @@ export const QUERY_ROOTS = {
   CUSTOMERS: "customers",
   CUSTOMER_PROJECTS: "customer-projects",
   PROJECT: "project",
+  PROJECT_NAME_AVAILABILITY: "project-name-availability",
   PROJECTS: "projects",
   APARTMENTS: "apartments",
   APARTMENT_STAGE_COUNTS: "apartment-stage-counts",

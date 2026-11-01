@@ -27,6 +27,8 @@ export interface IProjectPayload
   customerId: string;
   projectTypeId: string;
   members: IProjectMemberAssignment[];
+  hasGeneralLightingCeilingLowering?: boolean;
+  generalLightingCeilingLoweringHeight?: number | null;
 }
 
 export interface IUserQuery {

@@ -4,12 +4,23 @@ import {
   isCustomerSyncStatusCounts,
 } from "../utilities/guards/api.guard";
 
+import type { IApiCustomer } from "../interfaces/api.interface";
 import { httpClient, ensureResponse } from "./http-client.service";
 import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
 import type { ICustomerQuery } from "../interfaces/api-request.interface";
+import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { ICreateCustomerPayload } from "../interfaces/customer.interface";
 
 class CustomerService {
+  async updatePaymentDefault(
+    customerId: string,
+    paymentTerms: PaymentTermsType | null,
+  ): Promise<IApiCustomer> {
+    const endpoint = API_ENDPOINTS.customerById(customerId);
+    const response = await httpClient.patch<unknown>(endpoint, { paymentTerms });
+    return ensureResponse(endpoint, response.data, isApiCustomer);
+  }
+
   async create(payload: ICreateCustomerPayload) {
     const response = await httpClient.post<unknown>(API_ENDPOINTS.CUSTOMERS, payload);
     return ensureResponse(API_ENDPOINTS.CUSTOMERS, response.data, isApiCustomer);

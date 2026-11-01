@@ -1,5 +1,6 @@
 import type { IApiCustomer } from "./api.interface";
 import type { IValidationResult } from "./validation-result.interface";
+import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
 import type { TFieldType } from "../components/TextField/constants/textfield.constants";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
@@ -31,10 +32,14 @@ export interface ICreateCustomerPayload {
   email: string;
   address: string;
   contactName: string;
+  paymentTerms?: PaymentTermsType | null;
   customerType: ProjectDetailFieldSetType;
 }
 
-export type CustomerFormFieldType = Exclude<keyof ICreateCustomerPayload, "customerType">;
+export type CustomerFormFieldType = Exclude<
+  keyof ICreateCustomerPayload,
+  "customerType" | "paymentTerms"
+>;
 
 export type TCustomerFormErrors = Partial<Record<keyof ICreateCustomerPayload, string>>;
 

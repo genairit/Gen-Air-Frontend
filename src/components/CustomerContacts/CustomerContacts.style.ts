@@ -7,6 +7,7 @@ const { palette, softShadow } = theme;
 export const useStyles = () =>
   createStyles({
     caption: MUTED_CAPTION,
+    summaryLink: { color: "inherit", textDecoration: "none" },
     summary: {
       display: "flex",
       flexDirection: "column",

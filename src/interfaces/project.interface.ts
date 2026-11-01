@@ -55,6 +55,8 @@ export interface IProjectFormValues extends IProjectIntakeValues {
   customerId: string | null;
   assignees: TRoleAssignees;
   customerDetails: TCustomerDetailValues;
+  hasGeneralLightingCeilingLowering: boolean;
+  generalLightingCeilingLoweringHeight: string;
 }
 
 export interface IProjectSubmission {

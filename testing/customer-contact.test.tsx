@@ -34,6 +34,7 @@ import { toProjectPayload, toProjectFormValues } from "../src/utilities/project.
 import CustomerContactItem from "../src/components/CustomerContacts/CustomerContactItem";
 import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
 import CustomerContactEditor from "../src/components/CustomerContacts/CustomerContactEditor";
+import CustomerContactSummary from "../src/components/CustomerContacts/CustomerContactSummary";
 import { PROJECT_DETAIL_FIELD_SETS } from "../src/constants/project-detail-field-set.constant";
 import { getCustomerImportErrorMessage } from "../src/utilities/customer-import-error.utility";
 import { CUSTOMER_IMPORT_ERROR_MESSAGES } from "../src/constants/customer-import-error.constant";
@@ -463,4 +464,16 @@ test("unrecognized contact responses use safe status-specific Hebrew fallbacks",
       assert.equal(getCustomerImportErrorMessage(error), message);
     });
   });
+});
+
+test("contact summaries preserve callable phone links and email-only fallbacks", () => {
+  const phone = "03-1234567";
+  const html = renderToStaticMarkup(<CustomerContactSummary contacts={[{ ...contact, phone }]} />);
+  assert.match(html, /href="tel:03-1234567"/);
+  assert.match(html, /<bdi>03-1234567<\/bdi>/);
+  const emailOnly = renderToStaticMarkup(
+    <CustomerContactSummary contacts={[{ ...contact, email: "person@example.com" }]} />,
+  );
+  assert.match(emailOnly, /person@example.com/);
+  assert.doesNotMatch(emailOnly, /href="tel:/);
 });
