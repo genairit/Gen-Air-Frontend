@@ -7,6 +7,13 @@ export const DEFAULT_API_BASE_URL = "/api";
 export const API_PAGE_SIZE = 200;
 
 export const API_ENDPOINTS = {
+  QUOTATIONS: "/quotation",
+  CATALOGUE: "/catalogue-item",
+  quotationById: (id: string) => `/quotation/${id}`,
+  quotationReview: (id: string) => `/quotation/${id}/review`,
+  quotationWarnings: (id: string) => `/quotation/${id}/warnings`,
+  catalogueById: (id: string) => `/catalogue-item/${id}`,
+  customerProjects: (id: string) => `/customer/${id}/projects`,
   TASKS: "/task",
   MY_TASKS: "/task/my-tasks",
   MY_TASK_COUNTS: "/task/my-tasks/counts",

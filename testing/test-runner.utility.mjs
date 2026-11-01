@@ -28,11 +28,12 @@ export const runNodeTest = (path, options = []) => {
   }
 };
 
-export const runBundledTest = async ({ input, output, external = [] }) => {
+export const runBundledTest = async ({ input, output, external = [], plugins = [] }) => {
   const file = resolve(TEST_ROOT, "node_modules/.tmp", output);
   await build({
     input: resolve(TEST_ROOT, input),
     platform: "node",
+    plugins,
     moduleTypes: { ".png": "dataurl" },
     external: [...EXTERNAL_PACKAGES, ...external],
     transform: { define: { "import.meta.env": "{}" } },

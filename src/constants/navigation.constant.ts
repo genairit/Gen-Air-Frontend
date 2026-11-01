@@ -6,6 +6,7 @@ import type { IBackLinkRoute, INavigationItem } from "../interfaces/navigation-i
 export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
   { id: ROUTE_PATHS.BOARD, label: "לוח בקרה", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
+  { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
   { id: ROUTE_PATHS.TASKS, label: "משימות", icon: ICON_NAMES.TASKS },
   { id: ROUTE_PATHS.EMPLOYEES, label: "ניהול עובדים", icon: ICON_NAMES.CONTACTS },
   { id: ROUTE_PATHS.SETTINGS, label: "הגדרות", icon: ICON_NAMES.SETTINGS },
@@ -14,6 +15,7 @@ export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
 export const MOBILE_NAVIGATION_ITEMS: INavigationItem[] = [
   { id: ROUTE_PATHS.BOARD, label: "לוח", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
+  { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
   { id: ROUTE_PATHS.TASKS, label: "משימות", icon: ICON_NAMES.TASKS },
   { id: ROUTE_PATHS.EMPLOYEES, label: "עובדים", icon: ICON_NAMES.CONTACTS },
   { id: ROUTE_PATHS.SETTINGS, label: "הגדרות", icon: ICON_NAMES.SETTINGS },
@@ -21,6 +23,8 @@ export const MOBILE_NAVIGATION_ITEMS: INavigationItem[] = [
 ];
 
 export const PAGE_TITLE_BY_ROUTE: Record<string, string> = {
+  [ROUTE_PATHS.QUOTATIONS]: "הצעות מחיר",
+  [ROUTE_PATHS.QUOTATION]: "הצעת מחיר",
   [ROUTE_PATHS.BOARD]: "ניהול פרויקטים ומשימות",
   [ROUTE_PATHS.PROJECT]: "תצוגת פרויקט",
   [ROUTE_PATHS.NEW_PROJECT]: "יצירת פרויקט חדש",
@@ -39,6 +43,8 @@ export const PAGE_TITLE_BY_ROUTE: Record<string, string> = {
 };
 
 export const ACTIVE_NAVIGATION_BY_ROUTE: Record<string, string> = {
+  [ROUTE_PATHS.QUOTATIONS]: ROUTE_PATHS.QUOTATIONS,
+  [ROUTE_PATHS.QUOTATION]: ROUTE_PATHS.QUOTATIONS,
   [ROUTE_PATHS.BOARD]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.PROJECT]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.NEW_PROJECT]: ROUTE_PATHS.BOARD,

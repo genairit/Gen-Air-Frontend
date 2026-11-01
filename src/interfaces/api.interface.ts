@@ -201,6 +201,7 @@ export interface IApiCustomer {
   contacts?: ICustomerContact[];
   prioritySyncedAt: string | null;
   prioritySyncError: string | null;
+  paymentTerms?: PaymentTermsType | null;
   customerType: ProjectDetailFieldSetType;
   prioritySyncStatus: PrioritySyncStatusType;
 }
