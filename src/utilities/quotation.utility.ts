@@ -170,3 +170,28 @@ export const initialQuotationRole = (system: TQuotationSystem): string =>
     [QUOTATION_SYSTEM.SINGLE]: EQUIPMENT_ROLE.UNIT,
     [QUOTATION_SYSTEM.GENERAL]: "",
   })[system];
+
+export const quotationControlParents = (
+  items: IQuotationLine[],
+  line: IQuotationLine,
+): IQuotationLine[] =>
+  items.filter(
+    parent =>
+      parent.equipmentRole === EQUIPMENT_ROLE.INDOOR &&
+      !(parent.includesRemote && line.controlKind === CONTROL_KIND.REMOTE) &&
+      !(parent.includesThermostat && line.controlKind === CONTROL_KIND.THERMOSTAT),
+  );
+export const reparentQuotationControl = ({
+  line,
+  items,
+  parentItemId,
+}: {
+  line: IQuotationLine;
+  items: IQuotationLine[];
+  parentItemId: string | null;
+}): IQuotationLine => {
+  const parent = quotationControlParents(items, line).find(
+    candidate => candidate.id === parentItemId,
+  );
+  return { ...line, parentItemId, quantity: parent?.quantity ?? line.quantity };
+};

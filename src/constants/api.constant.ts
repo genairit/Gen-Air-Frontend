@@ -8,6 +8,7 @@ export const API_PAGE_SIZE = 200;
 
 export const API_ENDPOINTS = {
   QUOTATIONS: "/quotation",
+  QUOTATION_STATUS_COUNTS: "/quotation/status-counts",
   CATALOGUE: "/catalogue-item",
   quotationById: (id: string) => `/quotation/${id}`,
   quotationReview: (id: string) => `/quotation/${id}/review`,

@@ -9,10 +9,11 @@ import { useState } from "react";
 import styles from "./quotation.module.css";
 import Card from "../../components/Card/Card";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Button from "../../components/Button/Button";
 import QuotationInput from "./components/QuotationInput";
 import { useSessionUser } from "../../store/session.store";
-import { ICON_NAMES } from "../../constants/icon.constant";
+import { formatRelativeTime } from "../../utilities/date.utility";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { buildQuotationPath } from "../../utilities/route.utility";
 import { hasPermission } from "../../utilities/permission.utility";
@@ -21,6 +22,7 @@ import { quotationService } from "../../services/quotation.service";
 import { useDebouncedValue } from "../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import { QUOTATION_COUNTS_KEY } from "../../constants/quotation.constant";
 import QuotationCustomerPicker from "./components/QuotationCustomerPicker";
 import type { TQuotationStatus } from "../../interfaces/quotation.interface";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +43,10 @@ const QuotationsPage: FC = () => {
       quotationService.list({ search: debouncedSearch, status, batchCursor: pageParam }),
     getNextPageParam: page => page.nextCursor,
   });
+  const counts = useQuery({
+    queryKey: [...QUOTATION_COUNTS_KEY, debouncedSearch],
+    queryFn: () => quotationService.statusCounts(debouncedSearch),
+  });
   const create = useMutation({
     mutationFn: quotationService.create,
     onSuccess: async quotation => {
@@ -53,16 +59,22 @@ const QuotationsPage: FC = () => {
   const tabs = QUOTATION_STATUS_TABS;
   return (
     <main className={styles.page}>
-      <Card>
+      <section className={styles.listHeading}>
+        <span className={styles.breadcrumb}>הצעות מחיר · נשמרות בשרת</span>
         <div className={styles.between}>
           <div>
-            <h1 className={styles.heading}>הצעות מחיר</h1>
+            <h1 className={styles.listTitle}>הצעות מחיר</h1>
             <p className={styles.muted}>
-              הצעה נפתחת מלקוח, עם או בלי פרויקט, וניתן לקשר אותה לפרויקט בהמשך.
+              הצעה נפתחת מלקוח, עם או בלי פרויקט, וניתן לקשר אותה לפרויקט בהמשך. לפרויקט יכולות
+              להיות כמה הצעות.
             </p>
           </div>
           {canCreate && (
-            <Button text="הצעה חדשה" icon={ICON_NAMES.ADD} onClick={() => setCreating(!creating)} />
+            <Button
+              text="+ הצעה חדשה"
+              ariaLabel="הצעה חדשה"
+              onClick={() => setCreating(!creating)}
+            />
           )}
         </div>
         {creating && (
@@ -81,25 +93,39 @@ const QuotationsPage: FC = () => {
             )}
           </div>
         )}
-      </Card>
+      </section>
       <Card>
-        <QuotationInput
-          value={search}
-          label="חיפוש לפי מספר, לקוח, פרויקט או חברה"
-          onChange={event => setSearch(event.target.value)}
-        />
-        <div className={styles.tabs}>
-          {tabs.map(tab => (
-            <button
-              key={tab.key ?? "all"}
-              className={styles.tab}
-              aria-pressed={status === tab.key}
-              onClick={() => setStatus(tab.key)}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className={styles.listToolbar}>
+          <QuotationInput
+            value={search}
+            label="חיפוש לפי מספר, לקוח, פרויקט או חברה"
+            placeholder="חיפוש לפי מספר, לקוח או פרויקט..."
+            onChange={event => setSearch(event.target.value)}
+          />
+          <div className={styles.tabs}>
+            {tabs.map(tab => (
+              <button
+                key={tab.key ?? "all"}
+                className={styles.tab}
+                aria-pressed={status === tab.key}
+                onClick={() => setStatus(tab.key)}
+              >
+                {tab.label} <span>{counts.data?.[tab.key ?? "all"] ?? "—"}</span>
+              </button>
+            ))}
+          </div>
         </div>
+        {counts.isError && (
+          <div role="alert" className={styles.error}>
+            {getApiErrorMessage(counts.error)}
+            <Button
+              text="נסה שוב"
+              onClick={async () => {
+                await counts.refetch();
+              }}
+            />
+          </div>
+        )}
         {quotations.isPending && <p role="status">טוען הצעות מחיר...</p>}
         {quotations.isError && (
           <div role="alert" className={styles.error}>
@@ -119,14 +145,17 @@ const QuotationsPage: FC = () => {
             className={styles.quoteRow}
             onClick={() => navigate(buildQuotationPath(quotation.id))}
           >
-            <b>{quotation.number}</b>
-            <div className={styles.stack}>
+            <span className={styles.number}>{quotation.number}</span>
+            <div className={styles.quoteIdentity}>
               <b>{quotation.customerName ?? "לקוח"}</b>
               <span className={styles.muted}>{quotation.projectName ?? "לא מקושרת לפרויקט"}</span>
-              <span>{quotation.brand || "טרם נבחרה חברה"}</span>
             </div>
-            <span className={styles.badge}>{QUOTATION_STATUS_LABELS[quotation.status]}</span>
-            <b>{quotationMoney(quotation.totals.total)}</b>
+            <span className={styles.muted}>{quotation.brand || "טרם נבחרה חברה"}</span>
+            <span className={styles.badge} data-status={quotation.status}>
+              {QUOTATION_STATUS_LABELS[quotation.status]}
+            </span>
+            <b className={styles.quoteAmount}>{quotationMoney(quotation.totals.total)}</b>
+            <span className={styles.updated}>{formatRelativeTime(quotation.updatedAt)}</span>
           </button>
         ))}
         {quotations.hasNextPage && (

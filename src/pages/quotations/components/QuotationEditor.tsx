@@ -4,25 +4,34 @@ import {
   QUOTATION_SYSTEM_OPTIONS,
 } from "../../../constants/quotation.constant";
 
+import {
+  BUTTON_SIZES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
 import type { FC } from "react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationReview from "./QuotationReview";
 import QuotationSelect from "./QuotationSelect";
+import Icon from "../../../components/Icon/Icon";
 import Card from "../../../components/Card/Card";
 import QuotationSection from "./QuotationSection";
 import QuotationSummary from "./QuotationSummary";
 import QuotationPayments from "./QuotationPayments";
 import Button from "../../../components/Button/Button";
+import QuotationDiagnostics from "./QuotationDiagnostics";
+import QuotationDecimalInput from "./QuotationDecimalInput";
+import { ICON_NAMES } from "../../../constants/icon.constant";
 import QuotationProjectPicker from "./QuotationProjectPicker";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
-import { ROUTE_PATHS } from "../../../constants/routes.constant";
+import { QUOTATION_STEPS } from "../../../constants/quotation.constant";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
 import { quotationSaveLabel } from "../../../utilities/quotation-presentation.utility";
+import { quotationOpeningLine } from "../../../utilities/quotation-presentation.utility";
 import type { TQuotationStatus, IQuotation } from "../../../interfaces/quotation.interface";
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
 import { updateQuotationSection, moveQuotationSection } from "../../../utilities/quotation.utility";
@@ -58,6 +67,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     updatedAt: quotation.updatedAt,
   });
   const systems = QUOTATION_SYSTEM_OPTIONS;
+  const openingLine = quotationOpeningLine(quotation);
   const transition = async (status: TQuotationStatus): Promise<void> => {
     const accepted = await editor.transition(status);
     if (accepted) {
@@ -66,16 +76,23 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   };
   return (
     <main className={styles.page}>
-      <Link to={ROUTE_PATHS.QUOTATIONS}>→ חזרה להצעות מחיר</Link>
       <Card>
         <div className={styles.between}>
           <div className={styles.row}>
             <h1 className={styles.heading}>{quotation.number}</h1>
-            <span className={styles.badge}>{QUOTATION_STATUS_LABELS[quotation.status]}</span>
+            <span className={styles.badge} data-status={quotation.status}>
+              {QUOTATION_STATUS_LABELS[quotation.status]}
+            </span>
             <div className={styles.row}>
-              <span className={styles.step}>טיוטה</span>
-              <span className={styles.step}>בדיקה</span>
-              <span className={styles.step}>אישור</span>
+              {QUOTATION_STEPS.map(step => (
+                <span
+                  key={step.status}
+                  className={styles.step}
+                  data-active={quotation.status === step.status}
+                >
+                  {step.label}
+                </span>
+              ))}
             </div>
           </div>
           <span aria-live="polite" className={styles.muted}>
@@ -118,7 +135,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               <option key={brand}>{brand}</option>
             ))}
           </QuotationSelect>
-          <QuotationInput
+          <QuotationDecimalInput
             min="0"
             max="100"
             step="0.01"
@@ -146,6 +163,12 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             onChange={event => update({ ...quotation, internalNotes: event.target.value })}
           />
         </label>
+        {openingLine && (
+          <div className={styles.openingLine}>
+            <span className={styles.muted}>שורת פתיחה בהצעה:</span>
+            <span>{openingLine}</span>
+          </div>
+        )}
         {rebrand.error && (
           <p role="alert" className={styles.error}>
             {rebrand.error}
@@ -182,43 +205,60 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           onEdit={() => setEditingStatus(quotation.status)}
         />
       )}
-      {showEditor &&
-        quotation.sections.map((section, index) => (
-          <QuotationSection
-            key={section.id}
-            section={section}
-            disabled={disabled}
-            brand={quotation.brand}
-            onChange={next => update(updateQuotationSection(quotation, next))}
-            onMove={direction => update(moveQuotationSection(quotation, index, direction))}
-            onRemove={() =>
-              update({
-                ...quotation,
-                sections: quotation.sections.filter(current => current.id !== section.id),
-              })
-            }
-          />
-        ))}
-      {showEditor && !disabled && (
+      {showEditor && <QuotationDiagnostics quotation={quotation} />}
+      {showEditor && (
         <Card>
-          <h2 className={styles.heading}>הוספת מערכת</h2>
-          <div className={styles.row}>
-            {systems.map(({ value: systemType, label }) => (
-              <Button
-                text={label}
-                key={systemType}
-                onClick={() =>
-                  update({
-                    ...quotation,
-                    sections: [
-                      ...quotation.sections,
-                      { id: crypto.randomUUID(), title: "", systemType, items: [] },
-                    ],
-                  })
-                }
-              />
-            ))}
+          <div className={styles.cardTitle}>
+            <span aria-hidden="true" className={styles.cardIcon}>
+              <Icon name={ICON_NAMES.QUOTE} />
+            </span>
+            <div>
+              <h2>מערכות ושורות</h2>
+              <p className={styles.muted}>
+                כל שורה נבחרת מהמחירון. מחיר, תיאור ויחידה נשמרים בשורה ולא משתנים עם המחירון
+              </p>
+            </div>
           </div>
+          {quotation.sections.map((section, index) => (
+            <QuotationSection
+              key={section.id}
+              section={section}
+              disabled={disabled}
+              brand={quotation.brand}
+              onChange={next => update(updateQuotationSection(quotation, next))}
+              onMove={direction => update(moveQuotationSection(quotation, index, direction))}
+              onRemove={() =>
+                update({
+                  ...quotation,
+                  sections: quotation.sections.filter(current => current.id !== section.id),
+                })
+              }
+            />
+          ))}
+          {!disabled && (
+            <div className={styles.systemActions}>
+              <span>הוספת מערכת / קומה</span>
+              <div className={styles.row}>
+                {systems.map(({ value: systemType, label }) => (
+                  <Button
+                    text={label}
+                    key={systemType}
+                    size={BUTTON_SIZES.COMPACT}
+                    variant={BUTTON_VARIANTS.SECONDARY}
+                    onClick={() =>
+                      update({
+                        ...quotation,
+                        sections: [
+                          ...quotation.sections,
+                          { id: crypto.randomUUID(), title: "", systemType, items: [] },
+                        ],
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
       )}
       {showEditor && (

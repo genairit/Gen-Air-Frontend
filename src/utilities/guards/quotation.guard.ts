@@ -27,12 +27,13 @@ import type {
 } from "../../interfaces/quotation.interface";
 
 import { isPaymentTerms } from "./api.guard";
+import type { IQuotationStatusCounts } from "../../interfaces/quotation.interface";
 
 export const isQuotationStatus = (value: unknown): value is TQuotationStatus =>
   Object.values(QUOTATION_STATUS).some(status => status === value);
 export const isQuotationSystem = (value: unknown): value is TQuotationSystem =>
   Object.values(QUOTATION_SYSTEM).some(system => system === value);
-const isDecimal = (value: unknown): value is string =>
+export const isDecimal = (value: unknown): value is string =>
   typeof value === "string" && /^-?\d+(?:\.\d+)?$/.test(value) && Number.isFinite(Number(value));
 const isNonnegativeDecimal = (value: unknown): boolean => isDecimal(value) && Number(value) >= 0;
 const isPositiveDecimal = (value: unknown): boolean => isDecimal(value) && Number(value) > 0;
@@ -155,3 +156,14 @@ export const isQuotationPage = (value: unknown): value is IQuotationPage =>
   isRecord(value) && isQuotationList(value.items) && isNullableString(value.nextCursor);
 export const isQuotationProjectChoice = (value: unknown): value is IQuotationProjectChoice =>
   isRecord(value) && hasStringFields(value, ["id", "name"]);
+
+export const isQuotationStatusCounts = (value: unknown): value is IQuotationStatusCounts => {
+  if (!isRecord(value)) {
+    return false;
+  }
+  const counts = [value.all, value.draft, value.review, value.approved];
+  return (
+    counts.every(count => typeof count === "number" && Number.isSafeInteger(count) && count >= 0) &&
+    value.all === Number(value.draft) + Number(value.review) + Number(value.approved)
+  );
+};
