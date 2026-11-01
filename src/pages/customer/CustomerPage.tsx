@@ -3,16 +3,21 @@ import { usePageStyles } from "../page.style";
 import Button from "../../components/Button/Button";
 import { useNavigate, useParams } from "react-router-dom";
 import { ICON_NAMES } from "../../constants/icon.constant";
+import { useSessionUser } from "../../store/session.store";
 import CustomerSyncCard from "./components/CustomerSyncCard";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import CustomerHeaderCard from "./components/CustomerHeaderCard";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import CustomerDetailsCard from "./components/CustomerDetailsCard";
+import { hasPermission } from "../../utilities/permission.utility";
+import CustomerProjectsCard from "./components/CustomerProjectsCard";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { useCustomerQuery } from "../../hooks/queries/customer.query";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { CUSTOMER_PAGE_COPY } from "../../constants/customer.constant";
 import { NAVIGATION_LABELS } from "../../constants/navigation.constant";
 import { ROUTE_PARAMS, ROUTE_PATHS } from "../../constants/routes.constant";
+import { CUSTOMER_PROJECT_COPY } from "../../constants/customer-project.constant";
 import CustomerContacts from "../../components/CustomerContacts/CustomerContacts";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import CustomerPaymentDefault from "../../components/CustomerPaymentDefault/CustomerPaymentDefault";
@@ -20,6 +25,7 @@ import CustomerPaymentDefault from "../../components/CustomerPaymentDefault/Cust
 const CustomerPage = () => {
   const navigate = useNavigate();
   const styles = usePageStyles();
+  const user = useSessionUser();
   const params = useParams();
   const customerId = params[ROUTE_PARAMS.CUSTOMER_ID] ?? null;
   const customerQuery = useCustomerQuery(customerId);
@@ -52,8 +58,21 @@ const CustomerPage = () => {
       <CustomerHeaderCard customer={customer} />
       <CustomerSyncCard customer={customer} />
       <CustomerDetailsCard customer={customer} />
-      <CustomerPaymentDefault key={customer.id} customer={customer} />
-      <CustomerContacts editable key={customer.id} customerId={customer.id} />
+      <CustomerPaymentDefault customer={customer} key={`customer-payment:${customer.id}`} />
+      <CustomerContacts
+        editable
+        customerId={customer.id}
+        key={`customer-contacts:${customer.id}`}
+      />
+      {hasPermission(user, PERMISSIONS.PROJECTS_READ) && (
+        <Box
+          component="section"
+          key={`customer-projects:${customer.id}`}
+          aria-label={CUSTOMER_PROJECT_COPY.TITLE}
+        >
+          <CustomerProjectsCard customerId={customer.id} />
+        </Box>
+      )}
     </Box>
   );
 };

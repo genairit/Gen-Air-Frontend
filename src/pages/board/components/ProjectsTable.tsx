@@ -17,6 +17,7 @@ import { MOBILE_LAYOUT_QUERY } from "../../../constants/layout.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useProjectPagesQuery } from "../../../hooks/queries/project.query";
+import type { IProjectListItem } from "../../../interfaces/project-list.interface";
 import type { IProjectPageQuery } from "../../../interfaces/api-request.interface";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 import { useMoveProjectStageMutation } from "../../../hooks/mutations/project.mutation";
@@ -64,7 +65,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
     rootMargin: PROJECT_BOARD_SCROLL_ROOT_MARGIN,
   });
 
-  const moveToStage = (project: IApiProject, stageId: string) =>
+  const moveToStage = (project: IProjectListItem, stageId: string) =>
     moveMutation.mutate({ projectId: project.id, stageId });
 
   const columns = buildProjectColumns({ stages, canMoveStage, onStageChange: moveToStage });

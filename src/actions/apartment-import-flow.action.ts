@@ -125,6 +125,10 @@ export const downloadApartmentReportAction = async (report: string | null): Prom
 export const refreshImportedApartmentsAction = async (buildingId: string): Promise<void> => {
   await Promise.all([
     queryClient.invalidateQueries(
+      { queryKey: [QUERY_ROOTS.CUSTOMER_PROJECTS] },
+      { throwOnError: true },
+    ),
+    queryClient.invalidateQueries(
       { queryKey: [QUERY_ROOTS.APARTMENTS, buildingId] },
       { throwOnError: true },
     ),

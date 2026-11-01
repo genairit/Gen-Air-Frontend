@@ -13,6 +13,7 @@
     "test:apartment-import": "node testing/run-apartment-import-tests.mjs",
     "test:customer-contacts": "node testing/run-customer-contact-tests.mjs",
     "test:project-tasks": "node testing/run-project-task-tests.mjs",
+    "test:customer-projects": "node testing/run-customer-project-tests.mjs",
     "test:project-constraints": "node testing/run-project-constraints-tests.mjs"
   },
   "dependencies": {

@@ -34,9 +34,12 @@ import { toProjectPayload, toProjectFormValues } from "../src/utilities/project.
 import CustomerContactItem from "../src/components/CustomerContacts/CustomerContactItem";
 import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
 import CustomerContactEditor from "../src/components/CustomerContacts/CustomerContactEditor";
+import ApartmentLegacyContact from "../src/pages/apartment/components/ApartmentLegacyContact";
+import CustomerContactSummary from "../src/components/CustomerContacts/CustomerContactSummary";
 import { PROJECT_DETAIL_FIELD_SETS } from "../src/constants/project-detail-field-set.constant";
 import { getCustomerImportErrorMessage } from "../src/utilities/customer-import-error.utility";
 import { CUSTOMER_IMPORT_ERROR_MESSAGES } from "../src/constants/customer-import-error.constant";
+import ApartmentEndCustomerCard from "../src/pages/apartment/components/ApartmentEndCustomerCard";
 
 const contact = {
   id: "contact-1",
@@ -463,4 +466,91 @@ test("unrecognized contact responses use safe status-specific Hebrew fallbacks",
       assert.equal(getCustomerImportErrorMessage(error), message);
     });
   });
+});
+
+test("contact summaries preserve callable phone links and email-only fallbacks", () => {
+  const phone = "03-1234567";
+  const html = renderToStaticMarkup(<CustomerContactSummary contacts={[{ ...contact, phone }]} />);
+  assert.match(html, /href="tel:03-1234567"/);
+  assert.match(html, /<bdi>03-1234567<\/bdi>/);
+  const emailOnly = renderToStaticMarkup(
+    <CustomerContactSummary contacts={[{ ...contact, email: "person@example.com" }]} />,
+  );
+  assert.match(emailOnly, /person@example.com/);
+  assert.doesNotMatch(emailOnly, /href="tel:/);
+});
+
+const legacyApartment = {
+  ...legacyProject,
+  customerId: null,
+  customerName: "לקוח קצה היסטורי",
+  customerPhone: "031234567",
+  contactName: "איש קשר היסטורי",
+  contactPhone: "0501234567",
+};
+
+test("legacy apartment contact is read-only, callable, and permission gated", () => {
+  const markup = renderToStaticMarkup(
+    <ApartmentLegacyContact canRead apartment={legacyApartment} />,
+  );
+  assert.match(markup, /איש קשר היסטורי/);
+  assert.match(markup, /href="tel:0501234567"/);
+  assert.doesNotMatch(markup, /<input|<button/);
+  assert.equal(
+    renderToStaticMarkup(<ApartmentLegacyContact canRead={false} apartment={legacyApartment} />),
+    "",
+  );
+});
+
+test("linked apartments never fall back to historical contacts, even when association is absent", () => {
+  assert.equal(
+    renderToStaticMarkup(
+      <ApartmentLegacyContact canRead apartment={{ ...legacyApartment, customerId: "linked" }} />,
+    ),
+    "",
+  );
+  assert.equal(
+    renderToStaticMarkup(
+      <ApartmentLegacyContact
+        canRead
+        apartment={{ ...legacyApartment, contactName: " ", contactPhone: null }}
+      />,
+    ),
+    "",
+  );
+});
+
+test("unlinked apartment end customer displays only its own historical details", () => {
+  const markup = renderToStaticMarkup(
+    <ApartmentEndCustomerCard apartment={legacyApartment} building={legacyProject} />,
+  );
+  assert.match(markup, /לקוח קצה היסטורי/);
+  assert.match(markup, /031234567/);
+  const empty = renderToStaticMarkup(
+    <ApartmentEndCustomerCard
+      apartment={{ ...legacyApartment, customerName: null, customerPhone: null }}
+      building={legacyProject}
+    />,
+  );
+  assert.match(empty, /לא שויך לקוח קצה לדירה זו/);
+});
+
+test("linked apartment customer wins over historical values and missing association does not fallback", () => {
+  const apartment = { ...legacyApartment, customerId: "linked" };
+  const missing = renderToStaticMarkup(
+    <ApartmentEndCustomerCard apartment={apartment} building={legacyProject} />,
+  );
+  assert.doesNotMatch(missing, /לקוח קצה היסטורי|031234567/);
+  const linked = renderToStaticMarkup(
+    <ApartmentEndCustomerCard
+      apartment={{
+        ...apartment,
+        customer: { id: "linked", name: "לקוח מקושר", phone: "039999999" },
+      }}
+      building={legacyProject}
+    />,
+  );
+  assert.match(linked, /לקוח מקושר/);
+  assert.match(linked, /039999999/);
+  assert.doesNotMatch(linked, /לקוח קצה היסטורי|031234567/);
 });

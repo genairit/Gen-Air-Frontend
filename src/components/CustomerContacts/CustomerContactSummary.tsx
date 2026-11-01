@@ -26,7 +26,13 @@ const CustomerContactSummary: FC<ICustomerContactSummaryProps> = ({ contacts }) 
                 {contact.role}
               </Box>
             )}
-            <bdi>{contact.phone ?? contact.email}</bdi>
+            {contact.phone ? (
+              <Box component="a" sx={styles.summaryLink} href={`tel:${contact.phone}`}>
+                <bdi>{contact.phone}</bdi>
+              </Box>
+            ) : (
+              <bdi>{contact.email}</bdi>
+            )}
           </Box>
         ))}
         {isEmpty && (
