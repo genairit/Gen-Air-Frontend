@@ -50,7 +50,8 @@ It tests the frontend candidate merge using a pinned Automation revision. Unsupp
 directions fail before browser execution. Backend/Automation PRs and `test` → `main` do not start a
 GitHub browser suite.
 
-Backend test/main changes invalidate prior frontend promotion results. Wait for backend promotion
-and notifier completion; rerun active/stale promotion checks if needed. Require `End-to-end /
-Playwright` and `Backend compatibility` only on test/main. Do not require missing GitHub contexts
-on dev. See Gen-Air-Automation `docs/release-gate-rollout.md` for coordinated activation.
+Backend `test` changes invalidate prior frontend `dev` → `test` promotion results. Wait for backend
+promotion and notifier completion; rerun active or stale promotion checks if needed. Require
+`End-to-end / Playwright` and `Backend compatibility` on frontend `dev` → `test` only. Do not require
+those contexts on feature PRs or `test` → `main`. See Gen-Air-Automation
+`docs/release-gate-rollout.md` for coordinated activation.
