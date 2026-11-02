@@ -15,7 +15,7 @@ interface ITaskMobileRowProps {
 }
 
 const TaskMobileRow: FC<ITaskMobileRowProps> = ({ task, onOpen }) => (
-  <Card gap="10px" padding="16px" onClick={() => onOpen(task)}>
+  <Card gap="10px" padding="16px" ariaLabel={task.title} onClick={() => onOpen(task)}>
     <Box sx={TASK_COLUMN_STYLES.mobileRow}>
       <Box component="b" sx={TASK_COLUMN_STYLES.title}>
         {task.title}

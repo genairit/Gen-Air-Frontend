@@ -2,6 +2,7 @@ import type { FC } from "react";
 import { Box } from "@mui/material";
 import { useStyles } from "./ProgressBar.style";
 import { clampPercentage } from "../../utilities/number.utility";
+import SmartbaseProgressBar from "../../vendor/smartbase/components/ProgressBar/ProgressBar";
 import { CONTROL_SIZES, type ControlSizeType } from "../../constants/selection-control.constant";
 
 interface IProgressBarProps {
@@ -33,15 +34,14 @@ const ProgressBar: FC<IProgressBarProps> = ({
           </Box>
         </Box>
       )}
-      <Box
-        aria-valuemin={0}
-        role="progressbar"
-        aria-valuemax={100}
-        aria-valuenow={percentage}
-        sx={styles.track({ size })}
-      >
-        <Box sx={styles.fill({ size, percentage })} />
-      </Box>
+      <SmartbaseProgressBar
+        total={100}
+        value={percentage}
+        showFraction={false}
+        ariaLabel={title ?? "התקדמות"}
+        ariaValueText={`${percentage}%`}
+        size={size === CONTROL_SIZES.SMALL ? "sm" : "md"}
+      />
     </Box>
   );
 };

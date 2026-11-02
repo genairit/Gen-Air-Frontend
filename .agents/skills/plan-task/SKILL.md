@@ -27,6 +27,8 @@ Also follow the repository's [Codex guidance](../../../AGENTS.md).
   instead of assuming `/tmp` exists.
 - A card reference alone requests a plan. If implementation is requested, proceed
   within that authorization and the shared development workflow. When the
+  task includes client-facing UI, run `$design` and pass its handoff to the developer
+  before implementing the affected UI. When the
   implementation is verified, run `$code-review` in Mode B; fix every finding,
   delete its `// CR:` annotations, and review again until it reports no findings
   before invoking `$qa`. Require PASSED against the final feature refs, then attach the QA

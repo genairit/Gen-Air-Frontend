@@ -36,7 +36,7 @@ const CustomerProjectMobileRow: FC<ICustomerProjectMobileRowProps> = ({
   const path = getCustomerProjectPath(project);
   const updatedLabel = formatRelativeTime(project.updatedAt);
   return (
-    <Card gap="10px" padding="14px" onClick={() => onOpen(project)}>
+    <Card gap="10px" padding="14px" ariaLabel={project.name} onClick={() => onOpen(project)}>
       <Box sx={styles.mobileHeader}>
         <Box to={path} component={Link} sx={styles.link} onClick={stopPropagation}>
           <Box component="b" sx={styles.mobileName}>

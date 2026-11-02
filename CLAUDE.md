@@ -712,7 +712,7 @@ Before considering a change complete, ask:
 
 ---
 
-## Development Workflow — From Board Task to Merge Request
+## Frontend Development Workflow — From Board Task to Merge Request
 
 Every piece of work starts on the board and ends on the board. A task is not "in progress" because
 someone is typing, and it is not "done" because the code compiles — the board must reflect reality at
@@ -734,7 +734,9 @@ The steps below are ordered and mandatory. Do not skip a step, and do not reorde
 2. **Read the task and understand its requirements** from that link.
 3. **Move it to the active list** on the board, so the board shows who is working on what.
 4. **Branch from `dev`** using the task's name.
-5. **Implement the task** on that branch.
+5. **For client-facing UI work, run the [design agent](agents/design-agent.md)** after reading
+   the requirements. Give its style handoff to the development agent before implementation.
+   Then implement the task on the branch.
 6. **Review the changes with the code review agent** — fix every finding it reports, delete its
    `// CR:` annotations, and review again until it reports none.
 7. **Run the [QA agent](agents/qa-agent.md)** against the exact feature revisions; fix failures
@@ -792,6 +794,13 @@ fix-dashboard-filter-reset
 ```
 
 ### 5. Implement the Task on That Branch
+
+For client-facing UI work, invoke the [design agent](agents/design-agent.md) with the full task
+requirements, client repository, and approved design references. Its handoff combines the task
+with the current client design language and specifies the layout, visual style, components,
+states, responsive behavior, and accessibility details. The development agent uses that handoff
+when implementing. Resolve material open design decisions before coding the affected UI; work on
+independent parts can continue. For non-UI tasks, this design step is inapplicable.
 
 Write the code for that task and that task only. Work that is not part of the card belongs to a
 different card and a different branch.

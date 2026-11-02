@@ -26,7 +26,7 @@ const ProjectMobileRow: FC<IProjectMobileRowProps> = ({
   const summary = toProjectSummary(project);
 
   return (
-    <Card gap="10px" padding="16px" onClick={() => onOpen(project.id)}>
+    <Card gap="10px" padding="16px" ariaLabel={project.name} onClick={() => onOpen(project.id)}>
       <Box sx={PROJECT_COLUMN_STYLES.mobileHeader}>
         <Box component="b" sx={PROJECT_COLUMN_STYLES.name}>
           {project.name}

@@ -1,7 +1,7 @@
 import { createStyles } from "../create-styles";
 import { theme } from "../constants/theme.constants";
 
-const MOBILE_NAV_SHADOW = "0 10px 28px rgba(30, 32, 34, 0.25)";
+const MOBILE_NAV_SHADOW = "0 10px 28px rgba(15, 23, 42, 0.18)";
 
 export const useStyles = () =>
   createStyles({

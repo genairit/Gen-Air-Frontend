@@ -10,8 +10,8 @@ export const useStyles = () =>
       alignItems: "center",
       justifyContent: "space-between",
       borderRadius: theme.radius.panel,
-      boxShadow: theme.softShadow.inset,
-      backgroundColor: theme.palette.iceWhite,
+      border: `1px solid ${theme.glass.border}`,
+      backgroundColor: theme.glass.strong,
     },
     action: {
       fontSize: 13,

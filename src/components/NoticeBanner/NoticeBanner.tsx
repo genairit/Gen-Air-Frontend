@@ -1,8 +1,7 @@
-import Icon from "../Icon/Icon";
 import { Box } from "@mui/material";
 import type { FC, ReactNode } from "react";
 import { useStyles } from "./NoticeBanner.style";
-import { ICON_NAMES } from "../../constants/icon.constant";
+import SmartbaseNoticeCard from "../../vendor/smartbase/components/NoticeCard/NoticeCard";
 
 interface INoticeBannerProps {
   title: string;
@@ -14,17 +13,20 @@ const NoticeBanner: FC<INoticeBannerProps> = ({ title, lines, actions }) => {
   const styles = useStyles();
 
   return (
-    <Box role="status" sx={styles.banner}>
-      <Box sx={styles.content}>
-        <Icon name={ICON_NAMES.INFO} />
-        <Box sx={styles.text}>
-          <b>{title}</b>
-          {lines.map(line => (
-            <span key={line}>{line}</span>
-          ))}
-        </Box>
-      </Box>
-      {actions && <Box sx={styles.actions}>{actions}</Box>}
+    <Box role="status">
+      <SmartbaseNoticeCard
+        text={
+          <Box sx={styles.content}>
+            <Box sx={styles.text}>
+              <b>{title}</b>
+              {lines.map(line => (
+                <span key={line}>{line}</span>
+              ))}
+            </Box>
+            {actions && <Box sx={styles.actions}>{actions}</Box>}
+          </Box>
+        }
+      />
     </Box>
   );
 };

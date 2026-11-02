@@ -1,6 +1,5 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
-import { createFocusRing } from "../../utilities/shadow.utility";
 
 interface IStylesParams {
   isLtr: boolean;
@@ -11,29 +10,14 @@ interface IStylesParams {
   helperTextColor: string;
 }
 
-const { palette, softShadow, radius, controlHeight } = theme;
-
-const FOCUS_SHADOW = `${softShadow.insetField}, ${createFocusRing(palette.airBlue)}`;
-const ERROR_SHADOW = `${softShadow.insetError}, ${createFocusRing(palette.primary)}`;
-
-const getFieldShadow = ({ hasError, disabled }: Pick<IStylesParams, "hasError" | "disabled">) => {
-  if (disabled) {
-    return softShadow.insetDisabled;
-  }
-
-  if (hasError) {
-    return ERROR_SHADOW;
-  }
-
-  return softShadow.insetField;
-};
+const { palette, glass, controlHeight } = theme;
 
 const getFieldShape = (isMultiline: boolean) => {
   if (isMultiline) {
-    return { borderRadius: radius.panel, padding: "18px 22px", alignItems: "flex-start" };
+    return { borderRadius: "17px", padding: "18px 16px", alignItems: "flex-start" };
   }
 
-  return { borderRadius: radius.pill, padding: "0 22px", height: controlHeight.large };
+  return { borderRadius: "17px", padding: "0 16px", height: controlHeight.large };
 };
 
 export const useStyles = ({
@@ -49,22 +33,23 @@ export const useStyles = ({
       "& .MuiOutlinedInput-root": {
         ...getFieldShape(isMultiline),
         gap: "12px",
-        transition: "box-shadow 0.2s ease",
-        boxShadow: getFieldShadow({ hasError, disabled }),
-        backgroundColor: hasError ? palette.errorSurface : palette.iceWhite,
+        transition: "border-color 0.18s ease, box-shadow 0.18s ease",
+        border: `1px solid ${hasError ? palette.danger : glass.border}`,
+        backgroundColor: disabled ? palette.iceWhite : palette.white,
 
         "& .MuiOutlinedInput-notchedOutline": {
           border: "none",
         },
 
         "&.Mui-focused": {
-          boxShadow: hasError ? ERROR_SHADOW : FOCUS_SHADOW,
+          borderColor: hasError ? palette.danger : palette.primary,
+          boxShadow: glass.focus,
         },
 
         "& input, & textarea": {
           padding: 0,
-          fontSize: 15,
-          fontWeight: 400,
+          fontSize: 16,
+          fontWeight: 500,
           textAlign: isLtr ? "end" : "start",
           letterSpacing: isPassword ? "0.2em" : "normal",
           color: disabled ? palette.disabledText : palette.charcoal,
@@ -77,7 +62,7 @@ export const useStyles = ({
         },
       },
       "& .MuiFormHelperText-root": {
-        fontSize: 12,
+        fontSize: 13,
         margin: "10px 0 0",
         color: helperTextColor,
       },

@@ -1,4 +1,5 @@
 import { createStyles } from "../../create-styles";
+import { theme } from "../../constants/theme.constants";
 
 const useStyles = () =>
   createStyles({
@@ -9,8 +10,9 @@ const useStyles = () =>
         height: "48 !important",
       },
       position: "relative",
-      borderRadius: "13px",
-      backgroundColor: "#F4F4F4",
+      borderRadius: "17px",
+      border: `1px solid ${theme.glass.border}`,
+      backgroundColor: theme.palette.white,
       width: "100%",
       height: "300px",
       display: "flex",
@@ -20,15 +22,15 @@ const useStyles = () =>
     },
     signatureIcon: { fontSize: "70px", fill: "none" },
     clearButton: {
-      color: "#5459FF",
+      color: theme.palette.primary,
       position: "absolute",
       top: "1.2rem",
       left: "0.8rem",
-      backgroundColor: "#DDDEFF !important",
+      backgroundColor: `${theme.palette.airBlue} !important`,
       boxShadow: "none",
-      borderRadius: "20%",
+      borderRadius: "12px",
       pointerEvents: "unset !important" as "unset",
-      fontFamily: "Rubik",
+      fontFamily: theme.font.body,
       "&.Mui-disabled": {
         backgroundColor: "#E1E1E1 !important",
         color: "#717171",

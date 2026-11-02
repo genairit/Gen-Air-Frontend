@@ -10,7 +10,7 @@ export const useStyles = () =>
       justifyContent: "space-between",
     },
     title: ({ hasError }: { hasError: boolean }) => ({
-      fontSize: 14,
+      fontSize: 15,
       fontWeight: 600,
       color: hasError ? theme.palette.danger : theme.palette.charcoal,
     }),

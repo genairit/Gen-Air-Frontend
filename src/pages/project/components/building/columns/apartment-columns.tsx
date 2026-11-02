@@ -19,11 +19,19 @@ interface IApartmentColumnsOptions {
 const buildSelectColumn = (selection: IApartmentSelection): IDataTableColumn<IApiProject> => ({
   id: "select",
   track: "44px",
-  header: <CheckBox text="" onChange={selection.toggleAll} value={selection.isAllSelected} />,
+  header: (
+    <CheckBox
+      text=""
+      ariaLabel="בחר את כל הדירות"
+      onChange={selection.toggleAll}
+      value={selection.isAllSelected}
+    />
+  ),
   render: apartment => (
     <ApartmentSelectCell
       isSelected={selection.isSelected(apartment.id)}
       onToggle={() => selection.toggle(apartment.id)}
+      label={`בחר דירה ${apartment.customerApartment ?? apartment.name}`}
     />
   ),
 });

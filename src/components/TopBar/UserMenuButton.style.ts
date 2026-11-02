@@ -1,7 +1,7 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 
-const { palette, softShadow, radius } = theme;
+const { palette, glass, radius } = theme;
 
 export const useStyles = () =>
   createStyles({
@@ -12,8 +12,9 @@ export const useStyles = () =>
       padding: "0 18px 0 6px",
       borderRadius: radius.pill,
       color: palette.charcoal,
-      boxShadow: softShadow.raisedCompact,
-      backgroundColor: palette.iceWhite,
+      border: `1px solid ${glass.border}`,
+      boxShadow: glass.shadowSmall,
+      backgroundColor: palette.white,
     },
     chevron: {
       fontSize: 11,

@@ -14,12 +14,21 @@ const MUI_OVERRIDES = createTheme({
   palette: {
     primary: { main: theme.palette.primary },
     secondary: { main: theme.palette.airBlue },
-    background: { default: theme.palette.iceWhite, paper: theme.palette.iceWhite },
+    background: { default: theme.palette.iceWhite, paper: theme.palette.white },
     text: { primary: theme.palette.charcoal, secondary: theme.palette.textMuted },
   },
 });
 
-const GLOBAL_STYLES = { ":root": SOFT_SHADOW_CSS_VARIABLES };
+const GLOBAL_STYLES = {
+  ":root": SOFT_SHADOW_CSS_VARIABLES,
+  "@keyframes genair-menu-enter": {
+    from: { opacity: 0, transform: "translateY(-4px) scale(0.985)" },
+    to: { opacity: 1, transform: "translateY(0) scale(1)" },
+  },
+  "@media (prefers-reduced-motion: reduce)": {
+    "*": { scrollBehavior: "auto !important" },
+  },
+};
 
 const cacheRtl = createCache({
   key: "muirtl",

@@ -188,11 +188,14 @@ the card yet.
 
 If — and only if — the user says to implement (before or after seeing the plan), execute the work
 **according to their instructions and the agreed plan**, following
-[development-workflow-standards.md](../../../rules/development-workflow-standards.md):
+[frontend-development-workflow-standards.md](../../../rules/frontend-development-workflow-standards.md):
 
 - Move the card to the **active list** before writing any code.
 - Branch from the latest `dev`, named after the card.
 - Follow the plan's proposed changes and the repository's coding standards.
+- For client-facing UI work, run the [design agent](../../../agents/design-agent.md) with the task
+  requirements and client design language; pass its style handoff to the development agent
+  before implementing the affected UI.
 - Reuse existing patterns and shared packages instead of reinventing them.
 - Verify the change with a real feedback loop before declaring it done.
 - Run the [code review agent](../../../agents/code-reviewer.md) on the branch in Mode B. Fix every

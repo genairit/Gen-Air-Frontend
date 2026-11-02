@@ -35,7 +35,9 @@ const OptionCard: FC<IOptionCardProps> = ({
     <Card
       gap="10px"
       padding="20px"
+      ariaLabel={title}
       onClick={onSelect}
+      ariaPressed={isSelected}
       radius={SURFACE_RADII.PANEL}
       sx={styles.card({ isSelected })}
     >

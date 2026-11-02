@@ -4,15 +4,16 @@ import { APARTMENT_COLUMN_STYLES } from "../apartment-columns.style";
 import CheckBox from "../../../../../../components/CheckBox/CheckBox";
 
 interface IApartmentSelectCellProps {
+  label: string;
   isSelected: boolean;
   onToggle: () => void;
 }
 
 const stopRowClick = (event: MouseEvent) => event.stopPropagation();
 
-const ApartmentSelectCell: FC<IApartmentSelectCellProps> = ({ isSelected, onToggle }) => (
+const ApartmentSelectCell: FC<IApartmentSelectCellProps> = ({ isSelected, label, onToggle }) => (
   <Box onClick={stopRowClick} sx={APARTMENT_COLUMN_STYLES.selectCell}>
-    <CheckBox text="" value={isSelected} onChange={onToggle} />
+    <CheckBox text="" ariaLabel={label} value={isSelected} onChange={onToggle} />
   </Box>
 );
 

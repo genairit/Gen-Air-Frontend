@@ -2,7 +2,7 @@ import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 import { MUTED_CAPTION } from "../../styles/templates.style";
 
-const { palette, softShadow } = theme;
+const { palette, glass } = theme;
 
 export const useStyles = () =>
   createStyles({
@@ -35,12 +35,12 @@ export const useStyles = () =>
     },
     card: {
       width: "min(100%, 460px)",
-      boxShadow: softShadow.elevated,
+      boxShadow: glass.shadow,
     },
     link: {
       fontSize: 13,
       fontWeight: 600,
-      color: palette.danger,
+      color: palette.primary,
       textDecoration: "none",
       "&:hover": { textDecoration: "underline" },
     },

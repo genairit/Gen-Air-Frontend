@@ -1,6 +1,7 @@
 import type { Theme } from "@mui/material";
 import type { SystemStyleObject } from "@mui/system";
 import { theme } from "../../../constants/theme.constants";
+import type { TButtonVariant } from "../../../vendor/smartbase/components/Button/constants/button.constant";
 
 export const BUTTON_VARIANTS = {
   DARK: "dark",
@@ -13,6 +14,16 @@ export const BUTTON_VARIANTS = {
 } as const;
 
 export type ButtonVariantType = (typeof BUTTON_VARIANTS)[keyof typeof BUTTON_VARIANTS];
+
+export const SMARTBASE_VARIANT_BY_BUTTON_VARIANT: Record<ButtonVariantType, TButtonVariant> = {
+  dark: "primary",
+  danger: "outlined",
+  dashed: "outlined",
+  neutral: "outlined",
+  pressed: "active",
+  primary: "primary",
+  secondary: "secondary",
+};
 
 export const BUTTON_SIZES = {
   LARGE: "large",
@@ -31,36 +42,33 @@ export type ButtonShapeType = (typeof BUTTON_SHAPES)[keyof typeof BUTTON_SHAPES]
 
 type TButtonStyle = SystemStyleObject<Theme>;
 
-const { palette, softShadow, controlHeight } = theme;
+const { palette, glass, controlHeight } = theme;
 
 export const STYLE_BY_VARIANT: Record<ButtonVariantType, TButtonStyle> = {
   primary: {
     fontWeight: 700,
     color: palette.white,
-    boxShadow: softShadow.primary,
-    backgroundColor: palette.primary,
-    "&:hover": { backgroundColor: palette.primaryHover },
-    "&:active": { boxShadow: softShadow.primaryPressed },
+    boxShadow: "0 6px 14px -6px rgba(22, 104, 189, 0.55)",
+    background: glass.gradient,
+    "&:hover": { boxShadow: "0 9px 18px -7px rgba(22, 104, 189, 0.55)" },
   },
   secondary: {
     color: palette.charcoal,
     backgroundColor: palette.airBlue,
-    boxShadow: softShadow.raisedMedium,
+    boxShadow: glass.shadowSmall,
     "&:hover": { backgroundColor: palette.airBlue },
-    "&:active": { boxShadow: softShadow.inset },
   },
   neutral: {
     color: palette.charcoal,
-    backgroundColor: palette.iceWhite,
-    boxShadow: softShadow.raisedMedium,
+    border: `1px solid ${glass.border}`,
+    backgroundColor: palette.white,
+    boxShadow: glass.shadowSmall,
     "&:hover": { backgroundColor: palette.iceWhite },
-    "&:active": { boxShadow: softShadow.inset },
   },
   pressed: {
-    color: palette.charcoal,
-    boxShadow: softShadow.inset,
-    backgroundColor: palette.iceWhite,
-    "&:hover": { backgroundColor: palette.iceWhite },
+    color: palette.primary,
+    border: `1px solid ${palette.primary}`,
+    backgroundColor: palette.airBlue,
   },
   danger: {
     color: palette.danger,
@@ -69,7 +77,7 @@ export const STYLE_BY_VARIANT: Record<ButtonVariantType, TButtonStyle> = {
   },
   dark: {
     color: palette.iceWhite,
-    boxShadow: softShadow.raisedDark,
+    boxShadow: glass.shadowSmall,
     backgroundColor: palette.charcoal,
     "&:hover": { backgroundColor: palette.charcoal },
   },
@@ -94,10 +102,10 @@ export const CIRCLE_WIDTH_BY_SIZE: Record<ButtonSizeType, number> = {
 };
 
 export const DISABLED_BUTTON_STYLE: TButtonStyle = {
-  border: "none",
   color: palette.disabledText,
-  backgroundColor: palette.iceWhite,
-  boxShadow: softShadow.insetDisabled,
+  background: palette.iceWhite,
+  boxShadow: "none",
+  border: `1px solid ${glass.border}`,
 };
 
 export const ICON_COLOR_BY_VARIANT: Record<ButtonVariantType, string> = {

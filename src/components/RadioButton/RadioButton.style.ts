@@ -3,7 +3,7 @@ import { theme } from "../../constants/theme.constants";
 import { CENTERED_FLEX } from "../../styles/templates.style";
 import type { ControlSizeType } from "../../constants/selection-control.constant";
 
-const { palette, softShadow, radius } = theme;
+const { palette, glass, radius } = theme;
 
 const INDICATOR_SIZE_BY_CONTROL_SIZE: Record<ControlSizeType, number> = {
   small: 24,
@@ -24,6 +24,8 @@ export const useStyles = () =>
   createStyles({
     container: {
       gap: "12px",
+      border: 0,
+      padding: 0,
       fontSize: 15,
       minHeight: 48,
       display: "flex",
@@ -31,13 +33,15 @@ export const useStyles = () =>
       alignItems: "center",
       width: "fit-content",
       color: palette.charcoal,
+      backgroundColor: "transparent",
+      "&:focus-visible": { outline: `2px solid ${palette.primary}`, outlineOffset: 3 },
     },
     indicator: ({ size }: Pick<IIndicatorStyleOptions, "size">) => ({
       ...CENTERED_FLEX,
       flexShrink: 0,
       borderRadius: radius.pill,
-      boxShadow: softShadow.inset,
-      backgroundColor: palette.iceWhite,
+      border: `1.5px solid ${glass.border}`,
+      backgroundColor: palette.white,
       width: INDICATOR_SIZE_BY_CONTROL_SIZE[size],
       height: INDICATOR_SIZE_BY_CONTROL_SIZE[size],
     }),

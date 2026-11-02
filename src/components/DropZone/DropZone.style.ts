@@ -3,7 +3,7 @@ import { theme } from "../../constants/theme.constants";
 import { DROP_ZONE_DESIGN } from "../../constants/drop-zone.constant";
 import { CENTERED_FLEX, MUTED_CAPTION } from "../../styles/templates.style";
 
-const { palette, softShadow, radius } = theme;
+const { palette, glass, radius } = theme;
 
 export const useStyles = () =>
   createStyles({
@@ -38,8 +38,9 @@ export const useStyles = () =>
         maxWidth: compact || isOutlined ? "none" : 360,
       },
       textAlign: "center",
-      boxShadow: isOutlined ? softShadow.inset : softShadow.insetLarge,
-      backgroundColor: isDragging ? palette.airBlue : palette.iceWhite,
+      boxShadow: isDragging ? glass.focus : "none",
+      backgroundColor: isDragging ? palette.airBlue : glass.strong,
+      transition: "background-color 0.18s ease, box-shadow 0.18s ease",
     }),
     plus: ({ isOutlined }: { isOutlined: boolean }) => ({
       ...CENTERED_FLEX,
@@ -49,7 +50,7 @@ export const useStyles = () =>
       fontWeight: 300,
       color: palette.primary,
       borderRadius: isOutlined ? radius.panel : radius.pill,
-      boxShadow: isOutlined ? softShadow.raisedMedium : softShadow.raisedLarge,
+      boxShadow: glass.shadowSmall,
     }),
     title: {
       fontSize: 17,

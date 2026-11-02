@@ -6,19 +6,20 @@ import {
 
 import Icon from "../../Icon/Icon";
 import { Box } from "@mui/material";
-import type { FC, ReactNode } from "react";
+import type { FC, PointerEvent, ReactNode } from "react";
 import { useStyles } from "../AddressAutocomplete.style";
 import { theme } from "../../../constants/theme.constants";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import type { IApiPlaceSuggestion } from "../../../interfaces/api.interface";
+import { useOptionPointer } from "../../../vendor/smartbase/hooks/use-option-pointer.hook";
 
 interface IAddressSuggestionListProps {
   listId: string;
   activeIndex: number;
   state: SuggestionListStateType;
-  onSelect: (index: number) => void;
   suggestions: IApiPlaceSuggestion[];
   getOptionId: (index: number) => string;
+  onSelect: (suggestion: IApiPlaceSuggestion) => void;
 }
 
 const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
@@ -30,6 +31,20 @@ const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
   getOptionId,
 }) => {
   const styles = useStyles();
+  const pointer = useOptionPointer(onSelect);
+
+  const handleSuggestionPointerDown = (
+    event: PointerEvent<HTMLElement>,
+    suggestion: IApiPlaceSuggestion,
+  ) => {
+    if (event.pointerType === "mouse" && event.isPrimary && event.button === 0) {
+      event.preventDefault();
+      onSelect(suggestion);
+      return;
+    }
+
+    pointer.handlePointerDown(event, suggestion.placeId, suggestion);
+  };
 
   const renderMessage = (message: string) => (
     <Box component="li" role="presentation" sx={styles.listMessage}>
@@ -43,10 +58,13 @@ const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
       component="li"
       id={getOptionId(index)}
       key={suggestion.placeId}
-      onClick={() => onSelect(index)}
       aria-selected={index === activeIndex}
+      onPointerMove={pointer.handlePointerMove}
       sx={styles.suggestion(index === activeIndex)}
-      onMouseDown={event => event.preventDefault()}
+      onPointerCancel={pointer.handlePointerCancel}
+      onClick={event => pointer.handleClick(event, suggestion)}
+      onPointerDown={event => handleSuggestionPointerDown(event, suggestion)}
+      onPointerUp={event => pointer.handlePointerUp(event, suggestion.placeId)}
     >
       <Icon size={22} name={ICON_NAMES.LOCATION} color={theme.palette.primary} />
       <Box sx={styles.suggestionText}>
