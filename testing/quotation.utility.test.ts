@@ -221,3 +221,169 @@ test("brand replacement drops an included remote before attempting a nonexistent
     search.mock.restore();
   }
 });
+
+test("section amounts sum independently rounded lines with exact large decimals", async () => {
+  const { quotationSectionAmount } =
+    await import("../src/utilities/quotation-presentation.utility");
+  const line = catalogueLine(catalogueFixture(), null);
+  const section = { id: "s", title: "", systemType: "GEN" as const, items: [] as (typeof line)[] };
+  assert.equal(quotationSectionAmount(section), "0.00");
+  section.items = [
+    { ...line, quantity: "1", quotedPrice: "0.005" },
+    { ...line, id: "second", quantity: "1", quotedPrice: "0.005" },
+    { ...line, id: "large", quantity: "2", quotedPrice: "9007199254740993.125" },
+  ];
+  const before = structuredClone(section);
+  assert.equal(quotationSectionAmount(section), "18014398509481986.27");
+  assert.deepEqual(section, before);
+});
+
+test("VRF diagnostics isolate sections and circuits, multiply quantities and avoid division by zero", async () => {
+  const { quotationCircuits } = await import("../src/utilities/quotation-presentation.utility");
+  const quotation = quotationFixture();
+  const indoor = {
+    ...catalogueLine(catalogueFixture(), null),
+    circuit: null,
+    quantity: "1.5",
+    capacityBtu: 10000,
+  };
+  const outdoor = {
+    ...indoor,
+    id: "outdoor",
+    equipmentRole: "outdoor" as const,
+    quantity: "2",
+    capacityBtu: 12000,
+  };
+  quotation.sections = [
+    {
+      id: "one",
+      title: "same",
+      systemType: "VRF",
+      items: [
+        indoor,
+        outdoor,
+        { ...indoor, id: "b", circuit: "B", capacityBtu: null },
+        { ...indoor, id: "control", equipmentRole: "control", circuit: "C" },
+      ],
+    },
+    { id: "two", title: "same", systemType: "VRF", items: [{ ...indoor, quantity: "1" }] },
+    { id: "gen", title: "", systemType: "GEN", items: [indoor] },
+  ];
+  const before = structuredClone(quotation);
+  assert.deepEqual(quotationCircuits(quotation), [
+    { id: "one:A", key: "same · A", indoor: "15000", outdoor: "24000", ratio: "0.63" },
+    { id: "one:B", key: "same · B", indoor: "0", outdoor: "0", ratio: null },
+    { id: "two:A", key: "same · A", indoor: "10000", outdoor: "0", ratio: null },
+  ]);
+  assert.deepEqual(quotation, before);
+});
+
+test("opening line selects the first general description across sections, with an empty fallback", async () => {
+  const { quotationOpeningLine } = await import("../src/utilities/quotation-presentation.utility");
+  const quotation = quotationFixture();
+  assert.equal(quotationOpeningLine(quotation), null);
+  const line = catalogueLine(catalogueFixture(), null);
+  quotation.sections = [
+    { id: "a", title: "", systemType: "GEN", items: [line] },
+    {
+      id: "b",
+      title: "",
+      systemType: "GEN",
+      items: [
+        { ...line, equipmentRole: "other", description: "פתיחה" },
+        { ...line, equipmentRole: "other", description: "later" },
+      ],
+    },
+  ];
+  assert.equal(quotationOpeningLine(quotation), "פתיחה");
+});
+
+test("status counts require complete consistent nonnegative safe integer totals", async () => {
+  const { isQuotationStatusCounts } = await import("../src/utilities/guards/quotation.guard");
+  assert.ok(isQuotationStatusCounts({ all: 0, draft: 0, review: 0, approved: 0 }));
+  assert.ok(isQuotationStatusCounts({ all: 6, draft: 1, review: 2, approved: 3 }));
+  for (const malformed of [
+    null,
+    [],
+    {},
+    { all: 3, draft: 1, review: 1 },
+    { all: 4, draft: 1, review: 1, approved: 1 },
+  ]) {
+    assert.equal(isQuotationStatusCounts(malformed), false, JSON.stringify(malformed));
+  }
+  for (const field of ["all", "draft", "review", "approved"]) {
+    for (const invalid of [-1, 0.5, "0", null, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+      assert.equal(
+        isQuotationStatusCounts({ all: 0, draft: 0, review: 0, approved: 0, [field]: invalid }),
+        false,
+        `${field}: ${String(invalid)}`,
+      );
+    }
+  }
+});
+
+test("decimal input formatting compacts valid decimals without coercing incomplete edits", async () => {
+  const { quotationDecimalInput } = await import("../src/utilities/quotation-presentation.utility");
+  for (const [value, expected] of [
+    ["1.0000", "1"],
+    ["001.2500", "1.25"],
+    ["0.0001000", "0.0001"],
+    ["-0.0000", "0"],
+    ["9007199254740993.1234000", "9007199254740993.1234"],
+  ]) {
+    assert.equal(quotationDecimalInput(value), expected, value);
+  }
+  for (const partial of ["", "-", ".", "1.", "-.5", ".5", "1e3", " 1 ", "NaN", "Infinity"]) {
+    assert.equal(quotationDecimalInput(partial), partial, partial);
+  }
+});
+
+test("line groups preserve root and controller ordering and keep orphan controllers visible", async () => {
+  const { quotationLineGroups } = await import("../src/utilities/quotation-presentation.utility");
+  const first = { ...catalogueLine(catalogueFixture(), null), id: "first" };
+  const second = { ...first, id: "second" };
+  const control = {
+    ...first,
+    id: "control",
+    equipmentRole: "control" as const,
+    parentItemId: first.id,
+  };
+  const orphan = { ...control, id: "orphan", parentItemId: "missing" };
+  const another = { ...control, id: "another" };
+  const section = {
+    id: "s",
+    title: "",
+    systemType: "VRF" as const,
+    items: [control, second, orphan, first, another],
+  };
+  const before = structuredClone(section);
+  assert.deepEqual(quotationLineGroups(section), [
+    { line: second, controls: [] },
+    { line: orphan, controls: [] },
+    { line: first, controls: [control, another] },
+  ]);
+  assert.deepEqual(section, before);
+  assert.deepEqual(quotationLineGroups({ ...section, items: [] }), []);
+});
+
+test("payment row derivation rounds exact amounts and leaves schedule entries untouched", async () => {
+  const { quotationPaymentRows, quotationPaymentTotal } =
+    await import("../src/utilities/quotation-presentation.utility");
+  const quotation = quotationFixture();
+  assert.deepEqual(quotationPaymentRows(quotation), []);
+  assert.equal(quotationPaymentTotal(quotation), "0");
+  quotation.totals.total = "100.05";
+  quotation.paymentSchedule = [
+    { percent: "10", text: "first" },
+    { percent: "0.1", text: "second" },
+    { percent: "", text: "editing" },
+  ];
+  const before = structuredClone(quotation);
+  assert.deepEqual(quotationPaymentRows(quotation), [
+    { percent: "10", text: "first", amount: "₪10.01" },
+    { percent: "0.1", text: "second", amount: "₪0.10" },
+    { percent: "", text: "editing", amount: "₪0.00" },
+  ]);
+  assert.equal(quotationPaymentTotal(quotation), "10.1");
+  assert.deepEqual(quotation, before);
+});
