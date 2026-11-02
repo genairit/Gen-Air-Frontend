@@ -43,10 +43,12 @@ const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
       component="li"
       id={getOptionId(index)}
       key={suggestion.placeId}
-      onClick={() => onSelect(index)}
       aria-selected={index === activeIndex}
       sx={styles.suggestion(index === activeIndex)}
-      onMouseDown={event => event.preventDefault()}
+      onPointerDown={event => {
+        event.preventDefault();
+        onSelect(index);
+      }}
     >
       <Icon size={22} name={ICON_NAMES.LOCATION} color={theme.palette.primary} />
       <Box sx={styles.suggestionText}>
