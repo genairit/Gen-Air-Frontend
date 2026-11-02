@@ -97,6 +97,7 @@ const QuotationsPage: FC = () => {
       <Card>
         <div className={styles.listToolbar}>
           <QuotationInput
+            type="search"
             value={search}
             label="חיפוש לפי מספר, לקוח, פרויקט או חברה"
             placeholder="חיפוש לפי מספר, לקוח או פרויקט..."

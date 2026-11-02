@@ -3,10 +3,12 @@ import {
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
-import { Fragment, type FC } from "react";
 import styles from "../quotation.module.css";
 import Card from "../../../components/Card/Card";
+import Icon from "../../../components/Icon/Icon";
 import Button from "../../../components/Button/Button";
+import { Fragment, type ReactNode, type FC } from "react";
+import { ICON_NAMES } from "../../../constants/icon.constant";
 import { isPaymentTerms } from "../../../utilities/guards/api.guard";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
 import { PAYMENT_TERMS_LABELS } from "../../../constants/payment-terms.constant";
@@ -15,11 +17,13 @@ import { quotationReviewSections } from "../../../utilities/quotation-presentati
 interface IQuotationReviewProps {
   editable: boolean;
   onEdit: () => void;
+  warnings?: ReactNode;
   quotation: IQuotation;
 }
 const QuotationReview: FC<IQuotationReviewProps> = ({
   quotation,
   editable,
+  warnings,
   onEdit,
 }: IQuotationReviewProps) => {
   const sections = quotationReviewSections(quotation);
@@ -32,17 +36,25 @@ const QuotationReview: FC<IQuotationReviewProps> = ({
   return (
     <Card>
       <div className={styles.between}>
-        <h2 className={styles.heading}>סיכום לבדיקה</h2>
+        <div className={styles.cardTitle}>
+          <span aria-hidden="true" className={styles.cardIcon}>
+            <Icon name={ICON_NAMES.QUOTE} />
+          </span>
+          <div>
+            <h2>סיכום לבדיקה</h2>
+            <p className={styles.muted}>השורות לפי סדר הצעת מחיר, כפי שיופיעו בהצעה</p>
+          </div>
+        </div>
         {editable && (
           <Button
             text="עריכה"
             onClick={onEdit}
             size={BUTTON_SIZES.COMPACT}
-            variant={BUTTON_VARIANTS.SECONDARY}
+            variant={BUTTON_VARIANTS.NEUTRAL}
           />
         )}
       </div>
-      <p className={styles.muted}>כל ההתראות הן התראות חובה. יש לטפל בהן או לאשר חריג במפורש.</p>
+      {warnings}
       <div className={styles.viewTable}>
         <table>
           <thead>

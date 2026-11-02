@@ -67,7 +67,7 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
               text="מחיקת מערכת"
               size={BUTTON_SIZES.COMPACT}
               onClick={() => setConfirm(true)}
-              variant={BUTTON_VARIANTS.SECONDARY}
+              variant={BUTTON_VARIANTS.NEUTRAL}
             />
           </div>
         )}

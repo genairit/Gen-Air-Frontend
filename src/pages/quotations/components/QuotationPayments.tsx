@@ -10,6 +10,7 @@ import {
 
 import {
   BUTTON_SIZES,
+  BUTTON_SHAPES,
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
@@ -102,7 +103,8 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
               text="×"
               ariaLabel="הסר שלב"
               size={BUTTON_SIZES.COMPACT}
-              variant={BUTTON_VARIANTS.SECONDARY}
+              shape={BUTTON_SHAPES.CIRCLE}
+              variant={BUTTON_VARIANTS.NEUTRAL}
               onClick={() =>
                 onChange({
                   ...quotation,
@@ -121,7 +123,7 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
           <Button
             text="הוסף שלב תשלום"
             size={BUTTON_SIZES.COMPACT}
-            variant={BUTTON_VARIANTS.SECONDARY}
+            variant={BUTTON_VARIANTS.NEUTRAL}
             onClick={() =>
               onChange({ ...quotation, paymentSchedule: [...schedule, { percent: "0", text: "" }] })
             }

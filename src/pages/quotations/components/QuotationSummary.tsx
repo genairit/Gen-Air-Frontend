@@ -1,10 +1,13 @@
 import type { FC } from "react";
 import styles from "../quotation.module.css";
 import Card from "../../../components/Card/Card";
+import QuotationWarnings from "./QuotationWarnings";
 import Button from "../../../components/Button/Button";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
+import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { quotationDecimalInput } from "../../../utilities/quotation-presentation.utility";
 import type { IQuotation, TQuotationStatus } from "../../../interfaces/quotation.interface";
 
 interface IQuotationSummaryProps {
@@ -12,6 +15,7 @@ interface IQuotationSummaryProps {
   disabled: boolean;
   canApprove: boolean;
   quotation: IQuotation;
+  showWarnings?: boolean;
   onChange: (quotation: IQuotation) => void;
   onAcknowledge: (keys: string[]) => Promise<void>;
   onTransition: (status: TQuotationStatus) => Promise<void>;
@@ -21,6 +25,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
   disabled,
   canApprove,
   blocked,
+  showWarnings = true,
   onChange,
   onTransition,
   onAcknowledge,
@@ -33,16 +38,14 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
   const isDraft = quotation.status === QUOTATION_STATUS.DRAFT;
   const isReview = quotation.status === QUOTATION_STATUS.REVIEW;
   const isApproved = quotation.status === QUOTATION_STATUS.APPROVED;
+  const progressMaximum = Math.max(quotation.warnings.length, 1);
+  const progressValue = quotation.warnings.length ? acknowledged.length : 1;
   const amounts = [
     { label: "סכום השורות", value: totals.subtotal },
     { label: "הנחה / התאמה ליעד", value: totals.discount },
     { label: "מחיר כולל לפני מע״מ", value: totals.pretax },
-    { label: `מע״מ ${quotation.vatRate}%`, value: totals.vat },
+    { label: `מע״מ ${quotationDecimalInput(quotation.vatRate)}%`, value: totals.vat },
   ];
-  const toggle = (key: string, checked: boolean) =>
-    onAcknowledge(
-      checked ? [...acknowledged, key] : acknowledged.filter(current => current !== key),
-    );
   return (
     <div className={styles.summary}>
       <Card>
@@ -73,25 +76,24 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
       </Card>
       <Card>
         <h2 className={styles.heading}>בדיקה ואישור</h2>
+        <progress
+          max={progressMaximum}
+          value={progressValue}
+          aria-label="התקדמות בדיקת הצעה"
+          className={styles.reviewProgress}
+        />
         <p className={styles.muted}>
           {openWarnings.length} התראות חובה פתוחות מתוך {quotation.warnings.length}
         </p>
         {blocked && <p role="status">יש להמתין לשמירה מוצלחת לפני בדיקה ואישור.</p>}
-        {quotation.warnings.map(warning => (
-          <label key={warning.key} className={styles.warning}>
-            <input
-              type="checkbox"
-              checked={warning.acknowledged}
-              disabled={!canApprove || blocked || isApproved}
-              onChange={event => toggle(warning.key, event.target.checked)}
-            />
-            <span>
-              {warning.text}
-              <br />
-              <b>חריג — מאושר במפורש</b>
-            </span>
-          </label>
-        ))}
+        {showWarnings && (
+          <QuotationWarnings
+            blocked={blocked}
+            quotation={quotation}
+            canApprove={canApprove}
+            onAcknowledge={onAcknowledge}
+          />
+        )}
         {!quotation.warnings.length && !blocked && <p>אין התראות פתוחות</p>}
         {canApprove && (
           <div className={styles.stack}>
@@ -112,6 +114,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
                 <Button
                   text="חזרה לטיוטה"
                   disabled={blocked}
+                  variant={BUTTON_VARIANTS.NEUTRAL}
                   onClick={() => onTransition(QUOTATION_STATUS.DRAFT)}
                 />
               </>

@@ -106,3 +106,5 @@ export const QUOTATION_STEPS = [
 ];
 
 export const QUOTATION_DEFAULTS = { CIRCUIT: "A" } as const;
+
+export const QUOTATION_INPUT_REASON = { INPUT: "input", CLEAR: "clear" } as const;

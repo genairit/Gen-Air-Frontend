@@ -145,6 +145,7 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
         )}
       </div>
       <QuotationInput
+        type="search"
         value={search}
         label="חיפוש פריט בקטלוג"
         onFocus={() => setShowMatches(true)}
