@@ -16,7 +16,10 @@ import { PERMISSIONS } from "../src/constants/permission.constant";
 import type { IApiCustomer } from "../src/interfaces/api.interface";
 import Autocomplete from "../src/components/Autocomplete/Autocomplete";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BUILDING_PAGE_COPY } from "../src/constants/apartment.constant";
+import { PROJECT_FORM_COPY } from "../src/constants/project-form.constant";
 import { CUSTOMER_FORM_COPY } from "../src/constants/customer-form.constant";
+import { PROJECT_INTAKE_COPY } from "../src/constants/project-intake.constant";
 import NewCustomerForm from "../src/pages/customer-form/components/NewCustomerForm";
 import CustomerFieldsCard from "../src/pages/customer-form/components/CustomerFieldsCard";
 import CustomerPaymentDefault from "../src/components/CustomerPaymentDefault/CustomerPaymentDefault";
@@ -38,6 +41,18 @@ const customer: IApiCustomer = {
   prioritySyncError: null,
   createdById: "test-admin",
 };
+
+test("project and apartment copy never promises retired payment storage or inheritance", () => {
+  const projectCopy = [
+    PROJECT_INTAKE_COPY.VIEW_TITLE,
+    PROJECT_FORM_COPY.DRAFT_PRIVACY,
+    BUILDING_PAGE_COPY.EMPTY_DESCRIPTION,
+  ];
+  for (const text of projectCopy) {
+    assert.doesNotMatch(text, /תנאי (?:ה)?תשלום|הערות תשלום/);
+  }
+  assert.match(BUILDING_PAGE_COPY.EMPTY_DESCRIPTION, /סוג הפרויקט, הכתובת וההערות/);
+});
 
 test("customer creation and editing select a default and explicitly clear it to null", async () => {
   Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
