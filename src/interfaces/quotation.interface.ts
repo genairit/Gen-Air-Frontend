@@ -140,3 +140,33 @@ export interface IQuotationSavePayload extends Pick<
 > {
   sections: IQuotationSaveSection[];
 }
+
+export interface IQuotationStatusCounts {
+  all: number;
+  draft: number;
+  review: number;
+  approved: number;
+}
+export interface IQuotationCircuit {
+  id: string;
+  key: string;
+  indoor: string;
+  outdoor: string;
+  ratio: string | null;
+}
+
+export interface IQuotationPaymentRow {
+  text: string;
+  amount: string;
+  percent: string;
+}
+export interface IQuotationReviewSection {
+  id: string;
+  title: string;
+  items: (IQuotationLine & { amount: string; priceLabel: string; quantityLabel: string })[];
+}
+
+export interface IQuotationLineGroup {
+  line: IQuotationLine;
+  controls: IQuotationLine[];
+}

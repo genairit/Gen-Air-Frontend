@@ -16,11 +16,18 @@ import {
 import { API_ENDPOINTS } from "../constants/api.constant";
 import { quotationPayload } from "../utilities/quotation.utility";
 import { httpClient, ensureResponse } from "./http-client.service";
+import { isQuotationStatusCounts } from "../utilities/guards/quotation.guard";
 import { isQuotationProjectChoice } from "../utilities/guards/quotation.guard";
+import type { IQuotationStatusCounts } from "../interfaces/quotation.interface";
 import { isRecord, isNullableString } from "../utilities/guards/primitive.guard";
 import type { IQuotationProjectChoice } from "../interfaces/quotation.interface";
 
 export const quotationService = {
+  async statusCounts(search: string): Promise<IQuotationStatusCounts> {
+    const endpoint = API_ENDPOINTS.QUOTATION_STATUS_COUNTS;
+    const response = await httpClient.get<unknown>(endpoint, { params: { search } });
+    return ensureResponse(endpoint, response.data, isQuotationStatusCounts);
+  },
   async projectChoices(customerId: string, search: string): Promise<IQuotationProjectChoice[]> {
     const endpoint = API_ENDPOINTS.customerProjects(customerId);
     const response = await httpClient.get<unknown>(endpoint, { params: { search, batchSize: 50 } });

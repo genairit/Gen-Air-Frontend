@@ -13,8 +13,8 @@ const QuotationSelect: FC<IQuotationSelectProps> = ({
 }: IQuotationSelectProps) => {
   return (
     <label className={styles.label}>
-      {label}
-      <select className={styles.select} {...props}>
+      <span className={styles.labelText}>{label}</span>
+      <select aria-label={label} className={styles.select} {...props}>
         {children}
       </select>
     </label>

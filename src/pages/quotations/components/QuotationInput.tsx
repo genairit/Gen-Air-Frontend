@@ -8,8 +8,8 @@ interface IQuotationInputProps extends InputHTMLAttributes<HTMLInputElement> {
 const QuotationInput: FC<IQuotationInputProps> = ({ label, ...props }: IQuotationInputProps) => {
   return (
     <label className={styles.label}>
-      {label}
-      <input className={styles.input} {...props} />
+      <span className={styles.labelText}>{label}</span>
+      <input aria-label={label} className={styles.input} {...props} />
     </label>
   );
 };

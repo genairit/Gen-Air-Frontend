@@ -26,7 +26,7 @@ const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
   const options = projects.data ?? [];
   const selectedMissing = value !== null && !options.some(project => project.id === value);
   return (
-    <div className={styles.stack}>
+    <div className={styles.picker}>
       <QuotationSelect
         value={value ?? ""}
         disabled={disabled}
