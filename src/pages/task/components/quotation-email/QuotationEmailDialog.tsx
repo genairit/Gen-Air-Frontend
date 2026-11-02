@@ -13,7 +13,6 @@ import { useState } from "react";
 import Button from "../../../../components/Button/Button";
 import genairLogo from "../../../../assets/genair-logo.png";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useSessionUser } from "../../../../store/session.store";
 import TextField from "../../../../components/TextField/TextField";
 import InlineError from "../../../../components/InlineError/InlineError";
 import type { IApiDriveItem } from "../../../../interfaces/api.interface";
@@ -30,7 +29,6 @@ interface IQuotationEmailDialogProps {
 }
 
 const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) => {
-  const user = useSessionUser();
   const [step, setStep] = useState(1);
   const [recipientIds, setRecipientIds] = useState<string[]>([]);
   const [architectId, setArchitectId] = useState("");
@@ -61,8 +59,8 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
         zipFileId: zip!.id,
       }),
     onError: () => setRequestId(crypto.randomUUID()),
-    onSettled: () => {
-      void contextQuery.refetch();
+    onSettled: async () => {
+      await contextQuery.refetch();
     },
   });
   const selectedContacts =
@@ -74,25 +72,13 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
   const locked = sendMutation.isPending;
   const receipt = sendMutation.data ?? context?.delivery;
   const alreadySent = receipt?.status === "sent";
-  const blocked =
-    receipt?.status === "preparing" ||
-    receipt?.status === "sending" ||
-    receipt?.status === "uncertain";
-  const subject =
-    context && architect
-      ? `${context.projectName} | ${context.apartmentNumber ?? ""} | ${architect.name} | תוכנית מיזוג אוויר לביצוע`
-      : "";
-  const body = [
-    "שלום,",
-    `מצורפת תוכנית מיזוג אוויר לביצוע עבור דירה ${context?.apartmentNumber ?? ""}`,
-    `גרסת תוכנית ${version.trim()}`,
-    "למייל מצורפים:",
-    "1. תוכנית מיזוג אוויר לביצוע",
-    "2. קובץ zip",
-    "במידה ויהיה עדכון על התוכניות הנ״ל אשלח כתשובה למייל זה",
-    "בברכה,",
-    `${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim(),
-  ].join("\n");
+  const blocked = Boolean(receipt && !receipt.retryable && receipt.status !== "sent");
+  const previewQuery = useQuery({
+    queryKey: ["quotation-execution-email-preview", taskId, architectId, version.trim()],
+    queryFn: () => quotationExecutionEmailService.getPreview(taskId, architectId, version.trim()),
+    enabled: step === 2 && Boolean(architect && version.trim()),
+    retry: false,
+  });
   const toggleRecipient = (id: string) => {
     setRecipientIds(current => {
       const next = current.includes(id) ? current.filter(value => value !== id) : [...current, id];
@@ -114,8 +100,10 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
       fullWidth
       dir="rtl"
       maxWidth="md"
-      onClose={locked ? undefined : onClose}
       aria-labelledby="quotation-email-title"
+      onClose={() => {
+        if (!locked) onClose();
+      }}
     >
       <DialogTitle id="quotation-email-title">שליחת תוכנית מיזוג אוויר לביצוע</DialogTitle>
       <DialogContent sx={{ display: "grid", gap: 2 }}>
@@ -224,27 +212,37 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
                 <Typography sx={{ fontWeight: 700 }}>
                   אל: {selectedContacts.map(contact => contact.email).join(", ")}
                 </Typography>
-                <Typography sx={{ fontWeight: 700 }}>נושא: {subject}</Typography>
-                <Typography sx={{ mt: 1 }}>{body}</Typography>
-                <Box
-                  sx={{
-                    display: "grid",
-                    justifyItems: "start",
-                    mt: 2,
-                    borderRight: "3px solid #1668bd",
-                    pr: 2,
-                  }}
-                >
+                {previewQuery.isPending && <LoadingState label="טוען תצוגה מקדימה" />}
+                {previewQuery.isError && (
+                  <InlineError message={getApiErrorMessage(previewQuery.error)} />
+                )}
+                {previewQuery.data && (
+                  <>
+                    <Typography sx={{ fontWeight: 700 }}>
+                      נושא: {previewQuery.data.subject}
+                    </Typography>
+                    <Typography sx={{ mt: 1 }}>{previewQuery.data.body}</Typography>
+                  </>
+                )}
+                {previewQuery.data && (
                   <Box
-                    alt="GenAir"
-                    component="img"
-                    src={genairLogo}
-                    sx={{ width: 180, maxWidth: "100%" }}
-                  />
-                  <Typography sx={{ fontWeight: 700 }}>
-                    {`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim()}
-                  </Typography>
-                </Box>
+                    sx={{
+                      display: "grid",
+                      justifyItems: "start",
+                      mt: 2,
+                      borderRight: "3px solid #1668bd",
+                      pr: 2,
+                    }}
+                  >
+                    <Box
+                      alt="GenAir"
+                      component="img"
+                      src={genairLogo}
+                      sx={{ width: 180, maxWidth: "100%" }}
+                    />
+                    <Typography sx={{ fontWeight: 700 }}>{previewQuery.data.senderName}</Typography>
+                  </Box>
+                )}
               </Box>
             )}
           </>
@@ -278,7 +276,7 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
             text="שלח מייל"
             isLoading={locked}
             onClick={() => sendMutation.mutate()}
-            disabled={!plan || !zip || plan.id === zip.id || blocked}
+            disabled={!plan || !zip || plan.id === zip.id || blocked || !previewQuery.isSuccess}
           />
         )}
       </DialogActions>

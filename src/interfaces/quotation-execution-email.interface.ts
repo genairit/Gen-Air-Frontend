@@ -8,6 +8,7 @@ export interface IQuotationEmailContact {
 export interface IQuotationEmailReceipt {
   requestId: string;
   updatedAt: string;
+  retryable: boolean;
   providerMessageId: string | null;
   status: "preparing" | "sending" | "sent" | "failed" | "uncertain";
 }
@@ -28,4 +29,10 @@ export interface ISendQuotationEmail {
   planVersion: string;
   architectContactId: string;
   recipientContactIds: string[];
+}
+
+export interface IQuotationEmailPreview {
+  body: string;
+  subject: string;
+  senderName: string;
 }

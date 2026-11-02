@@ -2,6 +2,7 @@ import type {
   ISendQuotationEmail,
   IQuotationEmailContext,
   IQuotationEmailReceipt,
+  IQuotationEmailPreview,
 } from "../interfaces/quotation-execution-email.interface";
 
 import { httpClient, ensureResponse } from "./http-client.service";
@@ -16,7 +17,8 @@ const isReceipt = (value: unknown): value is IQuotationEmailReceipt =>
   ["preparing", "sending", "sent", "failed", "uncertain"].includes(String(value.status)) &&
   typeof value.requestId === "string" &&
   (value.providerMessageId === null || typeof value.providerMessageId === "string") &&
-  typeof value.updatedAt === "string";
+  typeof value.updatedAt === "string" &&
+  typeof value.retryable === "boolean";
 
 const isContext = (value: unknown): value is IQuotationEmailContext =>
   isRecord(value) &&
@@ -31,11 +33,19 @@ const isContext = (value: unknown): value is IQuotationEmailContext =>
   ) &&
   (value.delivery === null || isReceipt(value.delivery));
 
+const isPreview = (value: unknown): value is IQuotationEmailPreview =>
+  isRecord(value) && ["subject", "body", "senderName"].every(key => typeof value[key] === "string");
+
 export const quotationExecutionEmailService = {
   async getContext(taskId: string) {
     const url = `${endpoint(taskId)}/context`;
     const response = await httpClient.get<unknown>(url);
     return ensureResponse(url, response.data, isContext);
+  },
+  async getPreview(taskId: string, architectContactId: string, planVersion: string) {
+    const url = `${endpoint(taskId)}/preview`;
+    const response = await httpClient.post<unknown>(url, { architectContactId, planVersion });
+    return ensureResponse(url, response.data, isPreview);
   },
   async send(taskId: string, input: ISendQuotationEmail) {
     const url = `${endpoint(taskId)}/send`;

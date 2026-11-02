@@ -62,15 +62,20 @@ const TaskView: FC<ITaskViewProps> = ({
       PERMISSIONS.CUSTOMERS_READ,
       PERMISSIONS.DRIVE_READ,
     ].every(permission => hasPermission(sessionUser, permission));
-  const changeStatus = async (status: typeof task.status) => {
-    await statusMutation.mutateAsync({ taskId: task.id, status });
-    if (status === TASK_STATUSES.PROPOSAL_SENT && canPrepareEmail) setEmailOpen(true);
-  };
   const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
   const statusMutation = useUpdateTaskStatusMutation();
   const urgencyMutation = useUpdateTaskUrgencyMutation();
   const updateMutation = useUpdateTaskMutation();
   const claimMutation = useClaimTaskMutation();
+  const changeStatus = (status: typeof task.status) =>
+    statusMutation.mutate(
+      { taskId: task.id, status },
+      {
+        onSuccess: () => {
+          if (status === TASK_STATUSES.PROPOSAL_SENT && canPrepareEmail) setEmailOpen(true);
+        },
+      },
+    );
 
   const mutationError =
     statusMutation.error ?? urgencyMutation.error ?? updateMutation.error ?? claimMutation.error;
@@ -91,13 +96,7 @@ const TaskView: FC<ITaskViewProps> = ({
 
   return (
     <Box sx={styles.page}>
-      <TaskHeaderCard
-        task={task}
-        canChangeStatus={canChangeStatus}
-        onStatusChange={status => {
-          void changeStatus(status).catch(() => undefined);
-        }}
-      />
+      <TaskHeaderCard task={task} onStatusChange={changeStatus} canChangeStatus={canChangeStatus} />
       {canPrepareEmail && task.status === TASK_STATUSES.PROPOSAL_SENT && (
         <Button text="שליחת תוכנית לביצוע במייל" onClick={() => setEmailOpen(true)} />
       )}
