@@ -113,7 +113,10 @@ export const useQuotationEditor = (
       await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
       setDeleted(true);
     } catch (failure) {
-      logger.error("Failed to delete quotation", { quotationId: quotation.id, failure });
+      logger.error("Failed to delete quotation", {
+        quotationId: quotation.id,
+        error: getApiErrorMessage(failure),
+      });
       setDeleteError(getApiErrorMessage(failure));
     } finally {
       commandPending.current = false;
