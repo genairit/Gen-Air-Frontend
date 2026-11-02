@@ -131,7 +131,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
           </div>
         )}
       </Card>
-      {deleteAction}
+      {deleteAction && <div className={styles.deleteAction}>{deleteAction}</div>}
     </div>
   );
 };
