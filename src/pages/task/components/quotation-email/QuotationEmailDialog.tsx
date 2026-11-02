@@ -21,6 +21,7 @@ import { getApiErrorMessage } from "../../../../utilities/api-error.utility";
 import { useProjectDriveQuery } from "../../../../hooks/queries/project.query";
 import { BUTTON_VARIANTS } from "../../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../../components/TextField/constants/textfield.constants";
+import { QUOTATION_EMAIL_STATUS } from "../../../../constants/quotation-execution-email.constant";
 import { quotationExecutionEmailService } from "../../../../services/quotation-execution-email.service";
 
 interface IQuotationEmailDialogProps {
@@ -85,8 +86,9 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
     architect != null;
   const locked = sendMutation.isPending;
   const receipt = sendMutation.data ?? context?.delivery;
-  const alreadySent = receipt?.status === "sent";
-  const blocked = receipt != null && !receipt.retryable && receipt.status !== "sent";
+  const alreadySent = receipt?.status === QUOTATION_EMAIL_STATUS.SENT;
+  const blocked =
+    receipt != null && !receipt.retryable && receipt.status !== QUOTATION_EMAIL_STATUS.SENT;
   const toggleRecipient = (id: string) => {
     setRecipientIds(current => {
       const next = current.includes(id) ? current.filter(value => value !== id) : [...current, id];
@@ -130,6 +132,15 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
         {alreadySent && <Typography color="success.main">המייל כבר נשלח בהצלחה.</Typography>}
         {blocked && (
           <InlineError message="קיים ניסיון שליחה שטרם אושר. יש לבדוק את מצב המייל לפני ניסיון נוסף." />
+        )}
+        {blocked && (
+          <Button
+            text="רענן מצב שליחה"
+            variant={BUTTON_VARIANTS.NEUTRAL}
+            onClick={async () => {
+              await contextQuery.refetch();
+            }}
+          />
         )}
         {step === 1 && context && !alreadySent && (
           <>

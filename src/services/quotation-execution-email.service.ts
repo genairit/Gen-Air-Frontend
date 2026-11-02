@@ -6,6 +6,7 @@ import type {
 } from "../interfaces/quotation-execution-email.interface";
 
 import { httpClient, ensureResponse } from "./http-client.service";
+import { isQuotationEmailStatus } from "../constants/quotation-execution-email.constant";
 
 const endpoint = (taskId: string) => `/quotation-execution-email/${encodeURIComponent(taskId)}`;
 
@@ -14,7 +15,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isReceipt = (value: unknown): value is IQuotationEmailReceipt =>
   isRecord(value) &&
-  ["preparing", "sending", "sent", "failed", "uncertain"].includes(String(value.status)) &&
+  isQuotationEmailStatus(value.status) &&
   typeof value.requestId === "string" &&
   (value.providerMessageId === null || typeof value.providerMessageId === "string") &&
   typeof value.updatedAt === "string" &&

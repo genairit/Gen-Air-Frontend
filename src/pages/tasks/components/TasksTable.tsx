@@ -53,9 +53,9 @@ const getTaskId = (task: IApiTask) => task.id;
 const TasksTable: FC<ITasksTableProps> = ({ canClaim, canChangeStatus }) => {
   const navigate = useNavigate();
   const sessionUser = useSessionUser();
-  const [emailTaskId, setEmailTaskId] = useState<string | null>(null);
   const styles = usePageStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
+  const [emailTaskId, setEmailTaskId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterId, setFilterId] = useState<string>(TASK_FILTER_IDS.ALL);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);

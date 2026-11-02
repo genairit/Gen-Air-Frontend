@@ -1,3 +1,5 @@
+import type { QuotationEmailStatusType } from "../constants/quotation-execution-email.constant";
+
 export interface IQuotationEmailContact {
   id: string;
   name: string;
@@ -10,7 +12,7 @@ export interface IQuotationEmailReceipt {
   updatedAt: string;
   retryable: boolean;
   providerMessageId: string | null;
-  status: "preparing" | "sending" | "sent" | "failed" | "uncertain";
+  status: QuotationEmailStatusType;
 }
 
 export interface IQuotationEmailContext {

@@ -58,7 +58,7 @@ export const useProjectDriveQuery = (projectId: string, folderId: string | null,
   useQuery({
     retry: false,
     queryKey: QUERY_KEYS.driveContents(projectId, folderId),
-    enabled: enabled && Boolean(projectId),
+    enabled: enabled && projectId.length > 0,
     queryFn: () => projectActivityService.getDriveContents(projectId, folderId),
   });
 
