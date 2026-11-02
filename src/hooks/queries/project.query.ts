@@ -54,10 +54,11 @@ export const useProjectTransitionsQuery = (projectId: string) =>
     queryFn: () => projectActivityService.getTransitions(projectId),
   });
 
-export const useProjectDriveQuery = (projectId: string, folderId: string | null) =>
+export const useProjectDriveQuery = (projectId: string, folderId: string | null, enabled = true) =>
   useQuery({
     retry: false,
     queryKey: QUERY_KEYS.driveContents(projectId, folderId),
+    enabled: enabled && Boolean(projectId),
     queryFn: () => projectActivityService.getDriveContents(projectId, folderId),
   });
 
