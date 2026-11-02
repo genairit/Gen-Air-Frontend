@@ -39,6 +39,7 @@ export const useStyles = () =>
       border: `1px solid ${theme.glass.rim}`,
       backgroundColor: theme.glass.strong,
       boxShadow: SHADOW_BY_SURFACE_DEPTH[depth],
+      "&:focus-within": { zIndex: 1 },
       ...CARD_MOTION,
       ...(isClickable && {
         "&:focus-within": { outline: `2px solid ${theme.palette.primary}`, outlineOffset: 2 },
