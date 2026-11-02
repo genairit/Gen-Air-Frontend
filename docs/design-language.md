@@ -1,563 +1,177 @@
 # GenAir — Design Language
 
-> A practical visual specification for designing and extending the GenAir CRM.
+> **Design specification, updated 2 November 2026.** Use the component vocabulary in the local `Smartbase-Client-Package` repository at commit `8f14318f823603e66e03e3592a6693678cd8d245`, adapted to a **blue and white** GenAir brand. Shared GenAir components implement this direction; individual business screens should continue to be checked as they are touched.
 >
-> Updated: 2 November 2026. Based on the current frontend implementation, shared design tokens, components, and approved quotation-footer correction released in frontend commit `25aa86c5d1f31209868fa46606f7e9173f6852af`.
->
-> **Scope:** visual language, composition, typography, interaction states, responsive behavior, and implementation guidance. Documented token values are observed implementation values. The minimalism principles below are explicitly approved product-design requirements for future work and refinements; they are not a claim that every current screen already satisfies them. Other recommendations are identified where applicable.
+> **Scope:** visual language, component behavior, responsive composition, RTL, accessibility, and implementation guidance. The Smartbase package is a design reference; GenAir does not currently depend on it. Reuse or adapt a component only after checking its API, dependencies, accessibility, and fit with the current app.
 
-## 1. The visual identity
+## 1. Identity and source of truth
 
-**GenAir is a Hebrew-first, RTL business application with a light neumorphic / Soft UI design language.**
+GenAir is a Hebrew-first, RTL business application. Its new visual language follows the Smartbase component family: a pale canvas; white and translucent floating surfaces; fine borders and highlights; slate text; rounded controls; and focused, purposeful motion. **All brand accents are blue.** Purple and violet gradients, glows, selection fills, and focus rings in Smartbase become blue equivalents in GenAir.
 
-The interface feels calm, rounded, tactile, and spacious. Almost-white surfaces sit on an almost-white canvas. Depth comes from paired shadows rather than strong borders or large changes in surface color. Blue communicates the main action and selected states; charcoal anchors text and high-emphasis controls.
+The interface should feel clear, light, and responsive. Glass is a surface treatment for cards, menus, sheets, and floating panels, not a reason to obscure content. Use a solid white fallback whenever blur or transparency reduces legibility.
 
-### How to classify the style
+When sources disagree, use this order:
 
-| Style                     | Relationship to GenAir                                                                                                                                                      |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Neumorphism / Soft UI** | The primary language: matching canvas and surface colors, soft raised surfaces, recessed fields, and paired highlight/shadow edges.                                         |
-| **Claymorphism**          | Some clay-like softness is present in rounded, pill-shaped controls. Thick, inflated, toy-like 3D objects are not the defining pattern.                                     |
-| **Glassmorphism**         | Not the core language. Main cards are opaque, without frosted-glass transparency or backdrop blur.                                                                          |
-| **Flat / Material UI**    | React/MUI supplies implementation primitives, but the visible treatment is customized into GenAir's soft surface system. Default Material styling is not the visual target. |
+1. The latest explicitly approved reference and corrections for the specific screen, including its functional layout.
+2. This GenAir design language and its blue palette.
+3. The current Smartbase component implementation for shape, structure, states, and motion, with purple accents translated to blue.
+4. Existing GenAir code for product behavior, data structure, routes, permissions, and temporary implementation constraints.
 
-### The visual formula
+Smartbase contains older solid buttons and fields alongside newer glass and choice components. Match the **component appropriate to the interaction** rather than mixing every variant on one screen. Do not import Smartbase purple literals or treat a legacy GenAir soft-shadow token as the new visual target.
 
-**Pale canvas + opaque rounded surfaces + consistent paired shadows + recessed fields + restrained blue accents + strong Hebrew typography.**
+## 2. Product and workflow principles
 
-Avoid turning the app into a dark dashboard, a transparent glass interface, a colorful gradient product, or a heavily bordered spreadsheet.
+Each screen should expose the smallest clear set of information and actions needed for the employee's current task. Keep one primary next action prominent. Place frequent actions beside the record or field they affect; show secondary actions with lower emphasis. Use known customer, project, or document context to avoid repeated selection.
 
-## 2. Minimalism and minimum-effort workflows
+Keep search directly editable, preserve filters and return position where practical, and retain entered work after validation or request failures. Use columns when they help comparison; do not add cards only to fill space. A card marks a meaningful information group or interaction boundary. Prefer alignment, typography, and a fine divider over nested cards.
 
-**GenAir contains many features. Each screen should expose the smallest clear set of information and actions needed for the employee's current task.**
+Reduce unnecessary clicks and scrolling while keeping destructive, financial, and other consequential actions appropriately safeguarded. Do not hide frequent actions, errors, or required information inside an overflow menu. Judge a design by the user journey, not by a universal card or click count.
 
-Minimalism applies to both appearance and interaction: reduce clutter, confusion, clicks, scrolling, repeated input, and unnecessary navigation. A visually clean screen that makes a common action harder to find does not meet this requirement.
+## 3. Blue and white color system
 
-### A. Give each screen a clear purpose
+The palette below is the **target adaptation**, not a list of currently implemented GenAir tokens. It combines Smartbase's white/slate surface system with GenAir's existing blues. Create or update shared theme tokens before applying it broadly; do not scatter these values as new literals across components.
 
-- Organize a page around the user's goal, with one visually dominant next action where appropriate.
-- Show the information needed to make the next decision; give secondary details lower emphasis.
-- Use the user's role, permissions, and current record context to keep unrelated features out of the working area.
-- Keep related tasks together. Avoid forcing users to visit multiple pages to complete one simple operation.
-- Prefer clear, familiar labels and consistent action positions over explanations the user must repeatedly read.
+| Role          | Target value                | Use                                                                        |
+| ------------- | --------------------------- | -------------------------------------------------------------------------- |
+| Canvas        | `#F8FAFC`                   | Page background and quiet regions.                                         |
+| Surface       | `#FFFFFF`                   | Controls and opaque glass fallback.                                        |
+| Glass card    | `rgba(255, 255, 255, 0.71)` | Main translucent cards over a calm canvas.                                 |
+| Glass summary | `rgba(255, 255, 255, 0.90)` | Dense summaries requiring stronger readability.                            |
+| Ink           | `#0F172A`                   | Main text and high-emphasis icons.                                         |
+| Muted text    | `#64748B`                   | Secondary copy, metadata, inactive controls.                               |
+| Subtle border | `#E2E8F0`                   | Input, choice, tooltip, and divider edges.                                 |
+| Primary blue  | `#1668BD`                   | Filled action, link, selected text, and focus outline.                     |
+| Bright blue   | `#1F7FDB`                   | Blue decoration, progress, selected icons, and the lighter end of accents. |
+| Deep blue     | `#0F5CA8`                   | Darker end of filled gradients and hover treatment.                        |
+| Soft blue     | `#E1EDFA`                   | Selected/hover backgrounds and informational tint.                         |
+| White on blue | `#FFFFFF`                   | Text and icons on sufficiently dark blue fills.                            |
 
-### B. Minimize clicks and repeated effort
+Use `linear-gradient(135deg, #0F5CA8, #1668BD)` for a prominent filled blue action or selected thumb where the reference uses a purple gradient. Use a pale blue tint or a thin blue border for lower-emphasis selection. Apply blue to actions, focus, progress, and meaningful selection; do not tint every card.
 
-- Keep frequent actions visible and directly usable. Search fields should accept typing immediately; do not require a disclosure click before typing.
-- Offer contextual actions beside the relevant record, file, field, or row when that shortens the workflow.
-- Open creation/editing flows with known context already selected, such as the current project or customer, when the relationship is unambiguous and editable as appropriate.
-- Use sensible defaults and reuse known data. Do not ask the employee to enter information the system already has.
-- Support keyboard operation, Enter to submit where appropriate, and predictable focus order. Shortcuts should supplement visible controls.
-- For repetitive work, consider multi-select and batch operations when their scope and consequences can be made clear.
-- Use autosave only where the workflow supports it, with visible saving/saved/error feedback and reliable recovery. Do not add an extra save step without a reason.
-- Remove intermediate screens, redundant confirmations, and repeated selections that add no decision or protection.
+White text on `#1668BD` has roughly **5.6:1** contrast; white text on the brighter `#1F7FDB` has roughly **4.1:1**. Therefore the bright blue is an accent, not the sole background behind ordinary white button text. Check rendered contrast for gradients, transparency, disabled states, and text over imagery.
 
-Minimize **unnecessary** steps. Keep confirmation or another appropriate safeguard for destructive, irreversible, financial, or otherwise consequential actions. Do not trade clarity, authorization, validation, or accessibility for a smaller click count.
+The brand palette remains blue and white with slate neutrals. Error, warning, and success states may use semantic colors when needed, as Smartbase's `NoticeCard` does; pair them with readable text and an icon. Never recolor an error as an ordinary blue information state merely to preserve the brand palette.
 
-### C. Minimize scrolling without crowding the page
+## 4. Typography and direction
 
-- Place the main working content and frequent actions early in the page, following the approved screen layout.
-- Use compact headers and appropriately sized controls. Avoid oversized identity cards, empty padding, decorative banners, and explanatory text that pushes work below the fold.
-- Use desktop columns for genuinely related content that benefits from comparison; stack them appropriately on mobile.
-- Avoid making users scroll to the bottom just to perform a frequent action. A contextual or sticky action area can help when it does not obscure content or duplicate controls unnecessarily.
-- For genuinely long workflows, use clear section navigation or meaningful tabs that preserve entered data and context.
-- Keep search/filter state, selected records, and return position when moving into a detail view and back where practical.
+Smartbase's shared MUI theme and Storybook use **Rubik** for the main UI, with JetBrains Mono for technical values. Its `SummaryCard` and some Hebrew-first components use Heebo for denser Hebrew copy. GenAir currently loads Heebo as its default. The target is Rubik for headings, navigation, buttons, labels, and ordinary controls; Heebo may remain in dense Hebrew body or summary content where it reads better. Keep a consistent type choice within each screen, and load the selected weights before switching a component. Use JetBrains Mono sparingly for IDs, codes, and technical strings.
 
-Do not hide essential fields in collapsed panels simply to shorten the page. Reducing visible height by adding discovery work and extra clicks can increase overall effort.
+Follow the component's hierarchy rather than imposing one global size scale. Reference examples: Smartbase `Card` title **14px/700** and subtitle **12px**; `FieldLabel` **15px/600**; `TextField` input **16px/600**; `FlowHeader` title **22px/700**; `SummaryRow` label **13px** and value **14px/600**; `NoticeCard` body **15px**. Keep page headings clearly above card headings and keep essential text out of caption size.
 
-### D. Use fewer cards, containers, and visual layers
+Set the page and Hebrew content to RTL. Use logical `inline-start`/`inline-end` alignment for icons, padding, dividers, and actions. Isolate phone numbers, dates, email addresses, IDs, and Latin product codes so they remain readable in RTL text. A visual reversal must not change keyboard order or the meaning of previous/next actions. Test long Hebrew labels and text zoom.
 
-- Create a card only when it represents a meaningful information group or interaction boundary.
-- Prefer one coherent section over several small cards for closely related fields.
-- Within a card, use alignment, typography, modest spacing, or a subtle separator before adding another raised card.
-- Avoid card-inside-card-inside-card composition. Each shadow, outline, and container should have a purpose.
-- Do not give every label, value, status, or action its own elevated tile.
-- Avoid repeated section headings, duplicated metadata, and large empty cards that contribute no useful next action.
-- Use compact rows or a table for repetitive records rather than a large card per item when comparison and scanning are the main tasks.
+## 5. Surface, depth, and shape
 
-The goal is fewer **perceived containers and competing groups**, not an arbitrary ban on HTML `div` elements. Choose semantic markup and layout wrappers for correctness; optimize the visual structure the employee actually experiences.
+The default Smartbase `Card` is a **22px** rounded section with **16px** padding, **12px** internal gap, a translucent white fill, a fine white rim, backdrop blur, soft floating shadow, and an inset white highlight. GenAir uses a stronger near-white fill and omits per-card backdrop blur because cards repeat densely across CRM screens. Reserve blur for menus, the app shell, and dialogs. The `SummaryCard` uses a stronger white fill, the same **22px** radius, light dividers, and compact label/value rows. `FlowHeader` uses an opaque white **20px** rounded surface. Floating menus and tooltips use white or glass with a fine slate border and a clear shadow.
 
-### E. Reveal complexity progressively
+Depth comes from **separation and light**, not the old GenAir pattern of matched opaque surfaces with strong paired raised and inset shadows. Do not use recessed neumorphic fields or a raised shadow around every row. A glass card needs a stable pale canvas underneath; avoid stacking several translucent cards where text and borders become muddy. If blur is unsupported, expensive, or visually noisy, render an opaque white surface with the same border and shadow hierarchy.
 
-- Keep the common path simple and immediately available.
-- Put infrequent secondary actions in a clearly labeled secondary area or overflow menu.
-- Reveal dependent fields when the user's selection makes them relevant.
-- Keep errors, required warnings, important statuses, and the primary action visible; they must not disappear into an overflow menu.
-- Do not hide a frequently used action just to make the screen look cleaner.
+Use the radius of the component being adapted: about **22px** for cards, **20px** for flow headers, **17px** for the basic text field, **14–16px** for choice rows and select triggers, **12px** for notices, and full pills for segmented controls, autocomplete search, and flow footer actions. Do not force a single radius onto every component.
 
-### F. Reduce cognitive load
+For spacing, start with the component's own dimensions: card padding **16px**, card content gap **12px**, notice regular padding **18px 20px**, compact notice **12px 14px**, and choice-list gap **8px**. Use larger outer gaps between meaningful page sections than within a section. Keep the main task visible near the top; avoid decorative whitespace that pushes working content below the fold.
 
-- Maintain a consistent visual hierarchy and predictable component behavior across screens.
-- Use whitespace to separate meaningful groups, without turning it into excessive vertical height.
-- Keep colors, badges, icons, shadows, and font sizes restrained; do not make every element compete for attention.
-- Prefer recognition over recall: readable selected values, useful search suggestions, and context beside actions.
-- Use short, concrete microcopy. Keep longer guidance available where needed rather than repeating it across the page.
-- Explain empty states with one useful next action instead of filling the screen with placeholder panels.
-- Preserve work during navigation, validation errors, and recoverable request failures.
+## 6. Component patterns
 
-### G. Judge minimalism by task completion
+| Need                       | Smartbase reference                                       | GenAir design rule                                                                                                                              |
+| -------------------------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Main section               | `Card`, `CardHeader`                                      | Glass/white section, short title and optional subtitle/action. The card header may use a subtle heading rule; keep content and actions aligned. |
+| Totals or record summary   | `SummaryCard`, `SummaryRow`                               | Stronger white surface; compact label/value rows with fine dividers and readable values.                                                        |
+| Main and secondary actions | `Button`, `FlowFooter`                                    | Blue filled primary; white/slate outlined or quiet secondary. Preserve component-specific geometry and clear disabled/loading states.           |
+| Icon action                | `IconButton`                                              | Circular hit area, subdued neutral default, blue focus and selected state, accessible name.                                                     |
+| Single value               | `FieldLabel`, `TextField`                                 | Label above a white rounded field; helper/error below. Do not use placeholder as label.                                                         |
+| Search and suggestions     | `Autocomplete`                                            | Immediately editable pill search, floating list, clear action, highlighted match, explicit loading/empty states.                                |
+| Selection                  | `Segmented`, `ChoiceList`, `ChoiceButtons`, `SheetSelect` | Blue selected state plus border/fill/check or thumb; clear unselected state and keyboard focus.                                                 |
+| Boolean state              | `CheckBox`, `Switch`, `SwitchRow`                         | White/slate idle state and blue checked track/fill; text label stays visible.                                                                   |
+| Files or categories        | `CategoryChip`, `CategoryCarousel`                        | Compact labeled icons/chips; blue active fill and small blue shadow, muted inactive state. Show that the row scrolls when it does.              |
+| Status and help            | `NoticeCard`, `Tooltip`, `ProgressBar`                    | Fine bordered notice with icon and concise copy; small readable tooltip; determinate progress only when real progress exists.                   |
+| Guided flow                | `FlowHeader`, `FlowFooter`, `BottomSheet`                 | Clear step title and close action; stable bottom action area; white/glass mobile sheet with visible grip and safe-area clearance.               |
+| Contextual reveal          | `MorphSurface`, `MorphTextArea`, `MorphOverlay`           | Use only when expanding in place reduces effort; blue active border/glow and a stable text-entry/focus transition.                              |
 
-During design review, walk through the common user journeys and record the clicks, scrolling, repeated entries, context switches, and time needed to complete them. Compare the proposed flow with the existing one.
+### Buttons and action hierarchy
 
-Ask:
+Smartbase's base `Button` has an older **7px** primary/secondary variant, while its newer `active` and `outlined` choice treatments use a **16px** radius and at least **48px** height. `FlowFooter` uses **54px** pill actions. Match the selected component's purpose and geometry; do not mix these styles arbitrarily within one action group. Translate every purple gradient, border, and glow to blue. The main positive action uses the deep-to-primary blue fill with white text. Secondary actions use white with a subtle border and ink text. Selection actions can use pale blue fill and a clear blue border.
 
-1. Can the user immediately identify the page's purpose and the next action?
-2. Can a frequent operation be reached and completed more directly?
-3. Does every visible field, card, action, and decoration help the current task?
-4. Can a container or step be removed without losing meaning or safety?
-5. Has anything become harder to discover, read, reach, or use with a keyboard?
+Hover and press states may slightly lift or scale a choice button; the Smartbase choice treatment uses a restrained spring and a white top highlight. Keep the footprint stable, avoid moving neighboring controls, and remove transform motion under `prefers-reduced-motion`. Loading keeps the button's label space, prevents duplicate submission, and provides a readable pending state. Destructive actions need explicit consequence text and confirmation.
 
-Do not impose one universal maximum click count or card count on every feature. The requirement is the **shortest clear, usable, and appropriately safeguarded path to the user's goal**.
+### Fields, search, and selection
 
-## 3. Brand and color
+The basic Smartbase `TextField` is white with a **17px** radius and no dominant MUI outline. GenAir's adaptation must still provide a visible blue focus ring or border because a borderless field cannot rely on surface difference alone. Disabled and invalid states must include readable text or helper feedback.
 
-Use the supplied GenAir logo asset. Preserve its proportions, clear space, and legibility; do not recreate the logo as ordinary text or recolor it to match individual screens.
+The newer Smartbase `Autocomplete` has a **54px** pill search surface, soft white gradient, subtle depth and glass, a clear control, and a floating options list. Options are about **48px** high, with a primary label and optional secondary line. Keep the selected value visible; expose loading, no results, clear, keyboard navigation, and focus. `SheetSelect` uses a bordered **14px** trigger, at least **42px** high, and a bottom sheet on small screens. Do not require a disclosure click before a frequent search can accept typing.
 
-### Core palette
+The `Segmented` control uses an animated selected thumb: **36px** option height by default, **30px** compact, within a full pill. Translate the selected gradient to blue and retain a static selected state when motion is reduced. `ChoiceList` rows are at least **48px** high with **14px** corners; selected rows get a pale blue fill, blue border, and visible focus ring. Checkboxes and switches use white/slate inactive surfaces and blue active fills, with labels and controls reachable by keyboard.
 
-| Role / token     | Value     | Intended use                                                                          |
-| ---------------- | --------- | ------------------------------------------------------------------------------------- |
-| `iceWhite`       | `#F5F5F7` | Application canvas, cards, neutral controls, field surfaces.                          |
-| `white`          | `#FFFFFF` | Highlight shadow, primary-button text, selected icon details.                         |
-| `charcoal`       | `#1E2022` | Main text, strong emphasis, dark confirmation controls, mobile navigation background. |
-| `textBody`       | `#45484D` | Supporting body text where used.                                                      |
-| `textMuted`      | `#6E7178` | Captions, descriptions, secondary metadata, table headers.                            |
-| `placeholder`    | `#9A9DA3` | Placeholder content.                                                                  |
-| `disabledText`   | `#B5B7BC` | Disabled control text.                                                                |
-| `primary`        | `#1F7FDB` | Primary action, active indicators, focus and emphasis.                                |
-| `primaryHover`   | `#3591EA` | Primary-button hover.                                                                 |
-| `airBlue`        | `#E1EDFA` | Selected tabs, navigation selections, informational surfaces.                         |
-| `airBlueStrong`  | `#B8D3F2` | Stronger blue tint where required.                                                    |
-| `airBlueOutline` | `#A7C6EA` | Blue outlines and progress details.                                                   |
-| `surfaceHover`   | `#EAEAEF` | Hover treatment on interactive neutral rows.                                          |
-| `divider`        | `#E2E3E8` | Subtle separators.                                                                    |
-| `outline`        | `#C9CBD1` | Outlined/dashed controls.                                                             |
-| `statusGray`     | `#8A8D93` | Neutral status indicators.                                                            |
-| `statusBlue`     | `#3E7BC4` | Blue status indicators.                                                               |
+GenAir's filter and status `Tabs` use one treatment across screens: a compact white inset pill, dark labels, muted counts, and a pale blue selected thumb that slides to the active tab. Variants may change width or wrapping, but not the selected color or surface treatment. Disable the slide under `prefers-reduced-motion`.
 
-### Semantic-color details
+### Feedback, overlays, and progress
 
-The current soft theme uses `danger: #1668BD`, `dangerSurface: #DCEBFA`, and `errorSurface: #EDF5FD`. This means an action named “danger” in code is **not necessarily red**. Other older tokens still define red error, amber warning, and green success colors.
+`NoticeCard` is a **12px** rounded, fine bordered message with icon, text, and an optional action. Keep status semantics distinct. Loading, empty, error, success, and disabled are separate states; a blank card is not a loading indicator. `Tooltip` is a small white bordered floating panel, not a substitute for a required field label.
 
-For new work, reuse the actual component's semantic treatment rather than assuming a conventional red/green palette. Explain errors and destructive actions with explicit text and appropriate icons. Do not rely on color alone to communicate meaning.
+`FlowFooter` is a white rounded-top action dock with a soft shadow, optional sticky behavior, and safe-area bottom padding. `BottomSheet` is a glass/white surface with a dimmed backdrop, rounded top corners, a visible grip, and independent scrolling. Keep close/cancel reachable and restore focus after dismissal. `ProgressBar` has a pale track and blue fill; display an actual fraction only when it reflects real completed work.
 
-Blue should remain selective. Most of the screen is neutral; applying blue to every card, label, and icon weakens the action hierarchy.
+Use `MorphSurface` and `MorphOverlay` for contextual transitions where the user can understand the source and destination. Translate their purple stage, icon, border, and shadow to blue. Keep the underlying app stable and do not play a success transition before the operation succeeds.
 
-## 4. Typography
+## 7. GenAir page composition and navigation
 
-### Font families
+Smartbase is a component library, so its components do **not** define GenAir's application shell, permissions, business pages, or quotation layout. Retain GenAir's right-side desktop navigation, RTL content order, permission-aware destinations, and mobile bottom navigation. The current app switches its shell at **899px and below**; maintain that functional breakpoint until a responsive redesign is explicitly approved. Restyle shell surfaces to the new pale canvas, white/glass panel, slate text, and blue active state. The current charcoal bottom bar is a legacy visual treatment, not the new target.
 
-| Purpose                        | Font stack                       |
-| ------------------------------ | -------------------------------- |
-| Hebrew and general UI          | `'Heebo', system-ui, sans-serif` |
-| Identifiers and technical text | `'JetBrains Mono', monospace`    |
+A page should generally present: context and title; visible search/filter/primary action; the working records or form; then supporting detail. Use cards for meaningful groups and compact rows for repetitive records. Smartbase does not supply a general data table, so keep GenAir's table behavior and reskin it with white/soft surfaces, fine dividers, clear hover/focus, and deliberate overflow. Avoid a heavy bordered spreadsheet and avoid a large raised card for every record when comparison is the main task.
 
-The app currently loads Heebo weights **300, 400, 500, 600, 700, 800** and JetBrains Mono weights **400, 500** through Google Fonts. System/monospace fallbacks apply if those fonts cannot load.
+**Approved quotation-footer layout remains authoritative:** on desktop, exactly two equal summary cards share the first row, totals on the right and review/approval on the left. The delete action occupies its own full-width row below them. Keep the **24px** gap and stack on mobile. Adapt the surfaces and controls to this guide without changing the approved composition or making the delete action visually primary.
 
-Use Heebo for Hebrew headings, body copy, navigation, buttons, fields, and captions. Use the monospace family selectively for identifiers, SKUs, or other technical strings; not for paragraphs of Hebrew text.
+For forms, group fields by the user's task, keep labels outside inputs, and prefill known context. On mobile, stack columns before fields become cramped. Keep frequent actions visible above the bottom navigation or in a clear action dock with enough scroll clearance. Preserve the app's routes and permissions; UI visibility never replaces server authorization.
 
-### Observed type hierarchy
+## 8. Motion and responsive behavior
 
-These are component-level conventions, not a single globally enforced typography scale.
+Smartbase uses short color and shadow transitions, an animated segmented thumb, spring-based bottom sheet and morph transitions, and local entrance/exit motion for autocomplete. Use motion to explain selection, disclosure, progress, and completion. Let the changed region move while the shell, focus, entered data, and scroll position remain stable. Avoid repeated card entrance animations on every render or keystroke.
 
-| Element                    | Typical size | Weight                         |
-| -------------------------- | ------------ | ------------------------------ |
-| Main page heading          | 32px         | 800                            |
-| Project identity heading   | 28px         | 800                            |
-| Prominent KPI              | 26px         | 800                            |
-| Section/card heading       | 19–20px      | 700                            |
-| Top-bar title              | 18px         | 700                            |
-| Row title / upload heading | 15–17px      | 600–700                        |
-| General component text     | 14–15px      | 400–500                        |
-| Field label                | 13–14px      | 600                            |
-| Standard action text       | 13–16px      | 600; primary actions often 700 |
-| Supporting metadata        | 12–13px      | 400–600                        |
-| Compact navigation eyebrow | 11px         | 600                            |
+Use a restrained hover/press response for controls, a short fade or small movement for newly revealed content, and a stable pending indicator for async work. Success feedback begins only after a confirmed success. Do not invent progress percentages or add artificial delays to showcase animation. Under `prefers-reduced-motion`, remove scale, travel, spring, shimmer, and stagger while retaining clear static state changes.
 
-Use hierarchy through size, weight, and muted color, rather than many font families. Body text must remain readable; captions must not become the primary content style.
+Check a wide desktop viewport, a narrower desktop/tablet viewport, and a **390px** mobile viewport. Verify RTL wrapping, long names, text zoom, and that sticky footers or fixed navigation do not cover controls. On narrow screens, keep floating surfaces within the viewport and contain table/editor overflow locally. Use a solid white fallback when backdrop blur reduces text contrast or performance.
 
-Supporting multiline copy often uses approximately **1.5 line-height**. This is an observed component pattern, not an app-wide custom line-height token. Avoid tight leading in Hebrew paragraphs.
+## 9. Accessibility and interaction states
 
-## 5. RTL and mixed-direction content
+- Keep explicit labels, helper text, visible keyboard focus, and meaningful accessible names for icon-only actions.
+- Use blue borders/rings plus shape, checkmark, or text to show selection; never depend on color alone.
+- Keep text contrast sufficient on glass, tint, gradient, and disabled surfaces. Validate in the rendered UI.
+- Preserve logical focus order and accessible dismissal for menus, sheets, dialogs, and morphing controls.
+- Make compact visual controls usable through adequate hit areas, including touch and keyboard.
+- Show clear pending, empty, error, success, disabled, and destructive states for every applicable flow.
+- Keep reduced-motion alternatives and avoid announcing decorative animation frames.
 
-The application theme is RTL. Hebrew text and page composition should feel native, rather than like a mechanically flipped English dashboard.
+These are design acceptance criteria, not a claim of completed accessibility certification.
 
-- Navigation sits on the **right** on desktop.
-- Labels and Hebrew content align to the logical start.
-- Use logical spacing properties such as `padding-inline-start` and `margin-inline-end`.
-- Keep email addresses, phone numbers, SKUs, dates, currency values, and technical identifiers readable with deliberate LTR isolation where appropriate.
-- Do not reverse character sequences or manually reorder an identifier to make it “fit” RTL.
-- Preserve intended semantic column ordering; do not blindly reverse every icon or row.
-- Test actual Hebrew strings, long project names, and mixed Hebrew/Latin filenames.
+## 10. Implementation and migration map
 
-**Implementation detail:** the app uses Emotion RTL processing. Shared shadow values are exposed through CSS variables to preserve both shadow layers consistently; reuse those tokens rather than manually flipping shadow directions.
+GenAir's shared theme, cards, fields, buttons, choices, feedback, navigation shell, and overlays have been adapted to the Smartbase language. The Smartbase package targets MUI 5/6 while GenAir uses MUI 9, so these are local adaptations behind GenAir's existing component APIs rather than a direct package dependency. Business-specific components may still use legacy `softShadow` tokens; update those screen by screen when their flow is revisited. Verify the rendered screen after adapting one.
 
-## 6. Surfaces, light, and depth
+| Concern                   | Smartbase reference                                                                        | GenAir implementation area                                                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Theme and blue mapping    | `src/theme.ts`, `src/constants/font.constant.ts`                                           | `src/constants/theme.constants.ts`, `src/context/MuiThemeContext.tsx`, `index.html`                                                                             |
+| Cards and summary         | `src/components/Card/`, `src/components/SummaryCard/`                                      | `src/components/Card/`, `src/components/CardHeader/`, page summaries                                                                                            |
+| Buttons and icon controls | `src/components/Button/`, `src/components/IconButton/`, `src/components/FlowFooter/`       | `src/components/Button/`, page action rows                                                                                                                      |
+| Fields and search         | `src/components/TextField/`, `src/components/Autocomplete/`, `src/components/SheetSelect/` | `src/components/TextField/`, `src/components/Autocomplete/`                                                                                                     |
+| Selection                 | `src/components/Segmented/`, `src/components/ChoiceList/`, `src/components/Switch/`        | `src/components/Tabs/`, form selection controls                                                                                                                 |
+| Status and loading        | `src/components/NoticeCard/`, `src/components/ProgressBar/`                                | `src/components/NoticeBanner/`, loading and status components                                                                                                   |
+| Navigation and shell      | No Smartbase app shell                                                                     | `src/layouts/AppLayout.tsx`, `src/layouts/AppLayout.style.ts`, `src/components/Sidebar/`, `src/components/MobileBottomNav/`                                     |
+| Records and files         | No general Smartbase data table                                                            | `src/components/DataTable/`, `src/components/DropZone/`, relevant page components                                                                               |
+| Quotation composition     | No Smartbase quotation layout                                                              | `src/pages/quotations/quotation.module.css`, `src/pages/quotations/components/QuotationSummary.tsx`, `src/pages/quotations/components/QuotationDelete.style.ts` |
 
-### Light model
+Paths in the Smartbase column are relative to `Smartbase-Client-Package`; paths in the GenAir column are relative to `Gen-Air-Frontend`. Smartbase story files show component variants, while source files define the actual styling and behavior. Check both before adapting a component. Do not assume a package component is drop-in compatible with GenAir's MUI version or current state management.
 
-The virtual highlight comes from the **upper left**, with a darker shadow toward the **lower right**. Neutral elements share the same pale surface color, so these two shadow layers define the edge.
+## 11. Design review checklist
 
-### Primary surface recipes
+- [ ] The screen follows the current task requirements and approved screen layout.
+- [ ] Frequent actions are visible; known context is reused; cards and steps have a purpose.
+- [ ] Purple brand values are translated to the shared blue palette; white text sits on a dark enough blue.
+- [ ] Cards, fields, choices, notices, overlays, and footers use the corresponding Smartbase component treatment.
+- [ ] Glass and blur retain readable text and an opaque fallback.
+- [ ] Rubik/Heebo choices, type hierarchy, and Hebrew RTL/mixed-direction strings are intentional.
+- [ ] Hover, keyboard focus, selected, disabled, loading, empty, error, success, and destructive states are clear.
+- [ ] Motion reflects real state, preserves context, and has a reduced-motion alternative.
+- [ ] Desktop and mobile navigation remain usable, with no content hidden by fixed or sticky UI.
+- [ ] The rendered UI is compared with the intended component reference at desktop and mobile sizes.
 
-```css
-/* Raised card */
-background: #f5f5f7;
-border-radius: 24px;
-box-shadow:
-  8px 8px 18px #dcdce2,
-  -8px -8px 18px #ffffff;
+## 12. Reusable design brief
 
-/* Compact raised control */
-box-shadow:
-  4px 4px 10px #dcdce2,
-  -4px -4px 10px #ffffff;
-
-/* Recessed input */
-box-shadow:
-  inset 4px 4px 9px #dcdce2,
-  inset -4px -4px 9px #ffffff;
-
-/* Primary action */
-background: #1f7fdb;
-color: #ffffff;
-box-shadow:
-  5px 5px 12px rgba(31, 127, 219, 0.3),
-  -5px -5px 12px #ffffff;
-```
-
-These illustrate the existing recipes. In application code, consume the shared theme/shadow tokens rather than introducing duplicate literal definitions.
-
-| Depth                 | Visual meaning                            | Typical use                                |
-| --------------------- | ----------------------------------------- | ------------------------------------------ |
-| Flat                  | A quiet background or content grouping    | Low-emphasis internal structure.           |
-| Raised                | A surface resting above the canvas        | Cards, major panels.                       |
-| Raised soft / compact | Smaller tactile elevation                 | Pills, rows, buttons, icon tiles.          |
-| Inset                 | A recess, editable area, or pressed state | Inputs, tracks, selected/pressed controls. |
-
-Do not place a strong raised shadow around every nested text element. Keep the hierarchy clear: page → card → control. Use flatter internal regions when another elevated surface would add noise.
-
-## 7. Shape and spacing
-
-### Corner radii
-
-| Token / pattern         | Radius                                    |
-| ----------------------- | ----------------------------------------- |
-| Main card               | 24px                                      |
-| Internal panel          | 20px                                      |
-| Badge                   | 14px                                      |
-| Checkbox                | 9px                                       |
-| Pill / circular control | 999px, with equal dimensions for a circle |
-| Sidebar shell           | 28px in the current shared component      |
-
-### Spacing vocabulary
-
-The app has a practical spacing vocabulary rather than a strictly enforced 4px-only scale. Existing components deliberately use values such as 10, 14, 18, and 22px.
-
-| Relationship                   | Typical spacing                                      |
-| ------------------------------ | ---------------------------------------------------- |
-| Closely related text           | 4–6px                                                |
-| Icon/text and compact controls | 6–12px                                               |
-| Related fields / row actions   | 12–16px                                              |
-| Card-to-card grids             | 24px                                                 |
-| Major page sections            | 28px                                                 |
-| Default card padding           | 24px                                                 |
-| Compact card padding           | Usually 16–20px, depending on the approved component |
-
-Use generous outer spacing and tighter spacing within a semantic group. Do not make a small inline action look like a large page section by giving it excessive padding.
-
-## 8. Application shell and navigation
-
-### Desktop
-
-- Opaque pale canvas; a sticky right-side navigation region and flexible main content.
-- The app layout reserves a **272px sidebar slot**. The standalone Sidebar component has a 280px default width, but the app overrides it to fill its slot.
-- Sidebar contains the GenAir logo, a small section label, navigation pills, and a bottom logout action.
-- Active navigation uses a pale blue treatment and an active indicator.
-- Main content uses `16px 24px 48px` padding and a **28px** section gap.
-- Top bar is a raised rounded card, minimum **76px** high, with title/context and user identity. It wraps when needed.
-
-### Mobile
-
-- At **899px and below**, the shell replaces the sidebar with a fixed bottom navigation bar.
-- The app-level bottom bar is charcoal, inset **12px** from the sides and bottom, and **76px** high. Its component has separate standalone defaults that the app layout overrides.
-- Active navigation gets a pale blue pill; labels and icons remain visible.
-- Main content padding becomes `16px 16px 112px` so the bottom controls can clear navigation.
-- Do not place critical actions behind the fixed navigation. Verify the actual viewport, not only a full-page screenshot.
-
-Navigation is permission-aware: unavailable screens should not appear as usable destinations. UI visibility complements server authorization; it does not replace it.
-
-## 9. Page composition
-
-Most screens follow this structure:
-
-1. **Context and identity:** page/entity title, identifier, status, and relevant metadata.
-2. **Primary tools:** search, filters, and the main creation/action control.
-3. **Working content:** a table, card collection, form sections, or an entity detail view.
-4. **Supporting sections:** documents, related records, team, notes, or history.
-5. **Completion actions:** save/review/confirmation controls in a deliberate, stable location.
-
-Group information by the employee's task. A section card should have a clear title, optional icon tile, short explanation where useful, content, and relevant actions.
-
-### Entity detail pages
-
-Use a prominent header card for identity and status. Keep technical integration metadata secondary. Related sections use the same surface language; avoid switching visual systems between project, customer, apartment, task, and quotation screens.
-
-### Forms
-
-Break long forms into meaningful cards. Use multi-column layouts when the fields fit comfortably, then stack on smaller screens. Labels stay above their fields. Required and inherited/read-only values must be understandable without relying solely on color.
-
-### Quotation footer — explicit approved layout
-
-On desktop, the footer has **exactly two equal summary cards**: totals on the right and review/approval on the left. The delete card occupies its **own full-width row below both**, with a full-width neutral delete pill.
-
-Use a 24px gap. On mobile, stack the cards. Do not use an unconstrained auto-fit grid that puts the delete card alongside the two summaries on a wide screen.
-
-## 10. Buttons and action hierarchy
-
-| Variant   | Appearance                                                     | Use                                                          |
-| --------- | -------------------------------------------------------------- | ------------------------------------------------------------ |
-| Primary   | Blue fill, white text, blue-tinted raised shadow               | Main positive action.                                        |
-| Secondary | Pale blue fill, charcoal text                                  | Supporting highlighted action.                               |
-| Neutral   | Pale raised pill, charcoal text                                | Edit, cancel, open, secondary actions.                       |
-| Pressed   | Pale recessed surface                                          | Persistent pressed/selected treatment.                       |
-| Dark      | Charcoal fill, pale text                                       | Strong confirmation, including confirmed quotation deletion. |
-| Danger    | Blue danger-colored text, transparent surface, pale blue hover | Existing theme's semantic danger variant; do not assume red. |
-| Dashed    | Transparent surface, dashed outline                            | Add/upload/placeholder-style action where specified.         |
-
-### Dimensions
-
-- Shared compact button: **44px** high, 13px text, 14px horizontal padding.
-- Shared medium button: **48px** high, 15px text, 28px horizontal padding.
-- Shared large button: **56px** high, 16px text, 32px horizontal padding.
-- Circular variants use matching width and height.
-- Quotation-specific approved controls override shared sizing: primary pills **52px**, compact pills **34px**, compact circles **36px**, delete action **44px**, inline delete confirmations **38px**.
-
-Use the shared defaults unless the approved screen specifies a component-specific size. Avoid silently enlarging compact actions into prominent CTAs.
-
-### States
-
-- Hover subtly changes the surface or primary blue.
-- Active/pressed changes the shadow inward.
-- Disabled controls are visibly subdued and noninteractive.
-- Loading controls prevent duplicate actions and preserve their footprint.
-- The quotation primary-button disabled state has a screen-specific blue treatment; it is not the same as the generic neutral disabled style.
-
-Destructive actions require clear intent and confirmation. Keep cancel available before dispatch; disable repeated submission while the request is pending.
-
-## 11. Inputs, search, selection, and tabs
-
-### Fields
-
-- Opaque pale surface with an inset shadow; no dominant Material outline.
-- Standard shared single-line field: **56px** high, **22px** horizontal padding, pill radius, **15px** text.
-- Textareas use a **20px** radius and approximately `18px 22px` padding.
-- Field labels are outside/above the input, typically 13–14px semibold.
-- Placeholder text is lighter than entered text and is not a substitute for the label.
-- Helper text is smaller and sits below the field.
-- Focus retains the inset surface and adds a visible 2px-style ring treatment.
-- Disabled and invalid states have explicit component treatments, including helper text.
-
-### Search and autocomplete
-
-Search is directly editable. Typing must not require opening an extra disclosure first unless the specific design calls for it. Suggestions use a rounded raised menu with clear hover/focus selection. Preserve readable selected labels and make clear/reset behavior discoverable.
-
-### Tabs and chips
-
-The shared system supports pill tabs, status tabs, and segmented controls. Selected state combines surface color and/or depth, not an underline alone. Counts are smaller and muted. Let groups wrap when the screen requires it; keep text readable instead of compressing it excessively.
-
-## 12. Tables, rows, and information density
-
-Tables are visually composed from rounded soft rows rather than a heavy bordered grid.
-
-- Muted 12px semibold column headers.
-- Shared row minimum height: **72px**.
-- Row padding: approximately `10px 20px`; column gap: **16px**.
-- Raised compact row shadow, 20px radius, pale fill.
-- Main identity text is stronger than its identifier and metadata.
-- Interactive rows have a clear hover treatment; static rows should not look clickable.
-- Avatars, status pills, and compact actions should not overwhelm the primary content.
-- Dense engineering editors may use more compact screen-specific rows.
-
-Align headers with data columns. Long names should wrap or truncate deliberately without displacing important actions. Keep horizontal overflow inside a table/review region when necessary, not across the whole page.
-
-## 13. Icons, avatars, and badges
-
-- Reuse GenAir's icon registry and bundled assets. The shared icon defaults to **24px**; section headings may use larger icons inside rounded raised tiles.
-- The registry includes existing PNG assets and MUI component alternatives for colored rendering. Preserve the established visual family rather than introducing unrelated emoji or illustration styles.
-- Use icon-plus-label for important actions. Give icon-only controls an accessible name.
-- Decorative icons should not produce redundant screen-reader announcements.
-- Use circular initials avatars and compact avatar stacks for people/teams.
-- Status badges combine a concise label with a small indicator and restrained surface treatment. Use actual feature status definitions rather than inventing a new color map.
-- Keep technical IDs visually secondary, often in a monospace style.
-
-## 14. Files, uploads, notices, and dialogs
-
-### Documents and uploads
-
-Folder/file rows reuse rounded surfaces, recognizable icons, names, secondary metadata, and explicit actions. The upload zone looks recessed; dragging can highlight it with pale blue. Include a visible file-picker action so drag-and-drop is not the only path.
-
-In compact layouts, the upload icon, instruction text, and action share a deliberate row; on mobile they stack. Display validation or upload errors near the affected action and preserve the user's context.
-
-### Feedback
-
-Notices are soft rounded banners, commonly pale blue, with an icon, readable explanatory text, and relevant actions. Use text and structure to distinguish informational, blocked, error, empty, and successful states.
-
-Loading is visibly pending; empty means there is no content; an error means content could not be loaded or an action failed. Do not present these as interchangeable blank cards.
-
-### Dialogs and inline confirmations
-
-Match the surrounding typography, surfaces, rounding, and action hierarchy. Use concise consequence text, a clear confirmation, and a cancel path. Preserve keyboard access and focus management.
-
-Some legacy generic dialogs still have 13px corners and Rubik typography. Those are implementation inconsistencies, not a direction to copy into new GenAir screens.
-
-## 15. Responsive behavior
-
-There are multiple intentional breakpoints, not one universal mobile conversion:
-
-| Boundary                       | Observed behavior                                                               |
-| ------------------------------ | ------------------------------------------------------------------------------- |
-| Shell ≤899px                   | Sidebar becomes fixed bottom navigation.                                        |
-| MUI responsive component rules | Some component grids change at MUI breakpoints; inspect the relevant component. |
-| Quotation ≤600px               | Summary/metadata layouts use a single column and compact editor arrangements.   |
-
-Use flexible grids, wrapping action rows, `min-width: 0`, and logical alignment. Keep forms and actions usable at narrow widths. At desktop sizes, preserve the intended composition instead of allowing auto-fit to invent additional columns.
-
-**Verification recommendation:** compare a wide desktop viewport, a narrower desktop/tablet viewport, and a 390px mobile viewport. The quotation-footer checks currently use 1440px, 1100px, and 390px. Check actual control visibility above fixed navigation and document-level horizontal overflow.
-
-## 16. Motion and interaction feedback
-
-Existing shared controls commonly transition **box-shadow and background color over 0.2 seconds with easing**. Motion should explain hover, focus, pressing, selection, or loading; it should not compete with work content.
-
-### Principle: make progress perceptible
-
-**Cards, sections, panels, and other content containers should use subtle, purposeful motion to give the user a sense of forward movement and continuity.** A user action should produce a clear visual response: work has started, content is changing, a step has completed, or the next part of the workflow is ready.
-
-These container-motion rules are approved design direction for future implementation, not a claim that every current screen already implements them. Apply them to meaningful UI groups rather than animating every HTML `div` independently.
-
-### Motion patterns
-
-| Situation                                | Preferred treatment                                                                                                      | Purpose                                                             |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| A new section or card becomes available  | Brief fade-in with a small vertical translation, approximately 4–8px.                                                    | Show where new content entered without an abrupt appearance.        |
-| Moving to the next form or workflow step | Transition the changing content region; keep the surrounding shell stable and update the step indicator.                 | Make forward progress understandable.                               |
-| Expanding a meaningful section           | Smoothly reveal its content and update the disclosure indicator.                                                         | Preserve the relationship between the trigger and revealed content. |
-| Loading a section                        | Use a stable placeholder/skeleton or a localized loading indicator; optionally a restrained shimmer.                     | Communicate ongoing work while preserving the page structure.       |
-| Replacing loaded content                 | Briefly crossfade the affected region while keeping its dimensions stable where practical.                               | Avoid a flash or page-wide jump.                                    |
-| Saving or completing an operation        | Transition from pending to a short saved/completed state, such as a checkmark and concise text.                          | Confirm that the requested work actually finished.                  |
-| Uploading or processing multiple items   | Show per-item status and actual completed-item counts; use a determinate bar only when meaningful progress is available. | Make longer operations understandable and traceable.                |
-| Recoverable failure                      | Stop the pending animation and show an explicit error and retry path in the affected region.                             | Make it clear that the operation needs attention.                   |
-
-### Timing and movement
-
-The following are recommended starting values, not existing global motion tokens:
-
-- **Interaction feedback:** approximately 120–200ms.
-- **Card/section entry or content transition:** approximately 180–260ms.
-- **Expansion/collapse:** approximately 200–300ms, adjusted for content size.
-- **Optional stagger:** approximately 30–50ms between a few related groups, with the sequence kept brief. Do not make a long list wait for every row to animate.
-- Prefer gentle ease-out for entering content and a smooth, restrained curve for size transitions. Avoid overshoot and spring-like bouncing in routine work screens.
-
-Prefer opacity and small transforms for entry effects. Use size animation only where expansion needs to be understood, and avoid repeatedly animating large page layouts. Do not animate the entire app shell when one card changes.
-
-### Progress must reflect actual state
-
-Motion may simulate the _feeling of continuity and forward movement_, but must not fabricate completed work. Start pending feedback when an operation starts, and show completion only when the operation succeeds. When a percentage is unavailable, use an indeterminate indicator or a real status label rather than an invented percentage. Do not add artificial delays to make an animation play.
-
-For optimistic interactions, make pending state and failure recovery reliable; do not present an unconfirmed save as a final success. Stop loading motion on success, failure, or cancellation.
-
-### Minimalism and accessibility constraints
-
-- Animate only the region whose state changed. Static reference information should stay still.
-- Avoid decorative floating animations, large bounces, constant pulsing, and repeated entry animations on every rerender or keystroke.
-- Keep reading position, input focus, entered values, and scroll context stable. An animation must not move a control away from the user while they are trying to use it.
-- Keep actions usable immediately; motion must not create extra clicks or waiting.
-- Avoid unnecessary layout shifts, flashing, and multiple simultaneous competing animations.
-- Respect `prefers-reduced-motion`: remove translation, stagger, shimmer, and nonessential transitions while retaining clear static pending/success/error feedback.
-- Pair visual feedback with readable status text and appropriate accessible announcements for meaningful asynchronous changes. Do not announce every animation frame.
-
-This document does not assert that the current application already has a complete global reduced-motion implementation.
-
-## 17. Accessibility and usability requirements
-
-Soft UI has subtle edges, so usability cannot depend on shadows alone.
-
-- Keep field labels, helper messages, focus indicators, and actionable text explicit.
-- Use real buttons/links with keyboard support and accessible names.
-- Preserve a visible focus state on recessed controls.
-- Do not use muted captions for essential instructions.
-- Pair color changes with labels, icons, or structural feedback.
-- Ensure controls remain reachable above fixed navigation and within narrow layouts.
-- Check long Hebrew content, text zoom, mixed-direction strings, and loading/error states.
-- Maintain usable touch areas; compact visual controls may require a larger effective hit area.
-- Check contrast in the rendered interface rather than assuming pale blue or muted gray is sufficiently readable.
-
-These are design acceptance criteria and recommendations, **not a claim of completed WCAG certification**.
-
-## 18. Source of truth and existing inconsistencies
-
-Use this order when implementing a screen:
-
-1. The latest explicitly approved screen reference and user corrections for that screen.
-2. Shared GenAir theme tokens and components.
-3. Existing matching patterns elsewhere in the app.
-4. New component-level styling only where the first three do not define the behavior.
-
-Shared code contains older purple gradients, older button-color tokens, generic red/green colors, Rubik dialog styles, and some screen-specific numeric overrides. Their presence does not make them part of the current cohesive Soft UI direction. Reuse the active `palette`, `softShadow`, `radius`, `font`, and relevant component definitions.
-
-The app does not currently establish a complete dark-mode design system, a strict global spacing/type scale, or a glass surface system. Do not invent those as existing GenAir conventions.
-
-## 19. Implementation source map
-
-Paths are relative to `Gen-Air-Frontend`.
-
-| Concern                                 | Source                                                                                                             |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Palette, fonts, radii, heights, shadows | `src/constants/theme.constants.ts`                                                                                 |
-| Surface depth vocabulary                | `src/constants/surface.constant.ts`                                                                                |
-| RTL and MUI theme configuration         | `src/context/MuiThemeContext.tsx`                                                                                  |
-| Font loading                            | `index.html`                                                                                                       |
-| Shadow construction                     | `src/utilities/shadow.utility.ts`                                                                                  |
-| Responsive shell threshold              | `src/constants/layout.constant.ts`                                                                                 |
-| App shell and navigation placement      | `src/layouts/AppLayout.tsx`, `src/layouts/AppLayout.style.ts`                                                      |
-| Shared page structure                   | `src/pages/page.style.ts`                                                                                          |
-| Cards and section headers               | `src/components/Card/`, `src/components/CardHeader/`                                                               |
-| Buttons and variants                    | `src/components/Button/`                                                                                           |
-| Fields and suggestion menus             | `src/components/TextField/`, `src/components/Autocomplete/`                                                        |
-| Tabs                                    | `src/components/Tabs/`                                                                                             |
-| Tables                                  | `src/components/DataTable/`                                                                                        |
-| Desktop/mobile navigation               | `src/components/Sidebar/`, `src/components/MobileBottomNav/`                                                       |
-| Icons and assets                        | `src/constants/icon.constant.ts`, `src/components/Icon/`, `src/assets/icons/`                                      |
-| Uploads and feedback                    | `src/components/DropZone/`, `src/components/NoticeBanner/`                                                         |
-| Quotation layout and size exceptions    | `src/pages/quotations/quotation.module.css`, `src/constants/quotation.constant.ts`                                 |
-| Full-width quotation delete action      | `src/pages/quotations/components/QuotationSummary.tsx`, `src/pages/quotations/components/QuotationDelete.style.ts` |
-
-## 20. Design-review checklist
-
-- [ ] The screen has a clear purpose and a clear primary next action.
-- [ ] Common actions require no unnecessary clicks, scrolling, repeated entry, or page changes.
-- [ ] Known context and sensible defaults reduce employee effort.
-- [ ] Cards and nested containers each have a meaningful purpose; related content is grouped rather than fragmented.
-- [ ] Headers, padding, and controls are compact enough to leave room for the actual work.
-- [ ] Secondary complexity is disclosed progressively without hiding frequent actions, errors, or required warnings.
-- [ ] A reduction in visual clutter has not made actions harder to discover or use.
-- [ ] Destructive/consequential actions retain appropriate safeguards.
-- [ ] Hebrew/RTL composition is intentional; mixed-direction values remain readable.
-- [ ] Heebo and the existing text hierarchy are used consistently.
-- [ ] Canvas and surfaces use the pale neutral palette.
-- [ ] Raised and recessed shadows follow the same light direction.
-- [ ] Cards, fields, and pills use their established radii and sizes.
-- [ ] Blue emphasizes actions and selection without dominating every surface.
-- [ ] Desktop composition matches the approved reference, including card spans and action placement.
-- [ ] Fields are directly usable and labels do not depend on placeholders.
-- [ ] Hover, focus, disabled, loading, empty, error, and confirmation states are accounted for.
-- [ ] Container motion makes meaningful state changes and workflow progress perceptible without animating every element.
-- [ ] Pending and completion feedback reflect actual operation state; no artificial percentages or delays are introduced.
-- [ ] Animations preserve focus, scroll position, layout stability, and immediate access to actions, with reduced-motion alternatives.
-- [ ] Mobile controls remain visible above fixed navigation.
-- [ ] Table/editor overflow is contained rather than widening the whole document.
-- [ ] Actual rendered screenshots are compared with the reference, not only component structure or CSS values.
-
-## 21. Reusable design brief
-
-> Design this screen as part of GenAir's Hebrew RTL CRM. Prioritize minimalism and minimum-effort task completion: fewer unnecessary clicks, less scrolling, fewer meaningful containers, less repeated input, and a clear next action. Keep frequent actions visible, use contextual defaults, and reveal secondary complexity progressively. Avoid oversized headers, excessive whitespace, duplicated information, and deeply nested cards. Preserve discoverability, accessibility, and safeguards for consequential actions. Use light neumorphism / Soft UI: an opaque `#F5F5F7` canvas and matching rounded surfaces, upper-left white highlights and lower-right soft gray shadows, recessed pill inputs, Heebo typography, charcoal text, and restrained `#1F7FDB` primary actions with pale blue selected states. Use approximately 24px card radii, 20px internal panels, pill controls, 24px grid gaps, and 28px major section spacing, without letting decorative spacing make workflows unnecessarily long. Preserve a right-hand desktop sidebar and charcoal mobile bottom navigation with adequate bottom clearance. Reuse GenAir's existing components and icon assets. Follow the approved screen composition exactly, including full-width rows and action positions. Use subtle card and section transitions to make workflow progress perceptible: brief fades, small movements, stable loading placeholders, and clear completion feedback tied to actual state. Keep the shell, focus, and scroll position stable; honor reduced-motion preferences and never add artificial delays or progress percentages. Verify the actual rendered desktop and mobile layouts. Treat the latest screen reference as authoritative over generic auto-fit behavior.
+> Design this GenAir screen for a Hebrew-first RTL CRM using the Smartbase component language at commit `8f14318f823603e66e03e3592a6693678cd8d245`: pale `#F8FAFC` canvas, white or lightly translucent rounded cards, fine borders and highlights, slate text, floating shadows, clear blue selection, and purposeful local motion. Replace purple brand accents with a deep-to-primary blue gradient (`#0F5CA8` to `#1668BD`), pale `#E1EDFA` tints, and blue focus rings. Use Rubik for the main UI and Heebo selectively for dense Hebrew content. Match the relevant Smartbase component's geometry and states; keep GenAir's right-side navigation, RTL workflows, permissions, and approved screen composition. Reduce unnecessary clicks and visual clutter, keep frequent actions visible, and verify accessible focus, contrast, reduced motion, and mobile clearance in the rendered UI. Treat this as the target direction; check existing GenAir components for migration work before claiming the screen matches it.

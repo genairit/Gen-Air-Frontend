@@ -11,7 +11,8 @@ export const useStyles = () =>
       padding: "10px 16px",
       alignItems: "center",
       color: theme.palette.danger,
-      borderRadius: theme.radius.panel,
+      borderRadius: "12px",
+      border: `1px solid ${theme.palette.airBlueOutline}`,
       backgroundColor: theme.palette.dangerSurface,
     },
   });

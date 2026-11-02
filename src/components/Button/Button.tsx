@@ -6,16 +6,18 @@ import {
   type ButtonShapeType,
   ICON_COLOR_BY_VARIANT,
   type ButtonVariantType,
+  SMARTBASE_VARIANT_BY_BUTTON_VARIANT,
 } from "./constants/button.constants";
 
-import { Lottie } from "lottie-react";
 import { useStyles } from "./Button.style";
 import ButtonContent from "./ButtonContent";
-import { type FC, type MouseEvent } from "react";
 import { mergeSx } from "../../utilities/sx.utility";
+import { lazy, Suspense, type FC, type MouseEvent } from "react";
 import type { IconNameType } from "../../constants/icon.constant";
-import loadingAnimation from "../../lottie/Smartbase-Loading.json";
-import { type SxProps, type Theme, Button as MuiButton } from "@mui/material";
+import { CircularProgress, type SxProps, type Theme } from "@mui/material";
+import SmartbaseButton from "../../vendor/smartbase/components/Button/Button";
+
+const LoadingAnimation = lazy(() => import("../LoadingAnimation/LoadingAnimation"));
 
 interface IButtonProps {
   text?: string;
@@ -45,20 +47,24 @@ const Button: FC<IButtonProps> = ({
   const styles = useStyles();
   const hasIcon = Boolean(icon);
   const hasIconBadge = variant === BUTTON_VARIANTS.PRIMARY && Boolean(text);
+  const buttonAriaLabel = isLoading ? (ariaLabel ?? text ?? "טוען...") : ariaLabel;
 
   return (
-    <MuiButton
-      disableRipple
+    <SmartbaseButton
       onClick={onClick}
-      aria-label={ariaLabel}
-      disabled={disabled || isLoading}
+      disabled={disabled}
+      isLoading={isLoading}
+      ariaLabel={buttonAriaLabel}
+      variant={SMARTBASE_VARIANT_BY_BUTTON_VARIANT[variant]}
       sx={mergeSx(styles.button({ isLoading, variant, size, shape, hasIcon }), sx ?? null)}
     >
       {isLoading ? (
         <>
           <span style={styles.text}>{text}</span>
           <div style={styles.loadingAnimation}>
-            <Lottie loop autoplay src={loadingAnimation} />
+            <Suspense fallback={<CircularProgress size={20} color="inherit" />}>
+              <LoadingAnimation />
+            </Suspense>
           </div>
         </>
       ) : (
@@ -69,7 +75,7 @@ const Button: FC<IButtonProps> = ({
           iconColor={ICON_COLOR_BY_VARIANT[variant]}
         />
       )}
-    </MuiButton>
+    </SmartbaseButton>
   );
 };
 

@@ -1,11 +1,9 @@
 import type { DatePickerValue } from "../../DatePicker";
-import { combineStyles } from "../../../../create-styles";
 import { PickerDay, type PickerDayProps } from "@mui/x-date-pickers";
-import { getBorderRadius, getColor } from "../../utilities/day.utility";
+import { DAY_CELL_CLASS } from "../../constants/date-picker.constant";
+import { getRangePosition, isDateSelected } from "../../utilities/day.utility";
 
-interface IDayBubbleProps<
-  IsRange extends boolean = false,
-> extends PickerDayProps {
+interface IDayBubbleProps<IsRange extends boolean = false> extends PickerDayProps {
   isRange: IsRange;
   calendarValue: DatePickerValue<IsRange>;
 }
@@ -17,20 +15,24 @@ const DayBubble = <IsRange extends boolean = false>({
   calendarValue,
   ...props
 }: IDayBubbleProps<IsRange>) => {
-  const color = getColor(day, calendarValue, disabled);
-  const borderRadius = getBorderRadius(day, calendarValue);
+  const isSelected = isDateSelected(day, calendarValue);
+  const rangePosition = getRangePosition(day, calendarValue);
 
   return (
-    <span style={{ ...borderRadius.square, ...color.square }}>
+    <span
+      data-range={isRange}
+      className={DAY_CELL_CLASS}
+      data-selected={isSelected}
+      data-range-position={rangePosition}
+    >
       <PickerDay
         {...props}
         day={day}
         disableRipple
         selected={false}
-        autoFocus={false}
         disableTouchRipple
+        disabled={disabled}
         disableHighlightToday
-        sx={combineStyles(borderRadius.button, color.button)}
       />
     </span>
   );

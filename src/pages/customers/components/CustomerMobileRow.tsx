@@ -13,7 +13,7 @@ interface ICustomerMobileRowProps {
 }
 
 const CustomerMobileRow: FC<ICustomerMobileRowProps> = ({ customer, onOpen }) => (
-  <Card gap="10px" padding="16px" onClick={() => onOpen(customer)}>
+  <Card gap="10px" padding="16px" ariaLabel={customer.name} onClick={() => onOpen(customer)}>
     <Box component="b" sx={CUSTOMER_COLUMN_STYLES.name}>
       {customer.name}
     </Box>

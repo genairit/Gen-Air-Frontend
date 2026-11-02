@@ -12,8 +12,11 @@ export const useStyles = () =>
       padding: "12px 24px 12px 14px",
       justifyContent: "space-between",
       borderRadius: theme.radius.card,
-      boxShadow: theme.softShadow.raised,
-      backgroundColor: theme.palette.iceWhite,
+      border: `1px solid ${theme.glass.rim}`,
+      boxShadow: theme.glass.shadow,
+      backgroundColor: theme.glass.strong,
+      backdropFilter: theme.glass.blur,
+      WebkitBackdropFilter: theme.glass.blur,
     },
     title: {
       fontSize: 18,

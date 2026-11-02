@@ -56,7 +56,7 @@ export const useShowcaseStyles = () =>
       fontWeight: 600,
       color: palette.primary,
       textDecoration: "none",
-      "&:hover": { textDecoration: "underline", color: palette.danger },
+      "&:hover": { textDecoration: "underline", color: palette.primaryHover },
     },
     swatch: ({ color, isInsetPreview }: { color: string; isInsetPreview: boolean }) => ({
       height: 110,

@@ -2,10 +2,10 @@ import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 import { CENTERED_FLEX } from "../../styles/templates.style";
 
-const { palette, radius, softShadow } = theme;
+const { palette, radius, glass } = theme;
 
 const ACTIVE_ITEM_STYLE = {
-  color: palette.charcoal,
+  color: palette.primary,
   backgroundColor: palette.airBlue,
 };
 
@@ -25,8 +25,8 @@ export const useStyles = () =>
       flexShrink: 0,
       borderRadius: radius.pill,
       opacity: isActive ? 1 : 0.8,
-      backgroundColor: palette.iceWhite,
-      boxShadow: softShadow.raisedSmall,
+      backgroundColor: palette.white,
+      boxShadow: glass.shadowSmall,
     }),
     label: {
       flex: 1,

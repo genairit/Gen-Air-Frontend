@@ -2,6 +2,14 @@
 
 the UI part of the gen air app
 
+## Design handoff
+
+For client-facing UI tasks, the [design agent](agents/design-agent.md) combines the task
+requirements with the current [GenAir design language](docs/design-language.md) and gives the
+development agent a concrete style and interaction specification before implementation.
+The [frontend development workflow](rules/frontend-development-workflow-standards.md)
+places that handoff before implementation.
+
 ## Environments
 
 | Environment | Branch | URL                                                 |

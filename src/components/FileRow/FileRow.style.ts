@@ -12,8 +12,8 @@ export const useStyles = () =>
       padding: "8px 16px",
       alignItems: "center",
       borderRadius: theme.radius.pill,
-      boxShadow: theme.softShadow.inset,
-      backgroundColor: theme.palette.iceWhite,
+      border: `1px solid ${theme.glass.border}`,
+      backgroundColor: theme.glass.strong,
     },
     details: {
       flex: 1,
@@ -45,8 +45,9 @@ export const useStyles = () =>
       textDecoration: "none",
       color: theme.palette.charcoal,
       borderRadius: theme.radius.pill,
-      boxShadow: theme.softShadow.raisedSmall,
-      backgroundColor: theme.palette.iceWhite,
+      border: `1px solid ${theme.glass.border}`,
+      boxShadow: theme.glass.shadowSmall,
+      backgroundColor: theme.palette.white,
       "&:hover": { textDecoration: "underline" },
     },
   });

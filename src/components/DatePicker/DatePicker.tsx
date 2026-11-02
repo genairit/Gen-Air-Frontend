@@ -1,8 +1,3 @@
-import {
-  isDateDisabled,
-  isDatepickerValueEqual,
-} from "./utilities/day.utility";
-
 import { he } from "date-fns/locale";
 import { createTheme } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -12,7 +7,9 @@ import DayBubble from "./components/DayBubble/DayBubble";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
 import type { IDateRange } from "./interfaces/date-range.interface";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { CALENDAR_LOCALE_TEXT } from "./constants/date-picker.constant";
 import { DateCalendar, LocalizationProvider } from "@mui/x-date-pickers";
+import { isDateDisabled, isDatepickerValueEqual } from "./utilities/day.utility";
 
 export type DatePickerValue<IsRange extends boolean> = IsRange extends true
   ? IDateRange
@@ -40,8 +37,7 @@ const DatePicker = <IsRange extends boolean>({
   disabled = false,
 }: IDatePickerProps<IsRange>) => {
   const styles = useStyles();
-  const [internalValue, setInternalValue] =
-    useState<DatePickerValue<IsRange>>(value);
+  const [internalValue, setInternalValue] = useState<DatePickerValue<IsRange>>(value);
 
   const handleChange = (value: Date) => {
     if (disabled) {
@@ -66,7 +62,7 @@ const DatePicker = <IsRange extends boolean>({
     }
 
     if (startDate && !endDate) {
-      setInternalValue((prev) => {
+      setInternalValue(prev => {
         const previous = prev as IDateRange;
         if (value < startDate) {
           return {
@@ -84,30 +80,33 @@ const DatePicker = <IsRange extends boolean>({
     if (!isDatepickerValueEqual(value, internalValue)) {
       onChange?.(internalValue);
     }
-  }, [value, internalValue]);
+  }, [value, internalValue, onChange]);
 
   return (
     <span style={styles.container({ disabled })}>
       <ThemeProvider theme={calendarTheme}>
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={he}>
+        <LocalizationProvider
+          adapterLocale={he}
+          dateAdapter={AdapterDateFns}
+          localeText={CALENDAR_LOCALE_TEXT}
+        >
           <DateCalendar
             views={["day"]}
             sx={styles.root}
+            reduceAnimations
             maxDate={maxDate}
             minDate={minDate}
             fixedWeekNumber={6}
             disableHighlightToday
             showDaysOutsideCurrentMonth
             slots={{
-              day: (props) => (
+              day: props => (
                 <DayBubble
                   {...props}
                   isRange={isRange}
                   onDaySelect={handleChange}
                   calendarValue={internalValue}
-                  disabled={
-                    isDateDisabled(props.day, minDate, maxDate) || disabled
-                  }
+                  disabled={isDateDisabled(props.day, minDate, maxDate) || disabled}
                 />
               ),
               rightArrowIcon: ChevronLeft,

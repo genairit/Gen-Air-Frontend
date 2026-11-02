@@ -70,6 +70,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
           gap="8px"
           key={task.id}
           padding="14px 18px"
+          ariaLabel={task.title}
           onClick={() => navigate(buildTaskPath(task.id))}
         >
           <Box sx={TASK_COLUMN_STYLES.mobileRow}>

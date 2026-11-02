@@ -1,13 +1,13 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 
-const { palette, softShadow, radius } = theme;
+const { palette, glass, radius } = theme;
 
 export const getNavigationIconColor = (isActive: boolean) =>
-  isActive ? palette.charcoal : palette.sidebarMuted;
+  isActive ? palette.primary : palette.textMuted;
 
 export const getNavigationDotColor = (isActive: boolean) =>
-  isActive ? palette.primary : palette.mobileNavDot;
+  isActive ? palette.primary : palette.textMuted;
 
 export const useStyles = () =>
   createStyles({
@@ -19,8 +19,11 @@ export const useStyles = () =>
       padding: "10px",
       display: "grid",
       borderRadius: radius.pill,
-      boxShadow: softShadow.elevated,
-      backgroundColor: palette.charcoal,
+      border: `1px solid ${glass.rim}`,
+      boxShadow: glass.shadow,
+      backgroundColor: glass.strong,
+      backdropFilter: glass.blur,
+      WebkitBackdropFilter: glass.blur,
       gridTemplateColumns: `repeat(${itemCount}, 1fr)`,
     }),
     item: ({ isActive }: { isActive: boolean }) => ({

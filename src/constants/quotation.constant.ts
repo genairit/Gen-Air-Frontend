@@ -3,6 +3,7 @@ import { TIME_UNITS } from "./time.constant";
 import { BUTTON_SIZES, BUTTON_SHAPES } from "../components/Button/constants/button.constants";
 
 export const QUOTATION_STATUS = { DRAFT: "draft", REVIEW: "review", APPROVED: "approved" } as const;
+export const QUOTATION_ALL_TAB_ID = "all";
 export const QUOTATION_SYSTEM = {
   VRF: "VRF",
   MULTI: "MULTI",

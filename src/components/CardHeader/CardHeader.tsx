@@ -4,6 +4,7 @@ import type { FC, ReactNode } from "react";
 import IconTile from "../IconTile/IconTile";
 import { useStyles } from "./CardHeader.style";
 import type { IconNameType } from "../../constants/icon.constant";
+import SmartbaseCardHeader from "../../vendor/smartbase/components/Card/components/CardHeader";
 
 interface ICardHeaderProps {
   title: string;
@@ -18,23 +19,16 @@ const CardHeader: FC<ICardHeaderProps> = ({ title, icon, badge, subtitle, action
 
   return (
     <Box sx={styles.container}>
-      <Box sx={styles.lead}>
-        {icon && <IconTile name={icon} />}
-        <Box sx={styles.text}>
-          <Box sx={styles.titleRow}>
-            <Box component="b" sx={styles.title}>
-              {title}
-            </Box>
-            {badge && <Chip label={badge} />}
-          </Box>
-          {subtitle && (
-            <Box component="span" sx={styles.subtitle}>
-              {subtitle}
-            </Box>
-          )}
-        </Box>
+      {icon && <IconTile name={icon} />}
+      <Box sx={styles.content}>
+        <SmartbaseCardHeader
+          title={title}
+          action={action}
+          onRemove={null}
+          subtitle={subtitle}
+          titleAccessory={badge && <Chip label={badge} />}
+        />
       </Box>
-      {action}
     </Box>
   );
 };

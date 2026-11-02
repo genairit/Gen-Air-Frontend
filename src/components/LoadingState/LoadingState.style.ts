@@ -12,6 +12,12 @@ export const useStyles = () =>
       flexDirection: "column",
       justifyContent: "center",
     },
+    animation: {
+      width: 140,
+      height: 140,
+      display: "grid",
+      placeItems: "center",
+    },
     spinner: {
       color: theme.palette.primary,
     },

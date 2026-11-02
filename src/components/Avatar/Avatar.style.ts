@@ -8,7 +8,7 @@ const { palette, radius } = theme;
 
 const COLORS_BY_TONE: Record<AvatarToneType, { color: string; backgroundColor: string }> = {
   air: { color: palette.charcoal, backgroundColor: palette.airBlue },
-  charcoal: { color: palette.iceWhite, backgroundColor: palette.charcoal },
+  charcoal: { color: palette.white, backgroundColor: palette.charcoal },
 };
 
 interface IAvatarStyleOptions {
@@ -27,7 +27,7 @@ export const useStyles = () =>
       fontWeight: 700,
       borderRadius: radius.pill,
       fontSize: getInitialsFontSize(size),
-      border: hasRing ? `2px solid ${palette.iceWhite}` : "none",
+      border: hasRing ? `2px solid ${palette.white}` : "none",
       ...COLORS_BY_TONE[tone],
     }),
   });

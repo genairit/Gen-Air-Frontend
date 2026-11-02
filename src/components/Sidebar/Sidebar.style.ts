@@ -1,7 +1,7 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 
-const { palette, softShadow, radius } = theme;
+const { palette, glass, radius } = theme;
 
 export const useStyles = () =>
   createStyles({
@@ -15,8 +15,11 @@ export const useStyles = () =>
       flexDirection: "column",
       color: palette.charcoal,
       borderRadius: "28px",
-      boxShadow: softShadow.raised,
-      backgroundColor: palette.iceWhite,
+      border: `1px solid ${glass.rim}`,
+      boxShadow: glass.shadow,
+      backgroundColor: glass.strong,
+      backdropFilter: glass.blur,
+      WebkitBackdropFilter: glass.blur,
     },
     brand: {
       display: "flex",
