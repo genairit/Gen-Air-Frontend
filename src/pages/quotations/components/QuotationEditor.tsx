@@ -11,6 +11,7 @@ import {
 
 import type { FC } from "react";
 import { useState } from "react";
+import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationReview from "./QuotationReview";
@@ -20,7 +21,7 @@ import Card from "../../../components/Card/Card";
 import QuotationSection from "./QuotationSection";
 import QuotationSummary from "./QuotationSummary";
 import QuotationPayments from "./QuotationPayments";
-import Button from "../../../components/Button/Button";
+import QuotationWarnings from "./QuotationWarnings";
 import QuotationDiagnostics from "./QuotationDiagnostics";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { ICON_NAMES } from "../../../constants/icon.constant";
@@ -122,6 +123,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             disabled={disabled}
             value={quotation.projectId}
             customerId={quotation.customerId}
+            selectedName={quotation.projectName}
             onChange={projectId => update({ ...quotation, projectId })}
           />
           <QuotationSelect
@@ -203,6 +205,14 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           editable={!disabled}
           quotation={quotation}
           onEdit={() => setEditingStatus(quotation.status)}
+          warnings={
+            <QuotationWarnings
+              quotation={quotation}
+              blocked={blocked}
+              canApprove={canApprove}
+              onAcknowledge={editor.acknowledge}
+            />
+          }
         />
       )}
       {showEditor && <QuotationDiagnostics quotation={quotation} />}
@@ -241,10 +251,10 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               <div className={styles.row}>
                 {systems.map(({ value: systemType, label }) => (
                   <Button
-                    text={label}
                     key={systemType}
+                    text={`+ ${label}`}
                     size={BUTTON_SIZES.COMPACT}
-                    variant={BUTTON_VARIANTS.SECONDARY}
+                    variant={BUTTON_VARIANTS.NEUTRAL}
                     onClick={() =>
                       update({
                         ...quotation,
@@ -270,6 +280,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         disabled={disabled}
         quotation={quotation}
         canApprove={canApprove}
+        showWarnings={showEditor}
         onTransition={transition}
         onAcknowledge={editor.acknowledge}
       />

@@ -7,12 +7,12 @@ import { customerService } from "../src/services/customer.service";
 import { quotationService } from "../src/services/quotation.service";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { getActiveNavigationId } from "../src/utilities/route.utility";
-import type { IQuotation } from "../src/interfaces/quotation.interface";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { QUOTATION_AUTOSAVE_MS } from "../src/constants/quotation.constant";
 import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
 import QuotationReview from "../src/pages/quotations/components/QuotationReview";
 import QuotationSummary from "../src/pages/quotations/components/QuotationSummary";
+import type { IQuotation, IQuotationLine } from "../src/interfaces/quotation.interface";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 Reflect.set(globalThis, "window", new EventTarget());
@@ -500,3 +500,288 @@ test("linked controller reassignment inherits parent quantity and removal stays 
     });
   }
 });
+
+test("direct customer search keeps an unloaded selection and selects duplicate names by identifier", async () => {
+  const { Autocomplete } = await import("@mui/material");
+  const { SEARCH_DEBOUNCE_MS } = await import("../src/constants/search.constant");
+  const { default: QuotationCustomerPicker } =
+    await import("../src/pages/quotations/components/QuotationCustomerPicker");
+  const selected = { id: "selected-customer", name: "לקוח קיים" };
+  const choices = [
+    { id: "first-match", name: "שם זהה" },
+    { id: "second-match", name: "שם זהה" },
+  ];
+  const customers = mock.method(customerService, "getByFilter", async query =>
+    query.search ? choices : [],
+  );
+  const customer = mock.method(customerService, "getById", async () => selected);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const selectedIds: string[] = [];
+  const router = createMemoryRouter([
+    {
+      path: "/",
+      element: (
+        <QueryClientProvider client={client}>
+          <QuotationCustomerPicker value={selected.id} onChange={id => selectedIds.push(id)} />
+        </QueryClientProvider>
+      ),
+    },
+  ]);
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  const root = () => state.renderer!.root;
+  const autocomplete = () => root().findByType(Autocomplete);
+  try {
+    await act(async () => {
+      state.renderer = create(<RouterProvider router={router} />);
+    });
+    await act(async () => {
+      await settle(30);
+    });
+    assert.equal(root().findAllByType("details").length, 0);
+    assert.equal(root().findAllByType("input").length, 1);
+    assert.equal(autocomplete().props.value.id, selected.id);
+    assert.equal(autocomplete().props.value.name, selected.name);
+    assert.equal(autocomplete().props.disableClearable, true);
+    await act(async () => {
+      autocomplete().props.onInputChange(null, "שם זהה", "input");
+    });
+    await act(async () => {
+      await settle(SEARCH_DEBOUNCE_MS + 30);
+    });
+    await act(async () => {
+      await settle(30);
+    });
+    assert.equal(customers.mock.calls.at(-1)!.arguments[0].search, "שם זהה");
+    assert.deepEqual(autocomplete().props.options, choices);
+    assert.equal(autocomplete().props.value.id, selected.id);
+    assert.equal(autocomplete().props.value.name, selected.name);
+    assert.equal(autocomplete().props.isOptionEqualToValue(choices[0], choices[1]), false);
+    assert.equal(autocomplete().props.inputValue, "שם זהה");
+    assert.equal(autocomplete().props.getOptionKey(choices[0]), choices[0].id);
+    assert.equal(autocomplete().props.getOptionKey(choices[1]), choices[1].id);
+    const queryCount = customers.mock.callCount();
+    await act(async () => {
+      autocomplete().props.onInputChange(null, selected.name, "reset");
+      await settle(SEARCH_DEBOUNCE_MS + 30);
+    });
+    assert.equal(customers.mock.callCount(), queryCount);
+    assert.equal(autocomplete().props.inputValue, "שם זהה");
+    await act(async () => {
+      autocomplete().props.onClose();
+    });
+    assert.equal(autocomplete().props.inputValue, selected.name);
+    await act(async () => {
+      await settle(SEARCH_DEBOUNCE_MS + 30);
+    });
+    assert.equal(customers.mock.calls.at(-1)!.arguments[0].search, "");
+    await act(async () => {
+      autocomplete().props.onChange(null, choices[1]);
+    });
+    assert.deepEqual(selectedIds, [choices[1].id]);
+    assert.deepEqual(selected, { id: "selected-customer", name: "לקוח קיים" });
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    client.clear();
+    router.dispose();
+    customers.mock.restore();
+    customer.mock.restore();
+  }
+});
+
+test("direct project search stays customer-scoped, retains the selected name and permits clearing", async () => {
+  const { Autocomplete } = await import("@mui/material");
+  const { SEARCH_DEBOUNCE_MS } = await import("../src/constants/search.constant");
+  const { default: QuotationProjectPicker } =
+    await import("../src/pages/quotations/components/QuotationProjectPicker");
+  const selected = { id: "selected-project", name: "פרויקט מקושר מחוץ לתוצאות" };
+  const other = { id: "other-project", name: "פרויקט אחר" };
+  const projects = mock.method(quotationService, "projectChoices", async () => [other]);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const selectedIds: (string | null)[] = [];
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  const root = () => state.renderer!.root;
+  const autocomplete = () => root().findByType(Autocomplete);
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={client}>
+          <QuotationProjectPicker
+            disabled={false}
+            value={selected.id}
+            customerId="customer-scope"
+            selectedName={selected.name}
+            onChange={id => selectedIds.push(id)}
+          />
+        </QueryClientProvider>,
+      );
+    });
+    assert.equal(root().findAllByType("details").length, 0);
+    assert.equal(root().findAllByType("input").length, 1);
+    assert.equal(autocomplete().props.value.id, selected.id);
+    assert.equal(autocomplete().props.value.name, selected.name);
+    assert.equal(autocomplete().props.disableClearable, false);
+    await act(async () => {
+      autocomplete().props.onInputChange(null, "פרויקט אחר", "input");
+    });
+    await act(async () => {
+      await settle(SEARCH_DEBOUNCE_MS + 30);
+    });
+    assert.deepEqual(projects.mock.calls.at(-1)!.arguments, ["customer-scope", "פרויקט אחר"]);
+    assert.equal(autocomplete().props.value.name, selected.name);
+    assert.equal(autocomplete().props.inputValue, "פרויקט אחר");
+    await act(async () => {
+      autocomplete().props.onInputChange(null, selected.name, "reset");
+    });
+    assert.equal(autocomplete().props.inputValue, "פרויקט אחר");
+    await act(async () => {
+      autocomplete().props.onClose();
+    });
+    assert.equal(autocomplete().props.inputValue, selected.name);
+    await act(async () => {
+      autocomplete().props.onChange(null, other);
+      autocomplete().props.onChange(null, null);
+    });
+    assert.deepEqual(selectedIds, [other.id, null]);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    client.clear();
+    projects.mock.restore();
+  }
+});
+
+test("review progress reflects explicit acknowledgements and marks a warning-free quotation complete", async () => {
+  const quotation = {
+    ...quotationFixture(),
+    vatRate: "18.0000",
+    warnings: [
+      { key: "first", text: "First warning", acknowledged: true },
+      { key: "second", text: "Second warning", acknowledged: false },
+    ],
+  };
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  const props = {
+    blocked: false,
+    disabled: false,
+    canApprove: true,
+    onChange: () => {},
+    onTransition: async () => {},
+    onAcknowledge: async () => {},
+  };
+  try {
+    await act(async () => {
+      state.renderer = create(<QuotationSummary {...props} quotation={quotation} />);
+    });
+    const progress = () => state.renderer!.root.findByType("progress");
+    assert.equal(progress().props.max, 2);
+    assert.equal(progress().props.value, 1);
+    assert.equal(progress().props["aria-label"], "התקדמות בדיקת הצעה");
+    assert.ok(JSON.stringify(state.renderer!.toJSON()).includes("מע״מ 18%"));
+    assert.ok(!JSON.stringify(state.renderer!.toJSON()).includes("מע״מ 18.0000%"));
+    await act(async () => {
+      state.renderer!.update(
+        <QuotationSummary {...props} quotation={{ ...quotation, warnings: [] }} />,
+      );
+    });
+    assert.equal(progress().props.max, 1);
+    assert.equal(progress().props.value, 1);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+  }
+});
+
+for (const role of ["header", "pipe"] as const) {
+  test(`${role} accessory rows preserve catalogue snapshots and exact numeric edits while using compact captions`, async () => {
+    const { default: QuotationLine } =
+      await import("../src/pages/quotations/components/QuotationLine");
+    const { default: QuotationAccessoryLine } =
+      await import("../src/pages/quotations/components/QuotationAccessoryLine");
+    const { catalogueLine } = await import("../src/utilities/quotation.utility");
+    const { catalogueFixture } = await import("./quotation.fixture");
+    const line = {
+      ...catalogueLine(catalogueFixture(), null),
+      equipmentRole: role,
+      unit: role === "pipe" ? "מ׳" : "יח׳",
+      quantity: "8.0000",
+      quotedPrice: "12.3400",
+      location: "original location",
+    };
+    const before = structuredClone(line);
+    const updates: IQuotationLine[] = [];
+    const removed = mock.fn();
+    const state = { renderer: null as ReturnType<typeof create> | null };
+    const root = () => state.renderer!.root;
+    const input = (label: string) =>
+      root().find(node => node.type === "input" && node.props["aria-label"] === label);
+    try {
+      await act(async () => {
+        state.renderer = create(
+          <QuotationLine
+            line={line}
+            items={[line]}
+            disabled={false}
+            onRemove={removed}
+            onChange={next => updates.push(next)}
+          />,
+        );
+      });
+      assert.equal(root().findAllByType(QuotationAccessoryLine).length, 1);
+      assert.equal(root().findAllByType("input").length, 3);
+      assert.equal(
+        root().findAll(node => node.type === "input" && node.props["aria-label"] === "מיקום")
+          .length,
+        0,
+      );
+      for (const caption of [
+        "פריט",
+        role === "pipe" ? "מטרים" : "כמות",
+        role === "pipe" ? "מחיר למטר" : "מחיר",
+      ]) {
+        assert.ok(
+          root().findAll(node => node.type === "span" && node.children.includes(caption)).length,
+        );
+      }
+      assert.equal(input(`כמות (${line.unit})`).props.value, "8");
+      assert.equal(input("מחיר ליחידה").props.value, "12.34");
+      await act(async () => {
+        input(`כמות (${line.unit})`).props.onChange({ target: { value: "2.1250" } });
+      });
+      await act(async () => {
+        input("מחיר ליחידה").props.onChange({ target: { value: "123.4500" } });
+      });
+      await act(async () => {
+        input("תיאור בהצעה").props.onChange({ target: { value: "תיאור הצעה מקומי" } });
+      });
+      assert.deepEqual(updates, [
+        { ...line, quantity: "2.1250" },
+        { ...line, quotedPrice: "123.4500" },
+        { ...line, description: "תיאור הצעה מקומי" },
+      ]);
+      assert.deepEqual(line, before);
+      await act(async () => {
+        root()
+          .find(node => node.type === "button" && node.props["aria-label"] === "הסר שורה")
+          .props.onClick();
+      });
+      assert.equal(removed.mock.callCount(), 1);
+      await act(async () => {
+        state.renderer!.update(
+          <QuotationLine
+            disabled
+            line={line}
+            items={[line]}
+            onRemove={removed}
+            onChange={next => updates.push(next)}
+          />,
+        );
+      });
+      assert.equal(root().findAllByType("button").length, 0);
+      assert.ok(
+        root()
+          .findAllByType("input")
+          .every(field => field.props.disabled),
+      );
+    } finally {
+      await act(async () => state.renderer?.unmount());
+    }
+  });
+}

@@ -2,8 +2,7 @@ import type { FC } from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "../quotation.module.css";
-import QuotationInput from "./QuotationInput";
-import QuotationSelect from "./QuotationSelect";
+import QuotationEntityPicker from "./QuotationEntityPicker";
 import { buildCustomerPath } from "../../../utilities/route.utility";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
@@ -25,33 +24,24 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
   const customers = useCustomersQuery({ search: debounced, prioritySyncStatus: null });
   const selected = useCustomerQuery(value || null);
   const options = customers.data ?? [];
-  const selectedMissing = selected.data && !options.some(customer => customer.id === value);
+  const choice = options.find(customer => customer.id === value) ?? selected.data ?? null;
   return (
     <div className={styles.picker}>
-      <QuotationSelect
-        value={value}
+      <QuotationEntityPicker
         label="לקוח *"
-        disabled={disabled || customers.isPending}
-        onChange={event => onChange(event.target.value)}
-      >
-        <option value="">בחרו לקוח...</option>
-        {selectedMissing && <option value={value}>{selected.data?.name}</option>}
-        {options.map(customer => (
-          <option key={customer.id} value={customer.id}>
-            {customer.name}
-          </option>
-        ))}
-      </QuotationSelect>
-      <details className={styles.pickerSearch}>
-        <summary>חיפוש לקוח</summary>
-        <QuotationInput
-          value={search}
-          label="חיפוש לקוח"
-          disabled={disabled}
-          onChange={event => setSearch(event.target.value)}
-        />
-      </details>
-      {value && (
+        value={choice}
+        options={options}
+        disabled={disabled}
+        onSearch={setSearch}
+        loading={customers.isPending}
+        placeholder="בחירת לקוח או חיפוש..."
+        onChange={id => {
+          if (id) {
+            onChange(id);
+          }
+        }}
+      />
+      {value && !disabled && (
         <Link to={buildCustomerPath(value)} className={styles.customerLink}>
           פתיחת כרטיס הלקוח
         </Link>

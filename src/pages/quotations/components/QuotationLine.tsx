@@ -8,6 +8,7 @@ import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationSelect from "./QuotationSelect";
 import QuotationDecimalInput from "./QuotationDecimalInput";
+import QuotationAccessoryLine from "./QuotationAccessoryLine";
 import { EQUIPMENT_ROLE } from "../../../constants/quotation.constant";
 import { quotationLineMoney } from "../../../utilities/quotation.utility";
 import { QUOTATION_DEFAULTS } from "../../../constants/quotation.constant";
@@ -36,20 +37,41 @@ const QuotationLine: FC<IQuotationLineProps> = ({
   const isControl = line.equipmentRole === EQUIPMENT_ROLE.CONTROL;
   const parents = quotationControlParents(items, line);
   const amount = quotationLineMoney(line);
+  const accessory = [EQUIPMENT_ROLE.PIPE, EQUIPMENT_ROLE.HEADER].some(
+    role => role === line.equipmentRole,
+  );
+  if (accessory) {
+    return (
+      <QuotationAccessoryLine
+        line={line}
+        disabled={disabled}
+        onChange={onChange}
+        onRemove={onRemove}
+      />
+    );
+  }
   return (
     <div className={styles.line} data-role={line.equipmentRole}>
       <div className={styles.lineDescription}>
         <div className={styles.lineIdentity}>
           <span>{line.sku}</span>
-          <b>{line.description}</b>
+          <QuotationInput
+            maxLength={1000}
+            label="תיאור בהצעה"
+            disabled={disabled}
+            value={line.description}
+            onChange={event => onChange({ ...line, description: event.target.value })}
+          />
         </div>
-        <QuotationInput
-          maxLength={1000}
-          label="תיאור בהצעה"
-          disabled={disabled}
-          value={line.description}
-          onChange={event => onChange({ ...line, description: event.target.value })}
-        />
+        <div className={styles.lineDetails}>
+          {line.capacityBtu !== null && (
+            <span className={styles.muted}>BTU · {line.capacityBtu.toLocaleString("he-IL")}</span>
+          )}
+          {line.includesRemote && <span className={styles.muted}>כולל שלט במחיר היחידה</span>}
+          {line.includesThermostat && (
+            <span className={styles.muted}>כולל טרמוסטט במחיר היחידה</span>
+          )}
+        </div>
       </div>
       <div className={styles.lineLocation}>
         <QuotationInput
@@ -59,6 +81,18 @@ const QuotationLine: FC<IQuotationLineProps> = ({
           value={line.location}
           onChange={event => onChange({ ...line, location: event.target.value })}
         />
+        {isEquipment && (
+          <QuotationSelect
+            label="מעגל"
+            disabled={disabled}
+            value={line.circuit ?? QUOTATION_DEFAULTS.CIRCUIT}
+            onChange={event => onChange({ ...line, circuit: event.target.value })}
+          >
+            {QUOTATION_CIRCUITS.map(circuit => (
+              <option key={circuit}>{circuit}</option>
+            ))}
+          </QuotationSelect>
+        )}
       </div>
       <div className={styles.lineQuantity}>
         <QuotationDecimalInput
@@ -70,6 +104,7 @@ const QuotationLine: FC<IQuotationLineProps> = ({
           label={`כמות (${line.unit})`}
           onChange={event => onChange({ ...line, quantity: event.target.value })}
         />
+        <span className={styles.numericCaption}>כמות</span>
       </div>
       <div className={styles.linePrice}>
         <QuotationDecimalInput
@@ -81,6 +116,7 @@ const QuotationLine: FC<IQuotationLineProps> = ({
           value={line.quotedPrice}
           onChange={event => onChange({ ...line, quotedPrice: event.target.value })}
         />
+        <span className={styles.numericCaption}>מחיר ליחידה (בהצעה)</span>
       </div>
       <b className={styles.lineTotal}>{amount}</b>
       {!disabled && (
@@ -92,18 +128,6 @@ const QuotationLine: FC<IQuotationLineProps> = ({
         >
           ×
         </button>
-      )}
-      {isEquipment && (
-        <QuotationSelect
-          label="מעגל"
-          disabled={disabled}
-          value={line.circuit ?? QUOTATION_DEFAULTS.CIRCUIT}
-          onChange={event => onChange({ ...line, circuit: event.target.value })}
-        >
-          {QUOTATION_CIRCUITS.map(circuit => (
-            <option key={circuit}>{circuit}</option>
-          ))}
-        </QuotationSelect>
       )}
       {isControl && (
         <QuotationSelect
@@ -124,13 +148,6 @@ const QuotationLine: FC<IQuotationLineProps> = ({
           ))}
         </QuotationSelect>
       )}
-      <div className={styles.lineDetails}>
-        {line.capacityBtu !== null && (
-          <span className={styles.muted}>BTU · {line.capacityBtu.toLocaleString("he-IL")}</span>
-        )}
-        {line.includesRemote && <span className={styles.muted}>כולל שלט במחיר היחידה</span>}
-        {line.includesThermostat && <span className={styles.muted}>כולל טרמוסטט במחיר היחידה</span>}
-      </div>
       {children && <div className={styles.lineControls}>{children}</div>}
     </div>
   );

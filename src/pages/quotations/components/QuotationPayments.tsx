@@ -10,15 +10,16 @@ import {
 
 import {
   BUTTON_SIZES,
+  BUTTON_SHAPES,
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
 import type { FC } from "react";
+import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import Icon from "../../../components/Icon/Icon";
 import Card from "../../../components/Card/Card";
-import Button from "../../../components/Button/Button";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
@@ -102,7 +103,8 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
               text="×"
               ariaLabel="הסר שלב"
               size={BUTTON_SIZES.COMPACT}
-              variant={BUTTON_VARIANTS.SECONDARY}
+              shape={BUTTON_SHAPES.CIRCLE}
+              variant={BUTTON_VARIANTS.NEUTRAL}
               onClick={() =>
                 onChange({
                   ...quotation,
@@ -119,9 +121,10 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
         <span className={styles.muted}>סה״כ {scheduleTotal}%</span>
         {!disabled && (
           <Button
-            text="הוסף שלב תשלום"
+            text="+ שלב תשלום"
+            ariaLabel="הוסף שלב תשלום"
             size={BUTTON_SIZES.COMPACT}
-            variant={BUTTON_VARIANTS.SECONDARY}
+            variant={BUTTON_VARIANTS.NEUTRAL}
             onClick={() =>
               onChange({ ...quotation, paymentSchedule: [...schedule, { percent: "0", text: "" }] })
             }
@@ -131,7 +134,9 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
       <QuotationInput
         maxLength={1000}
         disabled={disabled}
+        placeholder="ריק כברירת מחדל"
         value={quotation.paymentTermsNote}
+        caption="הערת תנאי תשלום (בהצעה זו בלבד)"
         label="הערה לתנאי התשלום (להצעה זו בלבד)"
         onChange={event => onChange({ ...quotation, paymentTermsNote: event.target.value })}
       />
