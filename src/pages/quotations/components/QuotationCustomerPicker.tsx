@@ -27,7 +27,7 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
   const options = customers.data ?? [];
   const selectedMissing = selected.data && !options.some(customer => customer.id === value);
   return (
-    <div className={styles.stack}>
+    <div className={styles.picker}>
       <QuotationSelect
         value={value}
         label="לקוח *"
@@ -52,7 +52,7 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
         />
       </details>
       {value && (
-        <Link className={styles.muted} to={buildCustomerPath(value)}>
+        <Link to={buildCustomerPath(value)} className={styles.customerLink}>
           פתיחת כרטיס הלקוח
         </Link>
       )}

@@ -1,8 +1,8 @@
 import type { FC } from "react";
 import styles from "../quotation.module.css";
-import QuotationInput from "./QuotationInput";
 import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
+import QuotationDecimalInput from "./QuotationDecimalInput";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import type { IQuotation, TQuotationStatus } from "../../../interfaces/quotation.interface";
@@ -56,7 +56,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
           <b>סה״כ כולל מע״מ</b>
           <span className={styles.total}>{quotationMoney(totals.total)}</span>
         </div>
-        <QuotationInput
+        <QuotationDecimalInput
           min="0"
           step="0.01"
           type="number"

@@ -12,11 +12,13 @@ import Button from "../../../components/Button/Button";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { QUOTATION_DEFAULTS } from "../../../constants/quotation.constant";
 import { initialQuotationRole } from "../../../utilities/quotation.utility";
 import { QUOTATION_ROLE_OPTIONS } from "../../../constants/quotation.constant";
 import { QUOTATION_EQUIPMENT_ROLES } from "../../../constants/quotation.constant";
 import { useQuotationCatalogueQuery } from "../../../hooks/queries/quotation.query";
 import { catalogueLine, quotationMoney } from "../../../utilities/quotation.utility";
+import { QUOTATION_CIRCUITS, EQUIPMENT_ROLE } from "../../../constants/quotation.constant";
 import type { IQuotationLine, IQuotationSection } from "../../../interfaces/quotation.interface";
 
 interface IQuotationCataloguePickerProps {
@@ -29,6 +31,10 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
   section,
   onSelect,
 }: IQuotationCataloguePickerProps) => {
+  const [showMatches, setShowMatches] = useState(false);
+  const [quantity, setQuantity] = useState("1");
+  const [location, setLocation] = useState("");
+  const [circuit, setCircuit] = useState<string>(QUOTATION_DEFAULTS.CIRCUIT);
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<string>(initialQuotationRole(section.systemType));
   const [equipmentType, setEquipmentType] = useState("");
@@ -49,7 +55,10 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
   const hasSearch = debounced.trim().length > 0;
   const hasRole = role.length > 0;
   const hasCapacity = requested !== null;
-  const queryEnabled = brand.length > 0 && (hasSearch || hasRole || hasCapacity);
+  const tracksCircuit = [EQUIPMENT_ROLE.INDOOR, EQUIPMENT_ROLE.OUTDOOR].some(
+    value => value === role,
+  );
+  const queryEnabled = showMatches && brand.length > 0 && (hasSearch || hasRole || hasCapacity);
   const catalogue = useQuotationCatalogueQuery(query, queryEnabled);
   const changeRole = (value: string): void => {
     setRole(value);
@@ -57,12 +66,18 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
     setCapacity("");
   };
   const select = (item: Parameters<typeof catalogueLine>[0]) => {
-    onSelect(catalogueLine(item, requested));
+    onSelect({
+      ...catalogueLine(item, requested),
+      quantity,
+      location,
+      circuit: tracksCircuit ? circuit : null,
+    });
+    setShowMatches(false);
     setSearch("");
   };
   return (
-    <div className={styles.stack}>
-      <div className={styles.grid}>
+    <div className={styles.addTray}>
+      <div className={styles.addFields}>
         <QuotationSelect
           value={role}
           label="סוג פריט"
@@ -79,7 +94,10 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
           <QuotationSelect
             value={equipmentType}
             label="סוג ציוד / לחץ"
-            onChange={event => setEquipmentType(event.target.value)}
+            onChange={event => {
+              setEquipmentType(event.target.value);
+              setShowMatches(true);
+            }}
           >
             <option value="">כל הסוגים</option>
             {typeOptions.map(type => (
@@ -93,16 +111,49 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
             type="number"
             value={capacity}
             label="גודל מבוקש (BTU)"
-            onChange={event => setCapacity(event.target.value)}
+            onChange={event => {
+              setCapacity(event.target.value);
+              setShowMatches(true);
+            }}
           />
         )}
         <QuotationInput
-          value={search}
-          label="חיפוש פריט בקטלוג"
-          placeholder="מק״ט או תיאור"
-          onChange={event => setSearch(event.target.value)}
+          min="0.0001"
+          type="number"
+          step="0.0001"
+          value={quantity}
+          label="כמות להוספה"
+          onChange={event => setQuantity(event.target.value)}
         />
+        <QuotationInput
+          maxLength={200}
+          value={location}
+          label="מיקום להוספה"
+          placeholder="סלון, מטבח..."
+          onChange={event => setLocation(event.target.value)}
+        />
+        {tracksCircuit && (
+          <QuotationSelect
+            value={circuit}
+            label="מעגל להוספה"
+            onChange={event => setCircuit(event.target.value)}
+          >
+            {QUOTATION_CIRCUITS.map(value => (
+              <option key={value}>{value}</option>
+            ))}
+          </QuotationSelect>
+        )}
       </div>
+      <QuotationInput
+        value={search}
+        label="חיפוש פריט בקטלוג"
+        onFocus={() => setShowMatches(true)}
+        placeholder="חיפוש במחירון לפי מק״ט או תיאור (בקר, חנוכיה, צנרת...)"
+        onChange={event => {
+          setSearch(event.target.value);
+          setShowMatches(true);
+        }}
+      />
       {!brand && <p className={styles.muted}>בחרו חברת מיזוג כדי לבחור פריטים.</p>}
       {catalogue.isFetching && <p role="status">מחפש פריטים מתאימים...</p>}
       {catalogue.isError && (
@@ -116,7 +167,7 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
           />
         </div>
       )}
-      {catalogue.data && (
+      {showMatches && catalogue.data && (
         <div className={styles.results}>
           {!catalogue.data.length && <p role="status">לא נמצא פריט קטלוג מתאים. לא נוספה שורה.</p>}
           {catalogue.data.map(item => (

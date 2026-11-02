@@ -69,6 +69,7 @@ export const BRAND = {
 
 export const NAVIGATION_LABELS = {
   LOGOUT: "התנתק",
+  BACK_TO_QUOTATIONS: "חזרה להצעות מחיר",
   BACK_TO_BOARD: "חזרה ללוח הבקרה",
   BACK_TO_CUSTOMERS: "חזרה ללקוחות",
   BACK_TO_BUILDING: "חזרה לבניין",
@@ -79,6 +80,10 @@ const toBuildingPath = (params: Params) =>
   generatePath(ROUTE_PATHS.PROJECT, { projectId: params[ROUTE_PARAMS.PROJECT_ID] ?? "" });
 
 export const BACK_LINK_BY_ROUTE: Record<string, IBackLinkRoute> = {
+  [ROUTE_PATHS.QUOTATION]: {
+    label: NAVIGATION_LABELS.BACK_TO_QUOTATIONS,
+    buildPath: () => ROUTE_PATHS.QUOTATIONS,
+  },
   [ROUTE_PATHS.NEW_CUSTOMER]: {
     label: NAVIGATION_LABELS.BACK_TO_CUSTOMERS,
     buildPath: () => ROUTE_PATHS.CUSTOMERS,
