@@ -15,11 +15,13 @@ import DriveTrashDialog from "./DriveTrashDialog";
 import DriveFolderDialog from "./DriveFolderDialog";
 import { useStyles } from "./DriveFileManager.style";
 import Button from "../../../components/Button/Button";
-import { type FC, type ReactNode, useState } from "react";
 import { useSessionUser } from "../../../store/session.store";
+import { SharedDocumentContext } from "./SharedDocumentContext";
 import { PERMISSIONS } from "../../../constants/permission.constant";
+import { type FC, type ReactNode, useContext, useState } from "react";
 import { hasPermission } from "../../../utilities/permission.utility";
 import type { IProjectFile } from "../../../interfaces/project.interface";
+import { SHARED_DOCUMENT_COPY } from "../../../constants/shared-document.constant";
 import type { IDriveFolderLocation } from "../../../interfaces/drive-file.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 
@@ -36,12 +38,16 @@ const DriveFileActions: FC<IDriveFileActionsProps> = ({ file, projectId, folderN
   const currentFolder = `${DRIVE_FILE_COPY.CURRENT_FOLDER}: ${folderName}`;
   const styles = useStyles();
   const user = useSessionUser();
+  const sharedDocument = useContext(SharedDocumentContext);
   const [operation, setOperation] = useState<DriveFileOperationType | null>(null);
   const move = useMoveProjectDriveFileMutation();
   const trash = useTrashProjectDriveFileMutation();
   const canMove = hasPermission(user, PERMISSIONS.DRIVE_MOVE);
   const canDelete = hasPermission(user, PERMISSIONS.DRIVE_DELETE);
   const canManage = canMove || canDelete;
+  const isSelectedSharedDocument = sharedDocument?.selectedFileId === file.id;
+  const cannotSelectSharedDocument =
+    !sharedDocument?.canSelect || sharedDocument.isPending || isSelectedSharedDocument;
   const moveError = move.isError ? DRIVE_FILE_COPY.ACTION_ERROR : null;
   const close = () => setOperation(null);
   const openMove = () => {
@@ -104,6 +110,16 @@ const DriveFileActions: FC<IDriveFileActionsProps> = ({ file, projectId, folderN
         text={DRIVE_FILE_COPY.DELETE}
         variant={BUTTON_VARIANTS.NEUTRAL}
       />
+      {canMove && sharedDocument && (
+        <Button
+          disabled={cannotSelectSharedDocument}
+          onClick={() => sharedDocument.selectFile(file.id)}
+          variant={isSelectedSharedDocument ? BUTTON_VARIANTS.PRESSED : BUTTON_VARIANTS.NEUTRAL}
+          text={
+            isSelectedSharedDocument ? SHARED_DOCUMENT_COPY.SELECTED : SHARED_DOCUMENT_COPY.SELECT
+          }
+        />
+      )}
       {dialog}
     </Box>
   );
