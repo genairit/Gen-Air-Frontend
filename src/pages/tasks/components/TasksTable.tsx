@@ -51,9 +51,9 @@ interface ITasksTableProps {
 const getTaskId = (task: IApiTask) => task.id;
 
 const TasksTable: FC<ITasksTableProps> = ({ canClaim, canChangeStatus }) => {
+  const styles = usePageStyles();
   const navigate = useNavigate();
   const sessionUser = useSessionUser();
-  const styles = usePageStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
   const [emailTaskId, setEmailTaskId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
