@@ -6,7 +6,7 @@ import {
 
 import Icon from "../../Icon/Icon";
 import { Box } from "@mui/material";
-import type { FC, ReactNode } from "react";
+import { type FC, type ReactNode, useRef } from "react";
 import { useStyles } from "../AddressAutocomplete.style";
 import { theme } from "../../../constants/theme.constants";
 import { ICON_NAMES } from "../../../constants/icon.constant";
@@ -30,6 +30,12 @@ const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
   getOptionId,
 }) => {
   const styles = useStyles();
+  const pendingPointer = useRef<{
+    index: number;
+    pointerId: number;
+    x: number;
+    y: number;
+  } | null>(null);
 
   const renderMessage = (message: string) => (
     <Box component="li" role="presentation" sx={styles.listMessage}>
@@ -45,9 +51,32 @@ const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
       key={suggestion.placeId}
       aria-selected={index === activeIndex}
       sx={styles.suggestion(index === activeIndex)}
+      onPointerCancel={() => {
+        pendingPointer.current = null;
+      }}
+      onPointerUp={event => {
+        const pending = pendingPointer.current;
+        pendingPointer.current = null;
+        if (pending?.pointerId === event.pointerId && pending.index === index) onSelect(index);
+      }}
+      onPointerMove={event => {
+        const pending = pendingPointer.current;
+        if (
+          pending?.pointerId === event.pointerId &&
+          Math.hypot(event.clientX - pending.x, event.clientY - pending.y) > 10
+        ) {
+          pendingPointer.current = null;
+        }
+      }}
       onPointerDown={event => {
-        event.preventDefault();
-        onSelect(index);
+        if (!event.isPrimary || event.button !== 0) return;
+        if (event.pointerType === "mouse") event.preventDefault();
+        pendingPointer.current = {
+          index,
+          pointerId: event.pointerId,
+          x: event.clientX,
+          y: event.clientY,
+        };
       }}
     >
       <Icon size={22} name={ICON_NAMES.LOCATION} color={theme.palette.primary} />
