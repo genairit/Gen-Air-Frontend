@@ -369,9 +369,9 @@ test("decimal editing preserves lexical input while focused and compacts only it
     });
     assert.equal(input().props.value, "1");
     await act(async () => {
-      input().props.onFocus();
+      input().props.onFocus?.();
     });
-    assert.equal(input().props.value, "1.0000");
+    assert.equal(input().props.value, "1");
     for (const value of ["", "1.", "1.2500"]) {
       await act(async () => {
         input().props.onChange({ target: { value } });
@@ -384,9 +384,9 @@ test("decimal editing preserves lexical input while focused and compacts only it
     assert.equal(input().props.value, "1.25");
     assert.deepEqual(edits, ["", "1.", "1.2500"]);
     await act(async () => {
-      input().props.onFocus();
+      input().props.onFocus?.();
     });
-    assert.equal(input().props.value, "1.2500");
+    assert.equal(input().props.value, "1.25");
     await act(async () => {
       input().props.onChange({ target: { value: "1." } });
     });

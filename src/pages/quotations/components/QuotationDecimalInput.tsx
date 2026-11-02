@@ -8,14 +8,17 @@ interface IQuotationDecimalInputProps extends Omit<
 > {
   value: string;
 }
-const QuotationDecimalInput: FC<IQuotationDecimalInputProps> = ({ value, ...props }) => {
-  const [focused, setFocused] = useState(false);
-  const displayed = focused ? value : quotationDecimalInput(value);
+const QuotationDecimalInput: FC<IQuotationDecimalInputProps> = ({ value, onChange, ...props }) => {
+  const [editing, setEditing] = useState(false);
+  const displayed = editing ? value : quotationDecimalInput(value);
   return (
     <QuotationInput
       value={displayed}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
+      onBlur={() => setEditing(false)}
+      onChange={event => {
+        setEditing(true);
+        onChange?.(event);
+      }}
       {...props}
     />
   );
