@@ -5,10 +5,10 @@ import {
 
 import type { FC } from "react";
 import { useState } from "react";
+import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationSelect from "./QuotationSelect";
-import Button from "../../../components/Button/Button";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
@@ -80,6 +80,7 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
       <div className={styles.addFields}>
         <QuotationSelect
           value={role}
+          caption="יחידה"
           label="סוג פריט"
           onChange={event => changeRole(event.target.value)}
         >
@@ -92,6 +93,7 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
         </QuotationSelect>
         {isEquipment && (
           <QuotationSelect
+            caption="סוג"
             value={equipmentType}
             label="סוג ציוד / לחץ"
             onChange={event => {
@@ -109,6 +111,7 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
           <QuotationInput
             min="1"
             type="number"
+            caption="BTU"
             value={capacity}
             label="גודל מבוקש (BTU)"
             onChange={event => {
@@ -121,12 +124,14 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
           min="0.0001"
           type="number"
           step="0.0001"
+          caption="כמות"
           value={quantity}
           label="כמות להוספה"
           onChange={event => setQuantity(event.target.value)}
         />
         <QuotationInput
           maxLength={200}
+          caption="מיקום"
           value={location}
           label="מיקום להוספה"
           placeholder="סלון, מטבח..."
@@ -134,6 +139,7 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
         />
         {tracksCircuit && (
           <QuotationSelect
+            caption="מעגל"
             value={circuit}
             label="מעגל להוספה"
             onChange={event => setCircuit(event.target.value)}

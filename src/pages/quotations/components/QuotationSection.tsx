@@ -5,10 +5,10 @@ import {
 
 import type { FC } from "react";
 import { useState } from "react";
+import Button from "./QuotationButton";
 import QuotationLine from "./QuotationLine";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
-import Button from "../../../components/Button/Button";
 import QuotationLinkedControl from "./QuotationLinkedControl";
 import QuotationCataloguePicker from "./QuotationCataloguePicker";
 import { quotationMoney } from "../../../utilities/quotation.utility";
@@ -64,7 +64,8 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
               ↓
             </button>
             <Button
-              text="מחיקת מערכת"
+              text="מחק מקטע"
+              ariaLabel="מחיקת מערכת"
               size={BUTTON_SIZES.COMPACT}
               onClick={() => setConfirm(true)}
               variant={BUTTON_VARIANTS.NEUTRAL}

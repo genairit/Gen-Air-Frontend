@@ -3,10 +3,10 @@ import {
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
+import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
 import Card from "../../../components/Card/Card";
 import Icon from "../../../components/Icon/Icon";
-import Button from "../../../components/Button/Button";
 import { Fragment, type ReactNode, type FC } from "react";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { isPaymentTerms } from "../../../utilities/guards/api.guard";

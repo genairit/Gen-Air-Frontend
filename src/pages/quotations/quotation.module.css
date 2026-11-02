@@ -561,7 +561,7 @@
 }
 .paymentStage {
   display: grid;
-  grid-template-columns: 80px minmax(0, 1fr) 120px 40px;
+  grid-template-columns: 80px minmax(0, 1fr) 120px 36px;
   align-items: center;
   gap: 14px;
 }
@@ -596,7 +596,9 @@
 }
 .warning {
   display: flex;
-  align-items: flex-start;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: center;
   gap: 12px;
   padding: 12px 16px;
   border-radius: 16px;
@@ -1087,4 +1089,8 @@
 .summary > div:first-child > .between:nth-last-child(3) {
   border-top: 1px solid #dcdce2;
   padding-top: 12px;
+}
+
+.warning > span {
+  flex: 1;
 }

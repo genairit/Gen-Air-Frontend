@@ -10,7 +10,7 @@ import styles from "./quotation.module.css";
 import Card from "../../components/Card/Card";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import Button from "../../components/Button/Button";
+import Button from "./components/QuotationButton";
 import QuotationInput from "./components/QuotationInput";
 import { useSessionUser } from "../../store/session.store";
 import { formatRelativeTime } from "../../utilities/date.utility";

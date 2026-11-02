@@ -1,8 +1,8 @@
 import type { FC } from "react";
+import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
 import Card from "../../../components/Card/Card";
 import QuotationWarnings from "./QuotationWarnings";
-import Button from "../../../components/Button/Button";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";

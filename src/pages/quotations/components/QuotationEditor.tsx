@@ -11,6 +11,7 @@ import {
 
 import type { FC } from "react";
 import { useState } from "react";
+import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationReview from "./QuotationReview";
@@ -21,7 +22,6 @@ import QuotationSection from "./QuotationSection";
 import QuotationSummary from "./QuotationSummary";
 import QuotationPayments from "./QuotationPayments";
 import QuotationWarnings from "./QuotationWarnings";
-import Button from "../../../components/Button/Button";
 import QuotationDiagnostics from "./QuotationDiagnostics";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { ICON_NAMES } from "../../../constants/icon.constant";
