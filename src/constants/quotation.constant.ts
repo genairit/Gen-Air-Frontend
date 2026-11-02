@@ -1,5 +1,6 @@
 import Decimal from "decimal.js";
 import { TIME_UNITS } from "./time.constant";
+import { BUTTON_SIZES, BUTTON_SHAPES } from "../components/Button/constants/button.constants";
 
 export const QUOTATION_STATUS = { DRAFT: "draft", REVIEW: "review", APPROVED: "approved" } as const;
 export const QUOTATION_SYSTEM = {
@@ -106,3 +107,15 @@ export const QUOTATION_STEPS = [
 ];
 
 export const QUOTATION_DEFAULTS = { CIRCUIT: "A" } as const;
+
+export const QUOTATION_INPUT_REASON = { INPUT: "input", CLEAR: "clear" } as const;
+
+export const QUOTATION_BUTTON_HEIGHT = {
+  [BUTTON_SIZES.COMPACT]: { [BUTTON_SHAPES.PILL]: 34, [BUTTON_SHAPES.CIRCLE]: 36 },
+  [BUTTON_SIZES.MEDIUM]: { [BUTTON_SHAPES.PILL]: 52, [BUTTON_SHAPES.CIRCLE]: 52 },
+  [BUTTON_SIZES.LARGE]: { [BUTTON_SHAPES.PILL]: 52, [BUTTON_SHAPES.CIRCLE]: 52 },
+} as const;
+
+export const QUOTATION_PRIMARY_DISABLED_STYLE = {
+  "&.Mui-disabled": { color: "#fff", backgroundColor: "#1f7fdb", opacity: 0.45 },
+} as const;

@@ -1,55 +1,55 @@
 import type { FC } from "react";
 import { useState } from "react";
 import styles from "../quotation.module.css";
-import QuotationInput from "./QuotationInput";
-import QuotationSelect from "./QuotationSelect";
+import QuotationEntityPicker from "./QuotationEntityPicker";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useQuotationProjectChoices } from "../../../hooks/queries/quotation.query";
+import type { IQuotationProjectChoice } from "../../../interfaces/quotation.interface";
 
 interface IQuotationProjectPickerProps {
   disabled: boolean;
   customerId: string;
   value: string | null;
+  selectedName?: string | null;
   onChange: (id: string | null) => void;
 }
 const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
   customerId,
+  selectedName,
   value,
   disabled,
   onChange,
 }: IQuotationProjectPickerProps) => {
   const [search, setSearch] = useState("");
+  const [selection, setSelection] = useState<IQuotationProjectChoice | null>(null);
   const debounced = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
+  const initialProjects = useQuotationProjectChoices(customerId, "");
   const projects = useQuotationProjectChoices(customerId, debounced);
   const options = projects.data ?? [];
-  const selectedMissing = value !== null && !options.some(project => project.id === value);
+  const selectedChoice = selection?.id === value ? selection : null;
+  const choice =
+    options.find(project => project.id === value) ??
+    initialProjects.data?.find(project => project.id === value) ??
+    selectedChoice ??
+    (value ? { id: value, name: selectedName || "הפרויקט המקושר" } : null);
   return (
     <div className={styles.picker}>
-      <QuotationSelect
-        value={value ?? ""}
+      <QuotationEntityPicker
+        allowClear
+        value={choice}
+        options={options}
         disabled={disabled}
+        onSearch={setSearch}
         label="פרויקט (אופציונלי)"
-        onChange={event => onChange(event.target.value || null)}
-      >
-        <option value="">ללא פרויקט</option>
-        {selectedMissing && <option value={value ?? ""}>הפרויקט המקושר</option>}
-        {options.map(project => (
-          <option key={project.id} value={project.id}>
-            {project.name}
-          </option>
-        ))}
-      </QuotationSelect>
-      <details className={styles.pickerSearch}>
-        <summary>חיפוש פרויקט</summary>
-        <QuotationInput
-          value={search}
-          disabled={disabled}
-          label="חיפוש פרויקט"
-          onChange={event => setSearch(event.target.value)}
-        />
-      </details>
+        loading={projects.isPending}
+        placeholder="ללא פרויקט · חיפוש פרויקט..."
+        onChange={id => {
+          setSelection(options.find(project => project.id === id) ?? null);
+          onChange(id);
+        }}
+      />
       <span className={styles.muted}>לפרויקט יכולות להיות כמה הצעות.</span>
       {projects.isError && <span role="alert">{getApiErrorMessage(projects.error)}</span>}
     </div>
