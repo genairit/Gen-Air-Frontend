@@ -14,18 +14,20 @@ import type {
   IApartmentPosition,
   IApartmentFormValues,
   TInheritanceSourceType,
+  IApartmentTeamCandidate,
 } from "../interfaces/apartment.interface";
 
 import { isPaymentTerms } from "./guards/api.guard";
 import { getFullName } from "./mappers/user.mapper";
 import { findOptionIdByLabel } from "./option.utility";
+import { getAssignedRoles } from "./user-role.utility";
 import { validatePaymentTermsNote } from "./validators";
 import { formatCustomerDetailValue } from "./customer-details.utility";
 import { APARTMENT_UNIT_FIELDS } from "../constants/apartment.constant";
 import type { IApartmentPayload } from "../interfaces/api-request.interface";
 import type { IApiProjectMember, IApiUser } from "../interfaces/api.interface";
 import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
-import { PROJECT_MEMBER_ROLES, USER_ROLE_LABELS } from "../constants/user-role.constant";
+import { USER_ROLE_LABELS, PROJECT_MEMBER_ROLES } from "../constants/user-role.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 import { PAYMENT_TERMS_LABELS, type PaymentTermsType } from "../constants/payment-terms.constant";
 
@@ -97,18 +99,35 @@ export const countInvalidApartmentFields = (values: IApartmentFormValues) => {
 export const toApartmentAssignments = (members: IApiProjectMember[]) =>
   members.map(({ userId, role }) => ({ userId, role }));
 
-export const getApartmentTeamCandidates = (users: IApiUser[], members: IApiProjectMember[]) =>
-  users.filter(user => {
+export const getApartmentTeamCandidates = (
+  users: IApiUser[],
+  members: IApiProjectMember[],
+): IApartmentTeamCandidate[] =>
+  users.flatMap(user => {
     const isActive = !user.deletedAt;
-    const hasEligibleRole = PROJECT_MEMBER_ROLES.some(role => role === user.role);
-    const isRoleAvailable = !members.some(member => member.role === user.role);
-    return isActive && hasEligibleRole && isRoleAvailable;
+
+    if (!isActive) {
+      return [];
+    }
+
+    const assignedRoles = getAssignedRoles(user);
+    const availableRoles = PROJECT_MEMBER_ROLES.filter(role => {
+      const hasAssignedRole = assignedRoles.includes(role);
+      const roleHasMember = members.some(member => member.role === role);
+
+      return hasAssignedRole && !roleHasMember;
+    });
+
+    return availableRoles.map(role => ({ user, role }));
   });
 
-export const toApartmentTeamOptions = (users: IApiUser[]) =>
-  users.map(user => ({
+export const toApartmentTeamOptions = (
+  candidates: IApartmentTeamCandidate[],
+): (IApartmentTeamCandidate & { label: string })[] =>
+  candidates.map(({ user, role }) => ({
     user,
-    label: `${getFullName(user)} · ${USER_ROLE_LABELS[user.role]} (${user.employeeNumber})`,
+    role,
+    label: `${getFullName(user)} · ${USER_ROLE_LABELS[role]} (${user.employeeNumber})`,
   }));
 
 export const formatParentCustomerNote = (building: IApiProject) =>

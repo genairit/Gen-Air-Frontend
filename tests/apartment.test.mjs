@@ -46,6 +46,7 @@ const { validateApartmentNumber } =
   await import("../src/utilities/validators/apartment-number.validator.ts");
 const { EMPTY_APARTMENT_FORM } = await import("../src/constants/apartment.constant.ts");
 const { PAYMENT_TERMS } = await import("../src/constants/payment-terms.constant.ts");
+const { USER_ROLES } = await import("../src/constants/user-role.constant.ts");
 
 const FORM = {
   ...EMPTY_APARTMENT_FORM,
@@ -61,7 +62,8 @@ const USER = {
   firstName: "ישראל",
   lastName: "ישראלי",
   employeeNumber: "101",
-  role: "engineer",
+  role: USER_ROLES.ENGINEER,
+  assignedRoles: [USER_ROLES.ENGINEER],
   deletedAt: null,
 };
 const MEMBER = { id: "member-1", userId: USER.id, role: USER.role, user: USER };
@@ -225,14 +227,24 @@ test("team candidates exclude inactive employees and roles which cannot join a p
     [
       USER,
       { ...USER, id: "deleted", deletedAt: "2026-10-24T10:00:00.000Z" },
-      { ...USER, id: "admin", role: "system_admin" },
-      { ...USER, id: "finance", role: "finance" },
-      { ...USER, id: "installer", role: "installer" },
+      {
+        ...USER,
+        id: "admin",
+        role: USER_ROLES.SYSTEM_ADMIN,
+        assignedRoles: [USER_ROLES.SYSTEM_ADMIN],
+      },
+      { ...USER, id: "finance", role: USER_ROLES.FINANCE, assignedRoles: [USER_ROLES.FINANCE] },
+      {
+        ...USER,
+        id: "installer",
+        role: USER_ROLES.INSTALLER,
+        assignedRoles: [USER_ROLES.INSTALLER],
+      },
     ],
     [],
   );
   assert.deepEqual(
-    candidates.map(user => user.id),
+    candidates.map(candidate => candidate.user.id),
     ["engineer-1", "installer"],
   );
 });
@@ -241,14 +253,19 @@ test("each team role stays unique until its existing member is removed", () => {
   const users = [
     USER,
     { ...USER, id: "engineer-2" },
-    { ...USER, id: "manager", role: "project_manager" },
+    {
+      ...USER,
+      id: "manager",
+      role: USER_ROLES.PROJECT_MANAGER,
+      assignedRoles: [USER_ROLES.PROJECT_MANAGER],
+    },
   ];
   assert.deepEqual(
-    utility.getApartmentTeamCandidates(users, [MEMBER]).map(user => user.id),
+    utility.getApartmentTeamCandidates(users, [MEMBER]).map(candidate => candidate.user.id),
     ["manager"],
   );
   assert.deepEqual(
-    utility.getApartmentTeamCandidates(users, []).map(user => user.id),
+    utility.getApartmentTeamCandidates(users, []).map(candidate => candidate.user.id),
     ["engineer-1", "engineer-2", "manager"],
   );
 });

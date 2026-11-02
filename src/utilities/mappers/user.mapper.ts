@@ -6,6 +6,7 @@ import {
 } from "../../constants/user-role.constant";
 
 import { getInitials } from "../text.utility";
+import { getAssignedRoles } from "../user-role.utility";
 import type { IApiUser } from "../../interfaces/api.interface";
 import type { IPerson } from "../../interfaces/person.interface";
 import type { IEmployee } from "../../interfaces/employee.interface";
@@ -25,6 +26,7 @@ export const toPerson = (user: IApiUser): IPerson => ({
 export const toEmployee = (user: IApiUser): IEmployee => ({
   id: user.id,
   role: user.role,
+  assignedRoles: getAssignedRoles(user),
   phone: user.phone,
   email: user.email,
   isDisabled: user.deletedAt != null,

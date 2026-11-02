@@ -281,6 +281,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     phone: "052-4418230",
     email: "aviad@genair.co.il",
     role: USER_ROLES.SYSTEM_ADMIN,
+    assignedRoles: [USER_ROLES.SYSTEM_ADMIN],
     person: {
       initials: "אכ",
       name: "אביעד כהן",
@@ -294,6 +295,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     phone: "054-7712094",
     email: "michal@genair.co.il",
     role: USER_ROLES.SECRETARY,
+    assignedRoles: [USER_ROLES.SECRETARY],
     person: { initials: "מר", name: "מיכל רוזנברג", caption: "מזהה: EMP-1042" },
   },
   {
@@ -302,6 +304,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     phone: "050-3365817",
     email: "yossi.b@genair.co.il",
     role: USER_ROLES.PROJECT_MANAGER,
+    assignedRoles: [USER_ROLES.PROJECT_MANAGER],
     person: {
       initials: "יב",
       name: "יוסי בראון",
@@ -315,6 +318,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     phone: "053-9021446",
     email: "roman.l@genair.co.il",
     role: USER_ROLES.INSTALLER,
+    assignedRoles: [USER_ROLES.INSTALLER],
     person: { initials: "רל", name: "רומן לוין", caption: "מזהה: EMP-1087 · צוות צפון VRF" },
   },
   {
@@ -323,6 +327,7 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
     phone: "058-6634172",
     email: "dan.s@genair.co.il",
     role: USER_ROLES.INSTALLER,
+    assignedRoles: [USER_ROLES.INSTALLER],
     person: { initials: "דש", name: "דן שמיר", caption: "מזהה: EMP-1031 · מושבת" },
   },
 ];

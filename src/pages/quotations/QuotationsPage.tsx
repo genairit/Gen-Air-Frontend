@@ -28,6 +28,7 @@ import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import QuotationCustomerPicker from "./components/QuotationCustomerPicker";
 import type { TQuotationStatus } from "../../interfaces/quotation.interface";
+import { AuthorizationContext } from "../../managers/authorization-context.manager";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const QuotationsPage: FC = () => {
@@ -53,7 +54,9 @@ const QuotationsPage: FC = () => {
   const create = useMutation({
     mutationFn: quotationService.create,
     onSuccess: async quotation => {
+      const context = new AuthorizationContext();
       await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
+      context.assertCurrent();
       navigate(buildQuotationPath(quotation.id));
     },
   });

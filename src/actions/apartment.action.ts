@@ -5,6 +5,7 @@ import { apartmentService } from "../services/apartment.service";
 import { toApartmentPayload } from "../utilities/apartment.utility";
 import type { IApartmentChanges } from "../interfaces/api-request.interface";
 import type { IApartmentFormValues } from "../interfaces/apartment.interface";
+import { AuthorizationContext } from "../managers/authorization-context.manager";
 
 const invalidateApartmentQueries = () =>
   Promise.all([
@@ -22,10 +23,13 @@ export const createApartmentAction = async ({
 }: {
   buildingId: string;
   values: IApartmentFormValues;
-}) => {
+}): Promise<string> => {
+  const context = new AuthorizationContext();
   const apartment = await apartmentService.create(buildingId, toApartmentPayload(values));
+  context.assertCurrent();
 
   await invalidateApartmentQueries();
+  context.assertCurrent();
 
   return apartment.id;
 };
@@ -36,9 +40,12 @@ export const updateApartmentAction = async ({
 }: {
   apartmentId: string;
   changes: IApartmentChanges;
-}) => {
+}): Promise<void> => {
+  const context = new AuthorizationContext();
   await apartmentService.update(apartmentId, changes);
+  context.assertCurrent();
   await invalidateApartmentQueries();
+  context.assertCurrent();
 };
 
 export const moveApartmentsToStageAction = async ({
@@ -47,9 +54,12 @@ export const moveApartmentsToStageAction = async ({
 }: {
   stageId: string;
   apartmentIds: string[];
-}) => {
+}): Promise<void> => {
+  const context = new AuthorizationContext();
   await Promise.all(
     apartmentIds.map(apartmentId => projectService.moveToStage(apartmentId, stageId)),
   );
+  context.assertCurrent();
   await invalidateApartmentQueries();
+  context.assertCurrent();
 };

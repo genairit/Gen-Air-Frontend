@@ -16,6 +16,9 @@ const EmployeesPage = () => {
     hasPermission(sessionUser, PERMISSIONS.EMPLOYEES_CREATE) &&
     hasPermission(sessionUser, PERMISSIONS.EMPLOYEES_ROLES_ASSIGN);
   const canDelete = hasPermission(sessionUser, PERMISSIONS.EMPLOYEES_DELETE);
+  const canEditRoles =
+    hasPermission(sessionUser, PERMISSIONS.EMPLOYEES_UPDATE) &&
+    hasPermission(sessionUser, PERMISSIONS.EMPLOYEES_ROLES_ASSIGN);
 
   return (
     <Box sx={styles.page}>
@@ -32,7 +35,7 @@ const EmployeesPage = () => {
         </Box>
       </Box>
       {canCreate && <AddEmployeeCard />}
-      <EmployeesTable canManageUsers={canDelete} />
+      <EmployeesTable canDeleteUsers={canDelete} canEditRoles={canEditRoles} />
     </Box>
   );
 };
