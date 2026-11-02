@@ -149,7 +149,7 @@
   width: 100%;
   text-align: right;
   display: grid;
-  grid-template-columns: 86px minmax(0, 1fr) 100px 100px 125px 95px;
+  grid-template-columns: max-content minmax(0, 1fr) 100px 100px 125px 95px;
   align-items: center;
   gap: 14px;
   border: 0;
@@ -169,6 +169,9 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+}
+.quoteIdentity > * {
+  overflow-wrap: anywhere;
 }
 .quoteIdentity > b {
   font-size: 15px;
@@ -634,7 +637,7 @@
 }
 @media (max-width: 1150px) {
   .quoteRow {
-    grid-template-columns: 85px minmax(0, 1fr) 80px 90px 105px;
+    grid-template-columns: max-content minmax(0, 1fr) 80px 90px 105px;
   }
   .updated {
     display: none;
@@ -656,7 +659,7 @@
     width: 100%;
   }
   .quoteRow {
-    grid-template-columns: 85px minmax(0, 1fr) 100px;
+    grid-template-columns: max-content minmax(0, 1fr) 100px;
   }
   .quoteRow > .muted,
   .quoteRow > .badge {
@@ -698,6 +701,18 @@
   .listTitle {
     font-size: 28px;
   }
+  .quoteIdentity {
+    grid-column: 1/-1;
+    grid-row: 2;
+  }
+  .quoteAmount {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .quoteRow > .muted,
+  .quoteRow > .badge {
+    grid-row: 3;
+  }
   .metadata,
   .summary {
     grid-template-columns: minmax(0, 1fr);
@@ -737,7 +752,7 @@
   .quoteRow {
     padding: 14px 12px;
     gap: 8px;
-    grid-template-columns: 75px minmax(0, 1fr) 80px;
+    grid-template-columns: max-content minmax(0, 1fr);
   }
   .quoteAmount {
     font-size: 12px;
