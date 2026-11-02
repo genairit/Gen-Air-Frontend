@@ -12,6 +12,7 @@ import type {
 } from "../interfaces/quotation.interface";
 
 import { useRef, useState } from "react";
+import { logger } from "../utilities/logger.utility";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDelayedAsyncTask } from "./delayed-async-task.hook";
 import { quotationService } from "../services/quotation.service";
@@ -20,9 +21,12 @@ import { getApiErrorMessage } from "../utilities/api-error.utility";
 export const useQuotationEditor = (
   initial: IQuotation,
   editable: boolean,
+  canDelete = false,
 ): IQuotationEditorState => {
   const queryClient = useQueryClient();
   const [quotation, setQuotation] = useState(initial);
+  const [deleted, setDeleted] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +39,7 @@ export const useQuotationEditor = (
     await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
   };
   const update = (next: IQuotation): void => {
-    if (!editable || busy || quotation.status === QUOTATION_STATUS.APPROVED) {
+    if (deleted || !editable || busy || quotation.status === QUOTATION_STATUS.APPROVED) {
       return;
     }
     generation.current += 1;
@@ -68,7 +72,7 @@ export const useQuotationEditor = (
       setBusy(false);
     }
   };
-  const autosaveEnabled = dirty && !busy && !error && editable;
+  const autosaveEnabled = !deleted && dirty && !busy && !error && editable;
   useDelayedAsyncTask({
     enabled: autosaveEnabled,
     delayMs: QUOTATION_AUTOSAVE_MS,
@@ -76,7 +80,7 @@ export const useQuotationEditor = (
     onError: fail,
   });
   const command = async (work: () => Promise<IQuotation>): Promise<boolean> => {
-    if (commandPending.current || busy) {
+    if (deleted || commandPending.current || busy) {
       return false;
     }
     commandPending.current = true;
@@ -88,6 +92,29 @@ export const useQuotationEditor = (
     } catch (failure) {
       fail(failure);
       return false;
+    } finally {
+      commandPending.current = false;
+      setBusy(false);
+    }
+  };
+  const remove = async (): Promise<void> => {
+    if (!canDelete || deleted || dirty || busy || commandPending.current) {
+      return;
+    }
+    commandPending.current = true;
+    setBusy(true);
+    setDeleteError(null);
+    try {
+      await quotationService.delete({ id: quotation.id, version: version.current });
+      await queryClient.cancelQueries({
+        queryKey: QUOTATION_DETAIL_KEY(quotation.id),
+        exact: true,
+      });
+      await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
+      setDeleted(true);
+    } catch (failure) {
+      logger.error("Failed to delete quotation", { quotationId: quotation.id, failure });
+      setDeleteError(getApiErrorMessage(failure));
     } finally {
       commandPending.current = false;
       setBusy(false);
@@ -106,9 +133,13 @@ export const useQuotationEditor = (
     await command(() => quotationService.acknowledge(quotation, keys));
   };
   const reload = async (): Promise<void> => {
+    setDeleteError(null);
     await command(() => quotationService.get(quotation.id));
   };
   return {
+    deleted,
+    deleteError,
+    remove,
     quotation,
     update,
     busy,

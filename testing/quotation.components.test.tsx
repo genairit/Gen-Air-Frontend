@@ -8,7 +8,10 @@ import { quotationService } from "../src/services/quotation.service";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { getActiveNavigationId } from "../src/utilities/route.utility";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QUOTATION_DETAIL_KEY } from "../src/constants/quotation.constant";
 import { QUOTATION_AUTOSAVE_MS } from "../src/constants/quotation.constant";
+import QuotationDelete from "../src/pages/quotations/components/QuotationDelete";
+import QuotationButton from "../src/pages/quotations/components/QuotationButton";
 import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
 import QuotationReview from "../src/pages/quotations/components/QuotationReview";
 import QuotationSummary from "../src/pages/quotations/components/QuotationSummary";
@@ -785,3 +788,116 @@ for (const role of ["header", "pipe"] as const) {
     }
   });
 }
+
+for (const status of ["draft", "review", "approved"] as const) {
+  for (const canDelete of [false, true]) {
+    test(`${status}: delete permission independently controls action and successful navigation`, async () => {
+      const base = { ...quotationFixture(), status };
+      const remove = mock.method(quotationService, "delete", async () => {});
+      const customers = mock.method(customerService, "getByFilter", async () => []);
+      const customer = mock.method(customerService, "getById", async () => ({
+        id: base.customerId,
+        name: "Customer",
+      }));
+      const projects = mock.method(quotationService, "projectChoices", async () => []);
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+      client.setQueryData(QUOTATION_DETAIL_KEY(base.id), base);
+      const router = createMemoryRouter(
+        [
+          {
+            path: "/detail",
+            element: (
+              <QueryClientProvider client={client}>
+                <QuotationEditor
+                  initial={base}
+                  editable={false}
+                  canApprove={false}
+                  canDelete={canDelete}
+                />
+              </QueryClientProvider>
+            ),
+          },
+          { path: "/quotations", element: <p>Quotation list</p> },
+        ],
+        { initialEntries: ["/detail"] },
+      );
+      const state = { renderer: null as ReturnType<typeof create> | null };
+      try {
+        await act(async () => {
+          state.renderer = create(<RouterProvider router={router} />);
+        });
+        const cards = state.renderer!.root.findAllByType(QuotationDelete);
+        assert.equal(cards.length, canDelete ? 1 : 0);
+        if (canDelete) {
+          await act(() => cards[0].props.onDelete());
+          assert.equal(remove.mock.callCount(), 1);
+          assert.equal(router.state.location.pathname, "/quotations");
+          assert.equal(router.state.historyAction, "REPLACE");
+          assert.equal(
+            [...router.state.blockers.values()].some(blocker => blocker.state === "blocked"),
+            false,
+          );
+          assert.equal(client.getQueryData(QUOTATION_DETAIL_KEY(base.id)) ?? null, null);
+        }
+      } finally {
+        await act(async () => state.renderer?.unmount());
+        router.dispose();
+        client.clear();
+        remove.mock.restore();
+        customers.mock.restore();
+        customer.mock.restore();
+        projects.mock.restore();
+      }
+    });
+  }
+}
+
+test("delete confirmation supports cancel, retry and reload while blocking pending actions", async () => {
+  const calls = { remove: 0, reload: 0 };
+  const props = {
+    number: "Q-123",
+    blocked: false,
+    pending: false,
+    error: null as string | null,
+    onDelete: async () => {
+      calls.remove += 1;
+    },
+    onReload: async () => {
+      calls.reload += 1;
+    },
+  };
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  const buttons = () => state.renderer!.root.findAllByType(QuotationButton);
+  try {
+    await act(async () => {
+      state.renderer = create(<QuotationDelete {...props} />);
+    });
+    assert.equal(buttons().length, 1);
+    assert.equal(buttons()[0].props.text, "מחיקת ההצעה");
+    await act(async () => buttons()[0].props.onClick());
+    assert.equal(calls.remove, 0);
+    assert.equal(buttons().length, 2);
+    await act(async () => buttons()[1].props.onClick());
+    assert.equal(buttons().length, 1);
+    await act(async () => buttons()[0].props.onClick());
+    await act(async () => state.renderer!.update(<QuotationDelete {...props} error="Conflict" />));
+    assert.equal(
+      state.renderer!.root.findByProps({ role: "alert" }).children.includes("Conflict"),
+      true,
+    );
+    await act(() => buttons()[0].props.onClick());
+    await act(() => buttons()[2].props.onClick());
+    assert.deepEqual(calls, { remove: 1, reload: 1 });
+    await act(async () =>
+      state.renderer!.update(<QuotationDelete {...props} pending error="Conflict" />),
+    );
+    assert.equal(
+      buttons().every(button => button.props.disabled),
+      true,
+    );
+    await act(async () => state.renderer!.update(<QuotationDelete {...props} blocked />));
+    assert.equal(buttons()[0].props.disabled, true);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+  }
+});

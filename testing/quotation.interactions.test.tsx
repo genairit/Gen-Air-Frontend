@@ -1,5 +1,6 @@
 import {
   QUOTATION_QUERY_KEY,
+  QUOTATION_COUNTS_KEY,
   QUOTATION_DETAIL_KEY,
   QUOTATION_AUTOSAVE_MS,
 } from "../src/constants/quotation.constant";
@@ -34,9 +35,9 @@ const current = (value: ReturnType<typeof state>) => {
   }
   return value.editor;
 };
-const mount = async (value: ReturnType<typeof state>, editable = true) => {
+const mount = async (value: ReturnType<typeof state>, editable = true, canDelete?: boolean) => {
   const Harness = () => {
-    value.editor = useQuotationEditor(quotationFixture(), editable);
+    value.editor = useQuotationEditor(quotationFixture(), editable, canDelete);
     return null;
   };
   await act(async () => {
@@ -342,5 +343,146 @@ test("failed brand replacement preserves edits and keeps confirmation available 
     await act(async () => {
       renderer.value?.unmount();
     });
+  }
+});
+
+test("delete denies missing permission and dirty edits, independently of update permission", async () => {
+  const remove = mock.method(quotationService, "delete", async () => {});
+  const denied = state();
+  const dirty = state();
+  const readonly = state();
+  try {
+    await mount(denied);
+    await act(() => current(denied).remove());
+    assert.equal(remove.mock.callCount(), 0);
+    await mount(dirty, true, true);
+    await act(async () =>
+      current(dirty).update({ ...current(dirty).quotation, internalNotes: "unsaved" }),
+    );
+    await act(() => current(dirty).remove());
+    assert.equal(remove.mock.callCount(), 0);
+    assert.equal(current(dirty).quotation.internalNotes, "unsaved");
+    await mount(readonly, false, true);
+    await act(() => current(readonly).remove());
+    assert.equal(remove.mock.callCount(), 1);
+    assert.equal(current(readonly).deleted, true);
+  } finally {
+    remove.mock.restore();
+    await unmount(denied);
+    await unmount(dirty);
+    await unmount(readonly);
+  }
+});
+
+test("delete serializes duplicate commands, cancels detail and invalidates list and status counts", async () => {
+  const value = state();
+  const gate = Promise.withResolvers<void>();
+  const remove = mock.method(quotationService, "delete", () => gate.promise);
+  const cancel = mock.method(value.client, "cancelQueries");
+  const transition = mock.method(quotationService, "transition", async quotation => quotation);
+  const pending = { value: null as Promise<void> | null };
+  try {
+    await mount(value, true, true);
+    value.client.setQueryData(QUOTATION_QUERY_KEY, [quotationFixture()]);
+    value.client.setQueryData(QUOTATION_COUNTS_KEY, { draft: 1 });
+    value.client.setQueryData(QUOTATION_DETAIL_KEY(quotationFixture().id), quotationFixture());
+    await act(async () => {
+      pending.value = current(value).remove();
+      await current(value).remove();
+      await current(value).transition("review");
+    });
+    assert.equal(remove.mock.callCount(), 1);
+    assert.equal(transition.mock.callCount(), 0);
+    assert.equal(current(value).busy, true);
+    assert.equal(current(value).deleted, false);
+    await act(async () => {
+      gate.resolve();
+      await pending.value;
+    });
+    assert.equal(current(value).deleted, true);
+    assert.equal(current(value).busy, false);
+    assert.deepEqual(cancel.mock.calls[0].arguments[0], {
+      queryKey: QUOTATION_DETAIL_KEY(quotationFixture().id),
+      exact: true,
+    });
+    assert.equal(value.client.getQueryState(QUOTATION_QUERY_KEY)?.isInvalidated, true);
+    assert.equal(value.client.getQueryState(QUOTATION_COUNTS_KEY)?.isInvalidated, true);
+    await act(async () => {
+      await current(value).remove();
+      current(value).update({ ...current(value).quotation, internalNotes: "after deletion" });
+    });
+    assert.equal(remove.mock.callCount(), 1);
+    assert.equal(current(value).dirty, false);
+  } finally {
+    remove.mock.restore();
+    cancel.mock.restore();
+    transition.mock.restore();
+    await unmount(value);
+  }
+});
+
+test("delete failure preserves quotation and cache, isolates error and permits retry", async () => {
+  const value = state();
+  const remove = mock.method(quotationService, "delete", async () => {
+    throw new Error("version conflict");
+  });
+  try {
+    await mount(value, true, true);
+    const base = current(value).quotation;
+    value.client.setQueryData(QUOTATION_DETAIL_KEY(base.id), base);
+    value.client.setQueryData(QUOTATION_QUERY_KEY, [base]);
+    await act(() => current(value).remove());
+    assert.equal(current(value).deleted, false);
+    assert.equal(current(value).busy, false);
+    assert.equal(current(value).error, null);
+    assert.ok(current(value).deleteError);
+    assert.deepEqual(current(value).quotation, base);
+    assert.deepEqual(value.client.getQueryData(QUOTATION_DETAIL_KEY(base.id)), base);
+    assert.equal(value.client.getQueryState(QUOTATION_QUERY_KEY)?.isInvalidated, false);
+    remove.mock.mockImplementation(async () => {});
+    await act(() => current(value).remove());
+    assert.equal(remove.mock.callCount(), 2);
+    assert.equal(current(value).deleteError, null);
+    assert.equal(current(value).deleted, true);
+  } finally {
+    remove.mock.restore();
+    await unmount(value);
+  }
+});
+
+test("delete uses latest autosave and conflict reload versions", async () => {
+  const value = state();
+  const save = mock.method(quotationService, "save", async quotation => ({
+    ...quotation,
+    version: 7,
+  }));
+  const get = mock.method(quotationService, "get", async () => ({
+    ...quotationFixture(),
+    version: 9,
+  }));
+  const remove = mock.method(quotationService, "delete", async () => {
+    throw new Error("conflict");
+  });
+  try {
+    await mount(value, true, true);
+    await act(async () =>
+      current(value).update({ ...current(value).quotation, internalNotes: "save first" }),
+    );
+    await act(async () => {
+      await settle(QUOTATION_AUTOSAVE_MS + 30);
+    });
+    await act(() => current(value).remove());
+    assert.deepEqual(remove.mock.calls[0].arguments[0], { id: quotationFixture().id, version: 7 });
+    await act(() => current(value).reload());
+    assert.equal(current(value).deleteError, null);
+    assert.equal(current(value).quotation.version, 9);
+    remove.mock.mockImplementation(async () => {});
+    await act(() => current(value).remove());
+    assert.deepEqual(remove.mock.calls[1].arguments[0], { id: quotationFixture().id, version: 9 });
+  } finally {
+    save.mock.restore();
+    get.mock.restore();
+    remove.mock.restore();
+    await unmount(value);
   }
 });
