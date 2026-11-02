@@ -94,9 +94,12 @@ export interface IQuotationListQuery {
 export interface IQuotationEditorState {
   busy: boolean;
   dirty: boolean;
+  deleted: boolean;
   retry: () => void;
   error: string | null;
   quotation: IQuotation;
+  deleteError: string | null;
+  remove: () => Promise<void>;
   reload: () => Promise<void>;
   update: (quotation: IQuotation) => void;
   acknowledge: (keys: string[]) => Promise<void>;

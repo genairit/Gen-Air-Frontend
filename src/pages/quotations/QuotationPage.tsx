@@ -40,6 +40,7 @@ const QuotationPage: FC = () => {
       key={query.data.id}
       initial={query.data}
       editable={hasPermission(user, PERMISSIONS.QUOTATIONS_UPDATE)}
+      canDelete={hasPermission(user, PERMISSIONS.QUOTATIONS_DELETE)}
       canApprove={hasPermission(user, PERMISSIONS.QUOTATIONS_APPROVE)}
     />
   );

@@ -53,6 +53,11 @@ export const quotationService = {
     const response = await httpClient.get<unknown>(endpoint);
     return ensureResponse(endpoint, response.data, isQuotation);
   },
+  async delete(quotation: Pick<IQuotation, "id" | "version">): Promise<void> {
+    await httpClient.delete(API_ENDPOINTS.quotationById(quotation.id), {
+      data: { version: quotation.version },
+    });
+  },
   async create(customerId: string): Promise<IQuotation> {
     const response = await httpClient.post<unknown>(API_ENDPOINTS.QUOTATIONS, { customerId });
     return ensureResponse(API_ENDPOINTS.QUOTATIONS, response.data, isQuotation);
