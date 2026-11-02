@@ -61,6 +61,7 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({ projectId }) => {
     <Box component="section" aria-label={PROJECT_PAGE_COPY.FOLDERS_TITLE}>
       <Card>
         <CardHeader
+          stackActionsOnMobile
           icon={ICON_NAMES.GDRIVE}
           title={PROJECT_PAGE_COPY.FOLDERS_TITLE}
           subtitle={PROJECT_PAGE_COPY.FOLDERS_SUBTITLE}

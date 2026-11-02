@@ -128,6 +128,7 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
         items={toStageTabs(stages)}
         activeId={apartment.stageId}
         variant={TABS_VARIANTS.STATUS}
+        ariaLabel={APARTMENT_PAGE_COPY.STAGE_TITLE}
       />
       {moveMutation.isError && <InlineError message={getApiErrorMessage(moveMutation.error)} />}
     </Card>

@@ -10,19 +10,25 @@ import { MemoryRouter } from "react-router-dom";
 import { act, create } from "react-test-renderer";
 import Button from "../src/components/Button/Button";
 import { setSession } from "../src/store/session.store";
+import { TABS_VARIANTS } from "../src/constants/tabs.constant";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import type { IApiCustomer } from "../src/interfaces/api.interface";
+import { MOBILE_LAYOUT_QUERY } from "../src/constants/layout.constant";
 import Autocomplete from "../src/components/Autocomplete/Autocomplete";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BUILDING_PAGE_COPY } from "../src/constants/apartment.constant";
 import { PROJECT_FORM_COPY } from "../src/constants/project-form.constant";
 import { CUSTOMER_FORM_COPY } from "../src/constants/customer-form.constant";
+import { useStyles as getLayoutStyles } from "../src/layouts/AppLayout.style";
+import { useStyles as getTabStyles } from "../src/components/Tabs/Tabs.style";
 import { PROJECT_INTAKE_COPY } from "../src/constants/project-intake.constant";
 import NewCustomerForm from "../src/pages/customer-form/components/NewCustomerForm";
 import CustomerFieldsCard from "../src/pages/customer-form/components/CustomerFieldsCard";
+import { useStyles as getHeaderStyles } from "../src/components/CardHeader/CardHeader.style";
 import CustomerPaymentDefault from "../src/components/CustomerPaymentDefault/CustomerPaymentDefault";
+import { useStyles as getDriveStyles } from "../src/pages/project/components/ProjectDriveActions.style";
 
 const customer: IApiCustomer = {
   id: "customer-payment",
@@ -41,6 +47,43 @@ const customer: IApiCustomer = {
   prioritySyncError: null,
   createdById: "test-admin",
 };
+
+test("responsive shell geometry changes together through CSS without a media-query render", () => {
+  const styles = getLayoutStyles();
+  const mobileQuery = `@media ${MOBILE_LAYOUT_QUERY}`;
+  assert.equal(styles.sidebarSlot[mobileQuery].display, "none");
+  assert.equal(styles.mobileNavigation.display, "none");
+  assert.equal(styles.mobileNavigation[mobileQuery].display, "grid");
+  assert.equal(styles.main.padding, "16px 24px 48px");
+  assert.match(styles.main[mobileQuery].padding, /112px.*safe-area-inset-bottom/);
+  assert.equal(styles.main.minWidth, 0);
+});
+
+test("mobile status choices wrap without changing other full-width tab variants", () => {
+  const styles = getTabStyles();
+  const status = styles.container({ variant: TABS_VARIANTS.STATUS, isFullWidth: true });
+  const segmented = styles.container({ variant: TABS_VARIANTS.SEGMENTED, isFullWidth: true });
+  assert.ok(status && typeof status === "object");
+  assert.ok(segmented && typeof segmented === "object");
+  const mobileQuery = `@media ${MOBILE_LAYOUT_QUERY}`;
+  assert.deepEqual(Reflect.get(status, mobileQuery), { flexWrap: "wrap" });
+  assert.equal(mobileQuery in segmented, false);
+  assert.equal(Reflect.get(status, "flexWrap"), "nowrap");
+});
+
+test("Drive action stacking is opt-in and action links remain shrinkable", () => {
+  const styles = getHeaderStyles();
+  const mobileQuery = `@media ${MOBILE_LAYOUT_QUERY}`;
+  const stacked = styles.headerLayout({ stackActionsOnMobile: true });
+  const regular = styles.headerLayout({ stackActionsOnMobile: false });
+  assert.deepEqual(Reflect.get(stacked, mobileQuery), { flexDirection: "column" });
+  assert.equal(mobileQuery in regular, false);
+  assert.equal(styles.action.maxWidth, "100%");
+  const drive = getDriveStyles();
+  assert.equal(drive.actions.flexWrap, "wrap");
+  assert.equal(drive.link.whiteSpace, "normal");
+  assert.equal(drive.link.maxWidth, "100%");
+});
 
 test("project and apartment copy never promises retired payment storage or inheritance", () => {
   const projectCopy = [

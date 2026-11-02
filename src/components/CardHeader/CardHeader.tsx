@@ -12,22 +12,37 @@ interface ICardHeaderProps {
   subtitle?: string;
   action?: ReactNode;
   icon?: IconNameType;
+  stackActionsOnMobile?: boolean;
 }
 
-const CardHeader: FC<ICardHeaderProps> = ({ title, icon, badge, subtitle, action }) => {
+const CardHeader: FC<ICardHeaderProps> = ({
+  title,
+  icon,
+  badge,
+  subtitle,
+  action,
+  stackActionsOnMobile = false,
+}) => {
   const styles = useStyles();
+  const headerAction = stackActionsOnMobile ? null : action;
+  const separateAction = stackActionsOnMobile ? action : null;
 
   return (
     <Box sx={styles.container}>
       {icon && <IconTile name={icon} />}
       <Box sx={styles.content}>
-        <SmartbaseCardHeader
-          title={title}
-          action={action}
-          onRemove={null}
-          subtitle={subtitle}
-          titleAccessory={badge && <Chip label={badge} />}
-        />
+        <Box sx={styles.headerLayout({ stackActionsOnMobile })}>
+          <Box sx={styles.titles}>
+            <SmartbaseCardHeader
+              title={title}
+              onRemove={null}
+              subtitle={subtitle}
+              action={headerAction}
+              titleAccessory={badge && <Chip label={badge} />}
+            />
+          </Box>
+          {separateAction && <Box sx={styles.action}>{separateAction}</Box>}
+        </Box>
       </Box>
     </Box>
   );

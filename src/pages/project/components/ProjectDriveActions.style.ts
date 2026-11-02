@@ -4,6 +4,8 @@ import { theme } from "../../../constants/theme.constants";
 export const useStyles = () =>
   createStyles({
     actions: {
+      minWidth: 0,
+      maxWidth: "100%",
       gap: "12px",
       display: "flex",
       flexWrap: "wrap",
@@ -20,6 +22,11 @@ export const useStyles = () =>
       boxShadow: theme.softShadow.inset,
     },
     link: {
+      minWidth: 0,
+      maxWidth: "100%",
+      whiteSpace: "normal",
+      overflowWrap: "anywhere",
+      boxSizing: "border-box",
       gap: "8px",
       minHeight: 44,
       fontSize: 14,
