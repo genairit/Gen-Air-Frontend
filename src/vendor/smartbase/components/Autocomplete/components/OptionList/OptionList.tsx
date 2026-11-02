@@ -8,6 +8,7 @@ import { Box } from "@mui/material";
 import { useStyles } from "./OptionList.style";
 import MatchedText from "../MatchedText/MatchedText";
 import CheckMarkIcon from "../../../../icons/CheckMarkIcon";
+import { useOptionPointer } from "../../../../hooks/use-option-pointer.hook";
 import { getListMaxHeight, getOptionId } from "../../utilities/autocomplete.utility";
 
 const OptionList: FC<IOptionListProps> = ({
@@ -29,6 +30,7 @@ const OptionList: FC<IOptionListProps> = ({
   isMatchHighlighted,
 }) => {
   const styles = useStyles(colors, getListMaxHeight(maxVisibleRows));
+  const pointer = useOptionPointer(onSelect);
 
   const renderOption = (option: IAutocompleteOption, index: number) => {
     const isActive = index === activeIndex;
@@ -39,10 +41,14 @@ const OptionList: FC<IOptionListProps> = ({
         role="option"
         key={option.value}
         aria-selected={isSelected}
-        onClick={() => onSelect(option)}
         id={getOptionId(listId, option.value)}
         onMouseEnter={() => onActivate(index)}
+        onPointerMove={pointer.handlePointerMove}
+        onPointerCancel={pointer.handlePointerCancel}
+        onClick={event => pointer.handleClick(event, option)}
         sx={[styles.option, isActive && styles.activeOption]}
+        onPointerUp={event => pointer.handlePointerUp(event, option.value)}
+        onPointerDown={event => pointer.handlePointerDown(event, option.value, option)}
       >
         <Box component="span" sx={styles.optionText}>
           <MatchedText query={query} text={option.label} isHighlighted={isMatchHighlighted} />

@@ -27,6 +27,7 @@ import { useDebouncedValue } from "../../hooks/debounced-value.hook";
 import AddressSuggestionList from "./components/AddressSuggestionList";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import AddressStatusAdornment from "./components/AddressStatusAdornment";
+import type { IApiPlaceSuggestion } from "../../interfaces/api.interface";
 import type { IVerifiedAddress } from "../../interfaces/project.interface";
 import { useAddressSuggestionsQuery } from "../../hooks/queries/address.query";
 import { useVerifyAddressMutation } from "../../hooks/mutations/address.mutation";
@@ -92,13 +93,7 @@ const AddressAutocomplete: FC<IAddressAutocompleteProps> = ({
     renewSessionToken();
   };
 
-  const selectSuggestion = (index: number) => {
-    const suggestion = suggestions[index] ?? null;
-
-    if (!suggestion) {
-      return;
-    }
-
+  const selectSuggestion = (suggestion: IApiPlaceSuggestion) => {
     setLookupError(null);
     setInput(formatSuggestionLabel(suggestion));
     inputRef.current?.blur();
@@ -113,7 +108,10 @@ const AddressAutocomplete: FC<IAddressAutocompleteProps> = ({
 
   const { activeIndex, handleKeyDown, resetActiveIndex } = useListNavigation({
     isEnabled: isFocused,
-    onSelect: selectSuggestion,
+    onSelect: index => {
+      const suggestion = suggestions[index];
+      if (suggestion) selectSuggestion(suggestion);
+    },
     itemCount: suggestions.length,
     onEscape: () => inputRef.current?.blur(),
   });

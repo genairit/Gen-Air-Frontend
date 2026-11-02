@@ -6,19 +6,20 @@ import {
 
 import Icon from "../../Icon/Icon";
 import { Box } from "@mui/material";
-import { type FC, type ReactNode, useRef } from "react";
+import type { FC, ReactNode } from "react";
 import { useStyles } from "../AddressAutocomplete.style";
 import { theme } from "../../../constants/theme.constants";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import type { IApiPlaceSuggestion } from "../../../interfaces/api.interface";
+import { useOptionPointer } from "../../../vendor/smartbase/hooks/use-option-pointer.hook";
 
 interface IAddressSuggestionListProps {
   listId: string;
   activeIndex: number;
   state: SuggestionListStateType;
-  onSelect: (index: number) => void;
   suggestions: IApiPlaceSuggestion[];
   getOptionId: (index: number) => string;
+  onSelect: (suggestion: IApiPlaceSuggestion) => void;
 }
 
 const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
@@ -30,12 +31,7 @@ const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
   getOptionId,
 }) => {
   const styles = useStyles();
-  const pendingPointer = useRef<{
-    index: number;
-    pointerId: number;
-    x: number;
-    y: number;
-  } | null>(null);
+  const pointer = useOptionPointer(onSelect);
 
   const renderMessage = (message: string) => (
     <Box component="li" role="presentation" sx={styles.listMessage}>
@@ -50,34 +46,12 @@ const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
       id={getOptionId(index)}
       key={suggestion.placeId}
       aria-selected={index === activeIndex}
+      onPointerMove={pointer.handlePointerMove}
       sx={styles.suggestion(index === activeIndex)}
-      onPointerCancel={() => {
-        pendingPointer.current = null;
-      }}
-      onPointerUp={event => {
-        const pending = pendingPointer.current;
-        pendingPointer.current = null;
-        if (pending?.pointerId === event.pointerId && pending.index === index) onSelect(index);
-      }}
-      onPointerMove={event => {
-        const pending = pendingPointer.current;
-        if (
-          pending?.pointerId === event.pointerId &&
-          Math.hypot(event.clientX - pending.x, event.clientY - pending.y) > 10
-        ) {
-          pendingPointer.current = null;
-        }
-      }}
-      onPointerDown={event => {
-        if (!event.isPrimary || event.button !== 0) return;
-        if (event.pointerType === "mouse") event.preventDefault();
-        pendingPointer.current = {
-          index,
-          pointerId: event.pointerId,
-          x: event.clientX,
-          y: event.clientY,
-        };
-      }}
+      onPointerCancel={pointer.handlePointerCancel}
+      onClick={event => pointer.handleClick(event, suggestion)}
+      onPointerUp={event => pointer.handlePointerUp(event, suggestion.placeId)}
+      onPointerDown={event => pointer.handlePointerDown(event, suggestion.placeId, suggestion)}
     >
       <Icon size={22} name={ICON_NAMES.LOCATION} color={theme.palette.primary} />
       <Box sx={styles.suggestionText}>
