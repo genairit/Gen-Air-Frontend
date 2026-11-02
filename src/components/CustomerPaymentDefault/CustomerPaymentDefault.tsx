@@ -1,3 +1,10 @@
+import {
+  PAYMENT_TERMS_VALUES,
+  PAYMENT_TERMS_LABELS,
+  CUSTOMER_PAYMENT_DEFAULT_COPY,
+  CUSTOMER_PAYMENT_DEFAULT_LABELS,
+} from "../../constants/payment-terms.constant";
+
 import type { FC } from "react";
 import Card from "../Card/Card";
 import { useState } from "react";
@@ -9,8 +16,6 @@ import { isPaymentTerms } from "../../utilities/guards/api.guard";
 import { hasPermission } from "../../utilities/permission.utility";
 import type { IApiCustomer } from "../../interfaces/api.interface";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
-import { CUSTOMER_PAYMENT_DEFAULT_LABELS } from "../../constants/payment-terms.constant";
-import { PAYMENT_TERMS_VALUES, PAYMENT_TERMS_LABELS } from "../../constants/payment-terms.constant";
 import { useCustomerPaymentDefaultMutation } from "../../hooks/mutations/customer-payment-default.mutation";
 
 interface ICustomerPaymentDefaultProps {
@@ -23,7 +28,9 @@ const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({
   const [selected, setSelected] = useState(customer.paymentTerms ?? null);
   const update = useCustomerPaymentDefaultMutation(customer.id);
   const editable = hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
-  const label = selected ? PAYMENT_TERMS_LABELS[selected].title : null;
+  const label = selected
+    ? PAYMENT_TERMS_LABELS[selected].title
+    : CUSTOMER_PAYMENT_DEFAULT_COPY.NONE;
   const options = CUSTOMER_PAYMENT_DEFAULT_LABELS;
   const change = (label: string | null) => {
     const key =

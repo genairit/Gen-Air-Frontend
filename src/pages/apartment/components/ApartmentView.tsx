@@ -36,7 +36,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
           <ApartmentEndCustomerCard building={building} apartment={apartment} />
           <ApartmentContactCard canEdit={canEdit} apartment={apartment} />
         </Box>
-        <ApartmentInheritedCard canEdit={canEdit} building={building} apartment={apartment} />
+        <ApartmentInheritedCard apartment={apartment} />
       </Box>
 
       <ApartmentCommercialCard apartment={apartment} />

@@ -116,12 +116,7 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
         members={values.members}
         onChange={members => updateValues({ members })}
       />
-      <InheritedPreviewCard
-        values={values}
-        building={building}
-        onChange={updateValues}
-        isSubmitAttempted={isSubmitAttempted}
-      />
+      <InheritedPreviewCard building={building} />
 
       {showFieldErrors && (
         <InlineError message={formatApartmentValidationCount(invalidFieldCount)} />
