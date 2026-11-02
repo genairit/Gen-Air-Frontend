@@ -52,9 +52,14 @@ const TaskView: FC<ITaskViewProps> = ({
   const styles = usePageStyles();
   const sessionUser = useSessionUser();
   const [emailOpen, setEmailOpen] = useState(false);
+  const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
+  const statusMutation = useUpdateTaskStatusMutation();
+  const urgencyMutation = useUpdateTaskUrgencyMutation();
+  const updateMutation = useUpdateTaskMutation();
+  const claimMutation = useClaimTaskMutation();
   const canPrepareEmail =
     canChangeStatus &&
-    Boolean(task.projectId) &&
+    task.projectId !== null &&
     task.taskType === TASK_TYPES.QUOTATION &&
     [
       PERMISSIONS.TASKS_READ,
@@ -62,17 +67,14 @@ const TaskView: FC<ITaskViewProps> = ({
       PERMISSIONS.CUSTOMERS_READ,
       PERMISSIONS.DRIVE_READ,
     ].every(permission => hasPermission(sessionUser, permission));
-  const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
-  const statusMutation = useUpdateTaskStatusMutation();
-  const urgencyMutation = useUpdateTaskUrgencyMutation();
-  const updateMutation = useUpdateTaskMutation();
-  const claimMutation = useClaimTaskMutation();
   const changeStatus = (status: typeof task.status) =>
     statusMutation.mutate(
       { taskId: task.id, status },
       {
         onSuccess: () => {
-          if (status === TASK_STATUSES.PROPOSAL_SENT && canPrepareEmail) setEmailOpen(true);
+          if (status === TASK_STATUSES.PROPOSAL_SENT && canPrepareEmail) {
+            setEmailOpen(true);
+          }
         },
       },
     );

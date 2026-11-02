@@ -44,45 +44,55 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
     queryFn: () => quotationExecutionEmailService.getContext(taskId),
     retry: false,
   });
-  const context = contextQuery.data;
-  const projectId = context?.projectId ?? "";
-  const currentFolder = folderPath.at(-1)?.id ?? null;
-  const folderQuery = useProjectDriveQuery(projectId, currentFolder, step === 2);
+  const folderQuery = useProjectDriveQuery(
+    contextQuery.data?.projectId ?? "",
+    folderPath.at(-1)?.id ?? null,
+    step === 2,
+  );
   const sendMutation = useMutation({
-    mutationFn: () =>
-      quotationExecutionEmailService.send(taskId, {
+    mutationFn: () => {
+      if (!plan || !zip) {
+        throw new Error("בחרו תוכנית וקובץ ZIP לפני השליחה");
+      }
+      return quotationExecutionEmailService.send(taskId, {
         requestId,
         recipientContactIds: recipientIds,
         architectContactId: architectId,
         planVersion: version.trim(),
-        planFileId: plan!.id,
-        zipFileId: zip!.id,
-      }),
+        planFileId: plan.id,
+        zipFileId: zip.id,
+      });
+    },
     onError: () => setRequestId(crypto.randomUUID()),
     onSettled: async () => {
       await contextQuery.refetch();
     },
   });
-  const selectedContacts =
-    context?.contacts.filter(contact => recipientIds.includes(contact.id)) ?? [];
-  const architect = selectedContacts.find(contact => contact.id === architectId);
-  const canContinue = Boolean(
-    context?.apartmentNumber && version.trim() && recipientIds.length && architect,
-  );
-  const locked = sendMutation.isPending;
-  const receipt = sendMutation.data ?? context?.delivery;
-  const alreadySent = receipt?.status === "sent";
-  const blocked = Boolean(receipt && !receipt.retryable && receipt.status !== "sent");
   const previewQuery = useQuery({
     queryKey: ["quotation-execution-email-preview", taskId, architectId, version.trim()],
     queryFn: () => quotationExecutionEmailService.getPreview(taskId, architectId, version.trim()),
-    enabled: step === 2 && Boolean(architect && version.trim()),
+    enabled: step === 2 && architectId.length > 0 && version.trim().length > 0,
     retry: false,
   });
+  const context = contextQuery.data;
+  const selectedContacts =
+    context?.contacts.filter(contact => recipientIds.includes(contact.id)) ?? [];
+  const architect = selectedContacts.find(contact => contact.id === architectId);
+  const canContinue =
+    context?.apartmentNumber != null &&
+    version.trim().length > 0 &&
+    recipientIds.length > 0 &&
+    architect != null;
+  const locked = sendMutation.isPending;
+  const receipt = sendMutation.data ?? context?.delivery;
+  const alreadySent = receipt?.status === "sent";
+  const blocked = receipt != null && !receipt.retryable && receipt.status !== "sent";
   const toggleRecipient = (id: string) => {
     setRecipientIds(current => {
       const next = current.includes(id) ? current.filter(value => value !== id) : [...current, id];
-      if (!next.includes(architectId)) setArchitectId("");
+      if (!next.includes(architectId)) {
+        setArchitectId("");
+      }
       return next;
     });
   };
@@ -102,7 +112,9 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
       maxWidth="md"
       aria-labelledby="quotation-email-title"
       onClose={() => {
-        if (!locked) onClose();
+        if (!locked) {
+          onClose();
+        }
       }}
     >
       <DialogTitle id="quotation-email-title">שליחת תוכנית מיזוג אוויר לביצוע</DialogTitle>
