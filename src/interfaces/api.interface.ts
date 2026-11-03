@@ -4,6 +4,7 @@ import type { PermissionType } from "../constants/permission.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { FolderContentStatusType } from "../constants/drive-folder.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
+import type { SharedDocumentStatusType } from "../constants/shared-document.constant";
 import type { ApartmentOwnershipType } from "../constants/apartment-commercial.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
@@ -126,6 +127,7 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   parentProjectId: string | null;
   apartmentCredit?: string | null;
   prioritySyncedAt: string | null;
+  sharedDocumentFileId?: string | null;
   parentProject?: IApiProjectReference;
   hasGeneralLightingCeilingLowering?: boolean;
   inheritedFields?: InheritedProjectFieldType[];
@@ -171,6 +173,11 @@ export interface IApiDriveContents {
   folderId: string;
   files: IApiDriveItem[];
   folders: IApiDriveFolder[];
+}
+
+export interface IApiSharedDocument {
+  status: SharedDocumentStatusType;
+  file: { id: string; name: string; url: string } | null;
 }
 
 export type TUserRoleCounts = Record<UserRoleType, number> & { total: number };

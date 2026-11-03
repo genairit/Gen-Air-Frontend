@@ -45,6 +45,7 @@ export const API_ENDPOINTS = {
   PROJECT_TYPES: "/project-type",
   projectTransitions: (projectId: string) => `/project-stage-transition/by-project/${projectId}`,
   projectDriveContents: (projectId: string) => `/project-drive/${projectId}/contents`,
+  projectSharedDocument: (projectId: string) => `/project-drive/${projectId}/shared-document`,
   projectDriveProvision: (projectId: string) => `/project-drive/${projectId}/provision`,
   projectDriveFiles: (projectId: string) => `/project-drive/${projectId}/files`,
   projectDriveFile: (projectId: string, fileId: string) =>

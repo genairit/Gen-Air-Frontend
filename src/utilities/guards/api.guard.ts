@@ -22,6 +22,7 @@ import type {
   IApiApartmentPage,
   IApiProjectMember,
   IApiDriveContents,
+  IApiSharedDocument,
   IApiAuthorizedUser,
   IApiPlaceSuggestion,
   IProjectStageCounts,
@@ -52,6 +53,7 @@ import {
 import { isPermission } from "./permission.guard";
 import { isCustomerContactList } from "../customer-contact.utility";
 import { hasValidProjectLighting } from "../project-constraints.utility";
+import { SHARED_DOCUMENT_STATUS } from "../../constants/shared-document.constant";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
 import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial.utility";
 
@@ -178,6 +180,8 @@ export const isApiProject = (value: unknown): value is IApiProject => {
 
   const hasDetails = hasCustomerDetails(value) && hasProjectIntake(value);
   const hasHierarchy = isNullableString(value.parentProjectId) && isNullableString(value.notes);
+  const hasSharedDocument =
+    !("sharedDocumentFileId" in value) || isNullableString(value.sharedDocumentFileId);
   const hasValidCredit = isOptionalOf(isApartmentCredit)(value.apartmentCredit);
   const hasValidOwnership = isOptionalOf(isApartmentOwnership)(value.apartmentOwnership);
   const hasValidOwnTeam = !("hasOwnTeam" in value) || typeof value.hasOwnTeam === "boolean";
@@ -190,6 +194,7 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     hasValidMembers &&
     hasDetails &&
     hasHierarchy &&
+    hasSharedDocument &&
     hasValidCustomer &&
     hasValidOwnTeam &&
     hasValidCredit &&
@@ -253,6 +258,32 @@ export const isApiDriveContents = (value: unknown): value is IApiDriveContents =
   const hasFolders = isArrayOf(isApiDriveFolder)(value.folders);
 
   return typeof value.folderId === "string" && hasFiles && hasFolders;
+};
+
+export const isApiSharedDocument = (value: unknown): value is IApiSharedDocument => {
+  if (
+    !isRecord(value) ||
+    typeof value.status !== "string" ||
+    !Object.values(SHARED_DOCUMENT_STATUS).some(status => status === value.status)
+  ) {
+    return false;
+  }
+  if (value.status !== SHARED_DOCUMENT_STATUS.AVAILABLE) {
+    return value.file === null;
+  }
+  if (
+    !isRecord(value.file) ||
+    !hasStringFields(value.file, ["id", "name", "url"]) ||
+    typeof value.file.url !== "string"
+  ) {
+    return false;
+  }
+  try {
+    const url = new URL(value.file.url);
+    return url.protocol === "https:" && url.hostname === "drive.google.com";
+  } catch {
+    return false;
+  }
 };
 
 export const isApiPlaceSuggestion = (value: unknown): value is IApiPlaceSuggestion => {

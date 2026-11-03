@@ -1,6 +1,7 @@
 import {
   uploadProjectFilesAction,
   moveProjectDriveFileAction,
+  selectSharedDocumentAction,
   trashProjectDriveFileAction,
   provisionProjectDriveAction,
 } from "../../actions/drive.action";
@@ -39,3 +40,6 @@ export const useMoveProjectDriveFileMutation = () =>
   useMutation({ mutationFn: moveProjectDriveFileAction });
 export const useTrashProjectDriveFileMutation = () =>
   useMutation({ mutationFn: trashProjectDriveFileAction });
+
+export const useSelectSharedDocumentMutation = () =>
+  useMutation({ mutationFn: selectSharedDocumentAction });

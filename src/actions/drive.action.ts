@@ -47,6 +47,8 @@ export const moveProjectDriveFileAction = async ({
   useDriveFeedbackStore.getState().show(projectId, DRIVE_FILE_COPY.MOVE_SUCCESS);
   await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT_DRIVE, projectId] });
   context.assertCurrent();
+  await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.SHARED_DOCUMENT] });
+  context.assertCurrent();
 };
 
 export const trashProjectDriveFileAction = async ({
@@ -59,5 +61,24 @@ export const trashProjectDriveFileAction = async ({
   context.assertCurrent();
   useDriveFeedbackStore.getState().show(projectId, DRIVE_FILE_COPY.DELETE_SUCCESS);
   await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT_DRIVE, projectId] });
+  context.assertCurrent();
+  await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.SHARED_DOCUMENT] });
+  context.assertCurrent();
+};
+
+export const selectSharedDocumentAction = async ({
+  projectId,
+  fileId,
+}: {
+  projectId: string;
+  fileId: string | null;
+}): Promise<void> => {
+  const context = new AuthorizationContext();
+  await projectActivityService.selectSharedDocument(projectId, fileId);
+  context.assertCurrent();
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.SHARED_DOCUMENT] }),
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT, projectId] }),
+  ]);
   context.assertCurrent();
 };
