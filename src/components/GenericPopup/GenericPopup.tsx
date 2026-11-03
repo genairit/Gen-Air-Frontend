@@ -35,12 +35,14 @@ export interface IGenericPopupProps {
   open: boolean;
   title: string;
   header?: ReactNode;
+  dir?: "ltr" | "rtl";
   sx?: SxProps<Theme>;
   guidelines?: string;
   signature?: boolean;
   content?: ReactNode;
   onClose?: () => void;
   align?: TAlignContent;
+  closeDisabled?: boolean;
   closeAfterAction?: boolean;
   maxWidth?: "sm" | "md" | "lg";
   icon?: TPopUpIcons | ReactNode;
@@ -55,12 +57,14 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   sx,
   icon,
   title,
+  dir,
   onClose,
   buttons,
   content,
   header,
   signature,
   guidelines,
+  closeDisabled = false,
   align = "left",
   maxWidth = "sm",
   closeAfterAction = true,
@@ -73,6 +77,11 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   const [secondaryButtonLoading, setSecondaryButtonLoading] = useState(false);
 
   const needToSign = Boolean(signature) && !isSigned;
+  const handleClose = () => {
+    if (!closeDisabled) {
+      onClose?.();
+    }
+  };
 
   const handlePrimaryButtonClick = async (event: MouseEvent<HTMLButtonElement>) => {
     const context = new AuthorizationContext();
@@ -114,7 +123,7 @@ const GenericPopup: FC<IGenericPopupProps> = ({
     <>
       <Box sx={styles.headerContainer}>
         <DialogTitle sx={styles.title}>{title ?? ""}</DialogTitle>
-        <IconButton size="small" onClick={onClose}>
+        <IconButton size="small" aria-label="סגירה" onClick={handleClose} disabled={closeDisabled}>
           <Close />
         </IconButton>
       </Box>
@@ -125,9 +134,11 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   return (
     <Dialog
       fullWidth
+      dir={dir}
       open={open}
-      onClose={onClose}
+      aria-label={title}
       maxWidth={maxWidth}
+      onClose={handleClose}
       sx={mergeSx(styles.root, sx ?? null)}
     >
       {popupHeader}

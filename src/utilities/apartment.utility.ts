@@ -1,10 +1,4 @@
 import {
-  formatPaymentTerms,
-  getPaymentTermsOptions,
-  isPaymentTermsNoteRequired,
-} from "./project-intake.utility";
-
-import {
   ADD_APARTMENT_COPY,
   BUILDING_PAGE_COPY,
   APARTMENT_PAGE_COPY,
@@ -13,23 +7,16 @@ import {
 import type {
   IApartmentPosition,
   IApartmentFormValues,
-  TInheritanceSourceType,
   IApartmentTeamCandidate,
 } from "../interfaces/apartment.interface";
 
-import { isPaymentTerms } from "./guards/api.guard";
 import { getFullName } from "./mappers/user.mapper";
-import { findOptionIdByLabel } from "./option.utility";
 import { getAssignedRoles } from "./user-role.utility";
-import { validatePaymentTermsNote } from "./validators";
-import { formatCustomerDetailValue } from "./customer-details.utility";
 import { APARTMENT_UNIT_FIELDS } from "../constants/apartment.constant";
 import type { IApartmentPayload } from "../interfaces/api-request.interface";
 import type { IApiProjectMember, IApiUser } from "../interfaces/api.interface";
 import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
 import { USER_ROLE_LABELS, PROJECT_MEMBER_ROLES } from "../constants/user-role.constant";
-import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
-import { PAYMENT_TERMS_LABELS, type PaymentTermsType } from "../constants/payment-terms.constant";
 
 export type ProjectKindType = "building" | "apartment" | "standalone";
 
@@ -79,9 +66,6 @@ export const toApartmentPayload = (values: IApartmentFormValues): IApartmentPayl
   customerFloor: Number(values.floor),
   customerApartment: values.apartmentNumber.trim(),
   ...(values.members === null ? {} : { members: toApartmentAssignments(values.members) }),
-  ...(values.paymentTerms
-    ? toPaymentTermsOverride(values.paymentTerms, values.paymentTermsNote)
-    : {}),
 });
 
 export const countInvalidApartmentFields = (values: IApartmentFormValues) => {
@@ -89,11 +73,7 @@ export const countInvalidApartmentFields = (values: IApartmentFormValues) => {
     config => !config.validate(values[config.field]).isValid,
   ).length;
   const customerErrors = Number(!values.customerId);
-  const noteRequired = isPaymentTermsNoteRequired(values.paymentTerms);
-  const noteErrors = Number(
-    noteRequired && !validatePaymentTermsNote(values.paymentTermsNote).isValid,
-  );
-  return unitErrors + customerErrors + noteErrors;
+  return unitErrors + customerErrors;
 };
 
 export const toApartmentAssignments = (members: IApiProjectMember[]) =>
@@ -135,16 +115,6 @@ export const formatParentCustomerNote = (building: IApiProject) =>
 
 export const formatApartmentValidationCount = (count: number) =>
   `יש ${count} שדות לתיקון לפני ההוספה`;
-
-export const getPaymentTermsSource = (apartment: IApiProject): TInheritanceSourceType => {
-  const isInherited = apartment.inheritedFields?.includes("paymentTerms") ?? false;
-
-  if (isInherited) {
-    return "building";
-  }
-
-  return "overridden";
-};
 
 export const findApartmentPosition = (
   apartments: IApiProject[],
@@ -193,47 +163,6 @@ export const formatBuildingEyebrow = (buildingName: string) =>
 
 export const toStageTabs = (stages: IApiProjectStage[]) =>
   stages.map(stage => ({ id: stage.id, label: stage.name, dotColor: stage.color }));
-
-export const toPaymentTermsOptions = (fieldSet: ProjectDetailFieldSetType | null) =>
-  getPaymentTermsOptions(fieldSet).map(terms => ({
-    id: terms,
-    label: PAYMENT_TERMS_LABELS[terms].title,
-  }));
-
-export const findPaymentTermsByLabel = (
-  fieldSet: ProjectDetailFieldSetType | null,
-  label: string | null,
-) => {
-  const terms = findOptionIdByLabel(toPaymentTermsOptions(fieldSet), label);
-
-  if (!isPaymentTerms(terms)) {
-    return null;
-  }
-
-  return terms;
-};
-
-export const toPaymentTermsOverride = (terms: PaymentTermsType, note: string) => ({
-  paymentTerms: terms,
-  paymentTermsNote: isPaymentTermsNoteRequired(terms) ? note.trim() : null,
-});
-
-const formatParentPaymentTerms = (building: IApiProject) =>
-  `${APARTMENT_PAGE_COPY.PARENT_VALUE_PREFIX} ${formatCustomerDetailValue(formatPaymentTerms(building.paymentTerms))}`;
-
-export const getPaymentTermsNotes = ({
-  source,
-  building,
-}: {
-  building: IApiProject;
-  source: TInheritanceSourceType;
-}) => {
-  if (source === "overridden") {
-    return [APARTMENT_PAGE_COPY.OVERRIDE_NOTE, formatParentPaymentTerms(building)];
-  }
-
-  return [APARTMENT_PAGE_COPY.FOLLOWS_UPDATES];
-};
 
 export const formatApartmentUnit = (apartment: IApiProject) =>
   `${formatFloor(apartment)} · ${formatApartmentNumber(apartment)}`;

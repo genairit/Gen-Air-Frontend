@@ -106,8 +106,6 @@ const scenarios = [
           apartmentNumber: "1",
           customerId: CUSTOMER_ID,
           members: null,
-          paymentTerms: null,
-          paymentTermsNote: "",
         },
       }),
   },

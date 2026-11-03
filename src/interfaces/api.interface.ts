@@ -85,13 +85,11 @@ export interface IApiProjectIntake {
   addressCity: string | null;
   contactPhone: string | null;
   addressPlaceId: string | null;
-  paymentTermsNote: string | null;
-  paymentTerms: PaymentTermsType | null;
 }
 
 export type InheritedProjectFieldType = keyof Pick<
   IApiProjectIntake,
-  "address" | "addressCity" | "paymentTerms" | "addressPlaceId" | "paymentTermsNote"
+  "address" | "addressCity" | "addressPlaceId"
 >;
 
 export interface IApiCustomerReference {

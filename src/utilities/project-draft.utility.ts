@@ -1,6 +1,5 @@
 import { logger } from "./logger.utility";
 import { isRecord } from "./guards/primitive.guard";
-import { isPaymentTerms } from "./guards/api.guard";
 import { toProjectFormValues } from "./project.utility";
 import { mapProjectMemberRoles } from "./user-role.utility";
 import { LOCAL_STORAGE_KEYS } from "../constants/storage.constant";
@@ -8,12 +7,13 @@ import { LocalStorageManager } from "../managers/web-storage.manager";
 import { PROJECT_MEMBER_ROLES } from "../constants/user-role.constant";
 import type { IProjectFormValues } from "../interfaces/project.interface";
 
-// Version 2 replaced the system_admin/lead_installer slots with the four project member roles.
-const PROJECT_DRAFT_VERSION = 2;
+// Version 2 drafts remain restorable; the allowlist discards their retired payment terms.
+const PROJECT_DRAFT_VERSION = 3;
+const LEGACY_PROJECT_DRAFT_VERSION = 2;
 
 const draftKey = (userId: string) => `${LOCAL_STORAGE_KEYS.PROJECT_FORM_DRAFT}:${userId}` as const;
 
-// Allowlist only: never store session, customer, contact, address or payment-note data.
+// Allowlist only: never store session, customer, contact or address data.
 const toStoredValues = (values: IProjectFormValues) => ({
   name: values.name,
   hasGeneralLightingCeilingLowering: values.hasGeneralLightingCeilingLowering,
@@ -21,7 +21,6 @@ const toStoredValues = (values: IProjectFormValues) => ({
   typeId: values.typeId,
   stageId: values.stageId,
   assignees: Object.fromEntries(PROJECT_MEMBER_ROLES.map(role => [role, values.assignees[role]])),
-  terms: values.paymentTerms.terms,
 });
 
 type TStoredProjectValues = Partial<ReturnType<typeof toStoredValues>>;
@@ -67,16 +66,13 @@ const isRestorableDraftValues = (values: TStoredProjectValues) => {
   const hasValidAssignees = PROJECT_MEMBER_ROLES.every(role =>
     isNullableString(values.assignees?.[role]),
   );
-  const hasValidTerms = values.terms === null || isPaymentTerms(values.terms);
 
   const hasValidLighting =
     (!("hasGeneralLightingCeilingLowering" in values) ||
       typeof values.hasGeneralLightingCeilingLowering === "boolean") &&
     (!("generalLightingCeilingLoweringHeight" in values) ||
       typeof values.generalLightingCeilingLoweringHeight === "string");
-  return (
-    hasValidName && hasValidReferences && hasValidAssignees && hasValidTerms && hasValidLighting
-  );
+  return hasValidName && hasValidReferences && hasValidAssignees && hasValidLighting;
 };
 
 const isStoredProjectDraft = (value: unknown): value is IStoredProjectDraft => {
@@ -91,7 +87,8 @@ const isStoredProjectDraft = (value: unknown): value is IStoredProjectDraft => {
 };
 
 const toRestorableDraftValues = (draft: IStoredProjectDraft) => {
-  const isCurrentVersion = draft.version === PROJECT_DRAFT_VERSION;
+  const isCurrentVersion =
+    draft.version === PROJECT_DRAFT_VERSION || draft.version === LEGACY_PROJECT_DRAFT_VERSION;
   const values = draft.values ?? null;
 
   if (!isCurrentVersion || !values || !isRestorableDraftValues(values)) {
@@ -112,7 +109,6 @@ const restoreProjectFormValues = (values: TStoredProjectValues): IProjectFormVal
     typeId: values.typeId ?? null,
     stageId: values.stageId ?? null,
     assignees: mapProjectMemberRoles(role => values.assignees?.[role] ?? null),
-    paymentTerms: { ...emptyValues.paymentTerms, terms: values.terms ?? null },
   };
 };
 

@@ -1,17 +1,14 @@
 import type { ChipVariantType } from "../constants/chip.constant";
 import type { IApiUser, IApiProjectMember } from "./api.interface";
 import type { IValidationResult } from "./validation-result.interface";
-import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { ProjectMemberRoleType } from "../constants/user-role.constant";
 import type { TFieldType } from "../components/TextField/constants/textfield.constants";
 
 export interface IApartmentFormValues {
   floor: string;
   apartmentNumber: string;
-  paymentTermsNote: string;
   customerId: string | null;
   members: IApiProjectMember[] | null;
-  paymentTerms: PaymentTermsType | null;
 }
 
 export interface IApartmentTeamCandidate {

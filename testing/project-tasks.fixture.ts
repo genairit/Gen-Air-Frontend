@@ -50,8 +50,6 @@ export const project: IApiProject = {
   address: null,
   addressCity: null,
   addressPlaceId: null,
-  paymentTerms: null,
-  paymentTermsNote: null,
   contactName: null,
   contactPhone: null,
   contactRole: null,

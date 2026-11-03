@@ -10,6 +10,13 @@ development agent a concrete style and interaction specification before implemen
 The [frontend development workflow](rules/frontend-development-workflow-standards.md)
 places that handoff before implementation.
 
+### Responsive layout
+
+The authenticated shell uses the shared 899px CSS breakpoint for sidebar visibility, main
+spacing, and bottom navigation together, including the first render. Mobile full-width status
+choices wrap without hiding options. Drive headers opt into stacked mobile actions; other
+card headers retain their existing layout.
+
 ## Environments
 
 | Environment | Branch | URL                                                 |

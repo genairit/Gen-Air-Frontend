@@ -1,5 +1,4 @@
 import type { UserRoleType } from "../constants/user-role.constant";
-import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
 import type { IApiProjectIntake, IApiProjectCustomerDetails } from "./api.interface";
 
@@ -82,15 +81,11 @@ export interface IApartmentPayload {
   customerId: string;
   customerFloor: number;
   customerApartment: string;
-  paymentTerms?: PaymentTermsType;
-  paymentTermsNote?: string | null;
   members?: IProjectMemberAssignment[];
 }
 
 export interface IApartmentChanges {
   hasOwnTeam?: boolean;
   notes?: string | null;
-  paymentTermsNote?: string | null;
   members?: IProjectMemberAssignment[];
-  paymentTerms?: PaymentTermsType | null;
 }

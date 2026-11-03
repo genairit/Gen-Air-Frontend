@@ -10,7 +10,6 @@ import DetailTile from "../../../../components/DetailTile/DetailTile";
 import { hasTamaNote } from "../../../../utilities/apartment.utility";
 import type { IApiProject } from "../../../../interfaces/api.interface";
 import { BUILDING_PAGE_COPY } from "../../../../constants/apartment.constant";
-import { formatPaymentTerms } from "../../../../utilities/project-intake.utility";
 import { PROJECT_INTAKE_COPY } from "../../../../constants/project-intake.constant";
 import { formatCustomerDetailValue } from "../../../../utilities/customer-details.utility";
 
@@ -43,11 +42,6 @@ const BuildingInheritedCard: FC<IBuildingInheritedCardProps> = ({ building }) =>
           badge={verifiedBadge}
           label={BUILDING_PAGE_COPY.ADDRESS}
           value={formatCustomerDetailValue(building.address)}
-        />
-        <DetailTile
-          note={building.paymentTermsNote}
-          label={BUILDING_PAGE_COPY.PAYMENT_TERMS}
-          value={formatCustomerDetailValue(formatPaymentTerms(building.paymentTerms))}
         />
         <DetailTile
           isFullWidth

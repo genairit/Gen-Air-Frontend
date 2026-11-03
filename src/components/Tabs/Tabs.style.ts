@@ -2,6 +2,7 @@ import type { Theme } from "@mui/material";
 import type { CSSProperties } from "react";
 import type { SystemStyleObject } from "@mui/system";
 import { theme } from "../../constants/theme.constants";
+import { MOBILE_LAYOUT_QUERY } from "../../constants/layout.constant";
 import { TABS_VARIANTS, type TabsVariantType } from "../../constants/tabs.constant";
 
 type TTabsStyle = SystemStyleObject<Theme>;
@@ -54,9 +55,15 @@ export const useStyles = () => ({
     ...(variant === TABS_VARIANTS.SEGMENTED &&
       isFullWidth && { display: "grid", gridAutoFlow: "column", gridAutoColumns: "1fr" }),
     ...CONTAINER_BY_VARIANT[variant],
+    ...(variant === TABS_VARIANTS.STATUS &&
+      isFullWidth && {
+        boxSizing: "border-box",
+        [`@media ${MOBILE_LAYOUT_QUERY}`]: { flexWrap: "wrap" },
+      }),
   }),
   tab: ({ variant, isFullWidth }: ITabStyleOptions): TTabsStyle => ({
     zIndex: 1,
+    overflow: "hidden",
     position: "relative",
     fontWeight: 600,
     fontFamily: "inherit",
@@ -67,6 +74,15 @@ export const useStyles = () => ({
     ...TAB_BY_VARIANT[variant],
     background: "transparent",
     boxShadow: "none",
+    ...(variant === TABS_VARIANTS.STATUS &&
+      isFullWidth && {
+        [`@media ${MOBILE_LAYOUT_QUERY}`]: {
+          minWidth: 0,
+          maxWidth: "100%",
+          flex: "1 1 auto",
+          overflowWrap: "anywhere",
+        },
+      }),
     "&.Mui-focusVisible": { outline: `2px solid ${palette.primary}`, outlineOffset: -3 },
     "@media (prefers-reduced-motion: reduce)": { transition: "none" },
   }),

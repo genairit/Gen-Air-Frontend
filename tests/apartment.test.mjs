@@ -137,23 +137,24 @@ test("own-team payload sends assignments only, without relation ids or employee 
   assert.deepEqual(MEMBER, snapshot);
 });
 
-test("a creation-time payment override trims custom notes", () => {
+test("retired apartment payment overrides are omitted from payloads", () => {
   const payload = utility.toApartmentPayload({
     ...FORM,
     paymentTerms: PAYMENT_TERMS.OTHER,
     paymentTermsNote: "  תשלום בהתאם להסכם הפרויקט  ",
   });
-  assert.equal(payload.paymentTerms, "other");
-  assert.equal(payload.paymentTermsNote, "תשלום בהתאם להסכם הפרויקט");
+  assert.equal("paymentTerms" in payload, false);
+  assert.equal("paymentTermsNote" in payload, false);
 });
 
-test("standard terms clear stale custom notes and resetting terms omits the entire override", () => {
+test("standard and reset legacy payment values cannot restore apartment overrides", () => {
   const standard = utility.toApartmentPayload({
     ...FORM,
     paymentTerms: PAYMENT_TERMS.MILESTONES_NET_60,
     paymentTermsNote: "stale custom note",
   });
-  assert.equal(standard.paymentTermsNote, null);
+  assert.equal("paymentTerms" in standard, false);
+  assert.equal("paymentTermsNote" in standard, false);
   const inherited = utility.toApartmentPayload({ ...FORM, paymentTermsNote: "stale note" });
   assert.equal("paymentTerms" in inherited, false);
   assert.equal("paymentTermsNote" in inherited, false);
@@ -169,10 +170,10 @@ test("validation counts the two required unit fields and the required customer",
   );
 });
 
-test("custom payment notes participate in the validation count only for an override", () => {
+test("retired payment values do not participate in apartment validation", () => {
   assert.equal(
     utility.countInvalidApartmentFields({ ...FORM, paymentTerms: PAYMENT_TERMS.OTHER }),
-    1,
+    0,
   );
   assert.equal(
     utility.countInvalidApartmentFields({
@@ -180,7 +181,7 @@ test("custom payment notes participate in the validation count only for an overr
       paymentTerms: PAYMENT_TERMS.OTHER,
       paymentTermsNote: " קצר ",
     }),
-    1,
+    0,
   );
   assert.equal(
     utility.countInvalidApartmentFields({

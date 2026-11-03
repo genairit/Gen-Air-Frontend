@@ -9,8 +9,6 @@ import { CHIP_VARIANTS } from "../../../constants/chip.constant";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import DetailTile from "../../../components/DetailTile/DetailTile";
 import type { IApiProject } from "../../../interfaces/api.interface";
-import { formatPaymentTerms } from "../../../utilities/project-intake.utility";
-import { PAYMENT_TERMS_COPY } from "../../../constants/payment-terms.constant";
 import { PROJECT_INTAKE_COPY } from "../../../constants/project-intake.constant";
 import { PROJECT_ADDRESS_COPY } from "../../../constants/project-address.constant";
 import { formatCustomerDetailValue } from "../../../utilities/customer-details.utility";
@@ -45,12 +43,6 @@ const ProjectIntakeCard: FC<IProjectIntakeCardProps> = ({ project, onEdit }) => 
           badge={verifiedBadge}
           label={PROJECT_ADDRESS_COPY.LABEL}
           value={formatCustomerDetailValue(project.address)}
-        />
-        <DetailTile
-          isFullWidth
-          note={project.paymentTermsNote}
-          label={PAYMENT_TERMS_COPY.TITLE}
-          value={formatCustomerDetailValue(formatPaymentTerms(project.paymentTerms))}
         />
       </Box>
     </Card>
