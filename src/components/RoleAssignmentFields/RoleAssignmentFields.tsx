@@ -7,12 +7,14 @@ import {
 import { Box } from "@mui/material";
 import { useId, type FC } from "react";
 import CheckBox from "../CheckBox/CheckBox";
+import FieldLabel from "../FieldLabel/FieldLabel";
 import RadioButton from "../RadioButton/RadioButton";
 import InlineError from "../InlineError/InlineError";
-import { usePageStyles } from "../../pages/page.style";
+import { useStyles } from "./RoleAssignmentFields.style";
 import { EMPLOYEES_COPY } from "../../constants/employee.constant";
 
 interface IRoleAssignmentFieldsProps {
+  columns?: 2 | 3;
   assignedRoles: UserRoleType[];
   activeRole: UserRoleType | null;
   onAssignedRolesChange: (roles: UserRoleType[]) => void;
@@ -20,21 +22,25 @@ interface IRoleAssignmentFieldsProps {
 }
 
 const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
+  columns = 2,
   activeRole,
   assignedRoles,
   onActiveRoleChange,
   onAssignedRolesChange,
 }) => {
-  const styles = usePageStyles();
+  const styles = useStyles();
   const radioGroupName = useId();
+  const activeRoleDescriptionId = `${radioGroupName}-description`;
   const hasMultipleRoles = assignedRoles.length > 1;
   const hasNoRoles = assignedRoles.length === 0;
+  const soleAssignedRole = assignedRoles.length === 1 ? (assignedRoles[0] ?? null) : null;
   const roleOptions = USER_ROLE_VALUES.map(role => ({
     role,
     label: USER_ROLE_LABELS[role],
+    isActive: activeRole === role,
     isAssigned: assignedRoles.includes(role),
+    isSoleActive: soleAssignedRole === role,
   }));
-  const activeRoleOptions = roleOptions.filter(option => option.isAssigned);
 
   const updateRoleSelection = (role: UserRoleType, isSelected: boolean): void => {
     const updatedRoles = isSelected
@@ -48,38 +54,40 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
   };
 
   return (
-    <Box sx={styles.stack({ gap: "14px" })}>
-      <Box sx={styles.grid({ minColumnWidth: 190, gap: "10px" })}>
-        {roleOptions.map(({ role, label, isAssigned }) => (
-          <CheckBox
-            key={role}
-            text={label}
-            value={isAssigned}
-            onChange={isSelected => updateRoleSelection(role, isSelected)}
-          />
-        ))}
-      </Box>
+    <Box sx={styles.container}>
+      <FieldLabel isRequired title={EMPLOYEES_COPY.ROLE_LABEL} />
       {hasMultipleRoles && (
-        <Box
-          role="radiogroup"
-          sx={styles.stack({ gap: "8px" })}
-          aria-label={EMPLOYEES_COPY.ACTIVE_ROLE_LABEL}
-        >
-          <Box component="span" sx={styles.caption}>
-            {EMPLOYEES_COPY.ACTIVE_ROLE_LABEL}
-          </Box>
-          {activeRoleOptions.map(({ role, label }) => (
-            <RadioButton
-              key={role}
-              value={role}
-              label={label}
-              name={radioGroupName}
-              checked={activeRole === role}
-              onSelect={() => onActiveRoleChange(role)}
-            />
-          ))}
+        <Box component="span" sx={styles.visuallyHidden} id={activeRoleDescriptionId}>
+          {EMPLOYEES_COPY.ACTIVE_ROLE_LABEL}
         </Box>
       )}
+      <Box role="group" sx={styles.roleGrid({ columns })} aria-label={EMPLOYEES_COPY.ROLE_LABEL}>
+        {roleOptions.map(({ role, label, isAssigned, isSoleActive, isActive }) => (
+          <Box key={role} sx={styles.roleOption({ isSelected: isAssigned })}>
+            <CheckBox
+              text={label}
+              value={isAssigned}
+              onChange={isSelected => updateRoleSelection(role, isSelected)}
+            />
+            {isSoleActive && (
+              <Box component="span" sx={styles.activeBadge}>
+                {EMPLOYEES_COPY.ACTIVE_ROLE_STATUS}
+              </Box>
+            )}
+            {hasMultipleRoles && isAssigned && (
+              <RadioButton
+                value={role}
+                ariaLabel={label}
+                checked={isActive}
+                name={radioGroupName}
+                ariaDescribedBy={activeRoleDescriptionId}
+                label={EMPLOYEES_COPY.ACTIVE_ROLE_STATUS}
+                onSelect={() => onActiveRoleChange(role)}
+              />
+            )}
+          </Box>
+        ))}
+      </Box>
       {hasNoRoles && <InlineError message={EMPLOYEES_COPY.ROLE_ASSIGNMENT_REQUIRED} />}
     </Box>
   );
