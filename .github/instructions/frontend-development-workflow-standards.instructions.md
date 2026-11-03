@@ -24,9 +24,10 @@ The steps below are ordered and mandatory. Do not skip a step, and do not reorde
 2. **Read the task and understand its requirements** from that link.
 3. **Move it to the active list** on the board, so the board shows who is working on what.
 4. **Branch from `dev`** using the task's name.
-5. **For client-facing UI work, run the [design agent](../../agents/design-agent.md)** after reading
-   the requirements. Give its style handoff to the development agent before implementation.
-   Then implement the task on the branch.
+5. **For client-facing UI, run the [design agent](../../agents/design-agent.md)**
+   first. Give its style handoff to the [developer agent](../../agents/developer-agent.md),
+   then run the developer agent on the branch. For non-UI work, run the developer
+   agent directly.
 6. **Review the changes with the code review agent** — fix every finding it reports, delete its
    `// CR:` annotations, and review again until it reports none.
 7. **Run the [QA agent](../../agents/qa-agent.md)** against the exact feature revisions; fix failures
@@ -83,20 +84,22 @@ add-user-registration-endpoint
 fix-dashboard-filter-reset
 ```
 
-## 5. Implement the Task on That Branch
+## 5. Implement With the Developer Agent
 
 For client-facing UI work, invoke the [design agent](../../agents/design-agent.md) with the full task
 requirements, client repository, and approved design references. Its handoff combines the task
 with the current client design language and specifies the layout, visual style, components,
-states, responsive behavior, and accessibility details. The development agent uses that handoff
-when implementing. Resolve material open design decisions before coding the affected UI; work on
-independent parts can continue. For non-UI tasks, this design step is inapplicable.
+states, responsive behavior, and accessibility details. Run the
+[developer agent](../../agents/developer-agent.md) with that handoff and the
+complete task. It inspects and reuses the client's generic components before
+building UI. Resolve material open design decisions before coding the affected
+UI; work on independent parts can continue. For non-UI tasks, this design step is inapplicable.
 
 Write the code for that task and that task only. Work that is not part of the card belongs to a
 different card and a different branch.
 
-The other standards in this folder apply here as usual — coding standards, migrations, and the
-feedback loops that prove the change actually works.
+Apply the developer agent's numbered development standards, the migration rules, and
+the feedback loops that prove the change actually works.
 
 ## 6. Review the Changes With the Code Review Agent
 
