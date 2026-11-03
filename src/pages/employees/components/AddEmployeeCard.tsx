@@ -80,9 +80,7 @@ const AddEmployeeCard = () => {
           </Box>
           <RoleAssignmentFields
             columns={3}
-            activeRole={values.role}
             assignedRoles={values.assignedRoles}
-            onActiveRoleChange={role => updateValues({ role })}
             onAssignedRolesChange={assignedRoles => updateValues({ assignedRoles })}
           />
         </Box>

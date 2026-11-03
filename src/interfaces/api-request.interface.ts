@@ -46,12 +46,10 @@ export interface IUserPayload {
   lastName: string;
   password: string;
   firstName: string;
-  role: UserRoleType;
   assignedRoles: UserRoleType[];
 }
 
 export interface IUserRoleUpdatePayload {
-  role: UserRoleType;
   assignedRoles: UserRoleType[];
 }
 

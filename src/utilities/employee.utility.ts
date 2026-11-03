@@ -5,9 +5,8 @@ import type {
 } from "../interfaces/employee.interface";
 
 import type { TUserRoleCounts } from "../interfaces/api.interface";
-import type { UserRoleType } from "../constants/user-role.constant";
+import type { IUserPayload } from "../interfaces/api-request.interface";
 import { validateEmail, validatePassword, validatePhoneNumber } from "./validators";
-import type { IUserPayload, IUserRoleUpdatePayload } from "../interfaces/api-request.interface";
 
 const NAME_SEPARATOR = /\s+/;
 
@@ -27,49 +26,18 @@ export const canSubmitEmployeeForm = (values: IEmployeeFormValues) => {
   const hasValidEmail = validateEmail(values.email).isValid;
   const hasValidPhone = validatePhoneNumber(values.phone).isValid;
   const hasValidPassword = validatePassword(values.password).isValid;
-  const activeRole = getActiveEmployeeRole(values);
   const hasAssignedRoles = values.assignedRoles.length > 0;
-  const activeRoleIsAssigned = activeRole !== null && values.assignedRoles.includes(activeRole);
 
-  return (
-    hasFullName &&
-    hasValidEmail &&
-    hasValidPhone &&
-    hasValidPassword &&
-    hasAssignedRoles &&
-    activeRoleIsAssigned
-  );
+  return hasFullName && hasValidEmail && hasValidPhone && hasValidPassword && hasAssignedRoles;
 };
 
 export const toUserPayload = (values: IEmployeeFormValues): IUserPayload => ({
   ...splitFullName(values.name),
-  ...getRoleAssignmentPayload(values),
+  assignedRoles: values.assignedRoles,
   password: values.password,
   email: values.email.trim(),
   phone: values.phone.trim(),
 });
-
-export const getActiveEmployeeRole = (
-  values: Pick<IEmployeeFormValues, "role" | "assignedRoles">,
-): UserRoleType | null => {
-  if (values.assignedRoles.length === 1) {
-    return values.assignedRoles[0] ?? null;
-  }
-
-  return values.role;
-};
-
-const getRoleAssignmentPayload = (
-  values: Pick<IEmployeeFormValues, "role" | "assignedRoles">,
-): IUserRoleUpdatePayload => {
-  const activeRole = getActiveEmployeeRole(values);
-
-  if (activeRole === null) {
-    throw new Error("Choose an active role before saving this employee");
-  }
-
-  return { role: activeRole, assignedRoles: values.assignedRoles };
-};
 
 export const countUsersForFilter = (
   roleCounts: TUserRoleCounts | null,

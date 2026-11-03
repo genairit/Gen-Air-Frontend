@@ -33,7 +33,7 @@ const { hasPermission } = await import("../src/utilities/permission.utility.ts")
 const { EMPLOYEE_FILTERS } = await import("../src/constants/employee.constant.ts");
 
 const { USER_ROLES, USER_ROLE_VALUES, USER_ROLE_LABELS, PROJECT_MEMBER_ROLES } = roles;
-const { canSubmitEmployeeForm, getActiveEmployeeRole, toUserPayload } =
+const { canSubmitEmployeeForm, toUserPayload } =
   await import("../src/utilities/employee.utility.ts");
 const { getApartmentTeamCandidates } = await import("../src/utilities/apartment.utility.ts");
 const { isApiUser } = await import("../src/utilities/guards/api.guard.ts");
@@ -47,7 +47,6 @@ const employeeForm = overrides => ({
   email: "rina@example.com",
   phone: "0524418230",
   password: "passphrase-123",
-  role: USER_ROLES.ENGINEER,
   assignedRoles: [USER_ROLES.ENGINEER, USER_ROLES.SECRETARY],
   ...overrides,
 });
@@ -146,26 +145,16 @@ test("legacy users default to their active role while multi-role membership is r
   assert.equal(isApiUser(apiUser({ assignedRoles: [USER_ROLES.ENGINEER] })), false);
 });
 
-test("employee forms require a selected active role that belongs to the assigned roles", () => {
-  assert.equal(
-    getActiveEmployeeRole(employeeForm({ assignedRoles: [USER_ROLES.SECRETARY] })),
-    USER_ROLES.SECRETARY,
-  );
+test("employee forms require assigned roles and leave initial active-role choice to the server", () => {
   assert.equal(canSubmitEmployeeForm(employeeForm()), true);
-  assert.equal(canSubmitEmployeeForm(employeeForm({ assignedRoles: [] })), false);
   assert.equal(
-    canSubmitEmployeeForm(
-      employeeForm({
-        assignedRoles: [USER_ROLES.SECRETARY, USER_ROLES.PROJECT_MANAGER],
-        role: USER_ROLES.ENGINEER,
-      }),
-    ),
-    false,
+    canSubmitEmployeeForm(employeeForm({ assignedRoles: [USER_ROLES.SECRETARY] })),
+    true,
   );
+  assert.equal(canSubmitEmployeeForm(employeeForm({ assignedRoles: [] })), false);
   assert.deepEqual(toUserPayload(employeeForm()), {
     firstName: "Rina",
     lastName: "Example",
-    role: USER_ROLES.ENGINEER,
     assignedRoles: [USER_ROLES.ENGINEER, USER_ROLES.SECRETARY],
     password: "passphrase-123",
     email: "rina@example.com",
