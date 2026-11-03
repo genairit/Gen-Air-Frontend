@@ -37,6 +37,7 @@ export const moveProjectDriveFileAction = async ({
   await projectActivityService.moveDriveFile(projectId, fileId, folderId);
   useDriveFeedbackStore.getState().show(projectId, DRIVE_FILE_COPY.MOVE_SUCCESS);
   await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT_DRIVE, projectId] });
+  await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.SHARED_DOCUMENT] });
 };
 
 export const trashProjectDriveFileAction = async ({ projectId, fileId }: IDriveFileAction) => {
@@ -44,4 +45,19 @@ export const trashProjectDriveFileAction = async ({ projectId, fileId }: IDriveF
   await projectActivityService.trashDriveFile(projectId, fileId);
   useDriveFeedbackStore.getState().show(projectId, DRIVE_FILE_COPY.DELETE_SUCCESS);
   await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT_DRIVE, projectId] });
+  await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.SHARED_DOCUMENT] });
+};
+
+export const selectSharedDocumentAction = async ({
+  projectId,
+  fileId,
+}: {
+  projectId: string;
+  fileId: string | null;
+}) => {
+  await projectActivityService.selectSharedDocument(projectId, fileId);
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.SHARED_DOCUMENT] }),
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT, projectId] }),
+  ]);
 };
