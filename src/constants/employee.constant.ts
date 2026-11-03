@@ -28,8 +28,7 @@ export const EMPLOYEES_COPY = {
   PHONE_LABEL: "טלפון נייד",
   PHONE_PLACEHOLDER: "0500000000",
   ROLE_LABEL: "תפקידים משויכים",
-  ACTIVE_ROLE_LABEL: "תפקיד פעיל",
-  ACTIVE_ROLE_STATUS: "פעיל",
+  ROLE_ASSIGNMENT_HELPER: "סמנו תפקיד אחד או יותר שיוקצו לעובד.",
   ROLE_SWITCHER_LABEL: "החלפת תפקיד פעיל",
   ROLE_ASSIGNMENT_REQUIRED: "יש לבחור לפחות תפקיד אחד",
   PASSWORD_LABEL: "סיסמה ראשונית",
@@ -60,7 +59,6 @@ export const EMPTY_EMPLOYEE_FORM: IEmployeeFormValues = {
   name: "",
   email: "",
   phone: "",
-  role: USER_ROLES.ENGINEER,
   assignedRoles: [USER_ROLES.ENGINEER],
   password: DEFAULT_TEMPORARY_PASSWORD,
 };

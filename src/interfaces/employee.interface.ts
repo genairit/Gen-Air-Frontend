@@ -16,7 +16,6 @@ export interface IEmployeeFormValues {
   email: string;
   phone: string;
   password: string;
-  role: UserRoleType | null;
   assignedRoles: UserRoleType[];
 }
 

@@ -1,3 +1,9 @@
+import {
+  USER_ROLES,
+  USER_ROLE_VALUES,
+  USER_ROLE_LABELS,
+} from "../src/constants/user-role.constant";
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { ReactElement } from "react";
@@ -6,6 +12,7 @@ import Button from "../src/components/Button/Button";
 import { QueryObserver } from "@tanstack/react-query";
 import { setSession } from "../src/store/session.store";
 import { logger } from "../src/utilities/logger.utility";
+import CheckBox from "../src/components/CheckBox/CheckBox";
 import { userService } from "../src/services/user.service";
 import { queryClient } from "../src/providers/query-client";
 import { TIME_UNITS } from "../src/constants/time.constant";
@@ -23,7 +30,6 @@ import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { toEmployee, toPerson } from "../src/utilities/mappers/user.mapper";
 import { SESSION_USER_QUERY_KEY } from "../src/constants/permission.constant";
 import { verifySessionUserAction } from "../src/actions/session-refresh.action";
-import { USER_ROLES, USER_ROLE_LABELS } from "../src/constants/user-role.constant";
 import EditEmployeeRolesPopup from "../src/pages/employees/components/EditEmployeeRolesPopup";
 import RoleAssignmentFields from "../src/components/RoleAssignmentFields/RoleAssignmentFields";
 
@@ -86,21 +92,11 @@ test("generic radio preserves checked standalone button activation", async () =>
   }
 });
 
-test("assigned checkboxes keep their group while active radios share a described native group", async () => {
+test("employee role assignments show six checkbox tiles with one shared helper per form", async () => {
   const renderer = await renderComponent(
     <>
-      <RoleAssignmentFields
-        activeRole={user.role}
-        onActiveRoleChange={noop}
-        onAssignedRolesChange={noop}
-        assignedRoles={user.assignedRoles}
-      />
-      <RoleAssignmentFields
-        onActiveRoleChange={noop}
-        onAssignedRolesChange={noop}
-        activeRole={USER_ROLES.INSTALLER}
-        assignedRoles={user.assignedRoles}
-      />
+      <RoleAssignmentFields onAssignedRolesChange={noop} assignedRoles={user.assignedRoles} />
+      <RoleAssignmentFields onAssignedRolesChange={noop} assignedRoles={user.assignedRoles} />
     </>,
   );
 
@@ -112,56 +108,30 @@ test("assigned checkboxes keep their group while active radios share a described
           node.props.role === "group" && node.props["aria-label"] === EMPLOYEES_COPY.ROLE_LABEL,
       );
     assert.equal(groups.length, 2);
-    const radios = groups.map(group =>
-      group.findAllByType("input").filter(input => input.props.type === "radio"),
-    );
-    assert.equal(radios[0].length, 2);
-    assert.equal(renderer.root.findAllByType(RadioButton).length, 4);
-    assert.equal(radios[0].filter(input => input.props.checked).length, 1);
-    assert.equal(radios[1].filter(input => input.props.checked).length, 1);
     assert.deepEqual(
-      radios[0].map(input => input.props["aria-label"]),
-      user.assignedRoles.map(role => USER_ROLE_LABELS[role]),
+      groups.map(group => group.findAllByType(CheckBox).map(option => option.props.text)),
+      [USER_ROLE_VALUES, USER_ROLE_VALUES].map(roles => roles.map(role => USER_ROLE_LABELS[role])),
     );
-    assert.equal(radios[0][0].props.name, radios[0][1].props.name);
-    assert.notEqual(radios[0][0].props.name, radios[1][0].props.name);
-    assert.equal(radios[0][0].props["aria-describedby"], radios[0][1].props["aria-describedby"]);
-    assert.notEqual(radios[0][0].props["aria-describedby"], radios[1][0].props["aria-describedby"]);
-    const activeRoleDescriptions = renderer.root
+    assert.equal(renderer.root.findAllByType(RadioButton).length, 0);
+    assert.notEqual(groups[0].props["aria-describedby"], groups[1].props["aria-describedby"]);
+    const assignmentHelpers = renderer.root
       .findAllByType("span")
-      .filter(node => node.props.id === radios[0][0].props["aria-describedby"]);
-    assert.equal(activeRoleDescriptions.length, 1);
-    assert.equal(activeRoleDescriptions[0].children[0], EMPLOYEES_COPY.ACTIVE_ROLE_LABEL);
-    assert.equal(
-      radios[0].every(input => input.props.tabIndex !== -1),
-      true,
-    );
+      .filter(node => node.props.id === groups[0].props["aria-describedby"]);
+    assert.equal(assignmentHelpers.length, 1);
+    assert.equal(assignmentHelpers[0].children[0], EMPLOYEES_COPY.ROLE_ASSIGNMENT_HELPER);
   } finally {
     await act(async () => renderer.unmount());
   }
 });
 
-test("one assigned role omits the selector and an empty assignment shows the required alert", async () => {
+test("an empty employee role assignment shows the required alert", async () => {
   const renderer = await renderComponent(
-    <RoleAssignmentFields
-      activeRole={user.role}
-      onActiveRoleChange={noop}
-      assignedRoles={[user.role]}
-      onAssignedRolesChange={noop}
-    />,
+    <RoleAssignmentFields assignedRoles={[user.role]} onAssignedRolesChange={noop} />,
   );
 
   try {
-    assert.equal(renderer.root.findAllByType(RadioButton).length, 0);
     await act(async () => {
-      renderer.update(
-        <RoleAssignmentFields
-          activeRole={null}
-          assignedRoles={[]}
-          onActiveRoleChange={noop}
-          onAssignedRolesChange={noop}
-        />,
-      );
+      renderer.update(<RoleAssignmentFields assignedRoles={[]} onAssignedRolesChange={noop} />);
     });
     assert.ok(renderer.root.findAllByProps({ role: "alert" }).length > 0);
   } finally {
@@ -240,7 +210,11 @@ test("successful role save closes only after the awaited server mutation", async
   const originalUpdate = userService.update;
   const response = deferred<IApiUser>();
   const state = { closed: 0 };
-  userService.update = () => response.promise;
+  const calls: Parameters<typeof userService.update>[] = [];
+  userService.update = (userId, changes) => {
+    calls.push([userId, changes]);
+    return response.promise;
+  };
   const renderer = await renderComponent(
     <QueryClientProvider client={queryClient}>
       <EditEmployeeRolesPopup
@@ -261,6 +235,7 @@ test("successful role save closes only after the awaited server mutation", async
     await act(async () => {
       pending.action = button.props.onClick();
     });
+    assert.deepEqual(calls, [[user.id, { assignedRoles: user.assignedRoles }]]);
     assert.equal(state.closed, 0);
     await act(async () => {
       response.resolve(user);

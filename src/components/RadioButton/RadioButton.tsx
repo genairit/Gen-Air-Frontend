@@ -8,20 +8,10 @@ interface IRadioButtonProps {
   label: string;
   value?: string;
   checked: boolean;
-  ariaLabel?: string;
   onSelect: () => void;
-  ariaDescribedBy?: string;
 }
 
-const RadioButton: FC<IRadioButtonProps> = ({
-  name,
-  value,
-  label,
-  checked,
-  onSelect,
-  ariaLabel,
-  ariaDescribedBy,
-}) => {
+const RadioButton: FC<IRadioButtonProps> = ({ name, value, label, checked, onSelect }) => {
   const styles = useStyles();
   const isGrouped = Boolean(name);
   const containerProps = isGrouped
@@ -31,8 +21,6 @@ const RadioButton: FC<IRadioButtonProps> = ({
         component: "button" as const,
         role: "radio",
         "aria-checked": checked,
-        "aria-label": ariaLabel,
-        "aria-describedby": ariaDescribedBy,
         onClick: onSelect,
       };
 
@@ -47,8 +35,6 @@ const RadioButton: FC<IRadioButtonProps> = ({
           checked={checked}
           sx={styles.input}
           onChange={onSelect}
-          aria-label={ariaLabel}
-          aria-describedby={ariaDescribedBy}
         />
       )}
       <Box aria-hidden>

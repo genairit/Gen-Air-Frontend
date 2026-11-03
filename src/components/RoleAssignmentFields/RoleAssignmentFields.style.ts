@@ -9,14 +9,12 @@ interface IRoleOptionStyleOptions {
 const ROLE_OPTION_TRANSITION_MS = TIME_UNITS.SECOND_MS * 0.16;
 
 const getOptionStyle = ({ isSelected }: IRoleOptionStyleOptions) => ({
-  gap: "4px",
   minWidth: 0,
-  minHeight: 104,
+  minHeight: 96,
   display: "flex",
-  padding: "4px 12px",
+  padding: 0,
   boxSizing: "border-box",
-  flexDirection: "column",
-  justifyContent: "space-between",
+  alignItems: "center",
   borderRadius: theme.radius.badge,
   border: `1px solid ${isSelected ? theme.palette.airBlueOutline : theme.glass.border}`,
   backgroundColor: isSelected ? theme.palette.airBlue : theme.palette.iceWhite,
@@ -32,13 +30,9 @@ export const useStyles = () =>
       display: "flex",
       flexDirection: "column",
     },
-    visuallyHidden: {
-      width: 1,
-      height: 1,
-      overflow: "hidden",
-      position: "absolute",
-      whiteSpace: "nowrap",
-      clipPath: "inset(50%)",
+    helper: {
+      fontSize: 14,
+      color: theme.palette.textMuted,
     },
     roleGrid: ({ columns }: { columns: 2 | 3 }) => ({
       gap: "8px",
@@ -51,8 +45,9 @@ export const useStyles = () =>
       "& .MuiFormControlLabel-root": {
         margin: 0,
         width: "100%",
-        minHeight: 48,
-        padding: 0,
+        minHeight: 96,
+        padding: "12px",
+        boxSizing: "border-box",
       },
       "& .MuiFormControlLabel-label": {
         fontSize: 15,
@@ -61,15 +56,4 @@ export const useStyles = () =>
         overflowWrap: "anywhere",
       },
     }),
-    activeBadge: {
-      fontSize: 12,
-      fontWeight: 700,
-      width: "fit-content",
-      color: theme.palette.primary,
-      padding: "4px 10px",
-      marginBlockEnd: "8px",
-      borderRadius: theme.radius.pill,
-      border: `1px solid ${theme.palette.airBlueOutline}`,
-      backgroundColor: theme.palette.white,
-    },
   });
