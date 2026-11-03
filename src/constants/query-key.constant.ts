@@ -24,6 +24,7 @@ export const QUERY_ROOTS = {
   APARTMENTS: "apartments",
   APARTMENT_STAGE_COUNTS: "apartment-stage-counts",
   PROJECT_DRIVE: "project-drive",
+  SHARED_DOCUMENT: "shared-document",
   STAGE_COUNTS: "project-stage-counts",
   TRANSITIONS: "project-transitions",
 } as const;
@@ -75,4 +76,5 @@ export const QUERY_KEYS = {
     projectId,
     folderId,
   ],
+  sharedDocument: (projectId: string) => [QUERY_ROOTS.SHARED_DOCUMENT, projectId],
 } as const;

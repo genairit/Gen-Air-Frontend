@@ -62,6 +62,14 @@ export const useProjectDriveQuery = (projectId: string, folderId: string | null,
     queryFn: () => projectActivityService.getDriveContents(projectId, folderId),
   });
 
+export const useSharedDocumentQuery = (projectId: string, enabled = true) =>
+  useQuery({
+    enabled,
+    retry: false,
+    queryKey: QUERY_KEYS.sharedDocument(projectId),
+    queryFn: () => projectActivityService.getSharedDocument(projectId),
+  });
+
 export const useDriveUploadPolicyQuery = () =>
   useQuery({
     queryKey: ["drive-upload-policy"],
