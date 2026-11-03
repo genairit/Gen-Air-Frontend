@@ -73,6 +73,18 @@ test("mobile status choices wrap without changing other full-width tab variants"
   assert.equal(Reflect.get(status, "flexWrap"), "nowrap");
 });
 
+test("tab buttons contain projected selection backgrounds while retaining inset focus", () => {
+  const styles = getTabStyles();
+  for (const variant of Object.values(TABS_VARIANTS)) {
+    const tab = styles.tab({ variant, isFullWidth: false });
+    assert.ok(tab && typeof tab === "object");
+    assert.equal(Reflect.get(tab, "overflow"), "hidden");
+    const focusStyle = Reflect.get(tab, "&.Mui-focusVisible");
+    assert.ok(focusStyle && typeof focusStyle === "object");
+    assert.equal(Reflect.get(focusStyle, "outlineOffset"), -3);
+  }
+});
+
 test("Drive action stacking is opt-in and action links remain shrinkable", () => {
   const styles = getHeaderStyles();
   const mobileQuery = `@media ${MOBILE_LAYOUT_QUERY}`;

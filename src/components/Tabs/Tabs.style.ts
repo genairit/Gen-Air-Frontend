@@ -63,6 +63,7 @@ export const useStyles = () => ({
   }),
   tab: ({ variant, isFullWidth }: ITabStyleOptions): TTabsStyle => ({
     zIndex: 1,
+    overflow: "hidden",
     position: "relative",
     fontWeight: 600,
     fontFamily: "inherit",
