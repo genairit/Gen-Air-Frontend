@@ -8,7 +8,6 @@ import type {
   ITypeSwitch,
   IVerifiedAddress,
   IProjectFormValues,
-  IPaymentTermsValues,
 } from "../../../interfaces/project.interface";
 
 import {
@@ -29,9 +28,7 @@ import {
   isCityRequired,
   toIntakeValues,
   countIntakeErrors,
-  getPaymentTermsOptions,
   getRequiredIntakeGroups,
-  fitPaymentTermsToFieldSet,
 } from "../../../utilities/project-intake.utility";
 
 import {
@@ -62,7 +59,6 @@ import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
 import ProjectSiteDetailsCard from "./ProjectSiteDetailsCard";
-import ProjectPaymentTermsCard from "./ProjectPaymentTermsCard";
 import ActionBar from "../../../components/ActionBar/ActionBar";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
@@ -107,11 +103,9 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     setWasDraftRestored(false);
     setTypeSwitch(null);
     setIsSubmitAttempted(false);
-    setWasPaymentTermsReset(false);
   };
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
-  const [wasPaymentTermsReset, setWasPaymentTermsReset] = useState(false);
 
   useProjectDraft(draftUserId, values);
 
@@ -201,18 +195,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
 
   const handleCustomerChange = (customerId: string | null) => updateValues({ customerId });
 
-  const handlePaymentTermsChange = (paymentTerms: IPaymentTermsValues) => {
-    setWasPaymentTermsReset(false);
-    updateValues({ paymentTerms });
-  };
-
   const handleTypeSelect = (typeId: string) => {
-    const paymentTerms = fitPaymentTermsToFieldSet(
-      values.paymentTerms,
-      findDetailFieldSet(projectTypes, typeId),
-    );
-
-    setWasPaymentTermsReset(paymentTerms.terms !== values.paymentTerms.terms);
     setTypeSwitch(
       buildTypeSwitch({
         toTypeId: typeId,
@@ -221,7 +204,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         values: values.customerDetails,
       }),
     );
-    updateValues({ typeId, paymentTerms });
+    updateValues({ typeId });
   };
 
   const handleUndoTypeSwitch = () => {
@@ -314,16 +297,6 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
               />
             )
           }
-        />
-      )}
-      {fieldSet && (
-        <ProjectPaymentTermsCard
-          value={values.paymentTerms}
-          wasReset={wasPaymentTermsReset}
-          onChange={handlePaymentTermsChange}
-          isSubmitAttempted={isSubmitAttempted}
-          isRequired={requiredIntake.paymentTerms}
-          options={getPaymentTermsOptions(fieldSet)}
         />
       )}
       <ProjectRolesCard

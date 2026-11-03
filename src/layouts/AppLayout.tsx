@@ -5,9 +5,9 @@ import {
   MOBILE_NAVIGATION_ITEMS,
 } from "../constants/navigation.constant";
 
+import { Box } from "@mui/material";
 import { useStyles } from "./AppLayout.style";
 import TopBar from "../components/TopBar/TopBar";
-import { Box, useMediaQuery } from "@mui/material";
 import Sidebar from "../components/Sidebar/Sidebar";
 import { noop } from "../utilities/function.utility";
 import BackLink from "../components/BackLink/BackLink";
@@ -17,7 +17,6 @@ import BrandLogo from "../components/BrandLogo/BrandLogo";
 import { ROUTE_PATHS } from "../constants/routes.constant";
 import { toPerson } from "../utilities/mappers/user.mapper";
 import SidebarAction from "../components/Sidebar/SidebarAction";
-import { MOBILE_LAYOUT_QUERY } from "../constants/layout.constant";
 import { BRAND_LOGO_WIDTHS } from "../constants/brand-logo.constant";
 import { clearSessionAction } from "../actions/session-reset.action";
 import MobileBottomNav from "../components/MobileBottomNav/MobileBottomNav";
@@ -29,7 +28,6 @@ const AppLayout = () => {
   const styles = useStyles();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
   const sessionUser = useSessionUser();
   const navigationItems = filterNavigationByPermissions(APP_NAVIGATION_ITEMS, sessionUser);
   const mobileItems = filterNavigationByPermissions(MOBILE_NAVIGATION_ITEMS, sessionUser);
@@ -61,27 +59,25 @@ const AppLayout = () => {
   return (
     <Box sx={styles.shell}>
       <ScrollRestoration />
-      {!isMobile && (
-        <Box sx={styles.sidebarSlot}>
-          <Sidebar
-            sx={styles.sidebar}
-            items={navigationItems}
-            onSelect={handleNavigate}
-            activeId={activeNavigationId}
-            sectionTitle={BRAND.SECTION_TITLE}
-            brand={<BrandLogo width={BRAND_LOGO_WIDTHS.SIDEBAR} />}
-            footer={
-              <SidebarAction
-                label={NAVIGATION_LABELS.LOGOUT}
-                icon={ICON_NAMES.LOGOUT}
-                onClick={logout}
-              />
-            }
-          />
-        </Box>
-      )}
+      <Box sx={styles.sidebarSlot}>
+        <Sidebar
+          sx={styles.sidebar}
+          items={navigationItems}
+          onSelect={handleNavigate}
+          activeId={activeNavigationId}
+          sectionTitle={BRAND.SECTION_TITLE}
+          brand={<BrandLogo width={BRAND_LOGO_WIDTHS.SIDEBAR} />}
+          footer={
+            <SidebarAction
+              label={NAVIGATION_LABELS.LOGOUT}
+              icon={ICON_NAMES.LOGOUT}
+              onClick={logout}
+            />
+          }
+        />
+      </Box>
 
-      <Box component="main" sx={styles.main({ isMobile })}>
+      <Box component="main" sx={styles.main}>
         <TopBar
           onUserMenuClick={noop}
           leading={topBarLeading}
@@ -91,14 +87,12 @@ const AppLayout = () => {
         <Outlet />
       </Box>
 
-      {isMobile && (
-        <MobileBottomNav
-          items={mobileItems}
-          onSelect={handleNavigate}
-          sx={styles.mobileNavigation}
-          activeId={activeNavigationId}
-        />
-      )}
+      <MobileBottomNav
+        items={mobileItems}
+        onSelect={handleNavigate}
+        sx={styles.mobileNavigation}
+        activeId={activeNavigationId}
+      />
     </Box>
   );
 };

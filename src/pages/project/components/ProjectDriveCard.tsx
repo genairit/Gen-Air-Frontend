@@ -98,6 +98,7 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({
       <SharedDocumentContext.Provider value={sharedDocument}>
         <Card>
           <CardHeader
+            stackActionsOnMobile
             icon={ICON_NAMES.GDRIVE}
             title={PROJECT_PAGE_COPY.FOLDERS_TITLE}
             subtitle={PROJECT_PAGE_COPY.FOLDERS_SUBTITLE}

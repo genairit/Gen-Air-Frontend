@@ -311,8 +311,6 @@ const legacyProject: IApiProject = {
   address: "רחוב לדוגמה 1, תל אביב",
   addressCity: "תל אביב",
   addressPlaceId: "place-1",
-  paymentTerms: PAYMENT_TERMS.PREPAID,
-  paymentTermsNote: null,
   contactName: "שם היסטורי",
   contactPhone: null,
   contactRole: null,
@@ -328,7 +326,7 @@ const legacyProject: IApiProject = {
   customerAssociationNumber: null,
 };
 
-test("new project payload ignores stale contact drafts and retains address and payment terms", () => {
+test("new project payload ignores stale contact and payment drafts and retains address", () => {
   const values = {
     ...toProjectFormValues(null),
     name: "פרויקט חדש",
@@ -347,8 +345,8 @@ test("new project payload ignores stale contact drafts and retains address and p
   assert.equal(Reflect.has(payload, "contactPhone"), false);
   assert.equal(Reflect.has(payload, "contactRole"), false);
   assert.equal(payload.addressPlaceId, legacyProject.addressPlaceId);
-  assert.equal(payload.paymentTerms, PAYMENT_TERMS.PREPAID);
-  assert.deepEqual(getRequiredIntakeGroups(values, null), { address: true, paymentTerms: true });
+  assert.equal(Reflect.has(payload, "paymentTerms"), false);
+  assert.deepEqual(getRequiredIntakeGroups(values, null), { address: true });
 });
 
 test("editing a legacy project excludes contact fields even when stale contact values change", () => {
@@ -356,7 +354,7 @@ test("editing a legacy project excludes contact fields even when stale contact v
   const values = {
     ...toProjectFormValues(legacyProject),
     name: "שם חדש לפרויקט",
-    paymentTerms: { terms: PAYMENT_TERMS.OTHER, note: "תנאי תשלום מותאמים" },
+    paymentTerms: { terms: PAYMENT_TERMS.OTHER, note: "stale" },
     contact: { contactName: "stale changed name", contactPhone: "bad", contactRole: "role" },
   };
   const payload = toProjectPayload({
@@ -367,8 +365,8 @@ test("editing a legacy project excludes contact fields even when stale contact v
   assert.ok(payload);
   assert.equal(payload.name, values.name);
   assert.equal(payload.customerId, legacyProject.customerId);
-  assert.equal(payload.paymentTerms, PAYMENT_TERMS.OTHER);
-  assert.equal(payload.paymentTermsNote, values.paymentTerms.note);
+  assert.equal(Reflect.has(payload, "paymentTerms"), false);
+  assert.equal(Reflect.has(payload, "paymentTermsNote"), false);
   assert.equal(Reflect.has(payload, "contactName"), false);
   assert.equal(Reflect.has(payload, "contactPhone"), false);
   assert.equal(Reflect.has(payload, "contactRole"), false);
@@ -394,17 +392,8 @@ test("incomplete legacy project contacts cannot block saving unrelated project e
     }),
     1,
   );
-  assert.equal(
-    countIntakeErrors({
-      values: { ...values, paymentTerms: { terms: PAYMENT_TERMS.OTHER, note: "" } },
-      original: values,
-      fieldSet: PROJECT_DETAIL_FIELD_SETS.PRIVATE_CLIENT,
-    }),
-    1,
-  );
   assert.deepEqual(getRequiredIntakeGroups(createEmptyIntakeValues(), null), {
     address: true,
-    paymentTerms: true,
   });
 });
 

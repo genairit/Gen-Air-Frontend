@@ -21,6 +21,8 @@ import {
 import {
   PAYMENT_TERMS_VALUES,
   PAYMENT_TERMS_LABELS,
+  CUSTOMER_PAYMENT_DEFAULT_COPY,
+  CUSTOMER_PAYMENT_DEFAULT_LABELS,
 } from "../../../constants/payment-terms.constant";
 
 import { Box } from "@mui/material";
@@ -42,7 +44,6 @@ import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { ICreateCustomerPayload } from "../../../interfaces/customer.interface";
 import { useCreateCustomerMutation } from "../../../hooks/mutations/customer.mutation";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
-import { CUSTOMER_PAYMENT_DEFAULT_LABELS } from "../../../constants/payment-terms.constant";
 
 interface INewCustomerFormProps {
   creatorName: string;
@@ -57,6 +58,9 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
 
   const errors = isSubmitAttempted ? getCustomerFormErrors(values) : {};
   const errorCount = isSubmitAttempted ? countCustomerFormErrors(values) : 0;
+  const paymentTermsLabel = values.paymentTerms
+    ? PAYMENT_TERMS_LABELS[values.paymentTerms].title
+    : CUSTOMER_PAYMENT_DEFAULT_COPY.NONE;
 
   const updateValues = (changes: Partial<ICreateCustomerPayload>) =>
     setValues(current => ({ ...current, ...changes }));
@@ -70,6 +74,12 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
 
     updateValues({ customerType });
   };
+
+  const changePaymentTerms = (label: string | null) =>
+    updateValues({
+      paymentTerms:
+        PAYMENT_TERMS_VALUES.find(value => PAYMENT_TERMS_LABELS[value].title === label) ?? null,
+    });
 
   const save = () => {
     setIsSubmitAttempted(true);
@@ -118,17 +128,11 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
       <Card>
         <Autocomplete
           isAutocomplete={false}
+          value={paymentTermsLabel}
           disabled={mutation.isPending}
+          onChange={changePaymentTerms}
           title="תנאי תשלום כברירת מחדל"
           options={CUSTOMER_PAYMENT_DEFAULT_LABELS}
-          value={values.paymentTerms ? PAYMENT_TERMS_LABELS[values.paymentTerms].title : null}
-          onChange={label =>
-            updateValues({
-              paymentTerms:
-                PAYMENT_TERMS_VALUES.find(value => PAYMENT_TERMS_LABELS[value].title === label) ??
-                null,
-            })
-          }
         />
       </Card>
       <CustomerSaveSummaryCard creatorName={creatorName} />
