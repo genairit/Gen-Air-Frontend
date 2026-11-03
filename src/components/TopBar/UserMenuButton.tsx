@@ -2,11 +2,12 @@ import { useState } from "react";
 import type { FC, MouseEvent } from "react";
 import { Check } from "@mui/icons-material";
 import { useStyles } from "./UserMenuButton.style";
+import InlineError from "../InlineError/InlineError";
 import { logger } from "../../utilities/logger.utility";
 import PersonSummary from "../PersonSummary/PersonSummary";
+import { Box, ButtonBase, Menu, MenuItem } from "@mui/material";
 import type { IPerson } from "../../interfaces/person.interface";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
-import { Box, ButtonBase, Menu, MenuItem, Typography } from "@mui/material";
 import { USER_ROLE_LABELS, type UserRoleType } from "../../constants/user-role.constant";
 
 interface IUserMenuButtonProps {
@@ -106,9 +107,9 @@ const UserMenuButton: FC<IUserMenuButtonProps> = ({
             </MenuItem>
           ))}
           {errorMessage && (
-            <Typography role="alert" sx={styles.error}>
-              {errorMessage}
-            </Typography>
+            <Box sx={styles.error}>
+              <InlineError message={errorMessage} />
+            </Box>
           )}
         </Menu>
       )}

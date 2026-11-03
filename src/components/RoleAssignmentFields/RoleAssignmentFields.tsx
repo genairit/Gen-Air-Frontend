@@ -4,11 +4,13 @@ import {
   type UserRoleType,
 } from "../../constants/user-role.constant";
 
+import { Box } from "@mui/material";
 import { useId, type FC } from "react";
 import CheckBox from "../CheckBox/CheckBox";
+import RadioButton from "../RadioButton/RadioButton";
+import InlineError from "../InlineError/InlineError";
 import { usePageStyles } from "../../pages/page.style";
 import { EMPLOYEES_COPY } from "../../constants/employee.constant";
-import { Box, Radio, RadioGroup, FormControlLabel } from "@mui/material";
 
 interface IRoleAssignmentFieldsProps {
   assignedRoles: UserRoleType[];
@@ -58,9 +60,8 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
         ))}
       </Box>
       {hasMultipleRoles && (
-        <RadioGroup
-          value={activeRole}
-          name={radioGroupName}
+        <Box
+          role="radiogroup"
           sx={styles.stack({ gap: "8px" })}
           aria-label={EMPLOYEES_COPY.ACTIVE_ROLE_LABEL}
         >
@@ -68,21 +69,18 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
             {EMPLOYEES_COPY.ACTIVE_ROLE_LABEL}
           </Box>
           {activeRoleOptions.map(({ role, label }) => (
-            <FormControlLabel
+            <RadioButton
               key={role}
               value={role}
               label={label}
-              control={<Radio />}
-              onChange={() => onActiveRoleChange(role)}
+              name={radioGroupName}
+              checked={activeRole === role}
+              onSelect={() => onActiveRoleChange(role)}
             />
           ))}
-        </RadioGroup>
-      )}
-      {hasNoRoles && (
-        <Box role="alert" sx={styles.caption}>
-          {EMPLOYEES_COPY.ROLE_ASSIGNMENT_REQUIRED}
         </Box>
       )}
+      {hasNoRoles && <InlineError message={EMPLOYEES_COPY.ROLE_ASSIGNMENT_REQUIRED} />}
     </Box>
   );
 };

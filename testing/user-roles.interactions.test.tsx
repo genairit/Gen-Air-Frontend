@@ -1,7 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import type { ReactElement } from "react";
-import { RadioGroup } from "@mui/material";
 import { AxiosError, AxiosHeaders } from "axios";
 import Button from "../src/components/Button/Button";
 import { QueryObserver } from "@tanstack/react-query";
@@ -14,6 +13,7 @@ import type { IApiUser } from "../src/interfaces/api.interface";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { PERMISSIONS } from "../src/constants/permission.constant";
+import RadioButton from "../src/components/RadioButton/RadioButton";
 import { EMPLOYEES_COPY } from "../src/constants/employee.constant";
 import UserMenuButton from "../src/components/TopBar/UserMenuButton";
 import GenericPopup from "../src/components/GenericPopup/GenericPopup";
@@ -69,6 +69,23 @@ const deferred = <TValue,>(): {
   return { promise, resolve: state.resolve, reject: state.reject };
 };
 
+test("generic radio preserves checked standalone button activation", async () => {
+  const selections: string[] = [];
+  const renderer = await renderComponent(
+    <RadioButton checked label="Standalone" onSelect={() => selections.push("selected")} />,
+  );
+  try {
+    const button = renderer.root.findByType("button");
+    assert.equal(button.props.type, "button");
+    assert.equal(button.props["aria-checked"], true);
+    await act(async () => button.props.onClick());
+    assert.deepEqual(selections, ["selected"]);
+    assert.equal(renderer.root.findAllByType("input").length, 0);
+  } finally {
+    await act(async () => renderer.unmount());
+  }
+});
+
 test("active-role options are native grouped radios with one selected tab stop and unique group names", async () => {
   const renderer = await renderComponent(
     <>
@@ -88,12 +105,15 @@ test("active-role options are native grouped radios with one selected tab stop a
   );
 
   try {
-    const groups = renderer.root.findAllByType(RadioGroup);
+    const groups = renderer.root
+      .findAllByType("div")
+      .filter(node => node.props.role === "radiogroup");
     assert.equal(groups.length, 2);
     const radios = groups.map(group =>
       group.findAllByType("input").filter(input => input.props.type === "radio"),
     );
     assert.equal(radios[0].length, 2);
+    assert.equal(renderer.root.findAllByType(RadioButton).length, 4);
     assert.equal(radios[0].filter(input => input.props.checked).length, 1);
     assert.equal(radios[1].filter(input => input.props.checked).length, 1);
     assert.equal(radios[0][0].props.name, radios[0][1].props.name);
@@ -118,7 +138,7 @@ test("one assigned role omits the selector and an empty assignment shows the req
   );
 
   try {
-    assert.equal(renderer.root.findAllByType(RadioGroup).length, 0);
+    assert.equal(renderer.root.findAllByType(RadioButton).length, 0);
     await act(async () => {
       renderer.update(
         <RoleAssignmentFields
