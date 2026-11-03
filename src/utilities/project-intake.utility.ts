@@ -1,110 +1,38 @@
-import {
-  PAYMENT_TERMS,
-  PAYMENT_TERMS_LABELS,
-  type PaymentTermsType,
-  PAYMENT_TERMS_BY_FIELD_SET,
-} from "../constants/payment-terms.constant";
-
-import { validatePaymentTermsNote } from "./validators";
 import type { IApiProject } from "../interfaces/api.interface";
 import { isAddressAccepted, toProjectAddress } from "./address.utility";
+import type { IProjectIntakeValues } from "../interfaces/project.interface";
 import type { TProjectIntakePayload } from "../interfaces/api-request.interface";
 import { ADDRESS_CITY_REQUIRED_BY_FIELD_SET } from "../constants/project-address.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
-import type { IPaymentTermsValues, IProjectIntakeValues } from "../interfaces/project.interface";
 
-export const createEmptyIntakeValues = (): IProjectIntakeValues => ({
-  address: null,
-  paymentTerms: { terms: null, note: "" },
-});
+export const createEmptyIntakeValues = (): IProjectIntakeValues => ({ address: null });
 
 export const toIntakeValues = (project: IApiProject): IProjectIntakeValues => ({
   address: toProjectAddress(project),
-  paymentTerms: { terms: project.paymentTerms ?? null, note: project.paymentTermsNote ?? "" },
 });
 
 export const isCityRequired = (fieldSet: ProjectDetailFieldSetType | null) =>
   fieldSet ? ADDRESS_CITY_REQUIRED_BY_FIELD_SET[fieldSet] : false;
 
-export const getPaymentTermsOptions = (fieldSet: ProjectDetailFieldSetType | null) =>
-  fieldSet ? PAYMENT_TERMS_BY_FIELD_SET[fieldSet] : [];
-
-const isPaymentTermsAllowed = (
-  terms: PaymentTermsType | null,
-  fieldSet: ProjectDetailFieldSetType | null,
-) => !terms || getPaymentTermsOptions(fieldSet).includes(terms);
-
-export const fitPaymentTermsToFieldSet = (
-  paymentTerms: IPaymentTermsValues,
-  fieldSet: ProjectDetailFieldSetType | null,
-): IPaymentTermsValues => {
-  if (isPaymentTermsAllowed(paymentTerms.terms, fieldSet)) {
-    return paymentTerms;
-  }
-
-  return { ...paymentTerms, terms: null };
-};
-
-export const isPaymentTermsNoteRequired = (terms: PaymentTermsType | null) =>
-  terms === PAYMENT_TERMS.OTHER;
-
-const countPaymentTermsErrors = ({ terms, note }: IPaymentTermsValues) => {
-  if (!terms) {
-    return 1;
-  }
-
-  const hasInvalidNote =
-    isPaymentTermsNoteRequired(terms) && !validatePaymentTermsNote(note).isValid;
-
-  return hasInvalidNote ? 1 : 0;
-};
-
-const isSamePaymentTerms = (current: IPaymentTermsValues, original: IPaymentTermsValues) =>
-  current.terms === original.terms && current.note.trim() === original.note.trim();
-
-const isSameAddress = (current: IProjectIntakeValues, original: IProjectIntakeValues) =>
-  current.address?.placeId === original.address?.placeId;
-
 export interface IIntakeChangeSet {
   address: boolean;
-  paymentTerms: boolean;
 }
-
-const NEW_PROJECT_INTAKE_GROUPS: IIntakeChangeSet = {
-  address: true,
-  paymentTerms: true,
-};
 
 export const getChangedIntakeGroups = (
   values: IProjectIntakeValues,
   original: IProjectIntakeValues | null,
-): IIntakeChangeSet => {
-  if (!original) {
-    return NEW_PROJECT_INTAKE_GROUPS;
-  }
+): IIntakeChangeSet => ({
+  address: !original || values.address?.placeId !== original.address?.placeId,
+});
 
-  return {
-    address: !isSameAddress(values, original),
-    paymentTerms: !isSamePaymentTerms(values.paymentTerms, original.paymentTerms),
-  };
-};
-
-// Legacy projects predate the intake fields; like the server, only groups that are set or edited are enforced.
+// Legacy projects predate verified addresses; enforce a value only if it existed or changed.
 export const getRequiredIntakeGroups = (
   values: IProjectIntakeValues,
   original: IProjectIntakeValues | null,
-): IIntakeChangeSet => {
-  const changed = getChangedIntakeGroups(values, original);
-
-  if (!original) {
-    return changed;
-  }
-
-  return {
-    address: changed.address || Boolean(original.address),
-    paymentTerms: changed.paymentTerms || Boolean(original.paymentTerms.terms),
-  };
-};
+): IIntakeChangeSet => ({
+  address:
+    !original || getChangedIntakeGroups(values, original).address || Boolean(original.address),
+});
 
 interface IIntakeValidationContext {
   values: IProjectIntakeValues;
@@ -112,53 +40,16 @@ interface IIntakeValidationContext {
   fieldSet: ProjectDetailFieldSetType | null;
 }
 
-export const countIntakeErrors = ({ values, original, fieldSet }: IIntakeValidationContext) => {
-  const required = getRequiredIntakeGroups(values, original);
-  const requiresCity = isCityRequired(fieldSet);
-  const isAddressValid = isAddressAccepted({ address: values.address, requiresCity });
-
-  const addressErrors = required.address && !isAddressValid ? 1 : 0;
-  const paymentErrors = required.paymentTerms ? countPaymentTermsErrors(values.paymentTerms) : 0;
-
-  return addressErrors + paymentErrors;
-};
-
-const toNullableText = (value: string) => value.trim() || null;
-
-const toAddressPayload = ({ address }: IProjectIntakeValues): TProjectIntakePayload => ({
-  addressPlaceId: address?.placeId ?? null,
-});
-
-const toPaymentTermsPayload = ({ paymentTerms }: IProjectIntakeValues): TProjectIntakePayload => ({
-  paymentTerms: paymentTerms.terms,
-  paymentTermsNote: isPaymentTermsNoteRequired(paymentTerms.terms)
-    ? toNullableText(paymentTerms.note)
-    : null,
-});
-
-const PAYLOAD_BUILDERS: Record<
-  keyof IIntakeChangeSet,
-  (values: IProjectIntakeValues) => TProjectIntakePayload
-> = {
-  address: toAddressPayload,
-  paymentTerms: toPaymentTermsPayload,
-};
-
-const INTAKE_GROUPS = Object.keys(PAYLOAD_BUILDERS).filter(
-  (group): group is keyof IIntakeChangeSet => group in PAYLOAD_BUILDERS,
-);
+export const countIntakeErrors = ({ values, original, fieldSet }: IIntakeValidationContext) =>
+  Number(
+    getRequiredIntakeGroups(values, original).address &&
+      !isAddressAccepted({ address: values.address, requiresCity: isCityRequired(fieldSet) }),
+  );
 
 export const toIntakePayload = (
   values: IProjectIntakeValues,
   original: IProjectIntakeValues | null,
-): TProjectIntakePayload => {
-  const changed = getChangedIntakeGroups(values, original);
-
-  return INTAKE_GROUPS.filter(group => changed[group]).reduce<TProjectIntakePayload>(
-    (payload, group) => ({ ...payload, ...PAYLOAD_BUILDERS[group](values) }),
-    {},
-  );
-};
-
-export const formatPaymentTerms = (terms: PaymentTermsType | null) =>
-  terms ? PAYMENT_TERMS_LABELS[terms].title : null;
+): TProjectIntakePayload =>
+  getChangedIntakeGroups(values, original).address
+    ? { addressPlaceId: values.address?.placeId ?? null }
+    : {};

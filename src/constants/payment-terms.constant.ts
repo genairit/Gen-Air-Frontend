@@ -1,8 +1,3 @@
-import {
-  PROJECT_DETAIL_FIELD_SETS,
-  type ProjectDetailFieldSetType,
-} from "./project-detail-field-set.constant";
-
 export const PAYMENT_TERMS = {
   OTHER: "other",
   PREPAID: "prepaid",
@@ -31,37 +26,16 @@ export const PAYMENT_TERMS_LABELS: Record<PaymentTermsType, IPaymentTermsCopy> =
   },
 };
 
-const BUSINESS_PAYMENT_TERMS: PaymentTermsType[] = [
-  PAYMENT_TERMS.MILESTONES_NET_60,
-  PAYMENT_TERMS.TWELVE_PREPAID_CHECKS,
-  PAYMENT_TERMS.OTHER,
-];
-
-export const PAYMENT_TERMS_BY_FIELD_SET: Record<ProjectDetailFieldSetType, PaymentTermsType[]> = {
-  [PROJECT_DETAIL_FIELD_SETS.COMPANY]: BUSINESS_PAYMENT_TERMS,
-  [PROJECT_DETAIL_FIELD_SETS.INSTITUTION]: BUSINESS_PAYMENT_TERMS,
-  [PROJECT_DETAIL_FIELD_SETS.PRIVATE_CLIENT]: [
-    PAYMENT_TERMS.INSTALLMENTS_10_60_30,
-    PAYMENT_TERMS.PREPAID,
-    PAYMENT_TERMS.OTHER,
-  ],
-};
-
-export const PAYMENT_TERMS_COPY = {
-  TITLE: "תנאי תשלום",
-  NOTE_LABEL: "פירוט תנאי התשלום",
-  REQUIRED: "בחר תנאי תשלום",
-  SUBTITLE: "האפשרויות משתנות לפי סוג הפרויקט",
-  NOTE_HINT: "התנאים המותאמים יועברו לאישור מנהל לפני יצירת הצעת מחיר",
-  NOTE_PLACEHOLDER: "לדוגמה: 30% מקדמה, 40% בסיום התקנה, 30% שוטף + 30",
-  RESET_NOTICE: "סוג הפרויקט השתנה ואפשרויות התשלום השתנו — בחר תנאי תשלום מחדש",
-} as const;
-
 export const CUSTOMER_PAYMENT_DEFAULT_OPTIONS = PAYMENT_TERMS_VALUES.map(value => ({
   value,
   label: PAYMENT_TERMS_LABELS[value].title,
 }));
 
-export const CUSTOMER_PAYMENT_DEFAULT_LABELS = CUSTOMER_PAYMENT_DEFAULT_OPTIONS.map(
-  option => option.label,
-);
+export const CUSTOMER_PAYMENT_DEFAULT_COPY = {
+  NONE: "ללא ברירת מחדל",
+} as const;
+
+export const CUSTOMER_PAYMENT_DEFAULT_LABELS = [
+  CUSTOMER_PAYMENT_DEFAULT_COPY.NONE,
+  ...CUSTOMER_PAYMENT_DEFAULT_OPTIONS.map(option => option.label),
+];

@@ -12,6 +12,13 @@ existing generic components as much as possible. The
 [frontend development workflow](rules/frontend-development-workflow-standards.md)
 places design before implementation, review, and QA.
 
+### Responsive layout
+
+The authenticated shell uses the shared 899px CSS breakpoint for sidebar visibility, main
+spacing, and bottom navigation together, including the first render. Mobile full-width status
+choices wrap without hiding options. Drive headers opt into stacked mobile actions; other
+card headers retain their existing layout.
+
 ## Environments
 
 | Environment | Branch | URL                                                 |

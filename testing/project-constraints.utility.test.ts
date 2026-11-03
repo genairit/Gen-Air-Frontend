@@ -18,6 +18,7 @@ import { project } from "./project-tasks.fixture";
 import { isApiProject } from "../src/utilities/guards/api.guard";
 import { isRecord } from "../src/utilities/guards/primitive.guard";
 import { LOCAL_STORAGE_KEYS } from "../src/constants/storage.constant";
+import { PAYMENT_TERMS } from "../src/constants/payment-terms.constant";
 import { makeValues, createMemoryStorage } from "./project-constraints.fixture";
 import { toProjectFormValues, toProjectPayload } from "../src/utilities/project.utility";
 import { saveProjectDraft, readProjectDraft } from "../src/utilities/project-draft.utility";
@@ -133,13 +134,18 @@ test("draft roundtrip retains lighting inputs without persisting sensitive intak
   assert.equal(raw.includes('"contact"'), false);
 });
 
-test("old version-two drafts restore without the newly added attributes", () => {
+test("stored version-two drafts restore without lighting attributes or retired payment terms", () => {
   memory.clear();
   saveProjectDraft(draftUserId, makeValues());
   const raw = memory.getItem(draftKey);
   assert.ok(raw);
   const parsed: unknown = JSON.parse(raw);
   assert.ok(isRecord(parsed) && isRecord(parsed.values));
+  parsed.version = 2;
+  parsed.values.paymentTerms = {
+    terms: PAYMENT_TERMS.OTHER,
+    note: "discard this legacy payment note",
+  };
   Reflect.deleteProperty(parsed.values, "hasGeneralLightingCeilingLowering");
   Reflect.deleteProperty(parsed.values, "generalLightingCeilingLoweringHeight");
   memory.setItem(draftKey, JSON.stringify(parsed));
@@ -147,6 +153,9 @@ test("old version-two drafts restore without the newly added attributes", () => 
   assert.equal(restored?.name, project.name);
   assert.equal(restored?.hasGeneralLightingCeilingLowering, false);
   assert.equal(restored?.generalLightingCeilingLoweringHeight, "");
+  assert.ok(restored);
+  assert.equal(Reflect.has(restored, "paymentTerms"), false);
+  assert.equal(Reflect.has(restored, "paymentTermsNote"), false);
 });
 
 test("malformed lighting draft types are not trusted", () => {
@@ -211,14 +220,14 @@ test("project lighting guard accepts legacy omission and valid complete values",
   assert.equal(isApiProject(disabled), true);
 });
 
-test("project guard accepts removed payment fields but validates them when present", () => {
+test("project guard ignores retired payment fields", () => {
   const withoutPaymentTerms = { ...project };
   Reflect.deleteProperty(withoutPaymentTerms, "paymentTerms");
   Reflect.deleteProperty(withoutPaymentTerms, "paymentTermsNote");
 
   assert.equal(isApiProject(withoutPaymentTerms), true);
-  assert.equal(isApiProject({ ...withoutPaymentTerms, paymentTerms: "invalid" }), false);
-  assert.equal(isApiProject({ ...withoutPaymentTerms, paymentTermsNote: 42 }), false);
+  assert.equal(isApiProject({ ...withoutPaymentTerms, paymentTerms: "invalid" }), true);
+  assert.equal(isApiProject({ ...withoutPaymentTerms, paymentTermsNote: 42 }), true);
 });
 
 test("project lighting guard rejects partial, inconsistent and nonfinite API values", () => {

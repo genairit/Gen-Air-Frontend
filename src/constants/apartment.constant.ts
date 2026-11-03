@@ -7,14 +7,8 @@ import type {
 
 import { CHIP_VARIANTS } from "./chip.constant";
 import { validateFloor } from "../utilities/validators";
-import type { IApartmentChanges } from "../interfaces/api-request.interface";
 import { FIELD_TYPES } from "../components/TextField/constants/textfield.constants";
 import { validateApartmentNumber } from "../utilities/validators/apartment-number.validator";
-
-export const PAYMENT_TERMS_RESET: IApartmentChanges = {
-  paymentTerms: null,
-  paymentTermsNote: null,
-};
 
 export const APARTMENT_SCROLL_ROOT_MARGIN = "200px";
 
@@ -22,8 +16,6 @@ export const EMPTY_APARTMENT_FORM: IApartmentFormValues = {
   floor: "",
   customerId: null,
   members: null,
-  paymentTerms: null,
-  paymentTermsNote: "",
   apartmentNumber: "",
 };
 
@@ -63,7 +55,6 @@ export const BUILDING_PAGE_COPY = {
   INHERITED_SUBTITLE: "עריכה כאן מתעדכנת בכל דירה שלא שינתה את הערך",
   PROJECT_TYPE: "סוג פרויקט",
   ADDRESS: "כתובת הבניין",
-  PAYMENT_TERMS: "תנאי תשלום",
   PARENT_NOTES: "הערות האב",
   TAMA_BADGE: "תמ״א",
   NO_NOTES: "אין הערות לבניין",
@@ -72,8 +63,7 @@ export const BUILDING_PAGE_COPY = {
   APARTMENTS_TITLE: "דירות הבניין",
   SEARCH_PLACEHOLDER: "חיפוש לפי מספר דירה, לקוח או קוד...",
   EMPTY_TITLE: "עדיין אין דירות בבניין הזה",
-  EMPTY_DESCRIPTION:
-    "הוסף דירה ראשונה. כל דירה תירש מהבניין את סוג הפרויקט, הכתובת, תנאי התשלום וההערות.",
+  EMPTY_DESCRIPTION: "הוסף דירה ראשונה. כל דירה תירש מהבניין את סוג הפרויקט, הכתובת וההערות.",
   NO_RESULTS: "לא נמצאו דירות שמתאימות לחיפוש או לשלב שנבחר",
   LOADING: "טוען דירות...",
   LOADING_MORE: "טוען עוד דירות...",
@@ -112,22 +102,14 @@ export const APARTMENT_PAGE_COPY = {
   CONTACT_NAME: "איש קשר היסטורי בדירה",
   CONTACT_PHONE: "טלפון נייד",
   INHERITED_TITLE: "נתונים מהפרויקט האב",
-  INHERITED_SUBTITLE: "ערך שהוגדר באב מתעדכן אוטומטית, אלא אם שונה בדירה",
+  INHERITED_SUBTITLE: "סוג הפרויקט והכתובת מתעדכנים עם פרויקט האב",
   PROJECT_TYPE: "סוג פרויקט",
   ADDRESS: "כתובת הבניין",
   UNIT: "קומה ומספר דירה",
   UNIT_SUB: "מתווספים לכתובת הבניין",
-  PAYMENT_TERMS: "תנאי תשלום",
   LOCKED_TYPE: "🔒 לא ניתן לשינוי בדירה",
   LOCKED_ADDRESS: "🔒 לא ניתן לשינוי · מזהה המקום של Google נשאר של הבניין",
   EDITABLE_HERE: "ניתן לעריכה בדירה זו",
-  FOLLOWS_UPDATES: "מתעדכן אוטומטית כשהאב משתנה",
-  OVERRIDE_NOTE: "שינויים בתנאי התשלום של האב לא ישפיעו על דירה זו",
-  PARENT_VALUE_PREFIX: "ערך האב:",
-  OVERRIDE: "שנה לדירה זו",
-  RETURN_TO_PARENT: "חזור לערך האב",
-  CHOOSE_TERMS: "בחר תנאי תשלום…",
-  SAVE_TERMS: "שמור לדירה זו",
   CANCEL: "ביטול",
   PARENT_NOTES_TITLE: "הערות הפרויקט האב",
   READ_ONLY: "קריאה בלבד",
@@ -147,14 +129,12 @@ export const ADD_APARTMENT_COPY = {
   PEOPLE_TITLE: "לקוח הדירה *",
   PEOPLE_SUBTITLE: "בחירת לקוח קיים. איש הקשר והטלפון נלקחים מכרטיס הלקוח ולא מוקלדים מחדש",
   INHERITED_TITLE: "עובר מהבניין",
-  INHERITED_SUBTITLE: "קריאה בלבד, אפשר לשנות לדירה זו",
+  INHERITED_SUBTITLE: "סוג הפרויקט והכתובת נשמרים מפרויקט האב",
   FROM_PARENT: "מפרויקט האב",
   TYPE_LABEL: "סוג פרויקט",
   ADDRESS_LABEL: "כתובת הבניין",
-  TERMS_LABEL: "תנאי תשלום",
   NOT_CHANGEABLE: "לא ניתן לשינוי",
   ADDRESS_NOTE: "לא ניתן לשינוי · מוסיפים קומה ומספר דירה",
-  TERMS_NOTE: "מתעדכן אוטומטית עם האב",
   NOTES_LABEL: "הערות האב",
   NOTES_NOTE: "יופיעו בדירה בקריאה בלבד",
   HAS_NOTES: "כולל תמ״א",
