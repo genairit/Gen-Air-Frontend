@@ -30,7 +30,8 @@ const InheritedPreviewCard: FC<IInheritedPreviewCardProps> = ({
 }) => {
   const styles = usePageStyles();
 
-  const paymentValue = formatPaymentTerms(values.paymentTerms ?? building.paymentTerms) ?? "—";
+  const paymentValue =
+    formatPaymentTerms(values.paymentTerms ?? building.paymentTerms ?? null) ?? "—";
   const paymentNote = values.paymentTerms
     ? APARTMENT_PAGE_COPY.OVERRIDE_NOTE
     : ADD_APARTMENT_COPY.TERMS_NOTE;

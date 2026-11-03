@@ -20,7 +20,7 @@ export const createEmptyIntakeValues = (): IProjectIntakeValues => ({
 
 export const toIntakeValues = (project: IApiProject): IProjectIntakeValues => ({
   address: toProjectAddress(project),
-  paymentTerms: { terms: project.paymentTerms, note: project.paymentTermsNote ?? "" },
+  paymentTerms: { terms: project.paymentTerms ?? null, note: project.paymentTermsNote ?? "" },
 });
 
 export const isCityRequired = (fieldSet: ProjectDetailFieldSetType | null) =>

@@ -103,7 +103,6 @@ const PROJECT_INTAKE_TEXT_FIELDS = [
   "addressCity",
   "contactPhone",
   "addressPlaceId",
-  "paymentTermsNote",
 ] as const;
 
 export const isPaymentTerms = (value?: unknown): value is PaymentTermsType =>
@@ -111,9 +110,12 @@ export const isPaymentTerms = (value?: unknown): value is PaymentTermsType =>
 
 const hasProjectIntake = (value: Record<string, unknown>) => {
   const hasTextFields = PROJECT_INTAKE_TEXT_FIELDS.every(field => isNullableString(value[field]));
-  const hasPaymentTerms = value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
+  const hasPaymentTermsNote =
+    !("paymentTermsNote" in value) || isNullableString(value.paymentTermsNote);
+  const hasPaymentTerms =
+    !("paymentTerms" in value) || value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
 
-  return hasTextFields && hasPaymentTerms;
+  return hasTextFields && hasPaymentTermsNote && hasPaymentTerms;
 };
 
 export const isApiProjectStage = (value: unknown): value is IApiProjectStage => {
