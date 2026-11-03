@@ -13,6 +13,7 @@ import type {
 
 import { catalogueLine } from "../utilities/quotation.utility";
 import { quotationService } from "../services/quotation.service";
+import { AuthorizationContext } from "../managers/authorization-context.manager";
 
 const replacementItem = async (
   line: IQuotationLine,
@@ -103,8 +104,11 @@ const rebrandSection = async (
 export const rebrandQuotationAction = async (
   quotation: IQuotation,
   brand: string,
-): Promise<IQuotation> => ({
-  ...quotation,
-  brand,
-  sections: await Promise.all(quotation.sections.map(section => rebrandSection(section, brand))),
-});
+): Promise<IQuotation> => {
+  const context = new AuthorizationContext();
+  const sections = await Promise.all(
+    quotation.sections.map(section => rebrandSection(section, brand)),
+  );
+  context.assertCurrent();
+  return { ...quotation, brand, sections };
+};

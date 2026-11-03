@@ -1,6 +1,7 @@
 import { isAxiosError } from "axios";
 import { isRecord } from "./guards/primitive.guard";
 import { UploadValidationError } from "./drive-upload.utility";
+import { AuthorizationContextChangedError } from "../managers/authorization-context.manager";
 
 const GENERIC_ERROR_MESSAGE = "הפעולה נכשלה. נסה שוב בעוד רגע.";
 
@@ -24,8 +25,11 @@ const toMessage = (message: unknown) => {
   return null;
 };
 
-export const getApiErrorMessage = (error: unknown) => {
-  if (error instanceof UploadValidationError) {
+export const getApiErrorMessage = (error: unknown): string => {
+  const isClientValidationError = error instanceof UploadValidationError;
+  const hasChangedAuthorization = error instanceof AuthorizationContextChangedError;
+
+  if (isClientValidationError || hasChangedAuthorization) {
     return error.message;
   }
 

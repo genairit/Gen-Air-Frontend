@@ -7,7 +7,9 @@ import { queryClient } from "../src/providers/query-client";
 import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { isApiSharedDocument } from "../src/utilities/guards/api.guard";
 import { selectSharedDocumentAction } from "../src/actions/drive.action";
+import { SessionRequestManager } from "../src/managers/session-request.manager";
 import { projectActivityService } from "../src/services/project-activity.service";
+import { AuthorizationContextChangedError } from "../src/managers/authorization-context.manager";
 import SharedProjectDocumentCard from "../src/pages/apartment/components/SharedProjectDocumentCard";
 
 test("a selected parent file requires a safe Drive viewer URL", () => {
@@ -70,6 +72,26 @@ test("selection and clear invalidate the parent, apartment, and project caches",
   await selectSharedDocumentAction({ projectId: parentId, fileId: null });
   assert.deepEqual(calls, ["plan-file", null]);
   queryClient.clear();
+});
+
+test("a retired shared-document selection cannot invalidate the new role caches", async context => {
+  const projectId = "retired-selection";
+  const key = QUERY_KEYS.sharedDocument(projectId);
+  context.mock.method(projectActivityService, "selectSharedDocument", async () => {
+    SessionRequestManager.invalidateAuthorization();
+    return { status: "none" as const, file: null };
+  });
+  queryClient.setQueryData(key, { status: "none", file: null });
+
+  try {
+    await assert.rejects(
+      selectSharedDocumentAction({ projectId, fileId: "plan-file" }),
+      AuthorizationContextChangedError,
+    );
+    assert.equal(queryClient.getQueryState(key)?.isInvalidated, false);
+  } finally {
+    queryClient.clear();
+  }
 });
 
 test("apartment card renders only the validated link and actionable unavailable state", () => {

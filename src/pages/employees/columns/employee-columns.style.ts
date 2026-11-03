@@ -21,4 +21,9 @@ export const EMPLOYEE_COLUMN_STYLES = createStyles({
     gap: "10px",
     display: "flex",
   },
+  assignedRoles: {
+    gap: "6px",
+    display: "flex",
+    flexWrap: "wrap",
+  },
 });

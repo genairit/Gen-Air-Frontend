@@ -13,7 +13,7 @@ import type {
   IApiTaskTransition,
 } from "../../interfaces/task.interface";
 
-import { isApiUser } from "./api.guard";
+import { isApiUser, isUserRole } from "./api.guard";
 import { TASK_TYPE_VALUES, type TaskType } from "../../constants/task-type.constant";
 import { TASK_STATUS_VALUES, type TaskStatusType } from "../../constants/task.constant";
 import type { IApiProjectReference, IApiCustomerReference } from "../../interfaces/api.interface";
@@ -106,6 +106,7 @@ export const isApiTaskTransition = (value: unknown): value is IApiTaskTransition
   const hasIdentity = hasStringFields(value, ["id", "taskId", "createdAt", "changedById"]);
   const hasStatuses =
     isTaskStatus(value.toStatus) && (value.fromStatus === null || isTaskStatus(value.fromStatus));
+  const hasRoleSnapshot = value.changedByRole === null || isUserRole(value.changedByRole);
 
-  return hasIdentity && hasStatuses && isOptionalOf(isApiUser)(value.changedBy);
+  return hasIdentity && hasStatuses && hasRoleSnapshot && isOptionalOf(isApiUser)(value.changedBy);
 };

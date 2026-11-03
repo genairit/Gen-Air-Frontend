@@ -16,15 +16,23 @@ const parseSession = (serialized: string | null) => {
       return null;
     }
 
-    if (isAuthorizedUser(parsed.user)) {
-      return { accessToken: parsed.accessToken, user: parsed.user };
+    const userWithAssignedRoles = {
+      ...parsed.user,
+      assignedRoles: parsed.user.assignedRoles ?? [parsed.user.role],
+    };
+
+    if (isAuthorizedUser(userWithAssignedRoles)) {
+      return { accessToken: parsed.accessToken, user: userWithAssignedRoles };
     }
 
-    if (Reflect.has(parsed.user, "permissions")) {
+    if (Reflect.has(userWithAssignedRoles, "permissions")) {
       return null;
     }
 
-    return { accessToken: parsed.accessToken, user: { ...parsed.user, permissions: [] } };
+    return {
+      accessToken: parsed.accessToken,
+      user: { ...userWithAssignedRoles, permissions: [] },
+    };
   } catch {
     // A corrupted stored session is discarded and the user signs in again.
     return null;

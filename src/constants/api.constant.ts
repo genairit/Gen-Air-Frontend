@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
   taskClaim: (taskId: string) => `/task/${taskId}/claim`,
   taskTransitions: (taskId: string) => `/task/${taskId}/transitions`,
   LOGIN: "/auth/login",
+  ROLE_SWITCH: "/auth/role",
   USERS: "/user",
   MY_USER: "/user/me",
   MY_PASSWORD: "/user/me/password",

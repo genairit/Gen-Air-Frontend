@@ -29,12 +29,24 @@ export const useStyles = () =>
       fontSize: 15,
       minHeight: 48,
       display: "flex",
+      position: "relative",
       cursor: "pointer",
       alignItems: "center",
       width: "fit-content",
       color: palette.charcoal,
       backgroundColor: "transparent",
+      "&:has(input:focus-visible)": {
+        outline: `2px solid ${palette.primary}`,
+        outlineOffset: 3,
+      },
       "&:focus-visible": { outline: `2px solid ${palette.primary}`, outlineOffset: 3 },
+    },
+    input: {
+      margin: 0,
+      width: 1,
+      height: 1,
+      opacity: 0,
+      position: "absolute",
     },
     indicator: ({ size }: Pick<IIndicatorStyleOptions, "size">) => ({
       ...CENTERED_FLEX,
@@ -51,5 +63,6 @@ export const useStyles = () =>
       width: DOT_SIZE_BY_CONTROL_SIZE[size],
       height: DOT_SIZE_BY_CONTROL_SIZE[size],
       backgroundColor: checked ? palette.primary : "transparent",
+      "@media (prefers-reduced-motion: reduce)": { transition: "none" },
     }),
   });

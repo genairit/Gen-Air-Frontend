@@ -23,6 +23,7 @@ import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import PersonSummary from "../../../components/PersonSummary/PersonSummary";
 import type { TRoleAssignees } from "../../../interfaces/project.interface";
 import { PROJECT_FORM_COPY } from "../../../constants/project-form.constant";
+import { getUsersAssignedToRole } from "../../../utilities/user-role.utility";
 import { SURFACE_DEPTHS, SURFACE_RADII } from "../../../constants/surface.constant";
 import { toRolePerson, toUserOptions } from "../../../utilities/mappers/user.mapper";
 
@@ -47,7 +48,7 @@ const ProjectRolesCard: FC<IProjectRolesCardProps> = ({ users, assignees, onAssi
       />
       <Box sx={styles.grid({ minColumnWidth: 220, gap: "20px" })}>
         {PROJECT_MEMBER_ROLES.map(role => {
-          const roleOptions = toUserOptions(users.filter(user => user.role === role));
+          const roleOptions = toUserOptions(getUsersAssignedToRole(users, role));
 
           return (
             <Card

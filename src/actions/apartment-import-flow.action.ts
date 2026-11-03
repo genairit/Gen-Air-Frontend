@@ -27,6 +27,7 @@ import { isRecord } from "../utilities/guards/primitive.guard";
 import { FileDownloadManager } from "../managers/file-download.manager";
 import { QUERY_KEYS, QUERY_ROOTS } from "../constants/query-key.constant";
 import { apartmentImportService } from "../services/apartment-import.service";
+import { AuthorizationContext } from "../managers/authorization-context.manager";
 import { CUSTOMER_CONTACT_QUERY_ROOT } from "../constants/customer-contact.constant";
 
 interface IStartImportOptions extends IApartmentImportStateActions {
@@ -72,6 +73,7 @@ export const startApartmentImportAction = async ({
   setView,
   setReport,
 }: IStartImportOptions): Promise<void> => {
+  const context = new AuthorizationContext();
   setReport(null);
   const processingView = {
     refreshRequired: true,
@@ -82,10 +84,16 @@ export const startApartmentImportAction = async ({
     result: null,
   } as const;
   setView(processingView);
-  const onProgress: IApartmentImportRequest["onProgress"] = progress =>
+  const onProgress: IApartmentImportRequest["onProgress"] = progress => {
+    if (!context.isCurrent()) {
+      return;
+    }
+
     setView({ ...processingView, progress });
+  };
   try {
     const response = await apartmentImportService.upload({ file, buildingId, onProgress });
+    context.assertCurrent();
     setReport(response.reportBase64);
     setView({
       refreshRequired: true,
@@ -96,6 +104,7 @@ export const startApartmentImportAction = async ({
       result: { counts: response.counts, rows: response.rows },
     });
   } catch (error) {
+    context.assertCurrent();
     logger.error("Apartment workbook import failed", {});
     setView({
       refreshRequired: true,
@@ -109,7 +118,9 @@ export const startApartmentImportAction = async ({
 };
 
 export const downloadApartmentTemplateAction = async (buildingId: string): Promise<void> => {
+  const context = new AuthorizationContext();
   const blob = await apartmentImportService.template(buildingId);
+  context.assertCurrent();
   FileDownloadManager.download(blob, IMPORT_DOWNLOAD.TEMPLATE);
 };
 
@@ -123,6 +134,7 @@ export const downloadApartmentReportAction = async (report: string | null): Prom
 };
 
 export const refreshImportedApartmentsAction = async (buildingId: string): Promise<void> => {
+  const context = new AuthorizationContext();
   await Promise.all([
     queryClient.invalidateQueries(
       { queryKey: [QUERY_ROOTS.CUSTOMER_PROJECTS] },
@@ -147,4 +159,5 @@ export const refreshImportedApartmentsAction = async (buildingId: string): Promi
       { throwOnError: true },
     ),
   ]);
+  context.assertCurrent();
 };

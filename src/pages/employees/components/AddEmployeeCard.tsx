@@ -1,9 +1,3 @@
-import {
-  getOptionLabels,
-  findOptionIdByLabel,
-  findOptionLabelById,
-} from "../../../utilities/option.utility";
-
 import { useState } from "react";
 import { Box } from "@mui/material";
 import { usePageStyles } from "../../page.style";
@@ -11,17 +5,15 @@ import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import TextField from "../../../components/TextField/TextField";
-import { isUserRole } from "../../../utilities/guards/api.guard";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import InlineError from "../../../components/InlineError/InlineError";
-import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
-import { USER_ROLE_OPTIONS } from "../../../constants/user-role.constant";
 import { canSubmitEmployeeForm } from "../../../utilities/employee.utility";
 import { useAddEmployeeMutation } from "../../../hooks/mutations/user.mutation";
 import type { IEmployeeFormValues } from "../../../interfaces/employee.interface";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import { EMPLOYEES_COPY, EMPTY_EMPLOYEE_FORM } from "../../../constants/employee.constant";
+import RoleAssignmentFields from "../../../components/RoleAssignmentFields/RoleAssignmentFields";
 
 const AddEmployeeCard = () => {
   const styles = usePageStyles();
@@ -30,16 +22,6 @@ const AddEmployeeCard = () => {
 
   const updateValues = (changes: Partial<IEmployeeFormValues>) =>
     setValues(current => ({ ...current, ...changes }));
-
-  const handleRoleChange = (label: string | null) => {
-    const role = findOptionIdByLabel(USER_ROLE_OPTIONS, label);
-
-    if (!isUserRole(role)) {
-      return;
-    }
-
-    updateValues({ role });
-  };
 
   const handleAdd = () =>
     addMutation.mutate(values, { onSuccess: () => setValues(EMPTY_EMPLOYEE_FORM) });
@@ -77,13 +59,11 @@ const AddEmployeeCard = () => {
           onChange={phone => updateValues({ phone })}
           placeholder={EMPLOYEES_COPY.PHONE_PLACEHOLDER}
         />
-        <Autocomplete
-          isRequired
-          isAutocomplete={false}
-          onChange={handleRoleChange}
-          title={EMPLOYEES_COPY.ROLE_LABEL}
-          options={getOptionLabels(USER_ROLE_OPTIONS)}
-          value={findOptionLabelById(USER_ROLE_OPTIONS, values.role)}
+        <RoleAssignmentFields
+          activeRole={values.role}
+          assignedRoles={values.assignedRoles}
+          onActiveRoleChange={role => updateValues({ role })}
+          onAssignedRolesChange={assignedRoles => updateValues({ assignedRoles })}
         />
         <TextField
           value={values.password}

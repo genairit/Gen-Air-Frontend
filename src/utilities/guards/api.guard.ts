@@ -60,6 +60,13 @@ import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial
 export const isUserRole = (value?: unknown): value is UserRoleType =>
   USER_ROLE_VALUES.some(role => role === value);
 
+const isAssignedRoles = (value: unknown): value is UserRoleType[] => {
+  const isNonEmpty = Array.isArray(value) && value.length > 0;
+  const hasUniqueRoles = isNonEmpty && new Set(value).size === value.length;
+
+  return isNonEmpty && hasUniqueRoles && isArrayOf(isUserRole)(value);
+};
+
 export const isApiUser = (value: unknown): value is IApiUser => {
   if (!isRecord(value)) {
     return false;
@@ -67,12 +74,23 @@ export const isApiUser = (value: unknown): value is IApiUser => {
 
   const hasIdentity = hasStringFields(value, ["id", "email", "firstName", "lastName"]);
   const hasContact = hasStringFields(value, ["phone", "employeeNumber"]);
+  const activeRole = isUserRole(value.role) ? value.role : null;
+  const hasRole = activeRole !== null;
+  const hasValidAssignedRoles =
+    !("assignedRoles" in value) ||
+    (activeRole !== null &&
+      isAssignedRoles(value.assignedRoles) &&
+      value.assignedRoles.includes(activeRole));
 
-  return hasIdentity && hasContact && isUserRole(value.role);
+  return hasIdentity && hasContact && hasRole && hasValidAssignedRoles;
 };
 
 export const isAuthorizedUser = (value: unknown): value is IApiAuthorizedUser =>
-  isRecord(value) && isApiUser(value) && isArrayOf(isPermission)(value.permissions);
+  isRecord(value) &&
+  isApiUser(value) &&
+  isAssignedRoles(value.assignedRoles) &&
+  value.assignedRoles.includes(value.role) &&
+  isArrayOf(isPermission)(value.permissions);
 
 export const isDetailFieldSet = (value?: unknown): value is ProjectDetailFieldSetType =>
   PROJECT_DETAIL_FIELD_SET_VALUES.some(fieldSet => fieldSet === value);
@@ -197,7 +215,9 @@ export const isProjectStageCounts = (value: unknown): value is IProjectStageCoun
   isRecord(value) && isNumber(value.total) && isNumberRecord(value.byStage);
 
 export const isUserRoleCounts = (value: unknown): value is TUserRoleCounts =>
-  isNumberRecord(value) && USER_ROLE_VALUES.every(role => isNumber(value[role]));
+  isNumberRecord(value) &&
+  isNumber(value.total) &&
+  USER_ROLE_VALUES.every(role => isNumber(value[role]));
 
 export const isApiStageTransition = (value: unknown): value is IApiStageTransition => {
   if (!isRecord(value)) {

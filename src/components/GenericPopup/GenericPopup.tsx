@@ -18,9 +18,10 @@ import { logger } from "../../utilities/logger.utility";
 import UltraSignature from "../UltraSignature/UltraSignature";
 import type { TPopUpIcons } from "./constants/icons.constants";
 import { renderPopupIcon } from "./utilities/renderIcon.utility";
-import { ACTION_FAILURE_MESSAGE } from "./constants/popup.constants";
 import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
 import { type FC, type MouseEvent, type ReactNode, useState } from "react";
+import { getPopupActionErrorMessage } from "./utilities/action-error.utility";
+import { AuthorizationContext } from "../../managers/authorization-context.manager";
 
 export type TAlignContent = "left" | "center" | "right";
 
@@ -83,32 +84,36 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   };
 
   const handlePrimaryButtonClick = async (event: MouseEvent<HTMLButtonElement>) => {
+    const context = new AuthorizationContext();
     try {
       setActionError(null);
       setPrimaryButtonLoading(true);
       await buttons.primary.onClick(event);
+      context.assertCurrent();
       if (closeAfterAction) {
         onClose?.();
       }
     } catch (error) {
       logger.error("Popup primary action failed", { error });
-      setActionError(ACTION_FAILURE_MESSAGE);
+      setActionError(getPopupActionErrorMessage(error));
     } finally {
       setPrimaryButtonLoading(false);
     }
   };
 
   const handleSecondaryButtonClick = async (event: MouseEvent<HTMLButtonElement>) => {
+    const context = new AuthorizationContext();
     try {
       setActionError(null);
       setSecondaryButtonLoading(true);
       await buttons?.secondary?.onClick?.(event);
+      context.assertCurrent();
       if (closeAfterAction) {
         onClose?.();
       }
     } catch (error) {
       logger.error("Popup secondary action failed", { error });
-      setActionError(ACTION_FAILURE_MESSAGE);
+      setActionError(getPopupActionErrorMessage(error));
     } finally {
       setSecondaryButtonLoading(false);
     }

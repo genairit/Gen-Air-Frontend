@@ -2,6 +2,7 @@ import type { QueryKey } from "@tanstack/react-query";
 import type { TaskType } from "../constants/task-type.constant";
 import type { TaskStatusType } from "../constants/task.constant";
 import type { TASK_TYPES } from "../constants/task-type.constant";
+import type { UserRoleType } from "../constants/user-role.constant";
 import type { IApiUser, IApiProjectReference, IApiCustomerReference } from "./api.interface";
 
 export interface IProjectParentCustomerSource {
@@ -121,6 +122,7 @@ export interface IApiTaskTransition {
   toStatus: TaskStatusType;
   changedBy?: IApiUser | null;
   fromStatus: TaskStatusType | null;
+  changedByRole: UserRoleType | null;
 }
 
 export interface ITaskStatusChange {

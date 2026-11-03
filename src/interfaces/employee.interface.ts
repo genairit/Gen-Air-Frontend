@@ -8,6 +8,7 @@ export interface IEmployee {
   person: IPerson;
   role: UserRoleType;
   isDisabled: boolean;
+  assignedRoles: UserRoleType[];
 }
 
 export interface IEmployeeFormValues {
@@ -15,7 +16,8 @@ export interface IEmployeeFormValues {
   email: string;
   phone: string;
   password: string;
-  role: UserRoleType;
+  role: UserRoleType | null;
+  assignedRoles: UserRoleType[];
 }
 
 export interface IEmployeeFilter {

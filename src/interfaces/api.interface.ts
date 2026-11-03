@@ -22,9 +22,11 @@ export interface IApiUser {
   role: UserRoleType;
   employeeNumber: string;
   deletedAt: string | null;
+  assignedRoles?: UserRoleType[];
 }
 
 export interface IApiAuthorizedUser extends IApiUser {
+  assignedRoles: UserRoleType[];
   permissions: PermissionType[];
 }
 
@@ -176,7 +178,7 @@ export interface IApiSharedDocument {
   file: { id: string; name: string; url: string } | null;
 }
 
-export type TUserRoleCounts = Record<UserRoleType, number>;
+export type TUserRoleCounts = Record<UserRoleType, number> & { total: number };
 
 export interface IApiPlaceSuggestion {
   placeId: string;

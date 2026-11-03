@@ -25,7 +25,10 @@ export const EMPLOYEES_COPY = {
   EMAIL_PLACEHOLDER: "yuval@genair.co.il",
   PHONE_LABEL: "טלפון נייד",
   PHONE_PLACEHOLDER: "0500000000",
-  ROLE_LABEL: "תפקיד והרשאה",
+  ROLE_LABEL: "תפקידים משויכים",
+  ACTIVE_ROLE_LABEL: "תפקיד פעיל",
+  ROLE_SWITCHER_LABEL: "החלפת תפקיד פעיל",
+  ROLE_ASSIGNMENT_REQUIRED: "יש לבחור לפחות תפקיד אחד",
   PASSWORD_LABEL: "סיסמה ראשונית",
   PASSWORD_HINT: "(מוצפנת)",
   ADD_BUTTON: "הוסף עובד למערכת",
@@ -33,6 +36,9 @@ export const EMPLOYEES_COPY = {
   NAME_HINT: "שם פרטי ושם משפחה",
   SEARCH_PLACEHOLDER: "חיפוש עובד לפי שם, מייל, טלפון או תפקיד...",
   EDIT: "עריכת עובד",
+  EDIT_ROLES_TITLE: "עריכת תפקידים והרשאות",
+  SAVE_ROLE_CHANGES: "שמירת שינויים",
+  CANCEL: "ביטול",
   DELETE: "מחיקת עובד",
   NEXT_PAGE: "העמוד הבא",
   PREVIOUS_PAGE: "העמוד הקודם",
@@ -42,7 +48,8 @@ export const EMPLOYEE_TABLE_HEADERS = {
   PERSON: "עובד ופרטי קשר",
   EMAIL: "דוא״ל",
   PHONE: "טלפון",
-  ROLE: "תפקיד והרשאה",
+  ASSIGNED_ROLES: "תפקידים משויכים",
+  ACTIVE_ROLE: "תפקיד פעיל",
   ACTIONS: "פעולות ניהול",
 } as const;
 
@@ -51,5 +58,6 @@ export const EMPTY_EMPLOYEE_FORM: IEmployeeFormValues = {
   email: "",
   phone: "",
   role: USER_ROLES.ENGINEER,
+  assignedRoles: [USER_ROLES.ENGINEER],
   password: DEFAULT_TEMPORARY_PASSWORD,
 };

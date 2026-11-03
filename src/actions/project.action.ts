@@ -4,6 +4,7 @@ import { projectService } from "../services/project.service";
 import { QUERY_ROOTS } from "../constants/query-key.constant";
 import { toProjectPayload } from "../utilities/project.utility";
 import type { IProjectSubmission } from "../interfaces/project.interface";
+import { AuthorizationContext } from "../managers/authorization-context.manager";
 import { toAuthorizedProjectUpdate } from "../utilities/project-permission.utility";
 
 const invalidateProjectQueries = () =>
@@ -26,10 +27,13 @@ const requirePayload = (submission: IProjectSubmission) => {
   return payload;
 };
 
-export const createProjectAction = async (submission: IProjectSubmission) => {
+export const createProjectAction = async (submission: IProjectSubmission): Promise<string> => {
+  const context = new AuthorizationContext();
   const project = await projectService.create(requirePayload(submission));
+  context.assertCurrent();
 
   await invalidateProjectQueries();
+  context.assertCurrent();
 
   return project.id;
 };
@@ -37,18 +41,24 @@ export const createProjectAction = async (submission: IProjectSubmission) => {
 export const updateProjectAction = async ({
   projectId,
   ...submission
-}: IProjectSubmission & { projectId: string }) => {
+}: IProjectSubmission & { projectId: string }): Promise<string> => {
+  const context = new AuthorizationContext();
   const payload = toAuthorizedProjectUpdate(requirePayload(submission), getSession()?.user ?? null);
   const project = await projectService.update(projectId, payload);
+  context.assertCurrent();
 
   await invalidateProjectQueries();
+  context.assertCurrent();
 
   return project.id;
 };
 
-export const deleteProjectAction = async (projectId: string) => {
+export const deleteProjectAction = async (projectId: string): Promise<void> => {
+  const context = new AuthorizationContext();
   await projectService.delete(projectId);
+  context.assertCurrent();
   await invalidateProjectQueries();
+  context.assertCurrent();
 };
 
 export const moveProjectToStageAction = async ({
@@ -57,8 +67,18 @@ export const moveProjectToStageAction = async ({
 }: {
   projectId: string;
   stageId: string;
-}) => {
-  await projectService.moveToStage(projectId, stageId);
+}): Promise<void> => {
+  const context = new AuthorizationContext();
+
+  try {
+    await projectService.moveToStage(projectId, stageId);
+  } finally {
+    if (context.isCurrent()) {
+      await invalidateProjectQueries();
+    }
+  }
+
+  context.assertCurrent();
 };
 
 export const refreshProjectQueriesAction = invalidateProjectQueries;
