@@ -12,10 +12,9 @@ export const useStyles = () =>
       [`@media ${MOBILE_LAYOUT_QUERY}`]: { padding: "16px" },
     },
     sections: {
-      gap: "28px",
-      display: "grid",
-      gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-      "@media (max-width: 1279px)": { gridTemplateColumns: "minmax(0, 1fr)" },
+      gap: "24px",
+      display: "flex",
+      flexDirection: "column",
     },
     accountSection: {
       gap: "18px",
@@ -27,15 +26,9 @@ export const useStyles = () =>
       gap: "18px",
       minWidth: 0,
       display: "flex",
-      paddingInlineStart: "28px",
+      paddingBlockStart: "24px",
       flexDirection: "column",
-      borderInlineStart: `1px solid ${theme.glass.border}`,
-      "@media (max-width: 1279px)": {
-        paddingInlineStart: 0,
-        paddingBlockStart: "24px",
-        borderInlineStart: 0,
-        borderBlockStart: `1px solid ${theme.glass.border}`,
-      },
+      borderBlockStart: `1px solid ${theme.glass.border}`,
     },
     sectionTitle: {
       margin: 0,

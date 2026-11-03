@@ -10,7 +10,6 @@ import { userService } from "../src/services/user.service";
 import { queryClient } from "../src/providers/query-client";
 import { TIME_UNITS } from "../src/constants/time.constant";
 import type { IApiUser } from "../src/interfaces/api.interface";
-import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import RadioButton from "../src/components/RadioButton/RadioButton";
@@ -24,6 +23,7 @@ import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { toEmployee, toPerson } from "../src/utilities/mappers/user.mapper";
 import { SESSION_USER_QUERY_KEY } from "../src/constants/permission.constant";
 import { verifySessionUserAction } from "../src/actions/session-refresh.action";
+import { USER_ROLES, USER_ROLE_LABELS } from "../src/constants/user-role.constant";
 import EditEmployeeRolesPopup from "../src/pages/employees/components/EditEmployeeRolesPopup";
 import RoleAssignmentFields from "../src/components/RoleAssignmentFields/RoleAssignmentFields";
 
@@ -86,7 +86,7 @@ test("generic radio preserves checked standalone button activation", async () =>
   }
 });
 
-test("active-role options are native grouped radios with one selected tab stop and unique group names", async () => {
+test("assigned checkboxes keep their group while active radios share a described native group", async () => {
   const renderer = await renderComponent(
     <>
       <RoleAssignmentFields
@@ -107,7 +107,10 @@ test("active-role options are native grouped radios with one selected tab stop a
   try {
     const groups = renderer.root
       .findAllByType("div")
-      .filter(node => node.props.role === "radiogroup");
+      .filter(
+        node =>
+          node.props.role === "group" && node.props["aria-label"] === EMPLOYEES_COPY.ROLE_LABEL,
+      );
     assert.equal(groups.length, 2);
     const radios = groups.map(group =>
       group.findAllByType("input").filter(input => input.props.type === "radio"),
@@ -116,8 +119,19 @@ test("active-role options are native grouped radios with one selected tab stop a
     assert.equal(renderer.root.findAllByType(RadioButton).length, 4);
     assert.equal(radios[0].filter(input => input.props.checked).length, 1);
     assert.equal(radios[1].filter(input => input.props.checked).length, 1);
+    assert.deepEqual(
+      radios[0].map(input => input.props["aria-label"]),
+      user.assignedRoles.map(role => USER_ROLE_LABELS[role]),
+    );
     assert.equal(radios[0][0].props.name, radios[0][1].props.name);
     assert.notEqual(radios[0][0].props.name, radios[1][0].props.name);
+    assert.equal(radios[0][0].props["aria-describedby"], radios[0][1].props["aria-describedby"]);
+    assert.notEqual(radios[0][0].props["aria-describedby"], radios[1][0].props["aria-describedby"]);
+    const activeRoleDescriptions = renderer.root
+      .findAllByType("span")
+      .filter(node => node.props.id === radios[0][0].props["aria-describedby"]);
+    assert.equal(activeRoleDescriptions.length, 1);
+    assert.equal(activeRoleDescriptions[0].children[0], EMPLOYEES_COPY.ACTIVE_ROLE_LABEL);
     assert.equal(
       radios[0].every(input => input.props.tabIndex !== -1),
       true,

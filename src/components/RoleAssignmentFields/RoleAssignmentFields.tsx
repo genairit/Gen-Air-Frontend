@@ -14,6 +14,7 @@ import { useStyles } from "./RoleAssignmentFields.style";
 import { EMPLOYEES_COPY } from "../../constants/employee.constant";
 
 interface IRoleAssignmentFieldsProps {
+  columns?: 2 | 3;
   assignedRoles: UserRoleType[];
   activeRole: UserRoleType | null;
   onAssignedRolesChange: (roles: UserRoleType[]) => void;
@@ -21,6 +22,7 @@ interface IRoleAssignmentFieldsProps {
 }
 
 const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
+  columns = 2,
   activeRole,
   assignedRoles,
   onActiveRoleChange,
@@ -28,17 +30,17 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
 }) => {
   const styles = useStyles();
   const radioGroupName = useId();
+  const activeRoleDescriptionId = `${radioGroupName}-description`;
   const hasMultipleRoles = assignedRoles.length > 1;
   const hasNoRoles = assignedRoles.length === 0;
   const soleAssignedRole = assignedRoles.length === 1 ? (assignedRoles[0] ?? null) : null;
-  const soleAssignedRoleLabel =
-    soleAssignedRole === null ? null : USER_ROLE_LABELS[soleAssignedRole];
   const roleOptions = USER_ROLE_VALUES.map(role => ({
     role,
     label: USER_ROLE_LABELS[role],
+    isActive: activeRole === role,
     isAssigned: assignedRoles.includes(role),
+    isSoleActive: soleAssignedRole === role,
   }));
-  const activeRoleOptions = roleOptions.filter(option => option.isAssigned);
 
   const updateRoleSelection = (role: UserRoleType, isSelected: boolean): void => {
     const updatedRoles = isSelected
@@ -54,45 +56,38 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
   return (
     <Box sx={styles.container}>
       <FieldLabel isRequired title={EMPLOYEES_COPY.ROLE_LABEL} />
-      <Box role="group" sx={styles.roleGrid} aria-label={EMPLOYEES_COPY.ROLE_LABEL}>
-        {roleOptions.map(({ role, label, isAssigned }) => (
+      {hasMultipleRoles && (
+        <Box component="span" sx={styles.visuallyHidden} id={activeRoleDescriptionId}>
+          {EMPLOYEES_COPY.ACTIVE_ROLE_LABEL}
+        </Box>
+      )}
+      <Box role="group" sx={styles.roleGrid({ columns })} aria-label={EMPLOYEES_COPY.ROLE_LABEL}>
+        {roleOptions.map(({ role, label, isAssigned, isSoleActive, isActive }) => (
           <Box key={role} sx={styles.roleOption({ isSelected: isAssigned })}>
             <CheckBox
               text={label}
               value={isAssigned}
               onChange={isSelected => updateRoleSelection(role, isSelected)}
             />
+            {isSoleActive && (
+              <Box component="span" sx={styles.activeBadge}>
+                {EMPLOYEES_COPY.ACTIVE_ROLE_STATUS}
+              </Box>
+            )}
+            {hasMultipleRoles && isAssigned && (
+              <RadioButton
+                value={role}
+                ariaLabel={label}
+                checked={isActive}
+                name={radioGroupName}
+                ariaDescribedBy={activeRoleDescriptionId}
+                label={EMPLOYEES_COPY.ACTIVE_ROLE_STATUS}
+                onSelect={() => onActiveRoleChange(role)}
+              />
+            )}
           </Box>
         ))}
       </Box>
-      {soleAssignedRoleLabel && (
-        <Box sx={styles.activeSection}>
-          <FieldLabel title={EMPLOYEES_COPY.ACTIVE_ROLE_LABEL} />
-          <Box sx={styles.activeSummary}>{soleAssignedRoleLabel}</Box>
-        </Box>
-      )}
-      {hasMultipleRoles && (
-        <Box
-          role="radiogroup"
-          sx={styles.activeSection}
-          aria-label={EMPLOYEES_COPY.ACTIVE_ROLE_LABEL}
-        >
-          <FieldLabel title={EMPLOYEES_COPY.ACTIVE_ROLE_LABEL} />
-          <Box sx={styles.activeGrid}>
-            {activeRoleOptions.map(({ role, label }) => (
-              <Box key={role} sx={styles.activeOption({ isSelected: activeRole === role })}>
-                <RadioButton
-                  value={role}
-                  label={label}
-                  name={radioGroupName}
-                  checked={activeRole === role}
-                  onSelect={() => onActiveRoleChange(role)}
-                />
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      )}
       {hasNoRoles && <InlineError message={EMPLOYEES_COPY.ROLE_ASSIGNMENT_REQUIRED} />}
     </Box>
   );

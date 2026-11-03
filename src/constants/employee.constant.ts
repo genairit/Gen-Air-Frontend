@@ -29,6 +29,7 @@ export const EMPLOYEES_COPY = {
   PHONE_PLACEHOLDER: "0500000000",
   ROLE_LABEL: "תפקידים משויכים",
   ACTIVE_ROLE_LABEL: "תפקיד פעיל",
+  ACTIVE_ROLE_STATUS: "פעיל",
   ROLE_SWITCHER_LABEL: "החלפת תפקיד פעיל",
   ROLE_ASSIGNMENT_REQUIRED: "יש לבחור לפחות תפקיד אחד",
   PASSWORD_LABEL: "סיסמה ראשונית",
