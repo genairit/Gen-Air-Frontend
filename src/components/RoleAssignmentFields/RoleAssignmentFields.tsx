@@ -7,9 +7,10 @@ import {
 import { Box } from "@mui/material";
 import { useId, type FC } from "react";
 import CheckBox from "../CheckBox/CheckBox";
+import FieldLabel from "../FieldLabel/FieldLabel";
 import RadioButton from "../RadioButton/RadioButton";
 import InlineError from "../InlineError/InlineError";
-import { usePageStyles } from "../../pages/page.style";
+import { useStyles } from "./RoleAssignmentFields.style";
 import { EMPLOYEES_COPY } from "../../constants/employee.constant";
 
 interface IRoleAssignmentFieldsProps {
@@ -25,10 +26,13 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
   onActiveRoleChange,
   onAssignedRolesChange,
 }) => {
-  const styles = usePageStyles();
+  const styles = useStyles();
   const radioGroupName = useId();
   const hasMultipleRoles = assignedRoles.length > 1;
   const hasNoRoles = assignedRoles.length === 0;
+  const soleAssignedRole = assignedRoles.length === 1 ? (assignedRoles[0] ?? null) : null;
+  const soleAssignedRoleLabel =
+    soleAssignedRole === null ? null : USER_ROLE_LABELS[soleAssignedRole];
   const roleOptions = USER_ROLE_VALUES.map(role => ({
     role,
     label: USER_ROLE_LABELS[role],
@@ -48,36 +52,45 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
   };
 
   return (
-    <Box sx={styles.stack({ gap: "14px" })}>
-      <Box sx={styles.grid({ minColumnWidth: 190, gap: "10px" })}>
+    <Box sx={styles.container}>
+      <FieldLabel isRequired title={EMPLOYEES_COPY.ROLE_LABEL} />
+      <Box role="group" sx={styles.roleGrid} aria-label={EMPLOYEES_COPY.ROLE_LABEL}>
         {roleOptions.map(({ role, label, isAssigned }) => (
-          <CheckBox
-            key={role}
-            text={label}
-            value={isAssigned}
-            onChange={isSelected => updateRoleSelection(role, isSelected)}
-          />
+          <Box key={role} sx={styles.roleOption({ isSelected: isAssigned })}>
+            <CheckBox
+              text={label}
+              value={isAssigned}
+              onChange={isSelected => updateRoleSelection(role, isSelected)}
+            />
+          </Box>
         ))}
       </Box>
+      {soleAssignedRoleLabel && (
+        <Box sx={styles.activeSection}>
+          <FieldLabel title={EMPLOYEES_COPY.ACTIVE_ROLE_LABEL} />
+          <Box sx={styles.activeSummary}>{soleAssignedRoleLabel}</Box>
+        </Box>
+      )}
       {hasMultipleRoles && (
         <Box
           role="radiogroup"
-          sx={styles.stack({ gap: "8px" })}
+          sx={styles.activeSection}
           aria-label={EMPLOYEES_COPY.ACTIVE_ROLE_LABEL}
         >
-          <Box component="span" sx={styles.caption}>
-            {EMPLOYEES_COPY.ACTIVE_ROLE_LABEL}
+          <FieldLabel title={EMPLOYEES_COPY.ACTIVE_ROLE_LABEL} />
+          <Box sx={styles.activeGrid}>
+            {activeRoleOptions.map(({ role, label }) => (
+              <Box key={role} sx={styles.activeOption({ isSelected: activeRole === role })}>
+                <RadioButton
+                  value={role}
+                  label={label}
+                  name={radioGroupName}
+                  checked={activeRole === role}
+                  onSelect={() => onActiveRoleChange(role)}
+                />
+              </Box>
+            ))}
           </Box>
-          {activeRoleOptions.map(({ role, label }) => (
-            <RadioButton
-              key={role}
-              value={role}
-              label={label}
-              name={radioGroupName}
-              checked={activeRole === role}
-              onSelect={() => onActiveRoleChange(role)}
-            />
-          ))}
         </Box>
       )}
       {hasNoRoles && <InlineError message={EMPLOYEES_COPY.ROLE_ASSIGNMENT_REQUIRED} />}

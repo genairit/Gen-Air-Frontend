@@ -19,6 +19,8 @@ export const EMPLOYEES_COPY = {
     "הוספה, עריכה וניהול הרשאות ותפקידי עובדים במערכת GENAIR. הקצאת גישה מאובטחת ומעקב כניסות למנהלים, צוותי שטח ומשרד.",
   ADD_TITLE: "הוספת עובד / משתמש חדש",
   ADD_SUBTITLE: "יצירת חשבון משתמש, שיוך תפקיד תפעולי וקביעת סיסמת כניסה זמנית",
+  ACCOUNT_SECTION_TITLE: "פרטי חשבון",
+  ACCESS_SECTION_TITLE: "גישה ותפקידים",
   NAME_LABEL: "שם מלא",
   NAME_PLACEHOLDER: "לדוגמה: יובל אל",
   EMAIL_LABEL: "כתובת דוא״ל",
