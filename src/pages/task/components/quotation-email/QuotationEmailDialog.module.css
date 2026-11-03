@@ -1,0 +1,114 @@
+.content {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.stepHint,
+.folderPath,
+.fileSummary,
+.previewHeading,
+.previewBody {
+  margin: 0;
+}
+
+.stepHint,
+.folderPath,
+.fileSummary {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.stepHint,
+.folderPath {
+  opacity: 0.72;
+}
+
+.section,
+.contactList,
+.preview {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.contactList {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.contactRow,
+.folderHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+.contactRow {
+  padding-block: 6px;
+}
+
+.contactLabel {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.fileList {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+
+.fileChoice,
+.fileChoice button {
+  min-width: 0;
+  width: 100%;
+}
+
+.fileChoice button {
+  justify-content: flex-start;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-align: start;
+}
+
+.previewHeading {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.previewBody {
+  white-space: pre-wrap;
+  line-height: 1.65;
+}
+
+.signature {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding-inline-start: 16px;
+  border-inline-start: 3px solid currentColor;
+}
+
+@media (max-width: 600px) {
+  .contactRow,
+  .folderHeading {
+    align-items: flex-start;
+  }
+
+  .contactRow > :first-child {
+    flex: 1 1 100%;
+  }
+
+  .fileList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

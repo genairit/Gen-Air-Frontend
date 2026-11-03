@@ -211,6 +211,16 @@ test("project lighting guard accepts legacy omission and valid complete values",
   assert.equal(isApiProject(disabled), true);
 });
 
+test("project guard accepts removed payment fields but validates them when present", () => {
+  const withoutPaymentTerms = { ...project };
+  Reflect.deleteProperty(withoutPaymentTerms, "paymentTerms");
+  Reflect.deleteProperty(withoutPaymentTerms, "paymentTermsNote");
+
+  assert.equal(isApiProject(withoutPaymentTerms), true);
+  assert.equal(isApiProject({ ...withoutPaymentTerms, paymentTerms: "invalid" }), false);
+  assert.equal(isApiProject({ ...withoutPaymentTerms, paymentTermsNote: 42 }), false);
+});
+
 test("project lighting guard rejects partial, inconsistent and nonfinite API values", () => {
   const invalid = [
     null,

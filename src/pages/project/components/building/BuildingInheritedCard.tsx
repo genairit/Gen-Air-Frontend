@@ -47,7 +47,7 @@ const BuildingInheritedCard: FC<IBuildingInheritedCardProps> = ({ building }) =>
         <DetailTile
           note={building.paymentTermsNote}
           label={BUILDING_PAGE_COPY.PAYMENT_TERMS}
-          value={formatCustomerDetailValue(formatPaymentTerms(building.paymentTerms))}
+          value={formatCustomerDetailValue(formatPaymentTerms(building.paymentTerms ?? null))}
         />
         <DetailTile
           isFullWidth

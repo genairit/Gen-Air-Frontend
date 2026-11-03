@@ -200,7 +200,7 @@ export const toPaymentTermsOverride = (terms: PaymentTermsType, note: string) =>
 });
 
 const formatParentPaymentTerms = (building: IApiProject) =>
-  `${APARTMENT_PAGE_COPY.PARENT_VALUE_PREFIX} ${formatCustomerDetailValue(formatPaymentTerms(building.paymentTerms))}`;
+  `${APARTMENT_PAGE_COPY.PARENT_VALUE_PREFIX} ${formatCustomerDetailValue(formatPaymentTerms(building.paymentTerms ?? null))}`;
 
 export const getPaymentTermsNotes = ({
   source,

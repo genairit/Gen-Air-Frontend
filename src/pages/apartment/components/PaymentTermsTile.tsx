@@ -6,6 +6,11 @@ import {
   findPaymentTermsByLabel,
 } from "../../../utilities/apartment.utility";
 
+import {
+  formatPaymentTerms,
+  isPaymentTermsNoteRequired,
+} from "../../../utilities/project-intake.utility";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import InheritedValueTile from "./InheritedValueTile";
@@ -26,10 +31,6 @@ import { useUpdateApartmentMutation } from "../../../hooks/mutations/apartment.m
 import { getOptionLabels, findOptionLabelById } from "../../../utilities/option.utility";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import { APARTMENT_PAGE_COPY, PAYMENT_TERMS_RESET } from "../../../constants/apartment.constant";
-import {
-  formatPaymentTerms,
-  isPaymentTermsNoteRequired,
-} from "../../../utilities/project-intake.utility";
 
 interface IPaymentTermsTileProps {
   canEdit: boolean;
@@ -54,7 +55,7 @@ const PaymentTermsTile: FC<IPaymentTermsTileProps> = ({ canEdit, building, apart
   const canSave = Boolean(draftTerms) && isNoteValid;
 
   const startEditing = () => {
-    setDraftLabel(findOptionLabelById(options, apartment.paymentTerms));
+    setDraftLabel(findOptionLabelById(options, apartment.paymentTerms ?? null));
     setDraftNote(apartment.paymentTermsNote ?? "");
     setIsEditing(true);
   };
@@ -78,7 +79,7 @@ const PaymentTermsTile: FC<IPaymentTermsTileProps> = ({ canEdit, building, apart
       source={source}
       label={APARTMENT_PAGE_COPY.PAYMENT_TERMS}
       notes={getPaymentTermsNotes({ source, building })}
-      value={formatCustomerDetailValue(formatPaymentTerms(apartment.paymentTerms))}
+      value={formatCustomerDetailValue(formatPaymentTerms(apartment.paymentTerms ?? null))}
     >
       {isEditing && (
         <Box sx={styles.actions}>

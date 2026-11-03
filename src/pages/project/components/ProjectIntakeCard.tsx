@@ -50,7 +50,7 @@ const ProjectIntakeCard: FC<IProjectIntakeCardProps> = ({ project, onEdit }) => 
           isFullWidth
           note={project.paymentTermsNote}
           label={PAYMENT_TERMS_COPY.TITLE}
-          value={formatCustomerDetailValue(formatPaymentTerms(project.paymentTerms))}
+          value={formatCustomerDetailValue(formatPaymentTerms(project.paymentTerms ?? null))}
         />
       </Box>
     </Card>
