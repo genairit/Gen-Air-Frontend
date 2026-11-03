@@ -7,8 +7,10 @@ the UI part of the gen air app
 For client-facing UI tasks, the [design agent](agents/design-agent.md) combines the task
 requirements with the current [GenAir design language](docs/design-language.md) and gives the
 development agent a concrete style and interaction specification before implementation.
-The [frontend development workflow](rules/frontend-development-workflow-standards.md)
-places that handoff before implementation.
+The [developer agent](agents/developer-agent.md) implements that handoff using
+existing generic components as much as possible. The
+[frontend development workflow](rules/frontend-development-workflow-standards.md)
+places design before implementation, review, and QA.
 
 ## Environments
 
