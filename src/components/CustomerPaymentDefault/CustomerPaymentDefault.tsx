@@ -9,6 +9,7 @@ import type { FC } from "react";
 import Card from "../Card/Card";
 import { useState } from "react";
 import Button from "../Button/Button";
+import InlineError from "../InlineError/InlineError";
 import Autocomplete from "../Autocomplete/Autocomplete";
 import { useSessionUser } from "../../store/session.store";
 import { PERMISSIONS } from "../../constants/permission.constant";
@@ -58,7 +59,7 @@ const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({
           onClick={() => update.mutate(selected)}
         />
       )}{" "}
-      {update.isError && <p role="alert">{getApiErrorMessage(update.error)}</p>}
+      {update.isError && <InlineError message={getApiErrorMessage(update.error)} />}
       {update.isSuccess && <p role="status">ברירת המחדל נשמרה</p>}
     </Card>
   );

@@ -14,9 +14,11 @@ import { TABS_VARIANTS } from "../src/constants/tabs.constant";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { PERMISSIONS } from "../src/constants/permission.constant";
+import InlineError from "../src/components/InlineError/InlineError";
 import type { IApiCustomer } from "../src/interfaces/api.interface";
 import { MOBILE_LAYOUT_QUERY } from "../src/constants/layout.constant";
 import Autocomplete from "../src/components/Autocomplete/Autocomplete";
+import { getApiErrorMessage } from "../src/utilities/api-error.utility";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BUILDING_PAGE_COPY } from "../src/constants/apartment.constant";
 import { PROJECT_FORM_COPY } from "../src/constants/project-form.constant";
@@ -198,6 +200,16 @@ test("customer creation and editing select a default and explicitly clear it to 
       await new Promise(resolve => setImmediate(resolve));
     });
     assert.deepEqual(payloads[2], { paymentTerms: PAYMENT_TERMS.PREPAID });
+    const saveError = new Error("Payment default could not be saved");
+    httpClient.defaults.adapter = async () => {
+      throw saveError;
+    };
+    await act(async () => {
+      editing.root.findByType(Button).props.onClick();
+      await new Promise(resolve => setImmediate(resolve));
+    });
+    assert.equal(editing.root.findByType(InlineError).props.message, getApiErrorMessage(saveError));
+    assert.equal(editSelector().props.value, PAYMENT_TERMS_LABELS[PAYMENT_TERMS.PREPAID].title);
   } finally {
     await act(async () => state.renderer?.unmount());
     client.clear();
