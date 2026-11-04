@@ -4,6 +4,7 @@ import { AxiosError, AxiosHeaders } from "axios";
 import Button from "../src/components/Button/Button";
 import LoginPage from "../src/pages/login/LoginPage";
 import { userService } from "../src/services/user.service";
+import RequireSession from "../src/layouts/RequireSession";
 import { queryClient } from "../src/providers/query-client";
 import { LOGIN_COPY } from "../src/constants/login.constant";
 import TextField from "../src/components/TextField/TextField";
@@ -19,6 +20,7 @@ import { act, create, type ReactTestInstance } from "react-test-renderer";
 import { canSubmitEmployeeForm } from "../src/utilities/employee.utility";
 import { QueryClientProvider, notifyManager } from "@tanstack/react-query";
 import { API_ERROR_CODES, HTTP_STATUS } from "../src/constants/api.constant";
+import { SESSION_USER_QUERY_KEY } from "../src/constants/permission.constant";
 import AddEmployeeCard from "../src/pages/employees/components/AddEmployeeCard";
 import { EMPLOYEES_COPY, EMPTY_EMPLOYEE_FORM } from "../src/constants/employee.constant";
 
@@ -115,7 +117,13 @@ test("password change retains fields on wrong-current error and signs out on suc
   };
   setSession(authenticatedSession);
   assert.deepEqual(getSession(), authenticatedSession);
+  queryClient.setQueryData(
+    [...SESSION_USER_QUERY_KEY, authenticatedSession.user.id],
+    authenticatedSession.user,
+  );
   const originalUpdate = userService.updateMyPassword;
+  const originalGetMe = userService.getMe;
+  userService.getMe = async () => authenticatedSession.user;
   const requests: Parameters<typeof userService.updateMyPassword>[] = [];
   const wrongCurrent = new AxiosError("wrong password", AxiosError.ERR_BAD_REQUEST, null, null, {
     status: HTTP_STATUS.BAD_REQUEST,
@@ -135,7 +143,9 @@ test("password change retains fields on wrong-current error and signs out on suc
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[ROUTE_PATHS.SETTINGS]}>
         <Routes>
-          <Route element={<PasswordCard />} path={ROUTE_PATHS.SETTINGS} />
+          <Route element={<RequireSession />}>
+            <Route element={<PasswordCard />} path={ROUTE_PATHS.SETTINGS} />
+          </Route>
           <Route element={<LoginPage />} path={ROUTE_PATHS.LOGIN} />
         </Routes>
       </MemoryRouter>
@@ -183,6 +193,7 @@ test("password change retains fields on wrong-current error and signs out on suc
     ]);
     assert.equal(getSession(), null);
     assert.equal(renderer.root.findAllByType(PasswordCard).length, 0);
+    assert.equal(renderer.root.findAllByType(RequireSession).length, 0);
     assert.equal(
       renderer.root.findByType(NoticeBanner).props.title,
       LOGIN_COPY.PASSWORD_CHANGED_SIGN_IN_AGAIN,
@@ -190,6 +201,7 @@ test("password change retains fields on wrong-current error and signs out on suc
   } finally {
     await act(async () => renderer.unmount());
     userService.updateMyPassword = originalUpdate;
+    userService.getMe = originalGetMe;
     setSession(null);
     queryClient.clear();
   }

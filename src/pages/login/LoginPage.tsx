@@ -3,35 +3,33 @@ import { Box } from "@mui/material";
 import { useStyles } from "./LoginPage.style";
 import Card from "../../components/Card/Card";
 import Button from "../../components/Button/Button";
-import { useSession } from "../../store/session.store";
+import { Navigate, useNavigate } from "react-router-dom";
 import CheckBox from "../../components/CheckBox/CheckBox";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import BrandLogo from "../../components/BrandLogo/BrandLogo";
 import TextField from "../../components/TextField/TextField";
 import { ROUTE_PATHS } from "../../constants/routes.constant";
-import { isRecord } from "../../utilities/guards/primitive.guard";
 import InlineError from "../../components/InlineError/InlineError";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import NoticeBanner from "../../components/NoticeBanner/NoticeBanner";
 import { useLoginMutation } from "../../hooks/mutations/user.mutation";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { BRAND_LOGO_WIDTHS } from "../../constants/brand-logo.constant";
 import { canSubmitCredentials } from "../../utilities/credentials.utility";
 import { LOGIN_COPY, SUPPORT_EMAIL } from "../../constants/login.constant";
+import { useSession, usePasswordChangedNotice } from "../../store/session.store";
 import { BUTTON_SIZES } from "../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../components/TextField/constants/textfield.constants";
 
 const LoginPage = () => {
   const styles = useStyles();
   const navigate = useNavigate();
-  const location = useLocation();
   const session = useSession();
+  const passwordChanged = usePasswordChangedNotice();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRemembered, setIsRemembered] = useState(true);
   const loginMutation = useLoginMutation();
   const isSubmitDisabled = !canSubmitCredentials({ email, password });
-  const passwordChanged = isRecord(location.state) && location.state.passwordChanged === true;
 
   const handleLogin = () =>
     loginMutation.mutate(

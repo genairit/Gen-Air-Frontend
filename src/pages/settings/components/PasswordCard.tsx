@@ -60,8 +60,8 @@ const PasswordCard = () => {
 
   const finishPasswordChange = () => {
     clearFields();
-    clearSessionAction();
-    navigate(ROUTE_PATHS.LOGIN, { replace: true, state: { passwordChanged: true } });
+    clearSessionAction({ passwordChangedNotice: true });
+    navigate(ROUTE_PATHS.LOGIN, { replace: true });
   };
 
   const handleUpdate = () =>
