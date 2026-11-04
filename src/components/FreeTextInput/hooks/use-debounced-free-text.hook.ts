@@ -190,15 +190,15 @@ export const useDebouncedFreeText = ({
 
   useEffect(() => {
     if (trimmedQuery === "") {
-      let isCurrentQuery = true;
+      const cancellation = new AbortController();
       queueMicrotask(() => {
-        if (isCurrentQuery) {
+        if (!cancellation.signal.aborted) {
           setSuggestions([]);
         }
       });
 
       return () => {
-        isCurrentQuery = false;
+        cancellation.abort();
       };
     }
   }, [trimmedQuery]);

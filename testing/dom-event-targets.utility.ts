@@ -1,4 +1,6 @@
 export const installDomEventTargets = () => {
+  const hadWindow = Reflect.has(globalThis, "window");
+  const hadDocument = Reflect.has(globalThis, "document");
   const previousWindow = Reflect.get(globalThis, "window");
   const previousDocument = Reflect.get(globalThis, "document");
 
@@ -22,13 +24,13 @@ export const installDomEventTargets = () => {
   );
 
   return () => {
-    if (previousWindow === undefined) {
+    if (!hadWindow) {
       Reflect.deleteProperty(globalThis, "window");
     } else {
       Reflect.set(globalThis, "window", previousWindow);
     }
 
-    if (previousDocument === undefined) {
+    if (!hadDocument) {
       Reflect.deleteProperty(globalThis, "document");
     } else {
       Reflect.set(globalThis, "document", previousDocument);
