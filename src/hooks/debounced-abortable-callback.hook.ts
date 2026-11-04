@@ -1,9 +1,8 @@
-import { type DependencyList, type MutableRefObject, useEffect, useRef } from "react";
+import { type MutableRefObject, useEffect, useRef } from "react";
 
 interface IUseDebouncedAbortableCallbackOptions {
   delayMs: number;
   isEnabled: boolean;
-  dependencies: DependencyList;
   callback: (signal: AbortSignal) => Promise<void> | void;
 }
 
@@ -76,7 +75,6 @@ export const useDebouncedAbortableCallback = ({
   delayMs,
   callback,
   isEnabled,
-  dependencies,
 }: IUseDebouncedAbortableCallbackOptions): void => {
   const timerRef = useRef<number | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
@@ -95,5 +93,5 @@ export const useDebouncedAbortableCallback = ({
     return () => {
       cancelDebouncedAbortableCallback(refs);
     };
-  }, [delayMs, isEnabled, ...dependencies]);
+  }, [callback, delayMs, isEnabled]);
 };

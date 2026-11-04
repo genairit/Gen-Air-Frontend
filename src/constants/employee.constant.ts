@@ -1,3 +1,4 @@
+import { PASSWORD_RULES } from "./password.constant";
 import type { IEmployeeFilter, IEmployeeFormValues } from "../interfaces/employee.interface";
 import { USER_ROLES, USER_ROLE_VALUES, USER_ROLE_PLURAL_LABELS } from "./user-role.constant";
 
@@ -9,8 +10,6 @@ export const EMPLOYEE_FILTERS: IEmployeeFilter[] = [
 ];
 
 export const EMPLOYEE_PAGE_SIZE = 5;
-
-const DEFAULT_TEMPORARY_PASSWORD = "temp1234";
 
 export const EMPLOYEES_COPY = {
   TITLE: "ניהול עובדים ומשתמשים",
@@ -32,7 +31,9 @@ export const EMPLOYEES_COPY = {
   ROLE_SWITCHER_LABEL: "החלפת תפקיד פעיל",
   ROLE_ASSIGNMENT_REQUIRED: "יש לבחור לפחות תפקיד אחד",
   PASSWORD_LABEL: "סיסמה ראשונית",
-  PASSWORD_HINT: "(מוצפנת)",
+  PASSWORD_HINT: `(לפחות ${PASSWORD_RULES.MIN_LENGTH} תווים)`,
+  PASSWORD_CONFIRMATION_LABEL: "אימות סיסמה ראשונית",
+  PASSWORD_SHARE_HINT: "יש ליצור סיסמה ייחודית ולמסור אותה לעובד בערוץ מאובטח ונפרד.",
   ADD_BUTTON: "הוסף עובד למערכת",
   LOADING: "טוען עובדים...",
   NAME_HINT: "שם פרטי ושם משפחה",
@@ -60,5 +61,6 @@ export const EMPTY_EMPLOYEE_FORM: IEmployeeFormValues = {
   email: "",
   phone: "",
   assignedRoles: [USER_ROLES.ENGINEER],
-  password: DEFAULT_TEMPORARY_PASSWORD,
+  password: "",
+  passwordConfirmation: "",
 };

@@ -1,3 +1,10 @@
+import {
+  validateEmail,
+  validatePassword,
+  validatePhoneNumber,
+  createPasswordConfirmationValidator,
+} from "./validators";
+
 import type {
   IEmployee,
   IEmployeeFilter,
@@ -6,7 +13,6 @@ import type {
 
 import type { TUserRoleCounts } from "../interfaces/api.interface";
 import type { IUserPayload } from "../interfaces/api-request.interface";
-import { validateEmail, validatePassword, validatePhoneNumber } from "./validators";
 
 const NAME_SEPARATOR = /\s+/;
 
@@ -26,9 +32,19 @@ export const canSubmitEmployeeForm = (values: IEmployeeFormValues) => {
   const hasValidEmail = validateEmail(values.email).isValid;
   const hasValidPhone = validatePhoneNumber(values.phone).isValid;
   const hasValidPassword = validatePassword(values.password).isValid;
+  const hasMatchingConfirmation = createPasswordConfirmationValidator(values.password)(
+    values.passwordConfirmation,
+  ).isValid;
   const hasAssignedRoles = values.assignedRoles.length > 0;
 
-  return hasFullName && hasValidEmail && hasValidPhone && hasValidPassword && hasAssignedRoles;
+  return (
+    hasFullName &&
+    hasValidEmail &&
+    hasValidPhone &&
+    hasValidPassword &&
+    hasMatchingConfirmation &&
+    hasAssignedRoles
+  );
 };
 
 export const toUserPayload = (values: IEmployeeFormValues): IUserPayload => ({
