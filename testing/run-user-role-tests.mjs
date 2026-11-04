@@ -48,6 +48,15 @@ await runBundledTest({
   ],
 });
 
+const passwordOutput = resolve(TEST_ROOT, "testing/password-security.generated.mjs");
+process.once("exit", () => rmSync(passwordOutput, { force: true }));
+
+await runBundledTest({
+  input: "testing/password-security.test.tsx",
+  output: passwordOutput,
+  external: ["axios", "@tanstack/react-query", "react-router-dom"],
+});
+
 const historyOutput = resolve(TEST_ROOT, "testing/project-tasks.utility.generated.mjs");
 process.once("exit", () => rmSync(historyOutput, { force: true }));
 

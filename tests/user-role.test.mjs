@@ -47,6 +47,7 @@ const employeeForm = overrides => ({
   email: "rina@example.com",
   phone: "0524418230",
   password: "passphrase-123",
+  passwordConfirmation: "passphrase-123",
   assignedRoles: [USER_ROLES.ENGINEER, USER_ROLES.SECRETARY],
   ...overrides,
 });
@@ -152,6 +153,10 @@ test("employee forms require assigned roles and leave initial active-role choice
     true,
   );
   assert.equal(canSubmitEmployeeForm(employeeForm({ assignedRoles: [] })), false);
+  assert.equal(
+    canSubmitEmployeeForm(employeeForm({ passwordConfirmation: "other-password" })),
+    false,
+  );
   assert.deepEqual(toUserPayload(employeeForm()), {
     firstName: "Rina",
     lastName: "Example",

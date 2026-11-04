@@ -42,6 +42,11 @@ export const useStyles = () =>
       gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
       "@media (max-width: 639px)": { gridTemplateColumns: "minmax(0, 1fr)" },
     },
+    securityHint: {
+      margin: 0,
+      fontSize: 13,
+      color: theme.palette.textMuted,
+    },
     footer: {
       gap: "16px",
       display: "flex",

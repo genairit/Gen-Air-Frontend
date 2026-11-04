@@ -8,6 +8,7 @@ import {
 import type {
   IUserQuery,
   IUserPayload,
+  IUpdatePasswordPayload,
   IUserRoleUpdatePayload,
 } from "../interfaces/api-request.interface";
 
@@ -52,8 +53,8 @@ class UserService {
     await httpClient.delete(API_ENDPOINTS.userById(userId));
   }
 
-  async updateMyPassword(password: string) {
-    await httpClient.patch(API_ENDPOINTS.MY_PASSWORD, { password });
+  async updateMyPassword(payload: IUpdatePasswordPayload) {
+    await httpClient.patch(API_ENDPOINTS.MY_PASSWORD, payload);
   }
 }
 

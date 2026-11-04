@@ -1,14 +1,16 @@
+import { PASSWORD_RULES } from "../../constants/password.constant";
 import { type IValidationResult } from "../../interfaces/validation-result.interface";
-
-const MIN_PASSWORD_LENGTH = 8;
 
 export const validatePassword = (password: string): IValidationResult => {
   if (!password) {
     return { isValid: false, errorText: "" };
   }
 
-  if (password.length < MIN_PASSWORD_LENGTH) {
-    return { isValid: false, errorText: `הסיסמה חייבת להכיל לפחות ${MIN_PASSWORD_LENGTH} תווים` };
+  if (password.length < PASSWORD_RULES.MIN_LENGTH) {
+    return {
+      isValid: false,
+      errorText: `הסיסמה חייבת להכיל לפחות ${PASSWORD_RULES.MIN_LENGTH} תווים`,
+    };
   }
 
   return { isValid: true, errorText: "" };

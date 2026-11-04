@@ -1,3 +1,8 @@
+import type {
+  IUpdatePasswordPayload,
+  IUserRoleUpdatePayload,
+} from "../interfaces/api-request.interface";
+
 import { userService } from "../services/user.service";
 import { queryClient } from "../providers/query-client";
 import { toUserPayload } from "../utilities/employee.utility";
@@ -6,7 +11,6 @@ import { QUERY_KEYS, QUERY_ROOTS } from "../constants/query-key.constant";
 import type { IEmployeeFormValues } from "../interfaces/employee.interface";
 import { SessionBroadcastManager } from "../managers/session-broadcast.manager";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
-import type { IUserRoleUpdatePayload } from "../interfaces/api-request.interface";
 
 const invalidateUserQueries = () =>
   Promise.all([
@@ -47,8 +51,8 @@ export const removeEmployeeAction = async (userId: string): Promise<void> => {
   SessionBroadcastManager.notifyUserChanged(userId);
 };
 
-export const updateMyPasswordAction = async (password: string): Promise<void> => {
+export const updateMyPasswordAction = async (payload: IUpdatePasswordPayload): Promise<void> => {
   const context = new AuthorizationContext();
-  await userService.updateMyPassword(password);
+  await userService.updateMyPassword(payload);
   context.assertCurrent();
 };

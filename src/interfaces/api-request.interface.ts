@@ -53,6 +53,11 @@ export interface IUserRoleUpdatePayload {
   assignedRoles: UserRoleType[];
 }
 
+export interface IUpdatePasswordPayload {
+  password: string;
+  currentPassword: string;
+}
+
 export interface ILoginPayload {
   email: string;
   password: string;

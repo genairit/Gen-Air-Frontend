@@ -11,6 +11,7 @@ import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { canSubmitEmployeeForm } from "../../../utilities/employee.utility";
 import { useAddEmployeeMutation } from "../../../hooks/mutations/user.mutation";
 import type { IEmployeeFormValues } from "../../../interfaces/employee.interface";
+import { createPasswordConfirmationValidator } from "../../../utilities/validators";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import { EMPLOYEES_COPY, EMPTY_EMPLOYEE_FORM } from "../../../constants/employee.constant";
 import RoleAssignmentFields from "../../../components/RoleAssignmentFields/RoleAssignmentFields";
@@ -18,6 +19,7 @@ import RoleAssignmentFields from "../../../components/RoleAssignmentFields/RoleA
 const AddEmployeeCard = () => {
   const styles = useStyles();
   const [values, setValues] = useState<IEmployeeFormValues>(EMPTY_EMPLOYEE_FORM);
+  const validateConfirmation = createPasswordConfirmationValidator(values.password);
   const addMutation = useAddEmployeeMutation();
 
   const updateValues = (changes: Partial<IEmployeeFormValues>) =>
@@ -65,13 +67,28 @@ const AddEmployeeCard = () => {
               placeholder={EMPLOYEES_COPY.PHONE_PLACEHOLDER}
             />
             <TextField
+              isLtr
               isRequired
               value={values.password}
               type={FIELD_TYPES.PASSWORD}
+              autoComplete="new-password"
               title={EMPLOYEES_COPY.PASSWORD_LABEL}
               titleHint={EMPLOYEES_COPY.PASSWORD_HINT}
               onChange={password => updateValues({ password })}
             />
+            <TextField
+              isLtr
+              isRequired
+              type={FIELD_TYPES.PASSWORD}
+              autoComplete="new-password"
+              validator={validateConfirmation}
+              value={values.passwordConfirmation}
+              title={EMPLOYEES_COPY.PASSWORD_CONFIRMATION_LABEL}
+              onChange={passwordConfirmation => updateValues({ passwordConfirmation })}
+            />
+          </Box>
+          <Box component="p" sx={styles.securityHint}>
+            {EMPLOYEES_COPY.PASSWORD_SHARE_HINT}
           </Box>
         </Box>
         <Box component="section" sx={styles.accessSection}>
