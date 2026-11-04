@@ -5,25 +5,6 @@ import { CUSTOMER_PROJECT_DISPLAY } from "../../../constants/customer-project.co
 
 export const useStyles = () =>
   createStyles({
-    stageControl: {
-      width: "100%",
-      maxWidth: 220,
-      position: "relative",
-      "& .MuiOutlinedInput-root.MuiAutocomplete-inputRoot": {
-        height: 44,
-        paddingInlineStart: "34px",
-        paddingInlineEnd: "28px",
-        boxShadow: theme.softShadow.raisedSmall,
-      },
-    },
-    stageDot: {
-      top: "50%",
-      right: "14px",
-      position: "absolute",
-      display: "flex",
-      pointerEvents: "none",
-      transform: "translateY(-50%)",
-    },
     toolbar: { display: "flex", flexDirection: "column", gap: "18px" },
     filters: { display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px" },
     search: { flex: "1 1 240px", maxWidth: 340, minWidth: 0 },

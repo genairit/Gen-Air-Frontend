@@ -7,30 +7,21 @@ import type { FC } from "react";
 import { Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import Card from "../../../components/Card/Card";
+import Chip from "../../../components/Chip/Chip";
 import { useStyles } from "./CustomerProjects.style";
+import { theme } from "../../../constants/theme.constants";
 import CustomerProjectTypeCell from "./CustomerProjectTypeCell";
-import CustomerProjectStageCell from "./CustomerProjectStageCell";
+import { formatStageLabel } from "../../../utilities/text.utility";
 import { stopPropagation } from "../../../utilities/event.utility";
 import { formatRelativeTime } from "../../../utilities/date.utility";
-import type { IApiProjectStage } from "../../../interfaces/api.interface";
-import type { IProjectListItem } from "../../../interfaces/project-list.interface";
 import type { ICustomerProjectItem } from "../../../interfaces/customer-project.interface";
 
 interface ICustomerProjectMobileRowProps {
-  canMove: boolean;
-  stages: IApiProjectStage[];
   project: ICustomerProjectItem;
   onOpen: (project: ICustomerProjectItem) => void;
-  onStageChange: (project: IProjectListItem, stageId: string) => void;
 }
 
-const CustomerProjectMobileRow: FC<ICustomerProjectMobileRowProps> = ({
-  project,
-  stages,
-  canMove,
-  onOpen,
-  onStageChange,
-}) => {
+const CustomerProjectMobileRow: FC<ICustomerProjectMobileRowProps> = ({ project, onOpen }) => {
   const styles = useStyles();
   const context = getCustomerProjectContext(project);
   const path = getCustomerProjectPath(project);
@@ -57,13 +48,13 @@ const CustomerProjectMobileRow: FC<ICustomerProjectMobileRowProps> = ({
         <Box component="span" sx={styles.caption}>
           {updatedLabel}
         </Box>
+        {project.stage && (
+          <Chip
+            label={formatStageLabel(project.stage.name)}
+            dotColor={project.stage.color ?? theme.palette.statusGray}
+          />
+        )}
       </Box>
-      <CustomerProjectStageCell
-        stages={stages}
-        project={project}
-        canMove={canMove}
-        onChange={onStageChange}
-      />
     </Card>
   );
 };

@@ -12,7 +12,6 @@ const TasksPage = () => {
   const styles = usePageStyles();
   const sessionUser = useSessionUser();
   const canClaim = hasPermission(sessionUser, PERMISSIONS.TASKS_CLAIM);
-  const canChangeStatus = hasPermission(sessionUser, PERMISSIONS.TASKS_STATUS_UPDATE);
 
   return (
     <Box sx={styles.page}>
@@ -30,7 +29,7 @@ const TasksPage = () => {
           </Box>
         </Box>
       </Box>
-      <TasksTable canClaim={canClaim} canChangeStatus={canChangeStatus} />
+      <TasksTable canClaim={canClaim} />
     </Box>
   );
 };
