@@ -15,6 +15,8 @@ export interface IAutocompleteOption {
   helperTextColor?: string;
 }
 
+export type TFieldCursor = "default" | "pointer" | "text";
+
 export interface IAutocompleteActions {
   open: () => void;
 }
@@ -130,10 +132,12 @@ export interface IMatchedTextProps {
 export interface ISearchFieldProps {
   hasShadow: boolean;
   clearLabel: string;
-  children: ReactNode;
+  onOpen?: () => void;
   onClear: () => void;
+  children: ReactNode;
   startIcon?: ReactNode;
   isClearShown: boolean;
+  cursor?: TFieldCursor;
   isSearchIconShown: boolean;
   colors: IAutocompleteColors;
 }

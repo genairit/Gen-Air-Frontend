@@ -8,6 +8,8 @@ import { type ISearchFieldProps } from "../../../../interfaces/autocomplete.inte
 
 const SearchField: FC<ISearchFieldProps> = ({
   colors,
+  cursor = "text",
+  onOpen,
   onClear,
   children,
   startIcon,
@@ -24,14 +26,21 @@ const SearchField: FC<ISearchFieldProps> = ({
     }
 
     return (
-      <IconButton onClick={onClear} aria-label={clearLabel} sx={styles.clearButton}>
+      <IconButton
+        sx={styles.clearButton}
+        aria-label={clearLabel}
+        onClick={event => {
+          event.stopPropagation();
+          onClear();
+        }}
+      >
         <XMarkIcon sx={styles.clearIcon} />
       </IconButton>
     );
   };
 
   return (
-    <Box sx={styles.field}>
+    <Box onClick={onOpen} sx={styles.field(cursor)}>
       {startIcon ?? (isSearchIconShown && <SearchIcon sx={styles.startIcon} />)}
       {children}
       {renderFieldEnd()}

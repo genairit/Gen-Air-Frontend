@@ -24,7 +24,7 @@ interface IEmployeeColumnHandlers {
   onDelete: (employee: IEmployee) => void;
 }
 
-export const EMPLOYEE_TABLE_MIN_WIDTH = 1020;
+export const EMPLOYEE_TABLE_MIN_WIDTH = 1160;
 
 export const createEmployeeColumns = ({
   onDelete,
@@ -89,7 +89,7 @@ export const createEmployeeColumns = ({
     },
     {
       id: "actions",
-      track: "64px",
+      track: "106px",
       header: EMPLOYEE_TABLE_HEADERS.ACTIONS,
       render: employee =>
         canManageActions && (

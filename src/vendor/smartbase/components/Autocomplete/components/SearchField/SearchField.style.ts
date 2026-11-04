@@ -1,18 +1,22 @@
+import {
+  type TFieldCursor,
+  type IAutocompleteStyleParams,
+} from "../../../../interfaces/autocomplete.interface";
+
 import { alpha } from "@mui/material";
 import { createStyles } from "../../../../create-styles";
 import { getElevation } from "../../utilities/autocomplete-style.utility";
 import { AUTOCOMPLETE_TOKENS as TOKENS } from "../../../../constants/autocomplete.constant";
-import { type IAutocompleteStyleParams } from "../../../../interfaces/autocomplete.interface";
 
 export const useStyles = ({ colors, hasShadow }: IAutocompleteStyleParams) => {
   const elevation = getElevation(hasShadow);
 
   return createStyles({
-    field: {
+    field: (cursor: TFieldCursor) => ({
       gap: "10px",
       width: "100%",
       display: "flex",
-      cursor: "text",
+      cursor,
       minHeight: "54px",
       alignItems: "center",
       borderRadius: "999px",
@@ -25,7 +29,7 @@ export const useStyles = ({ colors, hasShadow }: IAutocompleteStyleParams) => {
       WebkitBackdropFilter: TOKENS.FIELD_GLASS,
       transition: "border-color 0.18s ease, box-shadow 0.18s ease",
       boxShadow: `${elevation.boxShadow}, ${TOKENS.FIELD_DEPTH_SHADOW}`,
-    },
+    }),
     startIcon: {
       flex: "0 0 auto",
       fontSize: "22px",
