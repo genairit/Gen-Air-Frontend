@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { AxiosError, AxiosHeaders } from "axios";
 import Button from "../src/components/Button/Button";
 import LoginPage from "../src/pages/login/LoginPage";
-import { setSession } from "../src/store/session.store";
+import { getSession, setSession } from "../src/store/session.store";
 import { userService } from "../src/services/user.service";
 import { queryClient } from "../src/providers/query-client";
 import { LOGIN_COPY } from "../src/constants/login.constant";
@@ -11,6 +11,7 @@ import TextField from "../src/components/TextField/TextField";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ROUTE_PATHS } from "../src/constants/routes.constant";
 import { SETTINGS_COPY } from "../src/constants/settings.constant";
+import { USER_ROLES } from "../src/constants/user-role.constant";
 import InlineError from "../src/components/InlineError/InlineError";
 import NoticeBanner from "../src/components/NoticeBanner/NoticeBanner";
 import PasswordCard from "../src/pages/settings/components/PasswordCard";
@@ -97,6 +98,23 @@ test("employee creation requires an entered password and matching confirmation",
 });
 
 test("password change retains fields on wrong-current error and signs out on success", async () => {
+  const authenticatedSession = {
+    accessToken: "password-change-test-token",
+    user: {
+      id: "password-change-test-user",
+      email: "user@example.invalid",
+      phone: "0500000000",
+      firstName: "Test",
+      lastName: "User",
+      role: USER_ROLES.SYSTEM_ADMIN,
+      assignedRoles: [USER_ROLES.SYSTEM_ADMIN],
+      employeeNumber: "EMP-1",
+      deletedAt: null,
+      permissions: [],
+    },
+  };
+  setSession(authenticatedSession);
+  assert.deepEqual(getSession(), authenticatedSession);
   const originalUpdate = userService.updateMyPassword;
   const requests: Parameters<typeof userService.updateMyPassword>[] = [];
   const wrongCurrent = new AxiosError("wrong password", AxiosError.ERR_BAD_REQUEST, null, null, {
@@ -133,27 +151,30 @@ test("password change retains fields on wrong-current error and signs out on suc
     await enterField(renderer.root, SETTINGS_COPY.CURRENT_PASSWORD, "short");
     await enterField(renderer.root, SETTINGS_COPY.NEW_PASSWORD, "Different123!");
     await enterField(renderer.root, SETTINGS_COPY.CONFIRM_PASSWORD, "Different123!");
-    assert.equal(getSubmit()?.props.disabled, true);
-    await enterField(renderer.root, SETTINGS_COPY.CURRENT_PASSWORD, "old-password");
     assert.equal(getSubmit()?.props.disabled, false);
+    assert.equal(
+      fieldByTitle(renderer.root, SETTINGS_COPY.CURRENT_PASSWORD).props.validator("short").isValid,
+      true,
+    );
 
     await act(async () => {
       getSubmit()?.props.onClick();
       await new Promise(resolve => setImmediate(resolve));
     });
-    assert.deepEqual(requests, [[{ currentPassword: "old-password", password: "Different123!" }]]);
+    assert.deepEqual(requests, [[{ currentPassword: "short", password: "Different123!" }]]);
     assert.equal(
       renderer.root.findByType(InlineError).props.message,
       SETTINGS_COPY.CURRENT_PASSWORD_INCORRECT,
     );
     assert.equal(
       fieldByTitle(renderer.root, SETTINGS_COPY.CURRENT_PASSWORD).props.value,
-      "old-password",
+      "short",
     );
     assert.equal(
       fieldByTitle(renderer.root, SETTINGS_COPY.NEW_PASSWORD).props.value,
       "Different123!",
     );
+    assert.deepEqual(getSession(), authenticatedSession);
 
     await enterField(renderer.root, SETTINGS_COPY.CURRENT_PASSWORD, "correct-password");
     await act(async () => {
@@ -163,6 +184,7 @@ test("password change retains fields on wrong-current error and signs out on suc
     assert.deepEqual(requests[1], [
       { currentPassword: "correct-password", password: "Different123!" },
     ]);
+    assert.equal(getSession(), null);
     assert.equal(renderer.root.findAllByType(PasswordCard).length, 0);
     assert.equal(
       renderer.root.findByType(NoticeBanner).props.title,
