@@ -5,22 +5,17 @@ import Tabs from "../../../components/Tabs/Tabs";
 import ProjectMobileRow from "./ProjectMobileRow";
 import { useStyles } from "./ProjectsTable.style";
 import { Box, useMediaQuery } from "@mui/material";
-import { useSessionUser } from "../../../store/session.store";
 import DataTable from "../../../components/DataTable/DataTable";
 import { TABS_VARIANTS } from "../../../constants/tabs.constant";
-import { PERMISSIONS } from "../../../constants/permission.constant";
+import type { IApiProject } from "../../../interfaces/api.interface";
 import { useScrollReached } from "../../../hooks/scroll-reached.hook";
 import InlineError from "../../../components/InlineError/InlineError";
-import { hasPermission } from "../../../utilities/permission.utility";
 import type { ITabItem } from "../../../interfaces/tab-item.interface";
 import { MOBILE_LAYOUT_QUERY } from "../../../constants/layout.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useProjectPagesQuery } from "../../../hooks/queries/project.query";
-import type { IProjectListItem } from "../../../interfaces/project-list.interface";
 import type { IProjectPageQuery } from "../../../interfaces/api-request.interface";
-import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
-import { useMoveProjectStageMutation } from "../../../hooks/mutations/project.mutation";
 import { buildProjectColumns, PROJECT_TABLE_MIN_WIDTH } from "../columns/project-columns";
 import { formatProjectResults, formatVisibleProjects } from "../../../utilities/project.utility";
 import { BOARD_COPY, PROJECT_BOARD_SCROLL_ROOT_MARGIN } from "../../../constants/board.constant";
@@ -30,7 +25,6 @@ interface IProjectsTableProps {
   tabs: ITabItem[];
   activeTabId: string;
   query: IProjectPageQuery;
-  stages: IApiProjectStage[];
   onTabChange: (tabId: string) => void;
   onOpenProject: (projectId: string) => void;
 }
@@ -41,7 +35,6 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
   tabs,
   query,
   total,
-  stages,
   activeTabId,
   onTabChange,
   onOpenProject,
@@ -49,15 +42,12 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
   const styles = usePageStyles();
   const tableStyles = useStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
-  const sessionUser = useSessionUser();
   const projectsQuery = useProjectPagesQuery(query);
-  const moveMutation = useMoveProjectStageMutation();
 
   const projects = (projectsQuery.data?.pages ?? []).flatMap(page => page.items);
   const isEmpty = projectsQuery.isSuccess && projects.length === 0;
   const canLoadMore = projectsQuery.hasNextPage && !projectsQuery.isFetchingNextPage;
-  const queryError = projectsQuery.error ?? moveMutation.error;
-  const canMoveStage = hasPermission(sessionUser, PERMISSIONS.PROJECTS_STATUS_CHANGE);
+  const queryError = projectsQuery.error;
 
   const loadMoreRef = useScrollReached({
     isEnabled: canLoadMore,
@@ -65,10 +55,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
     rootMargin: PROJECT_BOARD_SCROLL_ROOT_MARGIN,
   });
 
-  const moveToStage = (project: IProjectListItem, stageId: string) =>
-    moveMutation.mutate({ projectId: project.id, stageId });
-
-  const columns = buildProjectColumns({ stages, canMoveStage, onStageChange: moveToStage });
+  const columns = buildProjectColumns();
 
   const toolbar = (
     <Box sx={styles.stack({ gap: "16px" })}>
@@ -115,14 +102,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
       <Card gap="16px">
         {toolbar}
         {projects.map(project => (
-          <ProjectMobileRow
-            stages={stages}
-            key={project.id}
-            project={project}
-            onOpen={onOpenProject}
-            canMoveStage={canMoveStage}
-            onStageChange={moveToStage}
-          />
+          <ProjectMobileRow key={project.id} project={project} onOpen={onOpenProject} />
         ))}
         {footer}
       </Card>

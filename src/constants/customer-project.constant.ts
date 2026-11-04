@@ -15,7 +15,7 @@ export const CUSTOMER_PROJECT_PAGINATION = {
 
 export const CUSTOMER_PROJECT_DISPLAY = {
   SKELETON_ROWS: 4,
-  TABLE_MIN_WIDTH: 900,
+  TABLE_MIN_WIDTH: 720,
   SCROLL_MAX_HEIGHT: "max(360px, calc(100vh - 380px))",
 } as const;
 

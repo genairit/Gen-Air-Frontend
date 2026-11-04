@@ -8,8 +8,6 @@ import {
   POOL_ASSIGNEE_ID,
   TASK_STATUS_TABS,
   TASK_HISTORY_COPY,
-  TASK_STATUS_LABELS,
-  TASK_STATUS_VALUES,
   URGENCY_CONFIRM_COPY,
   type TaskLinkKindType,
   TASK_LINK_KIND_LABELS,
@@ -296,9 +294,6 @@ export const formatUrgencyPreviewTitle = (taskTitle: string) =>
 
 export const formatUrgencyPreviewSender = (recipient: string) =>
   `${URGENCY_CONFIRM_COPY.PREVIEW_PREFIX} ${recipient}`;
-
-export const findTaskStatusByLabel = (label: string | null) =>
-  TASK_STATUS_VALUES.find(status => TASK_STATUS_LABELS[status] === label) ?? null;
 
 export const countTaskFormErrors = (values: ITaskFormValues) =>
   Object.keys(getTaskFormErrors(values)).length;

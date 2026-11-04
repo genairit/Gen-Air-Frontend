@@ -1,32 +1,21 @@
 import {
-  TASK_STATUSES,
   TASK_FILTER_IDS,
   TASKS_PAGE_COPY,
-  type TaskStatusType,
   TASK_SCROLL_ROOT_MARGIN,
 } from "../../../constants/task.constant";
 
-import {
-  useClaimTaskMutation,
-  useUpdateTaskStatusMutation,
-} from "../../../hooks/mutations/task.mutation";
-
+import { type FC, useState } from "react";
 import TaskMobileRow from "./TaskMobileRow";
 import { useNavigate } from "react-router-dom";
 import { usePageStyles } from "../../page.style";
 import Tabs from "../../../components/Tabs/Tabs";
 import Card from "../../../components/Card/Card";
 import { Box, useMediaQuery } from "@mui/material";
-import { type FC, lazy, Suspense, useState } from "react";
-import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import TextField from "../../../components/TextField/TextField";
 import DataTable from "../../../components/DataTable/DataTable";
 import { buildTaskPath } from "../../../utilities/route.utility";
-import { TASK_TYPES } from "../../../constants/task-type.constant";
 import type { IApiTask } from "../../../interfaces/task.interface";
-import { PERMISSIONS } from "../../../constants/permission.constant";
-import { hasPermission } from "../../../utilities/permission.utility";
 import { useScrollReached } from "../../../hooks/scroll-reached.hook";
 import InlineError from "../../../components/InlineError/InlineError";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
@@ -34,42 +23,34 @@ import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
 import { MOBILE_LAYOUT_QUERY } from "../../../constants/layout.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { useClaimTaskMutation } from "../../../hooks/mutations/task.mutation";
 import { buildTaskColumns, TASK_TABLE_MIN_WIDTH } from "../columns/task-columns";
 import { useMyTasksQuery, useMyTaskCountsQuery } from "../../../hooks/queries/task.query";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import { toTaskTabs, toTaskQuery, formatTaskSummary } from "../../../utilities/task.utility";
 
-const QuotationEmailDialog = lazy(
-  () => import("../../task/components/quotation-email/QuotationEmailDialog"),
-);
-
 interface ITasksTableProps {
   canClaim: boolean;
-  canChangeStatus: boolean;
 }
 
 const getTaskId = (task: IApiTask) => task.id;
 
-const TasksTable: FC<ITasksTableProps> = ({ canClaim, canChangeStatus }) => {
+const TasksTable: FC<ITasksTableProps> = ({ canClaim }) => {
   const styles = usePageStyles();
   const navigate = useNavigate();
-  const sessionUser = useSessionUser();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
-  const [emailTaskId, setEmailTaskId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterId, setFilterId] = useState<string>(TASK_FILTER_IDS.ALL);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   const tasksQuery = useMyTasksQuery(toTaskQuery(filterId, debouncedSearch));
   const countsQuery = useMyTaskCountsQuery();
-  const statusMutation = useUpdateTaskStatusMutation();
   const claimMutation = useClaimTaskMutation();
 
   const tasks = (tasksQuery.data?.pages ?? []).flatMap(page => page.items);
   const counts = countsQuery.data ?? null;
   const isEmpty = tasksQuery.isSuccess && tasks.length === 0;
   const canLoadMore = tasksQuery.hasNextPage && !tasksQuery.isFetchingNextPage;
-  const queryError =
-    tasksQuery.error ?? countsQuery.error ?? statusMutation.error ?? claimMutation.error;
+  const queryError = tasksQuery.error ?? countsQuery.error ?? claimMutation.error;
 
   const loadMoreRef = useScrollReached({
     isEnabled: canLoadMore,
@@ -79,34 +60,11 @@ const TasksTable: FC<ITasksTableProps> = ({ canClaim, canChangeStatus }) => {
 
   const openTask = (task: IApiTask) => navigate(buildTaskPath(task.id));
 
-  const changeStatus = (task: IApiTask, status: TaskStatusType) =>
-    statusMutation.mutate(
-      { taskId: task.id, status },
-      {
-        onSuccess: () => {
-          if (
-            task.taskType === TASK_TYPES.QUOTATION &&
-            status === TASK_STATUSES.PROPOSAL_SENT &&
-            [
-              PERMISSIONS.TASKS_READ,
-              PERMISSIONS.PROJECTS_READ,
-              PERMISSIONS.CUSTOMERS_READ,
-              PERMISSIONS.DRIVE_READ,
-            ].every(permission => hasPermission(sessionUser, permission))
-          ) {
-            setEmailTaskId(task.id);
-          }
-        },
-      },
-    );
-
   const claimTask = (task: IApiTask) => claimMutation.mutate(task.id);
 
   const columns = buildTaskColumns({
     canClaim,
-    canChangeStatus,
     onClaim: claimTask,
-    onStatusChange: changeStatus,
   });
 
   const toolbar = (
@@ -144,40 +102,26 @@ const TasksTable: FC<ITasksTableProps> = ({ canClaim, canChangeStatus }) => {
 
   if (isMobile) {
     return (
-      <>
-        {emailTaskId && (
-          <Suspense fallback={<LoadingState label="טוען חלון מייל" />}>
-            <QuotationEmailDialog taskId={emailTaskId} onClose={() => setEmailTaskId(null)} />
-          </Suspense>
-        )}
-        <Card gap="16px">
-          {toolbar}
-          {tasks.map(task => (
-            <TaskMobileRow task={task} key={task.id} onOpen={openTask} />
-          ))}
-          {footer}
-        </Card>
-      </>
+      <Card gap="16px">
+        {toolbar}
+        {tasks.map(task => (
+          <TaskMobileRow task={task} key={task.id} onOpen={openTask} />
+        ))}
+        {footer}
+      </Card>
     );
   }
 
   return (
-    <>
-      {emailTaskId && (
-        <Suspense fallback={<LoadingState label="טוען חלון מייל" />}>
-          <QuotationEmailDialog taskId={emailTaskId} onClose={() => setEmailTaskId(null)} />
-        </Suspense>
-      )}
-      <DataTable
-        rows={tasks}
-        footer={footer}
-        columns={columns}
-        toolbar={toolbar}
-        getRowId={getTaskId}
-        onRowClick={openTask}
-        minWidth={TASK_TABLE_MIN_WIDTH}
-      />
-    </>
+    <DataTable
+      rows={tasks}
+      footer={footer}
+      columns={columns}
+      toolbar={toolbar}
+      getRowId={getTaskId}
+      onRowClick={openTask}
+      minWidth={TASK_TABLE_MIN_WIDTH}
+    />
   );
 };
 

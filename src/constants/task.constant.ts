@@ -25,10 +25,6 @@ export const TASK_STATUS_LABELS: Record<TaskStatusType, string> = {
   proposal_sent: "נשלחה הצעה",
 };
 
-export const TASK_STATUS_OPTION_LABELS = TASK_STATUS_VALUES.map(
-  status => TASK_STATUS_LABELS[status],
-);
-
 export const TASK_STATUS_DOT_COLORS: Record<TaskStatusType, string> = {
   waiting_for_response: theme.palette.statusGray,
   not_started: theme.palette.charcoal,
@@ -102,7 +98,6 @@ export const TASKS_PAGE_COPY = {
 
 export const TASK_TABLE_HEADERS = {
   TASK: "משימה",
-  STATUS: "סטטוס",
   ASSIGNEE: "אחראי",
   DUE: "תאריך יעד",
   URGENCY: "דחיפות",

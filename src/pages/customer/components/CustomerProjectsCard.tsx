@@ -26,28 +26,21 @@ import { useStyles } from "./CustomerProjects.style";
 import Button from "../../../components/Button/Button";
 import CustomerProjectsError from "./CustomerProjectsError";
 import { ICON_NAMES } from "../../../constants/icon.constant";
-import { useSessionUser } from "../../../store/session.store";
 import TextField from "../../../components/TextField/TextField";
 import DataTable from "../../../components/DataTable/DataTable";
 import { TABS_VARIANTS } from "../../../constants/tabs.constant";
 import CustomerProjectMobileRow from "./CustomerProjectMobileRow";
 import CardHeader from "../../../components/CardHeader/CardHeader";
-import { PERMISSIONS } from "../../../constants/permission.constant";
-import InlineError from "../../../components/InlineError/InlineError";
 import { useScrollReached } from "../../../hooks/scroll-reached.hook";
-import { hasPermission } from "../../../utilities/permission.utility";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { buildCustomerProjectColumns } from "./customer-project-columns";
 import { MOBILE_LAYOUT_QUERY } from "../../../constants/layout.constant";
-import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { formatVisibleProjects } from "../../../utilities/project.utility";
 import { ALL_STAGES_TILE_ID } from "../../../constants/stage-tile.constant";
 import { useProjectStagesQuery } from "../../../hooks/queries/project.query";
-import type { IProjectListItem } from "../../../interfaces/project-list.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
-import { useMoveProjectStageMutation } from "../../../hooks/mutations/project.mutation";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import type { ICustomerProjectItem } from "../../../interfaces/customer-project.interface";
 import { useCustomerProjectPagesQuery } from "../../../hooks/queries/customer-project.query";
@@ -60,7 +53,6 @@ const CustomerProjectsCard: FC<ICustomerProjectsCardProps> = ({ customerId }) =>
   const navigate = useNavigate();
   const styles = useStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
-  const user = useSessionUser();
   const [search, setSearch] = useState("");
   const [activeTabId, setActiveTabId] = useState<string>(ALL_STAGES_TILE_ID);
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
@@ -71,7 +63,6 @@ const CustomerProjectsCard: FC<ICustomerProjectsCardProps> = ({ customerId }) =>
     stageId,
   });
   const stagesQuery = useProjectStagesQuery();
-  const moveMutation = useMoveProjectStageMutation();
 
   const firstPage = projectsQuery.data?.pages[0] ?? null;
   const projects = flattenCustomerProjects(projectsQuery.data?.pages ?? []);
@@ -79,7 +70,6 @@ const CustomerProjectsCard: FC<ICustomerProjectsCardProps> = ({ customerId }) =>
   const hasRows = projects.length > 0;
   const isEmpty = projectsQuery.isSuccess && firstPage?.total === 0;
   const hasNoResults = projectsQuery.isSuccess && !hasRows && !isEmpty;
-  const canMove = hasPermission(user, PERMISSIONS.PROJECTS_STATUS_CHANGE);
   const canLoadMore =
     scrollRoot !== null &&
     projectsQuery.hasNextPage &&
@@ -88,7 +78,6 @@ const CustomerProjectsCard: FC<ICustomerProjectsCardProps> = ({ customerId }) =>
   const total = countInStageFilter(firstPage?.counts ?? null, stageId);
   const tabs = toStageTiles(stages, firstPage?.counts ?? null);
   const footerLabel = formatVisibleProjects({ visible: projects.length, total });
-  const mutationError = moveMutation.isError ? getApiErrorMessage(moveMutation.error) : null;
   const showLoadMoreButton = projectsQuery.hasNextPage && !projectsQuery.isFetchingNextPage;
   const loadMore = async () => {
     await projectsQuery.fetchNextPage();
@@ -105,8 +94,6 @@ const CustomerProjectsCard: FC<ICustomerProjectsCardProps> = ({ customerId }) =>
     setActiveTabId(ALL_STAGES_TILE_ID);
   };
   const openProject = (project: ICustomerProjectItem) => navigate(getCustomerProjectPath(project));
-  const moveStage = (project: IProjectListItem, nextStageId: string) =>
-    moveMutation.mutate({ projectId: project.id, stageId: nextStageId });
   const retryProjects = async () => {
     if (projectsQuery.isFetchNextPageError) {
       await projectsQuery.fetchNextPage();
@@ -119,7 +106,7 @@ const CustomerProjectsCard: FC<ICustomerProjectsCardProps> = ({ customerId }) =>
   const retryStages = async () => {
     await stagesQuery.refetch();
   };
-  const columns = buildCustomerProjectColumns({ stages, canMove, onStageChange: moveStage });
+  const columns = buildCustomerProjectColumns();
   const toolbar = (
     <Box sx={styles.toolbar}>
       <CardHeader icon={ICON_NAMES.BUILDING} title={CUSTOMER_PROJECT_COPY.TITLE} />
@@ -151,7 +138,6 @@ const CustomerProjectsCard: FC<ICustomerProjectsCardProps> = ({ customerId }) =>
       )}
       {projectsQuery.isError && <CustomerProjectsError onRetry={retryProjects} />}
       {stagesQuery.isError && <CustomerProjectsError onRetry={retryStages} />}
-      {mutationError && <InlineError message={mutationError} />}
       {isEmpty && (
         <Box sx={styles.empty}>
           <Box component="b">{CUSTOMER_PROJECT_COPY.EMPTY}</Box>
@@ -199,14 +185,7 @@ const CustomerProjectsCard: FC<ICustomerProjectsCardProps> = ({ customerId }) =>
         {hasRows && (
           <Box sx={styles.scroll} ref={setScrollRoot}>
             {projects.map(project => (
-              <CustomerProjectMobileRow
-                stages={stages}
-                key={project.id}
-                project={project}
-                canMove={canMove}
-                onOpen={openProject}
-                onStageChange={moveStage}
-              />
+              <CustomerProjectMobileRow key={project.id} project={project} onOpen={openProject} />
             ))}
             {endAdornment}
           </Box>
