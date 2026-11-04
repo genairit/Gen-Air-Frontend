@@ -30,9 +30,9 @@ test("suggestions cancel prior debounce and ignore stale request completion", as
   const originalSuggest = freeTextService.suggest;
   const first = deferredSuggestions();
   const second = deferredSuggestions();
-  const requests: Array<{ query: string; signal: AbortSignal | undefined }> = [];
+  const requests: Array<{ query: string; signal: AbortSignal | null }> = [];
   freeTextService.suggest = async ({ query, signal }) => {
-    requests.push({ query, signal });
+    requests.push({ query, signal: signal ?? null });
     return query === "first" ? first.promise : second.promise;
   };
 
