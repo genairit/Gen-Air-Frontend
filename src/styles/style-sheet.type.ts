@@ -1,9 +1,9 @@
 import type { CSSProperties } from "react";
-import type { SxProps } from "@mui/material";
+import type { SxProps, Theme } from "@mui/material";
 
-export type StyleProps = CSSProperties | SxProps<any>;
+export type StyleProps = CSSProperties | SxProps<Theme>;
 
-export type StyleSheetGenrator = (props: Record<string, any>) => StyleProps;
+export type StyleSheetGenrator = (...props: never[]) => StyleProps;
 
 export type StyleSheet = {
   [key: string]: StyleProps | StyleSheetGenrator;

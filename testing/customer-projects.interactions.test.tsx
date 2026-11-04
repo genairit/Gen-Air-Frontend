@@ -28,6 +28,7 @@ import { httpClient } from "../src/services/http-client.service";
 import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import { useScrollReached } from "../src/hooks/scroll-reached.hook";
+import { installDomEventTargets } from "./dom-event-targets.utility";
 import { SEARCH_DEBOUNCE_MS } from "../src/constants/search.constant";
 import LoadingState from "../src/components/LoadingState/LoadingState";
 import { ALL_STAGES_TILE_ID } from "../src/constants/stage-tile.constant";
@@ -41,6 +42,7 @@ import CustomerProjectsError from "../src/pages/customer/components/CustomerProj
 import { QueryClientProvider, notifyManager, type QueryClient } from "@tanstack/react-query";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+after(installDomEventTargets());
 notifyManager.setScheduler(queueMicrotask);
 after(() => notifyManager.setScheduler(callback => setTimeout(callback, 0)));
 

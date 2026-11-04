@@ -8,8 +8,8 @@ import {
 } from "./project-tasks.fixture";
 
 import moment from "moment";
-import { test } from "node:test";
 import { AxiosError } from "axios";
+import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { act, create } from "react-test-renderer";
 import Button from "../src/components/Button/Button";
@@ -22,6 +22,7 @@ import { httpClient } from "../src/services/http-client.service";
 import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { TASK_TYPES } from "../src/constants/task-type.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
+import { installDomEventTargets } from "./dom-event-targets.utility";
 import Autocomplete from "../src/components/Autocomplete/Autocomplete";
 import NewTaskForm from "../src/pages/task-form/components/NewTaskForm";
 import { QueryClientProvider, notifyManager } from "@tanstack/react-query";
@@ -54,6 +55,7 @@ const createNodeMock = (element: ITestElement) => {
 };
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+after(installDomEventTargets());
 
 test("the manual date field is optional while title and description remain required", async () => {
   const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
