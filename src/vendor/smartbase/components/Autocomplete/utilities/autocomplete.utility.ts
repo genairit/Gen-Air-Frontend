@@ -1,4 +1,5 @@
 import {
+  type TFieldCursor,
   type IActiveIndexMove,
   type IAutocompleteOption,
   type IComboboxAriaOptions,
@@ -31,6 +32,18 @@ export const getListMaxHeight = (rows: number): number => {
 
 export const getOptionId = (listId: string, optionValue: string): string =>
   `${listId}-option-${encodeURIComponent(optionValue)}`;
+
+export const getFieldCursor = (disabled: boolean, isTrigger: boolean): TFieldCursor => {
+  if (disabled) {
+    return "default";
+  }
+
+  if (isTrigger) {
+    return "pointer";
+  }
+
+  return "text";
+};
 
 export const getNextActiveIndex = ({ step, current, optionsCount }: IActiveIndexMove): number => {
   const lastIndex = Math.max(0, optionsCount - 1);

@@ -1,4 +1,10 @@
 import {
+  getOptionId,
+  getFieldCursor,
+  getComboboxAriaProps,
+} from "./utilities/autocomplete.utility";
+
+import {
   AUTOCOMPLETE_TEXTS,
   AUTOCOMPLETE_LAYOUT,
   AUTOCOMPLETE_COLORS,
@@ -16,7 +22,6 @@ import { useKeyboardInset } from "../../hooks/use-keyboard-inset.hook";
 import { useAutocompleteSearch } from "./hooks/use-autocomplete-search.hook";
 import SearchModeOverlay from "./components/SearchModeOverlay/SearchModeOverlay";
 import { type IAutocompleteProps } from "../../interfaces/autocomplete.interface";
-import { getComboboxAriaProps, getOptionId } from "./utilities/autocomplete.utility";
 
 const Autocomplete: FC<IAutocompleteProps> = ({
   hint,
@@ -76,6 +81,8 @@ const Autocomplete: FC<IAutocompleteProps> = ({
 
   const hasValue = search.selectedOption !== null;
   const isValueClearShown = isClearable && !disabled && hasValue;
+  const isTrigger = isSearchMode || isInputReadOnly;
+  const fieldCursor = getFieldCursor(disabled, isTrigger);
   const selectedLabel = search.selectedOption?.label ?? "";
   const isQueryClearShown = isClearable && search.query !== "";
   const fieldValue = isDropDownOpen ? search.query : selectedLabel;
@@ -100,6 +107,15 @@ const Autocomplete: FC<IAutocompleteProps> = ({
     }
 
     search.closeSearch();
+  };
+
+  const handleOpen = (): void => {
+    if (disabled) {
+      return;
+    }
+
+    search.inputRef.current?.focus();
+    search.openSearch();
   };
 
   const optionList = (
@@ -135,10 +151,10 @@ const Autocomplete: FC<IAutocompleteProps> = ({
     >
       <InputBase
         autoFocus
-        sx={styles.input}
         id={searchInputId}
         disabled={disabled}
         value={search.query}
+        sx={styles.input("text")}
         onChange={search.typeQuery}
         placeholder={searchPlaceholder}
         onKeyDown={search.handleKeyDown}
@@ -163,6 +179,8 @@ const Autocomplete: FC<IAutocompleteProps> = ({
         )}
         <SearchField
           colors={palette}
+          onOpen={handleOpen}
+          cursor={fieldCursor}
           hasShadow={hasShadow}
           startIcon={startIcon}
           clearLabel={clearLabel}
@@ -175,13 +193,12 @@ const Autocomplete: FC<IAutocompleteProps> = ({
             value={fieldValue}
             disabled={disabled}
             inputRef={search.inputRef}
-            onClick={search.openSearch}
             onChange={search.typeQuery}
             placeholder={fieldPlaceholder}
             inputProps={comboboxAriaProps}
             onKeyDown={search.handleKeyDown}
             readOnly={isSearchMode || isInputReadOnly}
-            sx={[styles.input, hasValue && styles.selectedInput]}
+            sx={[styles.input(fieldCursor), hasValue && styles.selectedInput]}
           />
         </SearchField>
         {dropDownPresence.isDisplayed && (

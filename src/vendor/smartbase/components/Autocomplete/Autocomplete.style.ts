@@ -4,9 +4,13 @@ import {
   AUTOCOMPLETE_ANIMATIONS as ANIMATIONS,
 } from "../../constants/autocomplete.constant";
 
+import {
+  type TFieldCursor,
+  type IAutocompleteStyleParams,
+} from "../../interfaces/autocomplete.interface";
+
 import { createStyles } from "../../create-styles";
 import { getGlassPanel } from "./utilities/autocomplete-style.utility";
-import { type IAutocompleteStyleParams } from "../../interfaces/autocomplete.interface";
 
 export const useStyles = ({ colors, hasShadow }: IAutocompleteStyleParams) =>
   createStyles({
@@ -34,8 +38,9 @@ export const useStyles = ({ colors, hasShadow }: IAutocompleteStyleParams) =>
       color: colors.required,
       marginInlineStart: "2px",
     },
-    input: {
+    input: (cursor: TFieldCursor) => ({
       minWidth: 0,
+      cursor,
       fontSize: "16px",
       fontWeight: 500,
       flex: "1 1 auto",
@@ -52,7 +57,7 @@ export const useStyles = ({ colors, hasShadow }: IAutocompleteStyleParams) =>
         opacity: 1,
         color: colors.placeholder,
       },
-    },
+    }),
     selectedInput: {
       color: colors.text,
     },
