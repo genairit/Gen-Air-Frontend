@@ -1,5 +1,6 @@
 import {
   validatePassword,
+  validateCurrentPassword,
   createPasswordConfirmationValidator,
 } from "../../../utilities/validators";
 
@@ -20,8 +21,6 @@ import { useUpdatePasswordMutation } from "../../../hooks/mutations/user.mutatio
 import { getPasswordChangeErrorMessage } from "../../../utilities/api-error.utility";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
-
-const validateCurrentPassword = (value: string) => ({ isValid: value.length > 0, errorText: "" });
 
 const PasswordCard = () => {
   const styles = usePageStyles();

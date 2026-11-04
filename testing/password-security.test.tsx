@@ -3,15 +3,15 @@ import assert from "node:assert/strict";
 import { AxiosError, AxiosHeaders } from "axios";
 import Button from "../src/components/Button/Button";
 import LoginPage from "../src/pages/login/LoginPage";
-import { getSession, setSession } from "../src/store/session.store";
 import { userService } from "../src/services/user.service";
 import { queryClient } from "../src/providers/query-client";
 import { LOGIN_COPY } from "../src/constants/login.constant";
 import TextField from "../src/components/TextField/TextField";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ROUTE_PATHS } from "../src/constants/routes.constant";
-import { SETTINGS_COPY } from "../src/constants/settings.constant";
 import { USER_ROLES } from "../src/constants/user-role.constant";
+import { SETTINGS_COPY } from "../src/constants/settings.constant";
+import { getSession, setSession } from "../src/store/session.store";
 import InlineError from "../src/components/InlineError/InlineError";
 import NoticeBanner from "../src/components/NoticeBanner/NoticeBanner";
 import PasswordCard from "../src/pages/settings/components/PasswordCard";
@@ -166,10 +166,7 @@ test("password change retains fields on wrong-current error and signs out on suc
       renderer.root.findByType(InlineError).props.message,
       SETTINGS_COPY.CURRENT_PASSWORD_INCORRECT,
     );
-    assert.equal(
-      fieldByTitle(renderer.root, SETTINGS_COPY.CURRENT_PASSWORD).props.value,
-      "short",
-    );
+    assert.equal(fieldByTitle(renderer.root, SETTINGS_COPY.CURRENT_PASSWORD).props.value, "short");
     assert.equal(
       fieldByTitle(renderer.root, SETTINGS_COPY.NEW_PASSWORD).props.value,
       "Different123!",

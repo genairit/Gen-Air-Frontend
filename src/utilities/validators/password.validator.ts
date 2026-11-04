@@ -1,6 +1,11 @@
 import { PASSWORD_RULES } from "../../constants/password.constant";
 import { type IValidationResult } from "../../interfaces/validation-result.interface";
 
+export const validateCurrentPassword = (value: string): IValidationResult => ({
+  isValid: value.length > 0,
+  errorText: "",
+});
+
 export const validatePassword = (password: string): IValidationResult => {
   if (!password) {
     return { isValid: false, errorText: "" };
