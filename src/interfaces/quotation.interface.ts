@@ -96,6 +96,7 @@ export interface IQuotationEditorState {
   dirty: boolean;
   deleted: boolean;
   retry: () => void;
+  commandBusy: boolean;
   error: string | null;
   quotation: IQuotation;
   deleteError: string | null;

@@ -5,6 +5,7 @@ import { rebrandQuotationAction } from "../actions/quotation-rebrand.action";
 interface IQuotationRebrandOptions {
   blocked: boolean;
   quotation: IQuotation;
+  confirmBlocked?: boolean;
   onChange: (quotation: IQuotation) => void;
 }
 interface IQuotationRebrandState {
@@ -18,6 +19,7 @@ interface IQuotationRebrandState {
 export const useQuotationRebrand = ({
   quotation,
   blocked,
+  confirmBlocked = false,
   onChange,
 }: IQuotationRebrandOptions): IQuotationRebrandState => {
   const [pendingBrand, setPendingBrand] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export const useQuotationRebrand = ({
     onChange({ ...quotation, brand });
   };
   const confirm = async (): Promise<void> => {
-    if (pendingBrand === null || inFlight.current || blocked) {
+    if (pendingBrand === null || inFlight.current || blocked || confirmBlocked) {
       return;
     }
     inFlight.current = true;

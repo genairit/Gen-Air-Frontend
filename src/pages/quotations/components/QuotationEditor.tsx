@@ -56,11 +56,15 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const { quotation, update } = editor;
   const rebrand = useQuotationRebrand({
     quotation,
-    blocked: editor.busy || editor.dirty || !editable,
+    blocked: editor.commandBusy || !editable,
+    confirmBlocked: editor.busy || editor.dirty,
     onChange: update,
   });
   const disabled =
-    !editable || editor.busy || rebrand.busy || quotation.status === QUOTATION_STATUS.APPROVED;
+    !editable ||
+    editor.commandBusy ||
+    rebrand.busy ||
+    quotation.status === QUOTATION_STATUS.APPROVED;
   const blocked = editor.busy || editor.dirty || rebrand.busy || editor.error !== null;
   const navigationPending = !editor.deleted && (editor.dirty || editor.busy || rebrand.busy);
   const blocker = useUnsavedChangesNavigation(navigationPending);
@@ -136,6 +140,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             label="חברת מיזוג"
             disabled={disabled}
             value={quotation.brand}
+            caption="חברת מיזוג (לכל ההצעה)"
             onChange={event => rebrand.request(event.target.value)}
           >
             <option value="">בחרו חברה...</option>
