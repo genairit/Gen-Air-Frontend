@@ -87,6 +87,48 @@ test("autosave debounces edits, uses returned server version and never sends for
     await unmount(value);
   }
 });
+test("edits made during autosave remain editable and save with the next version", async () => {
+  const value = state();
+  const gate = Promise.withResolvers<IQuotation>();
+  const saved: IQuotation[] = [];
+  const save = mock.method(quotationService, "save", async quotation => {
+    saved.push(quotation);
+    return saved.length === 1 ? gate.promise : { ...quotation, version: 3 };
+  });
+  try {
+    await mount(value);
+    await act(() => {
+      current(value).update({ ...current(value).quotation, internalNotes: "first" });
+    });
+    await act(async () => {
+      await settle(QUOTATION_AUTOSAVE_MS + 30);
+    });
+    assert.equal(current(value).busy, true);
+    assert.equal(current(value).commandBusy, false);
+    await act(() => {
+      current(value).update({ ...current(value).quotation, internalNotes: "second" });
+    });
+    assert.equal(current(value).quotation.internalNotes, "second");
+    await act(async () => {
+      gate.resolve({ ...saved[0], version: 2 });
+    });
+    assert.equal(current(value).quotation.internalNotes, "second");
+    assert.equal(current(value).dirty, true);
+    await act(async () => {
+      await settle(QUOTATION_AUTOSAVE_MS + 30);
+    });
+    assert.deepEqual(
+      saved.map(quotation => quotation.internalNotes),
+      ["first", "second"],
+    );
+    assert.equal(saved[1].version, 2);
+    assert.equal(current(value).quotation.version, 3);
+    assert.equal(current(value).dirty, false);
+  } finally {
+    save.mock.restore();
+    await unmount(value);
+  }
+});
 test("failed autosave preserves the user's edits and blocks review, explicit retry saves", async () => {
   const value = state();
   const save = mock.method(quotationService, "save", async () => {
@@ -224,6 +266,7 @@ test("failed transitions, acknowledgements and reload preserve the quotation and
 
 test("brand replacement serializes confirmations and ignores cancellation until resolution", async () => {
   const result = { hook: null as ReturnType<typeof useQuotationRebrand> | null };
+  const options = { confirmBlocked: true };
   const source = quotationFixture();
   source.sections = [
     {
@@ -249,6 +292,7 @@ test("brand replacement serializes confirmations and ignores cancellation until 
     result.hook = useQuotationRebrand({
       quotation: source,
       blocked: false,
+      confirmBlocked: options.confirmBlocked,
       onChange: next => updates.push(next),
     });
     return null;
@@ -260,6 +304,13 @@ test("brand replacement serializes confirmations and ignores cancellation until 
     });
     await act(async () => {
       hook().request("תדיראן");
+    });
+    await act(() => hook().confirm());
+    assert.equal(read.mock.callCount(), 0);
+    assert.equal(hook().pendingBrand, "תדיראן");
+    options.confirmBlocked = false;
+    await act(async () => {
+      renderer.value?.update(<Harness />);
     });
     const pending = { value: null as Promise<void> | null };
     await act(async () => {

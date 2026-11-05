@@ -14,8 +14,10 @@ import QuotationDelete from "../src/pages/quotations/components/QuotationDelete"
 import QuotationButton from "../src/pages/quotations/components/QuotationButton";
 import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
 import QuotationReview from "../src/pages/quotations/components/QuotationReview";
+import QuotationSection from "../src/pages/quotations/components/QuotationSection";
 import QuotationSummary from "../src/pages/quotations/components/QuotationSummary";
 import type { IQuotation, IQuotationLine } from "../src/interfaces/quotation.interface";
+import QuotationCataloguePicker from "../src/pages/quotations/components/QuotationCataloguePicker";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 Reflect.set(globalThis, "window", new EventTarget());
@@ -127,6 +129,87 @@ test("unsaved edits block navigation until the server accepts the save", async (
     });
     client.clear();
     router.dispose();
+    save.mock.restore();
+    customers.mock.restore();
+    customer.mock.restore();
+    projects.mock.restore();
+  }
+});
+
+test("autosave keeps quotation fields and catalogue picker mounted and editable", async () => {
+  const { catalogueLine } = await import("../src/utilities/quotation.utility");
+  const { catalogueFixture } = await import("./quotation.fixture");
+  const base = quotationFixture();
+  base.sections = [
+    {
+      id: "section",
+      title: "קומה 1",
+      systemType: "VRF",
+      items: [catalogueLine(catalogueFixture(), null)],
+    },
+  ];
+  const gate = Promise.withResolvers<IQuotation>();
+  const save = mock.method(quotationService, "save", () => gate.promise);
+  const customers = mock.method(customerService, "getByFilter", async () => []);
+  const customer = mock.method(customerService, "getById", async () => ({
+    id: base.customerId,
+    name: "Customer",
+  }));
+  const projects = mock.method(quotationService, "projectChoices", async () => []);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const router = createMemoryRouter([
+    {
+      path: "/",
+      element: (
+        <QueryClientProvider client={client}>
+          <QuotationEditor editable canApprove initial={base} />
+        </QueryClientProvider>
+      ),
+    },
+  ]);
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  try {
+    await act(async () => {
+      state.renderer = create(<RouterProvider router={router} />);
+    });
+    const root = () => state.renderer!.root;
+    const location = () => root().findByProps({ "aria-label": "מיקום" });
+    const quantityToAdd = () => root().findByProps({ "aria-label": "כמות להוספה" });
+    await act(() => quantityToAdd().props.onChange({ target: { value: "3" } }));
+    await act(() => location().props.onChange({ target: { value: "חדר שינה" } }));
+    await act(async () => {
+      await settle(QUOTATION_AUTOSAVE_MS + 30);
+    });
+    assert.equal(save.mock.callCount(), 1);
+    assert.equal(root().findByType(QuotationSection).props.disabled, false);
+    assert.equal(root().findAllByType(QuotationCataloguePicker).length, 1);
+    assert.equal(quantityToAdd().props.value, "3");
+    assert.equal(location().props.disabled, false);
+    assert.equal(location().props.value, "חדר שינה");
+    await act(() =>
+      root()
+        .findByProps({ "aria-label": "חברת מיזוג" })
+        .props.onChange({ target: { value: "תדיראן" } }),
+    );
+    const confirmBrand = () =>
+      root()
+        .findAllByType(QuotationButton)
+        .find(button => button.props.text === "החלף לפריטים תואמים");
+    assert.equal(confirmBrand()?.props.disabled, true);
+    await act(async () => {
+      gate.resolve({
+        ...base,
+        version: 2,
+        sections: [
+          { ...base.sections[0], items: [{ ...base.sections[0].items[0], location: "חדר שינה" }] },
+        ],
+      });
+    });
+    assert.equal(confirmBrand()?.props.disabled, false);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    router.dispose();
+    client.clear();
     save.mock.restore();
     customers.mock.restore();
     customer.mock.restore();

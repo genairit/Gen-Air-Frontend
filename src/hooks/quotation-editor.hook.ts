@@ -30,6 +30,7 @@ export const useQuotationEditor = (
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [commandBusy, setCommandBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const generation = useRef(0);
   const version = useRef(initial.version);
@@ -42,7 +43,12 @@ export const useQuotationEditor = (
     context.assertCurrent();
   };
   const update = (next: IQuotation): void => {
-    if (deleted || !editable || busy || quotation.status === QUOTATION_STATUS.APPROVED) {
+    if (
+      deleted ||
+      !editable ||
+      commandPending.current ||
+      quotation.status === QUOTATION_STATUS.APPROVED
+    ) {
       return;
     }
     generation.current += 1;
@@ -92,6 +98,7 @@ export const useQuotationEditor = (
     commandPending.current = true;
     const context = new AuthorizationContext();
     setBusy(true);
+    setCommandBusy(true);
     setError(null);
     try {
       await accept(await work(), context);
@@ -103,6 +110,7 @@ export const useQuotationEditor = (
     } finally {
       commandPending.current = false;
       setBusy(false);
+      setCommandBusy(false);
     }
   };
   const remove = async (): Promise<void> => {
@@ -112,6 +120,7 @@ export const useQuotationEditor = (
     commandPending.current = true;
     const context = new AuthorizationContext();
     setBusy(true);
+    setCommandBusy(true);
     setDeleteError(null);
     try {
       await quotationService.delete({ id: quotation.id, version: version.current });
@@ -133,6 +142,7 @@ export const useQuotationEditor = (
     } finally {
       commandPending.current = false;
       setBusy(false);
+      setCommandBusy(false);
     }
   };
   const transition = async (status: TQuotationStatus): Promise<boolean> => {
@@ -158,6 +168,7 @@ export const useQuotationEditor = (
     quotation,
     update,
     busy,
+    commandBusy,
     dirty,
     error,
     transition,
