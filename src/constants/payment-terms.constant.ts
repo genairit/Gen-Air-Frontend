@@ -9,6 +9,7 @@ export const PAYMENT_TERMS = {
 export type PaymentTermsType = (typeof PAYMENT_TERMS)[keyof typeof PAYMENT_TERMS];
 
 export const PAYMENT_TERMS_VALUES: PaymentTermsType[] = Object.values(PAYMENT_TERMS);
+export const PAYMENT_STAGES_LABEL = "לפי שלבי תשלום";
 
 interface IPaymentTermsCopy {
   title: string;
