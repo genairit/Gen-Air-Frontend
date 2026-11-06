@@ -1,5 +1,7 @@
 import {
   QUOTATION_QUERY_KEY,
+  QUOTATION_COUNTS_KEY,
+  QUOTATION_ALL_TAB_ID,
   QUOTATION_STATUS_TABS,
   QUOTATION_STATUS_LABELS,
 } from "../../constants/quotation.constant";
@@ -8,10 +10,12 @@ import type { FC } from "react";
 import { useState } from "react";
 import styles from "./quotation.module.css";
 import Card from "../../components/Card/Card";
+import Tabs from "../../components/Tabs/Tabs";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Button from "./components/QuotationButton";
 import QuotationInput from "./components/QuotationInput";
+import { TAB_MODES } from "../../constants/tabs.constant";
 import { useSessionUser } from "../../store/session.store";
 import { formatRelativeTime } from "../../utilities/date.utility";
 import { PERMISSIONS } from "../../constants/permission.constant";
@@ -22,9 +26,9 @@ import { quotationService } from "../../services/quotation.service";
 import { useDebouncedValue } from "../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
-import { QUOTATION_COUNTS_KEY } from "../../constants/quotation.constant";
 import QuotationCustomerPicker from "./components/QuotationCustomerPicker";
 import type { TQuotationStatus } from "../../interfaces/quotation.interface";
+import { AuthorizationContext } from "../../managers/authorization-context.manager";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const QuotationsPage: FC = () => {
@@ -50,13 +54,25 @@ const QuotationsPage: FC = () => {
   const create = useMutation({
     mutationFn: quotationService.create,
     onSuccess: async quotation => {
+      const context = new AuthorizationContext();
       await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
+      context.assertCurrent();
       navigate(buildQuotationPath(quotation.id));
     },
   });
   const canCreate = hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE);
   const list = quotations.data?.pages.flatMap(page => page.items) ?? [];
   const tabs = QUOTATION_STATUS_TABS;
+  const filterTabs = tabs.map(tab => ({
+    id: tab.key ?? QUOTATION_ALL_TAB_ID,
+    label: tab.label,
+    count: counts.data?.[tab.key ?? QUOTATION_ALL_TAB_ID] ?? "—",
+  }));
+
+  const handleTabChange = (id: string) => {
+    setStatus(tabs.find(tab => (tab.key ?? QUOTATION_ALL_TAB_ID) === id)?.key ?? null);
+  };
+
   return (
     <main className={styles.page}>
       <section className={styles.listHeading}>
@@ -103,18 +119,14 @@ const QuotationsPage: FC = () => {
             placeholder="חיפוש לפי מספר, לקוח או פרויקט..."
             onChange={event => setSearch(event.target.value)}
           />
-          <div className={styles.tabs}>
-            {tabs.map(tab => (
-              <button
-                key={tab.key ?? "all"}
-                className={styles.tab}
-                aria-pressed={status === tab.key}
-                onClick={() => setStatus(tab.key)}
-              >
-                {tab.label} <span>{counts.data?.[tab.key ?? "all"] ?? "—"}</span>
-              </button>
-            ))}
-          </div>
+          <Tabs
+            items={filterTabs}
+            formatCount={String}
+            mode={TAB_MODES.FILTER}
+            onChange={handleTabChange}
+            ariaLabel="סינון הצעות מחיר"
+            activeId={status ?? QUOTATION_ALL_TAB_ID}
+          />
         </div>
         {counts.isError && (
           <div role="alert" className={styles.error}>

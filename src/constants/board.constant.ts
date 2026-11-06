@@ -29,7 +29,6 @@ export const PROJECT_TABLE_HEADERS = {
   TYPE: "סוג",
   TEAM: "צוות",
   UPDATED: "עודכן",
-  STAGE: "שלב",
 } as const;
 
 export const PROJECT_MANAGERS_QUERY: IUserQuery = { search: "", role: USER_ROLES.PROJECT_MANAGER };

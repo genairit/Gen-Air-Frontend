@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
   taskClaim: (taskId: string) => `/task/${taskId}/claim`,
   taskTransitions: (taskId: string) => `/task/${taskId}/transitions`,
   LOGIN: "/auth/login",
+  ROLE_SWITCH: "/auth/role",
   USERS: "/user",
   MY_USER: "/user/me",
   MY_PASSWORD: "/user/me/password",
@@ -44,6 +45,7 @@ export const API_ENDPOINTS = {
   PROJECT_TYPES: "/project-type",
   projectTransitions: (projectId: string) => `/project-stage-transition/by-project/${projectId}`,
   projectDriveContents: (projectId: string) => `/project-drive/${projectId}/contents`,
+  projectSharedDocument: (projectId: string) => `/project-drive/${projectId}/shared-document`,
   projectDriveProvision: (projectId: string) => `/project-drive/${projectId}/provision`,
   projectDriveFiles: (projectId: string) => `/project-drive/${projectId}/files`,
   projectDriveFile: (projectId: string, fileId: string) =>
@@ -56,9 +58,14 @@ export const API_ENDPOINTS = {
 export const DRIVE_UPLOAD_FIELD_NAME = "files";
 
 export const HTTP_STATUS = {
+  BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
   CONFLICT: 409,
   BAD_GATEWAY: 502,
   SERVICE_UNAVAILABLE: 503,
+} as const;
+
+export const API_ERROR_CODES = {
+  INVALID_CURRENT_PASSWORD: "INVALID_CURRENT_PASSWORD",
 } as const;

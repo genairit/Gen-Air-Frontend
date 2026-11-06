@@ -84,7 +84,6 @@ const BoardPage = () => {
       />
 
       <ProjectsTable
-        stages={stages}
         activeTabId={activeTabId}
         onTabChange={setActiveTabId}
         query={{ ...query, stageId }}

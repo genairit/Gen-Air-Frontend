@@ -1,4 +1,5 @@
 import { runBundledTest } from "./test-runner.utility.mjs";
+import { loadingAnimationTestPlugin } from "./loading-animation.test-plugin.mjs";
 
 await runBundledTest({
   input: "testing/customer-projects.utility.test.ts",
@@ -16,4 +17,5 @@ await runBundledTest({
   input: "testing/customer-projects.interactions.test.tsx",
   output: "customer-projects.interactions.test.mjs",
   external: ["@tanstack/react-query", "react-router-dom"],
+  plugins: [loadingAnimationTestPlugin],
 });

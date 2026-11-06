@@ -6,6 +6,13 @@ import {
   moveQuotationSection,
 } from "../src/utilities/quotation.utility";
 
+import {
+  quotationPaymentLabel,
+  quotationHasPaymentConflict,
+  selectQuotationPaymentStages,
+  changeQuotationPaymentSchedule,
+} from "../src/utilities/quotation-payment.utility";
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { quotationFixture, catalogueFixture } from "./quotation.fixture";
@@ -25,6 +32,21 @@ test("quotation response guard rejects malformed snapshots, totals and warning p
   assert.equal(
     isQuotation({ ...quotation, warnings: [{ key: "x", text: "warning", acknowledged: "yes" }] }),
     false,
+  );
+});
+test("payment stages replace a copied fixed term without losing the quotation note", () => {
+  const quotation = { ...quotationFixture(), paymentTermsNote: "Keep this note" };
+  const staged = selectQuotationPaymentStages(quotation);
+  assert.equal(staged.paymentTerms, null);
+  assert.equal(staged.paymentTermsNote, "Keep this note");
+  assert.deepEqual(staged.paymentSchedule, [{ percent: "0", text: "" }]);
+  assert.equal(quotationPaymentLabel(staged), "לפי שלבי תשלום");
+  const conflicted = { ...staged, paymentTerms: "prepaid" };
+  assert.equal(quotationHasPaymentConflict(conflicted), true);
+  assert.equal(quotationPaymentLabel(conflicted), "יש לבחור בין תנאי תשלום קבועים לשלבי תשלום");
+  assert.equal(
+    changeQuotationPaymentSchedule(conflicted, staged.paymentSchedule).paymentTerms,
+    null,
   );
 });
 test("catalogue response guard rejects invalid price and included-controller metadata", () => {

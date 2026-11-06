@@ -16,6 +16,7 @@ import { noop } from "../../../utilities/function.utility";
 import BackLink from "../../../components/BackLink/BackLink";
 import BrandLogo from "../../../components/BrandLogo/BrandLogo";
 import Pagination from "../../../components/Pagination/Pagination";
+import { USER_ROLES } from "../../../constants/user-role.constant";
 import SidebarUserCard from "../../../components/Sidebar/SidebarUserCard";
 import { BRAND_LOGO_WIDTHS } from "../../../constants/brand-logo.constant";
 import MobileBottomNav from "../../../components/MobileBottomNav/MobileBottomNav";
@@ -46,9 +47,11 @@ const NavigationSection = () => {
               כותרת עליונה
             </Box>
             <TopBar
-              onUserMenuClick={noop}
               user={SHOWCASE_TOP_BAR_USER}
+              onRoleChange={async () => {}}
               title="ניהול פרויקטים ומשימות"
+              activeRole={USER_ROLES.ENGINEER}
+              assignedRoles={[USER_ROLES.ENGINEER]}
             />
           </Box>
 

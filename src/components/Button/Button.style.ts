@@ -14,6 +14,7 @@ import type { Theme } from "@mui/material";
 import type { CSSProperties } from "react";
 import type { SystemStyleObject } from "@mui/system";
 import { theme } from "../../constants/theme.constants";
+import { smartbaseButtonMotion } from "../../vendor/smartbase/button-motion";
 
 interface IButtonStyleOptions {
   hasIcon: boolean;
@@ -62,7 +63,8 @@ export const useStyles = () => ({
     whiteSpace: "nowrap",
     borderRadius: theme.radius.pill,
     pointerEvents: isLoading ? "none" : "auto",
-    transition: "box-shadow 0.2s ease, background-color 0.2s ease",
+    border: `1px solid ${theme.glass.rim}`,
+    ...smartbaseButtonMotion,
     ...STYLE_BY_SIZE[size],
     ...STYLE_BY_VARIANT[variant],
     ...getShapeStyle({ shape, size, hasIcon }),
@@ -73,9 +75,9 @@ export const useStyles = () => ({
     visibility: "hidden",
   } as CSSProperties,
   loadingAnimation: {
-    width: 90,
+    width: 140,
     zIndex: 2,
-    height: 90,
+    height: 140,
     top: "50%",
     left: "50%",
     position: "absolute",

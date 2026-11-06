@@ -2,12 +2,12 @@ import { createStyles } from "../../../create-styles";
 import { theme } from "../../../constants/theme.constants";
 import { MUTED_CAPTION } from "../../../styles/templates.style";
 
-const { palette, softShadow } = theme;
+const { palette, glass } = theme;
 
 export const useStyles = () =>
   createStyles({
     card: (hasError: boolean) => ({
-      boxShadow: hasError ? `inset 0 0 0 2px ${palette.danger}` : softShadow.raised,
+      boxShadow: hasError ? `inset 0 0 0 2px ${palette.danger}` : glass.shadowSmall,
     }),
     highlightedSelected: {
       gap: "16px",
@@ -25,7 +25,7 @@ export const useStyles = () =>
       display: "flex",
       flexDirection: "column",
       borderRadius: "24px",
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
     },
     listLabel: {
       ...MUTED_CAPTION,
@@ -82,7 +82,7 @@ export const useStyles = () =>
       padding: "18px 20px",
       alignItems: "center",
       justifyContent: "space-between",
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
     },
     selectedText: {
       gap: "6px",
@@ -115,7 +115,7 @@ export const useStyles = () =>
       color: palette.charcoal,
       borderRadius: theme.radius.pill,
       height: theme.controlHeight.medium,
-      boxShadow: softShadow.raisedCompact,
+      boxShadow: glass.edge,
       backgroundColor: palette.iceWhite,
     },
   });

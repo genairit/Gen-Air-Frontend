@@ -32,24 +32,26 @@ test("custom icon tint preserves the vector fallback used by contrasting action 
   assert.doesNotMatch(markup, /<img/);
 });
 
-test("default segmented tabs preserve labels, zero counts and accessible selection", () => {
+test("default segmented filters preserve labels, zero counts and pressed state", () => {
   const markup = renderToStaticMarkup(<Tabs items={tabs} activeId="waiting" onChange={noop} />);
-  assert.match(markup, /role="tablist"/);
-  assert.equal((markup.match(/role="tab"/g) ?? []).length, 2);
-  assert.equal((markup.match(/aria-selected="true"/g) ?? []).length, 1);
+  assert.match(markup, /role="group"/);
+  assert.equal((markup.match(/data-tab-option=""/g) ?? []).length, 2);
+  assert.equal((markup.match(/aria-pressed="true"/g) ?? []).length, 1);
+  assert.equal((markup.match(/aria-pressed="false"/g) ?? []).length, 1);
   assert.match(markup, /ממתין/);
   assert.match(markup, /בעבודה/);
-  assert.match(markup, /\(0\)/);
-  assert.match(markup, /height:44px/);
+  assert.match(markup, />0</);
+  assert.match(markup, /min-height:40px/);
 });
 
-test("compact status tabs render optional dots without changing the default segmented sizing", () => {
+test("status filters render optional dots with the current shared sizing", () => {
   const markup = renderToStaticMarkup(
     <Tabs items={tabs} activeId="active" onChange={noop} variant={TABS_VARIANTS.STATUS} />,
   );
-  assert.match(markup, /min-height:36px/);
-  assert.match(markup, /background-color:#1F7FDB/i);
-  assert.equal((markup.match(/aria-selected="true"/g) ?? []).length, 1);
+  assert.match(markup, /min-height:40px/);
+  assert.ok(markup.includes(`background-color:${theme.palette.primary}`));
+  assert.match(markup, /role="group"/);
+  assert.equal((markup.match(/aria-pressed="true"/g) ?? []).length, 1);
   assert.match(markup, /בעבודה/);
   assert.match(markup, /ממתין/);
 });

@@ -1,5 +1,6 @@
 export const PROJECT_PAGE_COPY = {
   EDIT: "עריכת פרויקט",
+  STAGE_TITLE: "שלב הפרויקט",
   TEAM_TITLE: "צוות הפרויקט המוקצה",
   TEAM_STATUS: "צוות פעיל בשטח",
   TEAM_SUBTITLE: "חלוקת תפקידים וניהול צוות תפעולי בשטח",

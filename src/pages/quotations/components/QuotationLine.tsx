@@ -79,6 +79,8 @@ const QuotationLine: FC<IQuotationLineProps> = ({
           maxLength={200}
           disabled={disabled}
           value={line.location}
+          placeholder="לדוגמה: חדר שינה"
+          caption={isEquipment ? "מיקום היחידה" : "מיקום הפריט"}
           onChange={event => onChange({ ...line, location: event.target.value })}
         />
         {isEquipment && (

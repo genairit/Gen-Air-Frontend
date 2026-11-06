@@ -30,6 +30,7 @@ const ProjectCard: FC<IProjectCardProps> = ({
     <Box {...dragSourceProps}>
       <Card
         padding="18px"
+        ariaLabel={project.name}
         radius={SURFACE_RADII.PANEL}
         sx={styles.card({ isDragging })}
         onClick={() => onOpen(project.id)}

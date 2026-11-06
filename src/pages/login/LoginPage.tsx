@@ -3,7 +3,6 @@ import { Box } from "@mui/material";
 import { useStyles } from "./LoginPage.style";
 import Card from "../../components/Card/Card";
 import Button from "../../components/Button/Button";
-import { useSession } from "../../store/session.store";
 import { Navigate, useNavigate } from "react-router-dom";
 import CheckBox from "../../components/CheckBox/CheckBox";
 import { ICON_NAMES } from "../../constants/icon.constant";
@@ -11,21 +10,24 @@ import BrandLogo from "../../components/BrandLogo/BrandLogo";
 import TextField from "../../components/TextField/TextField";
 import { ROUTE_PATHS } from "../../constants/routes.constant";
 import InlineError from "../../components/InlineError/InlineError";
+import NoticeBanner from "../../components/NoticeBanner/NoticeBanner";
 import { useLoginMutation } from "../../hooks/mutations/user.mutation";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { BRAND_LOGO_WIDTHS } from "../../constants/brand-logo.constant";
 import { canSubmitCredentials } from "../../utilities/credentials.utility";
 import { LOGIN_COPY, SUPPORT_EMAIL } from "../../constants/login.constant";
+import { useSession, usePasswordChangedNotice } from "../../store/session.store";
 import { BUTTON_SIZES } from "../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../components/TextField/constants/textfield.constants";
 
 const LoginPage = () => {
   const styles = useStyles();
   const navigate = useNavigate();
+  const session = useSession();
+  const passwordChanged = usePasswordChangedNotice();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isRemembered, setIsRemembered] = useState(true);
-  const session = useSession();
   const loginMutation = useLoginMutation();
   const isSubmitDisabled = !canSubmitCredentials({ email, password });
 
@@ -52,6 +54,9 @@ const LoginPage = () => {
       </Box>
 
       <Card gap="20px" padding="32px" sx={styles.card}>
+        {passwordChanged && (
+          <NoticeBanner lines={[]} title={LOGIN_COPY.PASSWORD_CHANGED_SIGN_IN_AGAIN} />
+        )}
         <TextField
           value={email}
           onChange={setEmail}

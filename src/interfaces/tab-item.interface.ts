@@ -1,6 +1,6 @@
 export interface ITabItem {
   id: string;
   label: string;
-  count?: number;
+  count?: number | string;
   dotColor?: string | null;
 }

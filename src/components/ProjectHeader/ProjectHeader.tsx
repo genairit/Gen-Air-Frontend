@@ -20,6 +20,7 @@ interface IProjectHeaderProps {
   syncCaption: string;
   icon?: IconNameType;
   stageDotColor?: string;
+  stageControl?: ReactNode;
 }
 
 const ProjectHeader: FC<IProjectHeaderProps> = ({
@@ -30,6 +31,7 @@ const ProjectHeader: FC<IProjectHeaderProps> = ({
   projectId,
   syncCaption,
   actions,
+  stageControl,
   stageDotColor = theme.palette.statusBlue,
 }) => {
   const styles = useStyles();
@@ -44,7 +46,9 @@ const ProjectHeader: FC<IProjectHeaderProps> = ({
               {title}
             </Box>
             <Chip isMonospace label={projectId} variant={CHIP_VARIANTS.INSET} />
-            <Chip label={stage} size={CHIP_SIZES.MEDIUM} dotColor={stageDotColor} />
+            {stageControl ?? (
+              <Chip label={stage} size={CHIP_SIZES.MEDIUM} dotColor={stageDotColor} />
+            )}
             {badge}
           </Box>
           <Box component="span" sx={styles.caption}>

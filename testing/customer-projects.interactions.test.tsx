@@ -28,11 +28,10 @@ import { httpClient } from "../src/services/http-client.service";
 import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import { useScrollReached } from "../src/hooks/scroll-reached.hook";
+import { installDomEventTargets } from "./dom-event-targets.utility";
 import { SEARCH_DEBOUNCE_MS } from "../src/constants/search.constant";
 import LoadingState from "../src/components/LoadingState/LoadingState";
-import Autocomplete from "../src/components/Autocomplete/Autocomplete";
 import { ALL_STAGES_TILE_ID } from "../src/constants/stage-tile.constant";
-import ProjectStageCell from "../src/pages/board/columns/cells/ProjectStageCell";
 import { CUSTOMER_PROJECT_COPY } from "../src/constants/customer-project.constant";
 import CustomerDetailsCard from "../src/pages/customer/components/CustomerDetailsCard";
 import { MemoryRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
@@ -43,6 +42,7 @@ import CustomerProjectsError from "../src/pages/customer/components/CustomerProj
 import { QueryClientProvider, notifyManager, type QueryClient } from "@tanstack/react-query";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+after(installDomEventTargets());
 notifyManager.setScheduler(queueMicrotask);
 after(() => notifyManager.setScheduler(callback => setTimeout(callback, 0)));
 
@@ -434,61 +434,34 @@ test("search/status and customer navigation start new cursor scopes without stal
   }
 });
 
-test("status editing follows the existing feature grant and does not navigate the row", async () => {
+test("customer projects list opens the detail page without a status control", async () => {
   queryClient.clear();
   queryClient.setQueryData(QUERY_KEYS.PROJECT_STAGES, stages);
   seedPage(queryClient, createRelatedPage());
-  const requests: { url: string; method: string; payload: unknown }[] = [];
-  const original = httpClient.defaults.adapter;
-  httpClient.defaults.adapter = async config => {
-    requests.push({
-      url: config.url ?? "",
-      method: config.method ?? "",
-      payload: config.data ? JSON.parse(config.data) : null,
-    });
-    const data =
-      config.method === "patch"
-        ? {}
-        : createRelatedPage({
-            items: [createRelatedProject({ stageId: OTHER_STAGE_ID, stage: stages[1] })],
-          });
-    return { config, status: 200, statusText: "OK", headers: {}, data };
-  };
-  setSession({ accessToken: "test-token", user: createUser() });
+  setSession({
+    accessToken: "test-token",
+    user: createUser([
+      PERMISSIONS.CUSTOMERS_READ,
+      PERMISSIONS.PROJECTS_READ,
+      PERMISSIONS.PROJECTS_STATUS_CHANGE,
+    ]),
+  });
   const renderer = await mount(queryClient, <CustomerProjectsCard customerId={CUSTOMER_ID} />);
   try {
-    assert.equal(renderer.root.findByType(ProjectStageCell).props.canMove, false);
-    assert.equal(renderer.root.findByType(Autocomplete).props.disabled, true);
-    await act(async () =>
-      setSession({
-        accessToken: "test-token",
-        user: createUser([
-          PERMISSIONS.CUSTOMERS_READ,
-          PERMISSIONS.PROJECTS_READ,
-          PERMISSIONS.PROJECTS_STATUS_CHANGE,
-        ]),
-      }),
+    const table = renderer.root.findByType(DataTable);
+    assert.deepEqual(
+      table.props.columns.map((column: { id: string }) => column.id),
+      ["project", "type", "team", "updated"],
     );
-    assert.equal(renderer.root.findByType(Autocomplete).props.disabled, false);
     await act(async () => {
-      renderer.root.findByType(Autocomplete).props.onChange(stages[1].name);
-      await flush();
-      await flush();
-    });
-    assert.equal(requests.filter(request => request.method === "patch").length, 1);
-    assert.deepEqual(requests.find(request => request.method === "patch")?.payload, {
-      stageId: OTHER_STAGE_ID,
+      table.props.onRowClick(table.props.rows[0]);
     });
     assert.equal(
       renderer.root.findByProps({ "data-location": true }).children[0],
-      `/customers/${CUSTOMER_ID}`,
-    );
-    assert.ok(
-      requests.some(request => request.url.endsWith("/projects") && request.method === "get"),
+      `/projects/${createRelatedProject().id}`,
     );
   } finally {
     await act(async () => renderer.unmount());
-    httpClient.defaults.adapter = original;
     queryClient.clear();
     setSession(null);
   }

@@ -1,11 +1,19 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 
-const { palette, softShadow } = theme;
+const { palette, glass } = theme;
 
-const SELECTED_STYLE = { backgroundColor: palette.airBlue, boxShadow: softShadow.insetSelected };
+const SELECTED_STYLE = {
+  backgroundColor: palette.airBlue,
+  border: `1px solid ${palette.primary}`,
+  boxShadow: glass.focus,
+};
 
-const IDLE_STYLE = { backgroundColor: palette.iceWhite, boxShadow: softShadow.raisedLarge };
+const IDLE_STYLE = {
+  backgroundColor: glass.strong,
+  border: `1px solid ${glass.border}`,
+  boxShadow: glass.shadowSmall,
+};
 
 export const useStyles = () =>
   createStyles({

@@ -4,7 +4,11 @@ export { validateNumber } from "./number.validator";
 export { validateHebrewText } from "./text.validator";
 export { validatePhoneNumber } from "./phone.validator";
 export { validateEmail } from "./email.validator";
-export { validatePassword, createPasswordConfirmationValidator } from "./password.validator";
+export {
+  validatePassword,
+  validateCurrentPassword,
+  createPasswordConfirmationValidator,
+} from "./password.validator";
 export { validateFreeText } from "./free-text.validator";
 export { validateFloor } from "./floor.validator";
 export { validateIsraeliPhone } from "./israeli-phone.validator";
@@ -15,5 +19,4 @@ export { validateAssociationNumber } from "./association-number.validator";
 export { validateRequiredValue } from "./required-value.validator";
 export { validateContactName } from "./contact-name.validator";
 export { validateIsraeliMobilePhone } from "./israeli-mobile-phone.validator";
-export { validatePaymentTermsNote } from "./payment-terms-note.validator";
 export { validateOptionalIsraeliPhone } from "./optional-israeli-phone.validator";

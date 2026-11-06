@@ -3,16 +3,15 @@ import {
   type CheckBoxShapeType,
 } from "../../constants/selection-control.constant";
 
-import { Box } from "@mui/material";
-import Check from "../../icons/Check";
 import { type FC, type JSX } from "react";
-import { useStyles } from "./CheckBox.style";
 import { theme } from "../../constants/theme.constants";
+import SmartbaseCheckBox from "../../vendor/smartbase/components/CheckBox/CheckBox";
 
 interface ICheckBoxProps {
   value: boolean;
   disabled?: boolean;
   textColor?: string;
+  ariaLabel?: string;
   shape?: CheckBoxShapeType;
   text: string | JSX.Element;
   onChange: (value: boolean) => void;
@@ -20,34 +19,23 @@ interface ICheckBoxProps {
 
 const CheckBox: FC<ICheckBoxProps> = ({
   text,
+  ariaLabel,
   onChange,
   value = false,
   disabled = false,
   shape = CHECKBOX_SHAPES.SQUARE,
   textColor = theme.palette.charcoal,
 }) => {
-  const styles = useStyles();
-
-  const handleChange = () => {
-    if (disabled) {
-      return;
-    }
-
-    onChange(!value);
-  };
-
   return (
-    <Box
-      role="checkbox"
-      aria-checked={value}
-      onClick={handleChange}
-      sx={styles.container({ disabled, textColor })}
-    >
-      <Box sx={styles.checkBox({ checked: value, shape })}>
-        {value && <Check sx={styles.checkIcon} />}
-      </Box>
-      {text}
-    </Box>
+    <SmartbaseCheckBox
+      text={text}
+      value={value}
+      shape={shape}
+      disabled={disabled}
+      onChange={onChange}
+      textColor={textColor}
+      aria-label={ariaLabel}
+    />
   );
 };
 

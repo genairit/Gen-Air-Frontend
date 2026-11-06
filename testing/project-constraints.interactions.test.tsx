@@ -7,8 +7,8 @@ import {
 
 import { useState } from "react";
 import { AxiosError } from "axios";
-import { test, mock } from "node:test";
 import assert from "node:assert/strict";
+import { test, mock, after } from "node:test";
 import { MemoryRouter } from "react-router-dom";
 import { project } from "./project-tasks.fixture";
 import { setTimeout } from "node:timers/promises";
@@ -21,6 +21,7 @@ import TextField from "../src/components/TextField/TextField";
 import { API_ENDPOINTS } from "../src/constants/api.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { QUERY_ROOTS } from "../src/constants/query-key.constant";
+import { installDomEventTargets } from "./dom-event-targets.utility";
 import { SEARCH_DEBOUNCE_MS } from "../src/constants/search.constant";
 import ProjectForm from "../src/pages/project-form/components/ProjectForm";
 import { PROJECT_FORM_MODES } from "../src/constants/project-form.constant";
@@ -32,6 +33,7 @@ import ProjectDetailsCard from "../src/pages/project-form/components/ProjectDeta
 import ProjectLightingFields from "../src/pages/project-form/components/ProjectLightingFields";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+after(installDomEventTargets());
 const settle = () => setTimeout(20);
 const rendererState = (): { renderer: ReturnType<typeof create> | null } => ({ renderer: null });
 

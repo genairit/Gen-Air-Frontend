@@ -2,6 +2,23 @@
 
 the UI part of the gen air app
 
+## Design handoff
+
+For client-facing UI tasks, the [design agent](agents/design-agent.md) combines the task
+requirements with the current [GenAir design language](docs/design-language.md) and gives the
+development agent a concrete style and interaction specification before implementation.
+The [developer agent](agents/developer-agent.md) implements that handoff using
+existing generic components as much as possible. The
+[frontend development workflow](rules/frontend-development-workflow-standards.md)
+places design before implementation, review, and QA.
+
+### Responsive layout
+
+The authenticated shell uses the shared 899px CSS breakpoint for sidebar visibility, main
+spacing, and bottom navigation together, including the first render. Mobile full-width status
+choices wrap without hiding options. Drive headers opt into stacked mobile actions; other
+card headers retain their existing layout.
+
 ## Environments
 
 | Environment | Branch | URL                                                 |
@@ -32,17 +49,18 @@ The service's variables live in `.railway/railway.ts` (apply with `railway confi
 
 ## Release integration checks
 
-The QA agent runs targeted feature tests followed by the full suite before feature PRs. Feature →
-`dev` has no duplicate GitHub Actions run. Before merge, verify its QA report still matches the
-current frontend candidate/base, latest backend dev after dependencies merge, and Automation
-revision. Changed revisions require renewed QA verification.
+The QA agent runs maintained targeted feature tests before feature PRs. Feature → `dev` has no
+duplicate GitHub Actions run. Before merge, verify its QA report still matches the current frontend
+candidate/base, latest backend dev after dependencies merge, and Automation revision. Changed
+revisions require renewed targeted QA verification.
 
-GitHub runs full integration only for frontend `dev` → `test` and `test` → `main`, paired with the
-matching backend destination. It tests the frontend candidate merge using a pinned Automation
-revision. Unsupported promotion directions fail before browser execution. Backend/Automation PRs
-do not start a GitHub browser suite.
+GitHub runs the full browser suite only for frontend `dev` → `test`, paired with backend `test`.
+It tests the frontend candidate merge using a pinned Automation revision. Unsupported promotion
+directions fail before browser execution. Backend/Automation PRs and `test` → `main` do not start a
+GitHub browser suite.
 
-Backend test/main changes invalidate prior frontend promotion results. Wait for backend promotion
-and notifier completion; rerun active/stale promotion checks if needed. Require `End-to-end /
-Playwright` and `Backend compatibility` only on test/main. Do not require missing GitHub contexts
-on dev. See Gen-Air-Automation `docs/release-gate-rollout.md` for coordinated activation.
+Backend `test` changes invalidate prior frontend `dev` → `test` promotion results. Wait for backend
+promotion and notifier completion; rerun active or stale promotion checks if needed. Require
+`End-to-end / Playwright` and `Backend compatibility` on frontend `dev` → `test` only. Do not require
+those contexts on feature PRs or `test` → `main`. See Gen-Air-Automation
+`docs/release-gate-rollout.md` for coordinated activation.

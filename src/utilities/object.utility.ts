@@ -1,12 +1,8 @@
 import merge from "lodash.merge";
 
-export const isObject = (value: any): value is object => {
-  return value && typeof value === "object" && !Array.isArray(value);
+export const isObject = (value: unknown): value is object => {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
 };
 
-export const safeAssign = <T extends object>(
-  original: T,
-  props: Partial<T>
-) => {
-  return merge({}, original, props);
-};
+export const safeAssign = <T>(original: T & object, props: Partial<T>) =>
+  merge({}, original, props);

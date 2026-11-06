@@ -12,7 +12,7 @@ export const useStyles = () =>
       padding: "16px 18px",
       whiteSpace: "pre-wrap",
       color: palette.charcoal,
-      boxShadow: theme.softShadow.inset,
+      boxShadow: theme.glass.edge,
     },
     link: {
       fontSize: 14,

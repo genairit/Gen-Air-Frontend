@@ -54,11 +54,20 @@ export const useProjectTransitionsQuery = (projectId: string) =>
     queryFn: () => projectActivityService.getTransitions(projectId),
   });
 
-export const useProjectDriveQuery = (projectId: string, folderId: string | null) =>
+export const useProjectDriveQuery = (projectId: string, folderId: string | null, enabled = true) =>
   useQuery({
     retry: false,
     queryKey: QUERY_KEYS.driveContents(projectId, folderId),
+    enabled: enabled && projectId.length > 0,
     queryFn: () => projectActivityService.getDriveContents(projectId, folderId),
+  });
+
+export const useSharedDocumentQuery = (projectId: string, enabled = true) =>
+  useQuery({
+    enabled,
+    retry: false,
+    queryKey: QUERY_KEYS.sharedDocument(projectId),
+    queryFn: () => projectActivityService.getSharedDocument(projectId),
   });
 
 export const useDriveUploadPolicyQuery = () =>

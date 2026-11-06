@@ -5,6 +5,7 @@ export const useStyles = () =>
   createStyles({
     section: {
       gap: "28px",
+      minWidth: 0,
       display: "flex",
       flexDirection: "column",
     },

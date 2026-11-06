@@ -36,9 +36,4 @@ export const PROJECT_COLUMN_STYLES = createStyles({
     flexWrap: "wrap",
     alignItems: "center",
   },
-  stopper: {
-    minWidth: 0,
-    display: "flex",
-    alignItems: "center",
-  },
 });

@@ -6,8 +6,9 @@ export const useStyles = () =>
   createStyles({
     action: {
       color: theme.palette.charcoal,
-      boxShadow: theme.softShadow.raisedMedium,
-      backgroundColor: theme.palette.iceWhite,
+      border: `1px solid ${theme.glass.border}`,
+      boxShadow: theme.glass.shadowSmall,
+      backgroundColor: theme.palette.white,
     },
     iconCircle: {
       ...CENTERED_FLEX,
@@ -15,7 +16,7 @@ export const useStyles = () =>
       height: 40,
       flexShrink: 0,
       borderRadius: theme.radius.pill,
-      boxShadow: theme.softShadow.raisedSmall,
-      backgroundColor: theme.palette.iceWhite,
+      boxShadow: theme.glass.shadowSmall,
+      backgroundColor: theme.palette.white,
     },
   });

@@ -13,7 +13,12 @@ interface IApartmentMobileRowProps {
 }
 
 const ApartmentMobileRow: FC<IApartmentMobileRowProps> = ({ stages, apartment, onOpen }) => (
-  <Card gap="10px" padding="16px" onClick={() => onOpen(apartment)}>
+  <Card
+    gap="10px"
+    padding="16px"
+    onClick={() => onOpen(apartment)}
+    ariaLabel={formatApartmentHeading(apartment)}
+  >
     <Box sx={APARTMENT_COLUMN_STYLES.mobileRow}>
       <Box component="b" sx={APARTMENT_COLUMN_STYLES.title}>
         {formatApartmentHeading(apartment)}

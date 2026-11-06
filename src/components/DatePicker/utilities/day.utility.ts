@@ -5,21 +5,20 @@ import { theme } from "../../../constants/theme.constants";
 import { BORDER_RADIUS } from "../../../styles/templates.style";
 import type { IDateRange } from "../interfaces/date-range.interface";
 import { isBetweenDates, isSameDate } from "../../../utilities/date.utility";
+import { RANGE_POSITIONS, type RangePositionType } from "../constants/date-picker.constant";
 
 interface ICalendarButtonStyles {
   button: SxProps;
   square: CSSProperties;
 }
 
-export const isDateRange = (
-  value: DatePickerValue<boolean>
-): value is IDateRange => {
+export const isDateRange = (value: DatePickerValue<boolean>): value is IDateRange => {
   return value != null && typeof value === "object" && "startDate" in value;
 };
 
 export const isDateSelected = <IsRange extends boolean>(
   day: Date,
-  value: DatePickerValue<IsRange>
+  value: DatePickerValue<IsRange>,
 ): boolean => {
   if (!value) return false;
 
@@ -42,7 +41,7 @@ export const isDateSelected = <IsRange extends boolean>(
 
 export const isDateHighlighted = <IsRange extends boolean>(
   day: Date,
-  value: DatePickerValue<IsRange>
+  value: DatePickerValue<IsRange>,
 ): boolean => {
   if (!value || !isDateRange(value)) {
     return false;
@@ -56,9 +55,22 @@ export const isDateHighlighted = <IsRange extends boolean>(
   });
 };
 
+export const getRangePosition = <IsRange extends boolean>(
+  day: Date,
+  value: DatePickerValue<IsRange>,
+): RangePositionType | null => {
+  if (!value || !isDateRange(value)) return null;
+
+  const { startDate, endDate } = value;
+  if (!startDate || !endDate || isSameDate(startDate, endDate)) return null;
+  if (isSameDate(day, startDate)) return RANGE_POSITIONS.START;
+  if (isSameDate(day, endDate)) return RANGE_POSITIONS.END;
+  return isBetweenDates(day, value) ? RANGE_POSITIONS.MIDDLE : null;
+};
+
 export const getBorderRadius = <IsRange extends boolean = false>(
   day: Date,
-  selectedValue: DatePickerValue<IsRange> | null
+  selectedValue: DatePickerValue<IsRange> | null,
 ): ICalendarButtonStyles => {
   const radius: ICalendarButtonStyles = { square: {}, button: {} };
 
@@ -114,7 +126,7 @@ export const getBorderRadius = <IsRange extends boolean = false>(
 export const getColor = <IsRange extends boolean = false>(
   day: Date,
   selectedValue: DatePickerValue<IsRange>,
-  disabled?: boolean
+  disabled?: boolean,
 ): ICalendarButtonStyles => {
   const color: ICalendarButtonStyles = { square: {}, button: {} };
 
@@ -132,14 +144,12 @@ export const getColor = <IsRange extends boolean = false>(
       backgroundColor: squareColor,
     };
     color.button = {
-      color: theme.colors.white,
+      color: theme.palette.charcoal,
     };
   }
 
   if (isSelected) {
-    const buttonColor = disabled
-      ? theme.text.textfield.disabled
-      : theme.button.primary;
+    const buttonColor = disabled ? theme.text.textfield.disabled : theme.button.primary;
 
     color.button = {
       color: theme.colors.white,
@@ -153,11 +163,7 @@ export const getColor = <IsRange extends boolean = false>(
   return color;
 };
 
-export const isDateDisabled = (
-  day: Date,
-  minDate?: Date,
-  maxDate?: Date
-): boolean => {
+export const isDateDisabled = (day: Date, minDate?: Date, maxDate?: Date): boolean => {
   if (minDate && day < minDate) return true;
   if (maxDate && day > maxDate) return true;
 
@@ -166,7 +172,7 @@ export const isDateDisabled = (
 
 export const isDatepickerValueEqual = <IsRange extends boolean>(
   a: DatePickerValue<IsRange>,
-  b: DatePickerValue<IsRange>
+  b: DatePickerValue<IsRange>,
 ): boolean => {
   if (a === b) return true;
 
@@ -175,9 +181,7 @@ export const isDatepickerValueEqual = <IsRange extends boolean>(
   }
 
   if (isDateRange(a) && isDateRange(b)) {
-    return (
-      isSameDate(a.startDate, b.startDate) && isSameDate(a.endDate, b.endDate)
-    );
+    return isSameDate(a.startDate, b.startDate) && isSameDate(a.endDate, b.endDate);
   }
 
   return false;

@@ -12,7 +12,8 @@ export const useStyles = () =>
       borderRadius: "18px",
       padding: "14px 18px",
       flexDirection: "column",
-      boxShadow: theme.softShadow.inset,
+      border: `1px solid ${theme.glass.border}`,
+      backgroundColor: theme.glass.strong,
       gridColumn: isFullWidth ? "1 / -1" : "auto",
     }),
     label: {

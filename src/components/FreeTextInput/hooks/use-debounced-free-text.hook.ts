@@ -19,7 +19,7 @@ import type {
 } from "../../../interfaces/free-text.interface";
 
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { freeTextService } from "../../../services/free-text.service";
 import { buildFreeTextStatusMessage } from "../../../utilities/free-text.utility";
 import { useDebouncedAbortableCallback } from "../../../hooks/debounced-abortable-callback.hook";
@@ -168,11 +168,8 @@ export const useDebouncedFreeText = ({
     }
   }, [value, endpoint]);
 
-  useDebouncedAbortableCallback({
-    isEnabled: shouldValidate,
-    delayMs: FREE_TEXT_DEBOUNCE_MS,
-    dependencies: [value, endpoint],
-    callback: signal =>
+  const validate = useCallback(
+    (signal: AbortSignal) =>
       runValidation({
         signal,
         text: value,
@@ -182,27 +179,45 @@ export const useDebouncedFreeText = ({
         setSegments,
         setIsServerValid,
       }),
+    [value, endpoint],
+  );
+
+  useDebouncedAbortableCallback({
+    isEnabled: shouldValidate,
+    delayMs: FREE_TEXT_DEBOUNCE_MS,
+    callback: validate,
   });
 
   useEffect(() => {
     if (trimmedQuery === "") {
-      setSuggestions([]);
+      const cancellation = new AbortController();
+      queueMicrotask(() => {
+        if (!cancellation.signal.aborted) {
+          setSuggestions([]);
+        }
+      });
 
-      return;
+      return () => {
+        cancellation.abort();
+      };
     }
   }, [trimmedQuery]);
 
-  useDebouncedAbortableCallback({
-    isEnabled: shouldSuggest,
-    delayMs: FREE_TEXT_DEBOUNCE_MS,
-    dependencies: [trimmedQuery, endpoint],
-    callback: signal =>
+  const suggest = useCallback(
+    (signal: AbortSignal) =>
       runSuggestion({
         signal,
         endpoint,
         setSuggestions,
         query: trimmedQuery,
       }),
+    [trimmedQuery, endpoint],
+  );
+
+  useDebouncedAbortableCallback({
+    isEnabled: shouldSuggest,
+    delayMs: FREE_TEXT_DEBOUNCE_MS,
+    callback: suggest,
   });
 
   return { status, message, segments, isServerValid, suggestions };

@@ -1,6 +1,6 @@
-import type { FC } from "react";
 import { Box } from "@mui/material";
-import { useStyles } from "./Switch.style";
+import { useId, type FC } from "react";
+import SmartbaseSwitch from "../../vendor/smartbase/components/Switch/Switch";
 
 interface ISwitchProps {
   label: string;
@@ -11,31 +11,23 @@ interface ISwitchProps {
 }
 
 const Switch: FC<ISwitchProps> = ({ label, value, onChange, ariaLabel, disabled = false }) => {
-  const styles = useStyles();
-
-  const handleToggle = () => {
-    if (disabled) {
-      return;
-    }
-
-    onChange(!value);
-  };
-
+  const id = useId();
   return (
-    <Box
-      type="button"
-      role="switch"
-      component="button"
-      disabled={disabled}
-      aria-checked={value}
-      onClick={handleToggle}
-      aria-label={ariaLabel ?? label}
-      sx={styles.container({ disabled })}
-    >
-      <Box sx={styles.track({ checked: value })}>
-        <Box sx={styles.knob({ checked: value })} />
+    <Box sx={{ display: "flex", alignItems: "center", gap: "12px", minHeight: 48, fontSize: 15 }}>
+      <SmartbaseSwitch
+        id={id}
+        checked={value}
+        disabled={disabled}
+        onChange={onChange}
+        ariaLabel={ariaLabel ?? label}
+      />
+      <Box
+        htmlFor={id}
+        component="label"
+        sx={{ opacity: disabled ? 0.5 : 1, cursor: disabled ? "default" : "pointer" }}
+      >
+        {label}
       </Box>
-      {label}
     </Box>
   );
 };

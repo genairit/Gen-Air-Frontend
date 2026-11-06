@@ -8,8 +8,6 @@ import {
   POOL_ASSIGNEE_ID,
   TASK_STATUS_TABS,
   TASK_HISTORY_COPY,
-  TASK_STATUS_LABELS,
-  TASK_STATUS_VALUES,
   URGENCY_CONFIRM_COPY,
   type TaskLinkKindType,
   TASK_LINK_KIND_LABELS,
@@ -40,6 +38,7 @@ import { getFullName } from "./mappers/user.mapper";
 import { DATE_FORMAT } from "../constants/date.constants";
 import { TASK_TYPES } from "../constants/task-type.constant";
 import type { ITabItem } from "../interfaces/tab-item.interface";
+import { USER_ROLE_LABELS } from "../constants/user-role.constant";
 import { buildCustomerPath, buildProjectPath } from "./route.utility";
 import type { IApiUser, IApiProject, IApiCustomerReference } from "../interfaces/api.interface";
 
@@ -296,9 +295,6 @@ export const formatUrgencyPreviewTitle = (taskTitle: string) =>
 export const formatUrgencyPreviewSender = (recipient: string) =>
   `${URGENCY_CONFIRM_COPY.PREVIEW_PREFIX} ${recipient}`;
 
-export const findTaskStatusByLabel = (label: string | null) =>
-  TASK_STATUS_VALUES.find(status => TASK_STATUS_LABELS[status] === label) ?? null;
-
 export const countTaskFormErrors = (values: ITaskFormValues) =>
   Object.keys(getTaskFormErrors(values)).length;
 
@@ -352,8 +348,15 @@ export const isHistoryPartial = (transitions: IApiTaskTransition[]) =>
 export const formatTransitionTime = (transition: IApiTaskTransition) =>
   formatTimestamp(transition.createdAt);
 
-export const formatTransitionAuthor = (transition: IApiTaskTransition) =>
-  formatPersonName(transition.changedBy);
+export const formatTransitionAuthor = (transition: IApiTaskTransition): string => {
+  const authorName = formatPersonName(transition.changedBy);
+
+  if (!transition.changedBy || transition.changedByRole === null) {
+    return authorName;
+  }
+
+  return `${authorName} (${USER_ROLE_LABELS[transition.changedByRole]})`;
+};
 
 export const getVisibleHistory = (transitions: IApiTaskTransition[], isExpanded: boolean) => {
   if (isExpanded) {

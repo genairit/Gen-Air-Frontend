@@ -3,7 +3,7 @@ import { theme } from "../../../constants/theme.constants";
 import { CENTERED_FLEX, MUTED_CAPTION } from "../../../styles/templates.style";
 import type { TCustomerSyncStepState } from "../../../interfaces/customer.interface";
 
-const { palette, softShadow, radius } = theme;
+const { palette, glass, radius } = theme;
 
 const BADGE_BY_STATE: Record<TCustomerSyncStepState, { background: string; color: string }> = {
   done: { background: palette.primary, color: palette.white },
@@ -21,7 +21,7 @@ export const useStyles = () =>
       padding: "14px 16px",
       alignItems: "center",
       borderRadius: radius.panel,
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
     },
     badge: (state: TCustomerSyncStepState) => ({
       ...CENTERED_FLEX,
@@ -33,7 +33,7 @@ export const useStyles = () =>
       borderRadius: "50%",
       color: BADGE_BY_STATE[state].color,
       backgroundColor: BADGE_BY_STATE[state].background,
-      boxShadow: state === "active" ? softShadow.raisedSmall : "none",
+      boxShadow: state === "active" ? glass.selectedEdge : "none",
     }),
     text: {
       gap: "2px",

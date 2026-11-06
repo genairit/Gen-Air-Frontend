@@ -1,3 +1,4 @@
+import { PASSWORD_RULES } from "./password.constant";
 import type { IEmployeeFilter, IEmployeeFormValues } from "../interfaces/employee.interface";
 import { USER_ROLES, USER_ROLE_VALUES, USER_ROLE_PLURAL_LABELS } from "./user-role.constant";
 
@@ -10,8 +11,6 @@ export const EMPLOYEE_FILTERS: IEmployeeFilter[] = [
 
 export const EMPLOYEE_PAGE_SIZE = 5;
 
-const DEFAULT_TEMPORARY_PASSWORD = "temp1234";
-
 export const EMPLOYEES_COPY = {
   TITLE: "ניהול עובדים ומשתמשים",
   EYEBROW: "פורטל ניהול משא״ש והרשאות אבטחה",
@@ -19,20 +18,30 @@ export const EMPLOYEES_COPY = {
     "הוספה, עריכה וניהול הרשאות ותפקידי עובדים במערכת GENAIR. הקצאת גישה מאובטחת ומעקב כניסות למנהלים, צוותי שטח ומשרד.",
   ADD_TITLE: "הוספת עובד / משתמש חדש",
   ADD_SUBTITLE: "יצירת חשבון משתמש, שיוך תפקיד תפעולי וקביעת סיסמת כניסה זמנית",
+  ACCOUNT_SECTION_TITLE: "פרטי חשבון",
+  ACCESS_SECTION_TITLE: "גישה ותפקידים",
   NAME_LABEL: "שם מלא",
   NAME_PLACEHOLDER: "לדוגמה: יובל אל",
   EMAIL_LABEL: "כתובת דוא״ל",
   EMAIL_PLACEHOLDER: "yuval@genair.co.il",
   PHONE_LABEL: "טלפון נייד",
   PHONE_PLACEHOLDER: "0500000000",
-  ROLE_LABEL: "תפקיד והרשאה",
+  ROLE_LABEL: "תפקידים משויכים",
+  ROLE_ASSIGNMENT_HELPER: "סמנו תפקיד אחד או יותר שיוקצו לעובד.",
+  ROLE_SWITCHER_LABEL: "החלפת תפקיד פעיל",
+  ROLE_ASSIGNMENT_REQUIRED: "יש לבחור לפחות תפקיד אחד",
   PASSWORD_LABEL: "סיסמה ראשונית",
-  PASSWORD_HINT: "(מוצפנת)",
+  PASSWORD_HINT: `(לפחות ${PASSWORD_RULES.MIN_LENGTH} תווים)`,
+  PASSWORD_CONFIRMATION_LABEL: "אימות סיסמה ראשונית",
+  PASSWORD_SHARE_HINT: "יש ליצור סיסמה ייחודית ולמסור אותה לעובד בערוץ מאובטח ונפרד.",
   ADD_BUTTON: "הוסף עובד למערכת",
   LOADING: "טוען עובדים...",
   NAME_HINT: "שם פרטי ושם משפחה",
   SEARCH_PLACEHOLDER: "חיפוש עובד לפי שם, מייל, טלפון או תפקיד...",
   EDIT: "עריכת עובד",
+  EDIT_ROLES_TITLE: "עריכת תפקידים והרשאות",
+  SAVE_ROLE_CHANGES: "שמירת שינויים",
+  CANCEL: "ביטול",
   DELETE: "מחיקת עובד",
   NEXT_PAGE: "העמוד הבא",
   PREVIOUS_PAGE: "העמוד הקודם",
@@ -42,7 +51,8 @@ export const EMPLOYEE_TABLE_HEADERS = {
   PERSON: "עובד ופרטי קשר",
   EMAIL: "דוא״ל",
   PHONE: "טלפון",
-  ROLE: "תפקיד והרשאה",
+  ASSIGNED_ROLES: "תפקידים משויכים",
+  ACTIVE_ROLE: "תפקיד פעיל",
   ACTIONS: "פעולות ניהול",
 } as const;
 
@@ -50,6 +60,7 @@ export const EMPTY_EMPLOYEE_FORM: IEmployeeFormValues = {
   name: "",
   email: "",
   phone: "",
-  role: USER_ROLES.ENGINEER,
-  password: DEFAULT_TEMPORARY_PASSWORD,
+  assignedRoles: [USER_ROLES.ENGINEER],
+  password: "",
+  passwordConfirmation: "",
 };

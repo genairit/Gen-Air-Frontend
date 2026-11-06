@@ -8,9 +8,9 @@ export const useStyles = () =>
   createStyles({
     card: ({ isDragging }: { isDragging: boolean }) => ({
       cursor: "grab",
-      boxShadow: theme.softShadow.raisedLarge,
+      boxShadow: theme.glass.shadowSmall,
       opacity: isDragging ? DRAGGING_OPACITY : 1,
-      "&:hover": { boxShadow: theme.softShadow.raisedHover },
+      "&:hover": { boxShadow: theme.glass.shadow },
     }),
     row: {
       gap: "8px",

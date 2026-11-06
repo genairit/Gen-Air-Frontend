@@ -14,8 +14,10 @@ import QuotationDelete from "../src/pages/quotations/components/QuotationDelete"
 import QuotationButton from "../src/pages/quotations/components/QuotationButton";
 import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
 import QuotationReview from "../src/pages/quotations/components/QuotationReview";
+import QuotationSection from "../src/pages/quotations/components/QuotationSection";
 import QuotationSummary from "../src/pages/quotations/components/QuotationSummary";
 import type { IQuotation, IQuotationLine } from "../src/interfaces/quotation.interface";
+import QuotationCataloguePicker from "../src/pages/quotations/components/QuotationCataloguePicker";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 Reflect.set(globalThis, "window", new EventTarget());
@@ -134,6 +136,87 @@ test("unsaved edits block navigation until the server accepts the save", async (
   }
 });
 
+test("autosave keeps quotation fields and catalogue picker mounted and editable", async () => {
+  const { catalogueLine } = await import("../src/utilities/quotation.utility");
+  const { catalogueFixture } = await import("./quotation.fixture");
+  const base = quotationFixture();
+  base.sections = [
+    {
+      id: "section",
+      title: "קומה 1",
+      systemType: "VRF",
+      items: [catalogueLine(catalogueFixture(), null)],
+    },
+  ];
+  const gate = Promise.withResolvers<IQuotation>();
+  const save = mock.method(quotationService, "save", () => gate.promise);
+  const customers = mock.method(customerService, "getByFilter", async () => []);
+  const customer = mock.method(customerService, "getById", async () => ({
+    id: base.customerId,
+    name: "Customer",
+  }));
+  const projects = mock.method(quotationService, "projectChoices", async () => []);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const router = createMemoryRouter([
+    {
+      path: "/",
+      element: (
+        <QueryClientProvider client={client}>
+          <QuotationEditor editable canApprove initial={base} />
+        </QueryClientProvider>
+      ),
+    },
+  ]);
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  try {
+    await act(async () => {
+      state.renderer = create(<RouterProvider router={router} />);
+    });
+    const root = () => state.renderer!.root;
+    const location = () => root().findByProps({ "aria-label": "מיקום" });
+    const quantityToAdd = () => root().findByProps({ "aria-label": "כמות להוספה" });
+    await act(() => quantityToAdd().props.onChange({ target: { value: "3" } }));
+    await act(() => location().props.onChange({ target: { value: "חדר שינה" } }));
+    await act(async () => {
+      await settle(QUOTATION_AUTOSAVE_MS + 30);
+    });
+    assert.equal(save.mock.callCount(), 1);
+    assert.equal(root().findByType(QuotationSection).props.disabled, false);
+    assert.equal(root().findAllByType(QuotationCataloguePicker).length, 1);
+    assert.equal(quantityToAdd().props.value, "3");
+    assert.equal(location().props.disabled, false);
+    assert.equal(location().props.value, "חדר שינה");
+    await act(() =>
+      root()
+        .findByProps({ "aria-label": "חברת מיזוג" })
+        .props.onChange({ target: { value: "תדיראן" } }),
+    );
+    const confirmBrand = () =>
+      root()
+        .findAllByType(QuotationButton)
+        .find(button => button.props.text === "החלף לפריטים תואמים");
+    assert.equal(confirmBrand()?.props.disabled, true);
+    await act(async () => {
+      gate.resolve({
+        ...base,
+        version: 2,
+        sections: [
+          { ...base.sections[0], items: [{ ...base.sections[0].items[0], location: "חדר שינה" }] },
+        ],
+      });
+    });
+    assert.equal(confirmBrand()?.props.disabled, false);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    router.dispose();
+    client.clear();
+    save.mock.restore();
+    customers.mock.restore();
+    customer.mock.restore();
+    projects.mock.restore();
+  }
+});
+
 test("review edit, reopen and resubmit resets the explicit edit view", async () => {
   const base = { ...quotationFixture(), status: "review" as const };
   const transition = mock.method(quotationService, "transition", async (quote, status) => ({
@@ -190,7 +273,7 @@ test("review edit, reopen and resubmit resets the explicit edit view", async () 
   }
 });
 
-test("payment chips expose a single selected radio and change only quotation terms", async () => {
+test("payment stages resolve conflicting terms and fixed terms require confirmation", async () => {
   const { default: QuotationPayments } =
     await import("../src/pages/quotations/components/QuotationPayments");
   const quotation = {
@@ -198,7 +281,85 @@ test("payment chips expose a single selected radio and change only quotation ter
     paymentSchedule: [{ percent: "35", text: "הזמנה" }],
     paymentTermsNote: "preserve",
   };
-  const before = structuredClone(quotation);
+  const updates: IQuotation[] = [];
+  const renderer = { value: null as ReturnType<typeof create> | null };
+  const show = async (value: IQuotation, disabled = false) => {
+    await act(async () => {
+      renderer.value!.update(
+        <QuotationPayments
+          quotation={value}
+          disabled={disabled}
+          onChange={next => updates.push(next)}
+        />,
+      );
+    });
+  };
+  try {
+    await act(async () => {
+      renderer.value = create(
+        <QuotationPayments
+          disabled={false}
+          quotation={quotation}
+          onChange={next => updates.push(next)}
+        />,
+      );
+    });
+    const root = () => renderer.value!.root;
+    const group = root().findByProps({ role: "radiogroup" });
+    assert.equal(group.props["aria-label"], "תנאי תשלום");
+    const radios = () => root().findAllByProps({ role: "radio" });
+    const radio = (label: string) => {
+      const choice = radios().find(current => current.children.includes(label));
+      assert.ok(choice, `Missing payment choice: ${label}`);
+      return choice;
+    };
+    const stages = () => radio("לפי שלבי תשלום");
+    const prepaid = () => radio("תשלום מראש");
+    assert.equal(radios().filter(radio => radio.props["aria-checked"]).length, 0);
+    assert.equal(root().findAllByProps({ role: "alert" }).length, 1);
+    await act(async () => {
+      stages().props.onClick();
+    });
+    assert.equal(updates.length, 1);
+    assert.equal(updates[0].paymentTerms, null);
+    assert.equal(updates[0].paymentSchedule, quotation.paymentSchedule);
+    assert.equal(updates[0].paymentTermsNote, "preserve");
+    await show(updates[0]);
+    assert.equal(stages().props["aria-checked"], true);
+    assert.equal(prepaid().props["aria-checked"], false);
+    await act(async () => {
+      prepaid().props.onClick();
+    });
+    assert.equal(updates.length, 1);
+    const cancel = root()
+      .findAllByType(QuotationButton)
+      .find(button => button.props.text === "ביטול");
+    assert.ok(cancel);
+    await act(async () => cancel.props.onClick());
+    assert.equal(updates.length, 1);
+    assert.equal(stages().props["aria-checked"], true);
+    await act(async () => prepaid().props.onClick());
+    const confirm = root()
+      .findAllByType(QuotationButton)
+      .find(button => button.props.text === "מחק שלבים ובחר תנאים");
+    assert.ok(confirm);
+    await act(async () => confirm.props.onClick());
+    assert.equal(updates[1].paymentTerms, "prepaid");
+    assert.deepEqual(updates[1].paymentSchedule, []);
+    await show(updates[1], true);
+    assert.ok(radios().every(radio => radio.props.disabled));
+    assert.equal(radios().filter(radio => radio.props["aria-checked"]).length, 1);
+  } finally {
+    await act(async () => {
+      renderer.value?.unmount();
+    });
+  }
+});
+
+test("a fixed term changes directly without stages, then adding a stage replaces it", async () => {
+  const { default: QuotationPayments } =
+    await import("../src/pages/quotations/components/QuotationPayments");
+  const quotation = quotationFixture();
   const updates: IQuotation[] = [];
   const renderer = { value: null as ReturnType<typeof create> | null };
   try {
@@ -211,36 +372,62 @@ test("payment chips expose a single selected radio and change only quotation ter
         />,
       );
     });
-    const group = renderer.value!.root.findByProps({ role: "radiogroup" });
-    assert.equal(group.props["aria-label"], "תנאי תשלום");
-    const radios = group.findAllByProps({ role: "radio" });
-    assert.ok(radios.length > 1);
-    assert.equal(radios.filter(radio => radio.props["aria-checked"]).length, 1);
-    assert.ok(radios.every(radio => radio.type === "button" && radio.props.type === "button"));
-    await act(async () => {
-      radios.find(radio => !radio.props["aria-checked"])!.props.onClick();
-    });
-    assert.equal(updates.length, 1);
-    assert.notEqual(updates[0].paymentTerms, quotation.paymentTerms);
-    assert.deepEqual({ ...updates[0], paymentTerms: quotation.paymentTerms }, quotation);
-    assert.equal(updates[0].paymentSchedule, quotation.paymentSchedule);
-    assert.deepEqual(quotation, before);
+    const other = renderer
+      .value!.root.findAllByProps({ role: "radio" })
+      .find(radio => radio.children.includes("אחר"));
+    assert.ok(other);
+    await act(async () => other.props.onClick());
+    assert.equal(updates[0].paymentTerms, "other");
+    assert.deepEqual(updates[0].paymentSchedule, []);
     await act(async () => {
       renderer.value!.update(
-        <QuotationPayments disabled quotation={updates[0]} onChange={next => updates.push(next)} />,
+        <QuotationPayments
+          disabled={false}
+          quotation={updates[0]}
+          onChange={next => updates.push(next)}
+        />,
+      );
+    });
+    const add = renderer
+      .value!.root.findAllByType(QuotationButton)
+      .find(button => button.props.text === "+ שלב תשלום");
+    assert.ok(add);
+    await act(async () => add.props.onClick());
+    assert.equal(updates[1].paymentTerms, null);
+    assert.deepEqual(updates[1].paymentSchedule, [{ percent: "0", text: "" }]);
+    await act(async () => {
+      renderer.value!.update(
+        <QuotationPayments
+          disabled={false}
+          quotation={updates[1]}
+          onChange={next => updates.push(next)}
+        />,
+      );
+    });
+    const remove = renderer
+      .value!.root.findAllByType(QuotationButton)
+      .find(button => button.props.ariaLabel === "הסר שלב");
+    assert.ok(remove);
+    await act(async () => remove.props.onClick());
+    assert.equal(updates[2].paymentTerms, null);
+    assert.deepEqual(updates[2].paymentSchedule, []);
+    await act(async () => {
+      renderer.value!.update(
+        <QuotationPayments
+          disabled={false}
+          quotation={updates[2]}
+          onChange={next => updates.push(next)}
+        />,
       );
     });
     assert.ok(
-      renderer.value!.root.findAllByProps({ role: "radio" }).every(radio => radio.props.disabled),
+      renderer
+        .value!.root.findAllByProps({ role: "status" })
+        .some(status => status.children.includes("בחרו תנאי תשלום או הוסיפו שלב תשלום.")),
     );
-    assert.equal(
-      renderer.value!.root.findAllByProps({ role: "radio", "aria-checked": true }).length,
-      1,
-    );
+    assert.equal(quotation.paymentTerms, "prepaid");
   } finally {
-    await act(async () => {
-      renderer.value?.unmount();
-    });
+    await act(async () => renderer.value?.unmount());
   }
 });
 

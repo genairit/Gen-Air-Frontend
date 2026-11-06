@@ -1,9 +1,9 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 
-const { palette, softShadow, radius } = theme;
+const { palette, glass, radius } = theme;
 
-const HIGHLIGHTED_STYLE = { backgroundColor: palette.airBlue, boxShadow: softShadow.insetSelected };
+const HIGHLIGHTED_STYLE = { backgroundColor: palette.airBlue, boxShadow: glass.selectedEdge };
 
 export const useStyles = () =>
   createStyles({

@@ -2,7 +2,7 @@ import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 import { MUTED_CAPTION } from "../../styles/templates.style";
 
-const { palette, softShadow } = theme;
+const { palette, glass } = theme;
 
 export const useStyles = () =>
   createStyles({
@@ -27,7 +27,7 @@ export const useStyles = () =>
       fontSize: 13,
       overflowWrap: "anywhere",
       backgroundColor: palette.iceWhite,
-      boxShadow: softShadow.raisedSelectedSmall,
+      boxShadow: glass.edge,
     },
     item: {
       display: "flex",
@@ -37,7 +37,7 @@ export const useStyles = () =>
       gap: "12px 18px",
       padding: "14px 18px",
       borderRadius: "20px",
-      boxShadow: softShadow.raisedCompact,
+      boxShadow: glass.edge,
     },
     identity: {
       display: "flex",
@@ -70,7 +70,7 @@ export const useStyles = () =>
       gap: "16px",
       borderRadius: "22px",
       padding: "20px",
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
     },
     fields: {
       display: "grid",

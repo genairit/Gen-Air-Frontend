@@ -4,6 +4,7 @@ import type { PermissionType } from "../constants/permission.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { FolderContentStatusType } from "../constants/drive-folder.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
+import type { SharedDocumentStatusType } from "../constants/shared-document.constant";
 import type { ApartmentOwnershipType } from "../constants/apartment-commercial.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
 
@@ -21,9 +22,11 @@ export interface IApiUser {
   role: UserRoleType;
   employeeNumber: string;
   deletedAt: string | null;
+  assignedRoles?: UserRoleType[];
 }
 
 export interface IApiAuthorizedUser extends IApiUser {
+  assignedRoles: UserRoleType[];
   permissions: PermissionType[];
 }
 
@@ -82,13 +85,11 @@ export interface IApiProjectIntake {
   addressCity: string | null;
   contactPhone: string | null;
   addressPlaceId: string | null;
-  paymentTermsNote: string | null;
-  paymentTerms: PaymentTermsType | null;
 }
 
 export type InheritedProjectFieldType = keyof Pick<
   IApiProjectIntake,
-  "address" | "addressCity" | "paymentTerms" | "addressPlaceId" | "paymentTermsNote"
+  "address" | "addressCity" | "addressPlaceId"
 >;
 
 export interface IApiCustomerReference {
@@ -124,6 +125,7 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   parentProjectId: string | null;
   apartmentCredit?: string | null;
   prioritySyncedAt: string | null;
+  sharedDocumentFileId?: string | null;
   parentProject?: IApiProjectReference;
   hasGeneralLightingCeilingLowering?: boolean;
   inheritedFields?: InheritedProjectFieldType[];
@@ -171,7 +173,12 @@ export interface IApiDriveContents {
   folders: IApiDriveFolder[];
 }
 
-export type TUserRoleCounts = Record<UserRoleType, number>;
+export interface IApiSharedDocument {
+  status: SharedDocumentStatusType;
+  file: { id: string; name: string; url: string } | null;
+}
+
+export type TUserRoleCounts = Record<UserRoleType, number> & { total: number };
 
 export interface IApiPlaceSuggestion {
   placeId: string;

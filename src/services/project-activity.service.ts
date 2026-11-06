@@ -1,10 +1,15 @@
-import { isApiProject } from "../utilities/guards/api.guard";
+import {
+  isApiProject,
+  isApiDriveContents,
+  isApiSharedDocument,
+  isApiStageTransition,
+} from "../utilities/guards/api.guard";
+
 import { isArrayOf } from "../utilities/guards/primitive.guard";
 import { httpClient, ensureResponse } from "./http-client.service";
 import { validateProjectFiles } from "../utilities/drive-upload.utility";
 import { isDriveUploadPolicy } from "../utilities/guards/drive-upload.guard";
 import { API_ENDPOINTS, DRIVE_UPLOAD_FIELD_NAME } from "../constants/api.constant";
-import { isApiDriveContents, isApiStageTransition } from "../utilities/guards/api.guard";
 
 const toFolderParams = (folderId: string | null) => (folderId ? { folderId } : {});
 
@@ -21,6 +26,18 @@ class ProjectActivityService {
     const response = await httpClient.get<unknown>(endpoint, { params: toFolderParams(folderId) });
 
     return ensureResponse(endpoint, response.data, isApiDriveContents);
+  }
+
+  async getSharedDocument(projectId: string) {
+    const endpoint = API_ENDPOINTS.projectSharedDocument(projectId);
+    const response = await httpClient.get<unknown>(endpoint);
+    return ensureResponse(endpoint, response.data, isApiSharedDocument);
+  }
+
+  async selectSharedDocument(projectId: string, fileId: string | null) {
+    const endpoint = API_ENDPOINTS.projectSharedDocument(projectId);
+    const response = await httpClient.patch<unknown>(endpoint, { fileId });
+    return ensureResponse(endpoint, response.data, isApiSharedDocument);
   }
 
   async provisionDrive(projectId: string) {

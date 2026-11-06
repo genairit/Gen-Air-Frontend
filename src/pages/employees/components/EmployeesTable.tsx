@@ -16,6 +16,7 @@ import { type FC, useState } from "react";
 import { usePageStyles } from "../../page.style";
 import Tabs from "../../../components/Tabs/Tabs";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import EditEmployeeRolesPopup from "./EditEmployeeRolesPopup";
 import TextField from "../../../components/TextField/TextField";
 import DataTable from "../../../components/DataTable/DataTable";
 import Pagination from "../../../components/Pagination/Pagination";
@@ -24,6 +25,7 @@ import { formatVisibleCount } from "../../../utilities/text.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
+import type { IEmployee } from "../../../interfaces/employee.interface";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { getPageCount, getPageItems } from "../../../utilities/array.utility";
@@ -33,14 +35,16 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 import { createEmployeeColumns, EMPLOYEE_TABLE_MIN_WIDTH } from "../columns/employee-columns";
 
 interface IEmployeesTableProps {
-  canManageUsers: boolean;
+  canEditRoles: boolean;
+  canDeleteUsers: boolean;
 }
 
-const EmployeesTable: FC<IEmployeesTableProps> = ({ canManageUsers }) => {
+const EmployeesTable: FC<IEmployeesTableProps> = ({ canDeleteUsers, canEditRoles }) => {
   const styles = usePageStyles();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filterId, setFilterId] = useState<string>(ALL_EMPLOYEES_FILTER_ID);
+  const [editingEmployee, setEditingEmployee] = useState<IEmployee | null>(null);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
 
   const activeFilter =
@@ -66,7 +70,9 @@ const EmployeesTable: FC<IEmployeesTableProps> = ({ canManageUsers }) => {
   }));
 
   const columns = createEmployeeColumns({
-    canManage: canManageUsers,
+    canDelete: canDeleteUsers,
+    canEdit: canEditRoles,
+    onEdit: setEditingEmployee,
     onDelete: employee => removeMutation.mutate(employee.id),
   });
 
@@ -81,45 +87,54 @@ const EmployeesTable: FC<IEmployeesTableProps> = ({ canManageUsers }) => {
   };
 
   return (
-    <DataTable
-      columns={columns}
-      rows={pageEmployees}
-      getRowId={getEmployeeId}
-      isRowDimmed={isEmployeeDisabled}
-      minWidth={EMPLOYEE_TABLE_MIN_WIDTH}
-      footer={
-        <Box sx={styles.spacedRow}>
-          <Box component="span" sx={styles.caption}>
-            {formatVisibleCount({ visible: pageEmployees.length, total: totalUsers })}
-          </Box>
-          <Pagination
-            onChange={setPage}
-            page={currentPage}
-            pageCount={pageCount}
-            nextLabel={EMPLOYEES_COPY.NEXT_PAGE}
-            previousLabel={EMPLOYEES_COPY.PREVIOUS_PAGE}
-          />
-        </Box>
-      }
-      toolbar={
-        <Box sx={styles.stack({ gap: "16px" })}>
+    <>
+      <DataTable
+        columns={columns}
+        rows={pageEmployees}
+        getRowId={getEmployeeId}
+        isRowDimmed={isEmployeeDisabled}
+        minWidth={EMPLOYEE_TABLE_MIN_WIDTH}
+        footer={
           <Box sx={styles.spacedRow}>
-            <Tabs items={filterTabs} activeId={filterId} onChange={handleFilterChange} />
-            <Box sx={styles.flexItem({ basis: "0 1 360px" })}>
-              <TextField
-                value={search}
-                type={FIELD_TYPES.SEARCH}
-                onChange={handleSearchChange}
-                startIcon={ICON_NAMES.SEARCH}
-                placeholder={EMPLOYEES_COPY.SEARCH_PLACEHOLDER}
-              />
+            <Box component="span" sx={styles.caption}>
+              {formatVisibleCount({ visible: pageEmployees.length, total: totalUsers })}
             </Box>
+            <Pagination
+              onChange={setPage}
+              page={currentPage}
+              pageCount={pageCount}
+              nextLabel={EMPLOYEES_COPY.NEXT_PAGE}
+              previousLabel={EMPLOYEES_COPY.PREVIOUS_PAGE}
+            />
           </Box>
-          {actionError && <InlineError message={getApiErrorMessage(actionError)} />}
-          {usersQuery.isPending && <LoadingState label={EMPLOYEES_COPY.LOADING} />}
-        </Box>
-      }
-    />
+        }
+        toolbar={
+          <Box sx={styles.stack({ gap: "16px" })}>
+            <Box sx={styles.spacedRow}>
+              <Tabs items={filterTabs} activeId={filterId} onChange={handleFilterChange} />
+              <Box sx={styles.flexItem({ basis: "0 1 360px" })}>
+                <TextField
+                  value={search}
+                  type={FIELD_TYPES.SEARCH}
+                  onChange={handleSearchChange}
+                  startIcon={ICON_NAMES.SEARCH}
+                  placeholder={EMPLOYEES_COPY.SEARCH_PLACEHOLDER}
+                />
+              </Box>
+            </Box>
+            {actionError && <InlineError message={getApiErrorMessage(actionError)} />}
+            {usersQuery.isPending && <LoadingState label={EMPLOYEES_COPY.LOADING} />}
+          </Box>
+        }
+      />
+      {editingEmployee && (
+        <EditEmployeeRolesPopup
+          key={editingEmployee.id}
+          employee={editingEmployee}
+          onClose={() => setEditingEmployee(null)}
+        />
+      )}
+    </>
   );
 };
 

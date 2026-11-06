@@ -1,34 +1,29 @@
 import { createStyles } from "../../create-styles";
-import { MUTED_CAPTION } from "../../styles/templates.style";
+import { MOBILE_LAYOUT_QUERY } from "../../constants/layout.constant";
 
 export const useStyles = () =>
   createStyles({
     container: {
-      gap: "12px",
-      display: "flex",
-      flexWrap: "wrap",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    lead: {
-      gap: "14px",
-      display: "flex",
-      alignItems: "center",
-    },
-    text: {
-      gap: "2px",
-      display: "flex",
-      flexDirection: "column",
-    },
-    titleRow: {
       gap: "10px",
-      flexWrap: "wrap",
       display: "flex",
-      alignItems: "center",
+      alignItems: "flex-start",
     },
-    title: {
-      fontSize: 20,
-      fontWeight: 700,
+    content: {
+      flex: 1,
+      minWidth: 0,
     },
-    subtitle: MUTED_CAPTION,
+    headerLayout: ({ stackActionsOnMobile }: { stackActionsOnMobile: boolean }) => ({
+      gap: "10px",
+      display: "flex",
+      alignItems: "flex-start",
+      ...(stackActionsOnMobile && {
+        [`@media ${MOBILE_LAYOUT_QUERY}`]: { flexDirection: "column" },
+      }),
+    }),
+    titles: { flex: 1, minWidth: 0 },
+    action: {
+      minWidth: 0,
+      maxWidth: "100%",
+      [`@media ${MOBILE_LAYOUT_QUERY}`]: { width: "100%" },
+    },
   });

@@ -1,6 +1,7 @@
 import type { FC, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../../components/Button/Button";
+import ProjectStageSelector from "./ProjectStageSelector";
 import { theme } from "../../../constants/theme.constants";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useSessionUser } from "../../../store/session.store";
@@ -24,6 +25,8 @@ const ProjectPageHeader: FC<IProjectPageHeaderProps> = ({ badge, project, extraA
   const navigate = useNavigate();
   const sessionUser = useSessionUser();
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
+  const canChangeStage = hasPermission(sessionUser, PERMISSIONS.PROJECTS_STATUS_CHANGE);
+  const stageControl = canChangeStage ? <ProjectStageSelector project={project} /> : null;
 
   return (
     <ProjectHeader
@@ -31,6 +34,7 @@ const ProjectPageHeader: FC<IProjectPageHeaderProps> = ({ badge, project, extraA
       title={project.name}
       projectId={project.code}
       icon={ICON_NAMES.BUILDING}
+      stageControl={stageControl}
       stage={formatStageLabel(project.stage?.name ?? "")}
       syncCaption={toErpSyncCaption(project.prioritySyncedAt)}
       stageDotColor={project.stage?.color ?? theme.palette.primary}

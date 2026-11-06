@@ -33,15 +33,20 @@ const ApartmentTeamPicker: FC<IApartmentTeamPickerProps> = ({
   const options = toApartmentTeamOptions(candidates);
   const selectionKey = members.map(member => member.userId).join(",");
   const optionLabels = options.map(option => option.label);
-  const addMember = (label: string | null) => {
-    const selected = options.find(option => option.label === label)?.user;
+  const addMember = (label: string | null): void => {
+    const selected = options.find(option => option.label === label);
     if (!selected) {
       return;
     }
     setSearch("");
     onChange([
       ...members,
-      { id: selected.id, userId: selected.id, role: selected.role, user: selected },
+      {
+        id: selected.user.id,
+        userId: selected.user.id,
+        role: selected.role,
+        user: selected.user,
+      },
     ]);
   };
   return (

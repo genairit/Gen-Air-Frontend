@@ -132,7 +132,7 @@ test("cache identities separate customers, search and selected status", () => {
   }
 });
 
-test("shared Tabs preserves parenthesized default counts including zero and supports opt-in bare counts", () => {
+test("shared Tabs preserves bare default counts including zero and supports custom count formatting", () => {
   const items = [
     { id: "first", label: "ראשון", count: 0 },
     { id: "second", label: "שני", count: 2 },
@@ -142,13 +142,13 @@ test("shared Tabs preserves parenthesized default counts including zero and supp
   const original = renderToStaticMarkup(
     createElement(Tabs, { items, onChange, activeId: "first" }),
   );
-  assert.ok(original.includes(">(0)<"));
-  assert.ok(original.includes(">(2)<"));
+  assert.ok(original.includes(">0<"));
+  assert.ok(original.includes(">2<"));
 
   const formatted: number[] = [];
   const formatCount = (value: number) => {
     formatted.push(value);
-    return String(value);
+    return `(${value})`;
   };
   const optedIn = renderToStaticMarkup(
     createElement(Tabs, {
@@ -160,8 +160,8 @@ test("shared Tabs preserves parenthesized default counts including zero and supp
     }),
   );
   assert.deepEqual(formatted, [0, 2]);
-  assert.ok(optedIn.includes(">0<"));
-  assert.ok(optedIn.includes(">2<"));
-  assert.ok(!optedIn.includes(">(0)<"));
-  assert.ok(!optedIn.includes(">(2)<"));
+  assert.ok(optedIn.includes(">(0)<"));
+  assert.ok(optedIn.includes(">(2)<"));
+  assert.ok(!optedIn.includes(">0<"));
+  assert.ok(!optedIn.includes(">2<"));
 });

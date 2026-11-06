@@ -50,11 +50,6 @@ export const TASK_COLUMN_STYLES = createStyles({
     fontWeight: isOverdue ? 800 : 500,
     color: isOverdue ? theme.palette.charcoal : theme.palette.textMuted,
   }),
-  stopper: {
-    minWidth: 0,
-    display: "flex",
-    alignItems: "center",
-  },
   mobileRow: {
     gap: "10px",
     display: "flex",

@@ -1,7 +1,7 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 
-const { palette, softShadow } = theme;
+const { palette, glass } = theme;
 
 export const useStyles = () =>
   createStyles({
@@ -33,8 +33,9 @@ export const useStyles = () =>
       flexDirection: "column",
       fontFamily: theme.font.body,
       color: palette.charcoal,
-      boxShadow: isActive ? softShadow.inset : softShadow.raisedCompact,
-      backgroundColor: isActive ? palette.airBlue : palette.iceWhite,
+      boxShadow: isActive ? glass.selectedEdge : glass.edge,
+      backgroundColor: isActive ? palette.airBlue : palette.white,
+      "&:focus-visible": { outline: `2px solid ${palette.primary}`, outlineOffset: 2 },
     }),
     tileLabel: {
       gap: "8px",
