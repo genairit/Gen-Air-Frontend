@@ -31,6 +31,7 @@ export const useStyles = () =>
     card: ({ depth, radius, padding, gap, isClickable }: ICardStyleOptions) => ({
       gap,
       padding,
+      minWidth: 0,
       display: "flex",
       position: "relative",
       flexDirection: "column",

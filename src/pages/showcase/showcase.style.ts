@@ -8,6 +8,7 @@ export const useShowcaseStyles = () =>
   createStyles({
     grid: ({ minColumnWidth, gap = "24px" }: { minColumnWidth: number; gap?: string }) => ({
       gap,
+      minWidth: 0,
       display: "grid",
       alignItems: "start",
       gridTemplateColumns: `repeat(auto-fit, minmax(min(${minColumnWidth}px, 100%), 1fr))`,
