@@ -12,7 +12,7 @@ export const useStyles = () =>
       borderRadius: "18px",
       padding: "16px 18px",
       flexDirection: "column",
-      boxShadow: theme.softShadow.inset,
+      boxShadow: theme.glass.edge,
     },
     header: {
       gap: "10px",

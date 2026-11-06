@@ -77,7 +77,7 @@ export const useStyles = () =>
       borderRadius: "18px",
       padding: "14px 18px",
       flexDirection: "column",
-      boxShadow: theme.softShadow.inset,
+      boxShadow: theme.glass.edge,
     },
     fieldLabel: {
       gap: "8px",

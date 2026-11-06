@@ -3,7 +3,7 @@ import { theme } from "../../constants/theme.constants";
 import { IMPORT_DESIGN } from "../../constants/apartment-import.constant";
 import type { ImportRowStatusType } from "../../interfaces/apartment-import.interface";
 
-const { palette, radius, softShadow } = theme;
+const { palette, radius, glass } = theme;
 
 export const useStyles = () =>
   createStyles({
@@ -14,9 +14,9 @@ export const useStyles = () =>
         maxHeight: "calc(100% - 32px)",
         margin: "16px",
         borderRadius: "28px !important",
-        backgroundColor: palette.iceWhite,
+        backgroundColor: palette.white,
         fontFamily: theme.font.body,
-        boxShadow: "12px 12px 30px rgba(0,0,0,.25)",
+        boxShadow: glass.shadow,
       },
       "& .MuiBackdrop-root": { backgroundColor: "rgba(30,32,34,.38)" },
       "& .MuiDialogContent-root": { padding: "8px 28px 20px", minHeight: 0 },
@@ -53,7 +53,7 @@ export const useStyles = () =>
       flexShrink: 0,
       color: palette.charcoal,
       backgroundColor: palette.iceWhite,
-      boxShadow: softShadow.raisedCompact,
+      boxShadow: glass.edge,
       "& svg": { fontSize: 18 },
     },
     stack: { display: "flex", flexDirection: "column", gap: "16px", textAlign: "start" },
@@ -61,7 +61,7 @@ export const useStyles = () =>
     panel: {
       borderRadius: "22px",
       padding: "16px 18px",
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
       backgroundColor: palette.iceWhite,
     },
     link: {
@@ -84,7 +84,7 @@ export const useStyles = () =>
       gap: "14px",
       alignItems: "center",
       textAlign: "center",
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
     },
     processingTrack: { height: 12, borderRadius: radius.pill, backgroundColor: palette.airBlue },
     progress: { width: "min(100%, 380px)" },
@@ -111,7 +111,6 @@ export const useStyles = () =>
     }),
     marker: ({ active, complete }: { active: boolean; complete: boolean }) => {
       const inactiveColor = complete ? palette.danger : palette.textMuted;
-      const inactiveShadow = complete ? softShadow.raisedCompact : softShadow.inset;
       return {
         display: "flex",
         alignItems: "center",
@@ -124,7 +123,7 @@ export const useStyles = () =>
         fontWeight: 700,
         color: active ? palette.white : inactiveColor,
         backgroundColor: active ? palette.primary : palette.iceWhite,
-        boxShadow: active ? softShadow.primary : inactiveShadow,
+        boxShadow: active ? glass.focus : glass.edge,
       };
     },
     result: ({ partial }: { partial: boolean }) => ({
@@ -164,7 +163,7 @@ export const useStyles = () =>
       gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 140px), 1fr))",
       gap: "12px",
     },
-    tile: { borderRadius: "18px", padding: "12px 16px", boxShadow: softShadow.inset },
+    tile: { borderRadius: "18px", padding: "12px 16px", boxShadow: glass.edge },
     count: ({ status }: { status: ImportRowStatusType }) => ({
       fontSize: 26,
       fontWeight: 800,
@@ -205,7 +204,7 @@ export const useStyles = () =>
       overflow: "auto",
       padding: "8px",
       borderRadius: radius.panel,
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
     },
     row: ({ status }: { status: ImportRowStatusType }) => ({
       display: "flex",
@@ -227,7 +226,7 @@ export const useStyles = () =>
       gap: "14px",
       alignItems: "center",
       justifyContent: "space-between",
-      boxShadow: softShadow.raisedMedium,
+      boxShadow: glass.edge,
     },
     reportText: {
       display: "flex",

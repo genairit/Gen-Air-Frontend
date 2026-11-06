@@ -1,10 +1,10 @@
 import { type FC } from "react";
 import createCache from "@emotion/cache";
 import rtlPlugin from "stylis-plugin-rtl";
+import { theme } from "../constants/theme.constants";
 import { CacheProvider, ThemeProvider } from "@emotion/react";
 import { type IProviderProps } from "../interfaces/provider-props";
 import { CssBaseline, GlobalStyles, createTheme } from "@mui/material";
-import { theme, SOFT_SHADOW_CSS_VARIABLES } from "../constants/theme.constants";
 
 const MUI_OVERRIDES = createTheme({
   direction: "rtl",
@@ -20,7 +20,6 @@ const MUI_OVERRIDES = createTheme({
 });
 
 const GLOBAL_STYLES = {
-  ":root": SOFT_SHADOW_CSS_VARIABLES,
   "@keyframes genair-menu-enter": {
     from: { opacity: 0, transform: "translateY(-4px) scale(0.985)" },
     to: { opacity: 1, transform: "translateY(0) scale(1)" },

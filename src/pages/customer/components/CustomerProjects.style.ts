@@ -71,7 +71,7 @@ export const useStyles = () =>
       alignItems: "center",
       padding: "16px 18px",
       borderRadius: "20px",
-      boxShadow: theme.softShadow.inset,
+      boxShadow: theme.glass.edge,
     },
-    skeleton: { height: 64, borderRadius: "20px", boxShadow: theme.softShadow.inset },
+    skeleton: { height: 64, borderRadius: "20px", boxShadow: theme.glass.edge },
   });

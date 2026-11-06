@@ -3,7 +3,7 @@ import { createStyles } from "../../../create-styles";
 import { theme } from "../../../constants/theme.constants";
 import { MUTED_CAPTION } from "../../../styles/templates.style";
 
-const { palette, softShadow } = theme;
+const { palette, glass } = theme;
 
 type UrgencySurfaceKeyType = "idle" | "regular" | "urgent";
 
@@ -11,16 +11,16 @@ const URGENCY_OPTION_SURFACES = {
   idle: {
     color: palette.charcoal,
     backgroundColor: palette.iceWhite,
-    boxShadow: softShadow.raisedCompact,
+    boxShadow: glass.edge,
   },
   regular: {
     color: palette.charcoal,
-    boxShadow: softShadow.inset,
+    boxShadow: glass.selectedEdge,
     backgroundColor: palette.airBlue,
   },
   urgent: {
     color: palette.white,
-    boxShadow: softShadow.inset,
+    boxShadow: glass.edge,
     backgroundColor: palette.charcoal,
   },
 } as const satisfies Record<UrgencySurfaceKeyType, CSSProperties>;
@@ -54,7 +54,7 @@ export const useStyles = () =>
       borderRadius: "999px",
       fontSize: 13,
       fontWeight: 600,
-      boxShadow: softShadow.raisedCompact,
+      boxShadow: glass.edge,
     },
     fieldLabel: {
       gap: "4px",
@@ -71,7 +71,7 @@ export const useStyles = () =>
       padding: "8px",
       borderRadius: "20px",
       flexDirection: "column",
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
     },
     option: {
       gap: "8px 14px",
@@ -106,7 +106,7 @@ export const useStyles = () =>
       borderRadius: "18px",
       alignItems: "center",
       justifyContent: "space-between",
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
     },
     error: {
       fontSize: 13,
@@ -152,7 +152,7 @@ export const useStyles = () =>
       padding: "10px 16px",
       borderRadius: "18px",
       alignItems: "center",
-      boxShadow: softShadow.inset,
+      boxShadow: glass.edge,
     },
     previewLead: {
       fontSize: 14,

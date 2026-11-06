@@ -46,7 +46,7 @@ export const useStyles = () =>
           outlineOffset: 2,
         }),
       },
-      ...CARD_MOTION,
+      ...(isClickable ? CARD_MOTION : {}),
     }),
     actionButton: {
       inset: 0,

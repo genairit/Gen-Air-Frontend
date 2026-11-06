@@ -40,7 +40,7 @@ export const SHOWCASE_TYPOGRAPHY_SAMPLES: ITypographySample[] = [
 export const SHOWCASE_DEPTH_SAMPLES: IDepthSample[] = [
   { label: "מובלט", depth: SURFACE_DEPTHS.RAISED },
   { label: "מובלט עדין", depth: SURFACE_DEPTHS.RAISED_SOFT },
-  { label: "שקוע", depth: SURFACE_DEPTHS.INSET },
+  { label: "גבול עדין", depth: SURFACE_DEPTHS.INSET },
 ];
 
 export const SHOWCASE_STATUS_CHIPS: IChipSample[] = [
