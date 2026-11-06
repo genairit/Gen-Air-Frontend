@@ -3,7 +3,6 @@ import { Box } from "@mui/material";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Chip from "../../../components/Chip/Chip";
-import PaymentTermsTile from "./PaymentTermsTile";
 import InheritedValueTile from "./InheritedValueTile";
 import { useStyles } from "./InheritedValueTile.style";
 import { ICON_NAMES } from "../../../constants/icon.constant";
@@ -16,16 +15,10 @@ import { formatCustomerDetailValue } from "../../../utilities/customer-details.u
 import { APARTMENT_PAGE_COPY, INHERITANCE_BADGES } from "../../../constants/apartment.constant";
 
 interface IApartmentInheritedCardProps {
-  canEdit: boolean;
-  building: IApiProject;
   apartment: IApiProject;
 }
 
-const ApartmentInheritedCard: FC<IApartmentInheritedCardProps> = ({
-  canEdit,
-  building,
-  apartment,
-}) => {
+const ApartmentInheritedCard: FC<IApartmentInheritedCardProps> = ({ apartment }) => {
   const styles = useStyles();
   const pageStyles = usePageStyles();
 
@@ -68,7 +61,6 @@ const ApartmentInheritedCard: FC<IApartmentInheritedCardProps> = ({
           value={formatApartmentUnit(apartment)}
           notes={[APARTMENT_PAGE_COPY.UNIT_SUB, APARTMENT_PAGE_COPY.EDITABLE_HERE]}
         />
-        <PaymentTermsTile canEdit={canEdit} building={building} apartment={apartment} />
       </Box>
     </Card>
   );

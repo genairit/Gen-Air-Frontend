@@ -11,6 +11,7 @@ import {
   formatTaskDueLabel,
   toCreateTaskPayload,
   countTaskFormErrors,
+  formatTransitionAuthor,
   toInitialTaskFormValues,
 } from "../src/utilities/task.utility";
 
@@ -19,9 +20,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createTask, project } from "./project-tasks.fixture";
 import { DATE_FORMAT } from "../src/constants/date.constants";
-import { isApiTask } from "../src/utilities/guards/task.guard";
+import { TASK_STATUSES } from "../src/constants/task.constant";
+import { USER_ROLES } from "../src/constants/user-role.constant";
 import { TASK_TYPES } from "../src/constants/task-type.constant";
 import type { ITaskFormValues } from "../src/interfaces/task.interface";
+import { isApiTask, isApiTaskTransition } from "../src/utilities/guards/task.guard";
 import { EMPTY_TASK_FORM, POOL_ASSIGNEE_ID, TASK_LINK_KINDS } from "../src/constants/task.constant";
 
 const formValues: ITaskFormValues = {
@@ -137,4 +140,37 @@ test("legacy dual-link tasks continue resolving the customer through the project
   assert.deepEqual(getTaskCustomer(legacy), currentCustomer);
   assert.equal(getTaskLinkKind(legacy), TASK_LINK_KINDS.PROJECT);
   assert.equal(buildTaskLinkPath(legacy), "/projects/project-1");
+});
+
+test("task history displays recorded role snapshots and omits unknown legacy roles", () => {
+  const author = {
+    id: "user-1",
+    email: "rina@example.com",
+    phone: "0524418230",
+    firstName: "Rina",
+    lastName: "Example",
+    employeeNumber: "104",
+    deletedAt: null,
+    role: USER_ROLES.FINANCE,
+    assignedRoles: [USER_ROLES.FINANCE],
+  };
+  const transition = {
+    id: "transition-1",
+    taskId: "task-1",
+    changedById: author.id,
+    changedByRole: USER_ROLES.ENGINEER,
+    changedBy: author,
+    fromStatus: TASK_STATUSES.NOT_STARTED,
+    toStatus: TASK_STATUSES.IN_PROGRESS,
+    createdAt: "2026-10-14T10:00:00.000Z",
+  };
+
+  assert.equal(formatTransitionAuthor(transition), "Rina Example (עובד הנדסה)");
+  assert.equal(formatTransitionAuthor({ ...transition, changedBy: null }), "—");
+  assert.equal(formatTransitionAuthor({ ...transition, changedByRole: null }), "Rina Example");
+  assert.equal(isApiTaskTransition({ ...transition, changedByRole: null }), true);
+  assert.equal(isApiTaskTransition({ ...transition, changedByRole: "unknown-role" }), false);
+  const missingSnapshot = { ...transition };
+  Reflect.deleteProperty(missingSnapshot, "changedByRole");
+  assert.equal(isApiTaskTransition(missingSnapshot), false);
 });

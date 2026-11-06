@@ -14,7 +14,9 @@
     "test:customer-contacts": "node testing/run-customer-contact-tests.mjs",
     "test:project-tasks": "node testing/run-project-task-tests.mjs",
     "test:customer-projects": "node testing/run-customer-project-tests.mjs",
-    "test:project-constraints": "node testing/run-project-constraints-tests.mjs"
+    "test:shared-document": "node testing/run-shared-document-tests.mjs",
+    "test:project-constraints": "node testing/run-project-constraints-tests.mjs",
+    "test:user-roles": "node testing/run-user-role-tests.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -27,6 +29,7 @@
     "class-validator": "^0.15.1",
     "date-fns": "^4.4.0",
     "decimal.js": "10.6.0",
+    "framer-motion": "^14.4.0",
     "lodash.merge": "^4.6.2",
     "lottie-react": "^3.1.0",
     "moment": "^2.30.1",

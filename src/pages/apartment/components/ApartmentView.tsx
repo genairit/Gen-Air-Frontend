@@ -9,6 +9,7 @@ import ApartmentInheritedCard from "./ApartmentInheritedCard";
 import { useSessionUser } from "../../../store/session.store";
 import ApartmentCommercialCard from "./ApartmentCommercialCard";
 import ApartmentEndCustomerCard from "./ApartmentEndCustomerCard";
+import SharedProjectDocumentCard from "./SharedProjectDocumentCard";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import ProjectDriveCard from "../../project/components/ProjectDriveCard";
@@ -36,10 +37,11 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
           <ApartmentEndCustomerCard building={building} apartment={apartment} />
           <ApartmentContactCard canEdit={canEdit} apartment={apartment} />
         </Box>
-        <ApartmentInheritedCard canEdit={canEdit} building={building} apartment={apartment} />
+        <ApartmentInheritedCard apartment={apartment} />
       </Box>
 
       <ApartmentCommercialCard apartment={apartment} />
+      {canReadDrive && <SharedProjectDocumentCard apartmentId={apartment.id} />}
       {canReadDrive && <ProjectDriveCard projectId={apartment.id} />}
 
       <Box sx={styles.grid({ minColumnWidth: 380 })}>

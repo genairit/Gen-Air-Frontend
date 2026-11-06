@@ -16,3 +16,8 @@ await runBundledTest({
   input: "testing/design-alignment.components.test.tsx",
   output: "design-alignment.components.test.mjs",
 });
+
+await runBundledTest({
+  input: "testing/free-text.interactions.test.tsx",
+  output: "free-text.interactions.test.mjs",
+});

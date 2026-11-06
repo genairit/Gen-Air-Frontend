@@ -19,7 +19,7 @@ export type SurfaceRadiusType = (typeof SURFACE_RADII)[keyof typeof SURFACE_RADI
 
 export const SHADOW_BY_SURFACE_DEPTH: Record<SurfaceDepthType, string> = {
   flat: "none",
-  inset: theme.softShadow.insetDeep,
-  raised: theme.softShadow.raised,
-  raisedSoft: theme.softShadow.raisedMedium,
+  inset: `inset 0 0 0 1px ${theme.glass.border}`,
+  raised: theme.glass.shadow,
+  raisedSoft: theme.glass.shadowSmall,
 };

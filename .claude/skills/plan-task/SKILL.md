@@ -188,11 +188,15 @@ the card yet.
 
 If — and only if — the user says to implement (before or after seeing the plan), execute the work
 **according to their instructions and the agreed plan**, following
-[development-workflow-standards.md](../../../rules/development-workflow-standards.md):
+[frontend-development-workflow-standards.md](../../../rules/frontend-development-workflow-standards.md):
 
 - Move the card to the **active list** before writing any code.
 - Branch from the latest `dev`, named after the card.
-- Follow the plan's proposed changes and the repository's coding standards.
+- Run the [developer agent](../../../agents/developer-agent.md) with the plan and its
+  numbered development standards.
+- For client-facing UI work, run the [design agent](../../../agents/design-agent.md) with the task
+  requirements and client design language; pass its style handoff to the development agent
+  before implementing the affected UI.
 - Reuse existing patterns and shared packages instead of reinventing them.
 - Verify the change with a real feedback loop before declaring it done.
 - Run the [code review agent](../../../agents/code-reviewer.md) on the branch in Mode B. Fix every
@@ -202,7 +206,8 @@ If — and only if — the user says to implement (before or after seeing the pl
   back through development and code review; route test failures to QA. Repeat until PASSED.
 - Attach the QA report, Automation PR link, proof of completion, and feature merge request link
   back to the card. Never open the feature PR while QA is failed, blocked, missing, or stale.
-- Never commit or push on your own — leave the changes for the user to review and commit.
+- Commit and push only when the user requests a PR or separately authorizes
+  publication; otherwise leave the changes for review.
 
 Card updates use the write scope of the token:
 

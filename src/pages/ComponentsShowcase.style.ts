@@ -5,7 +5,10 @@ export const useStyles = () =>
   createStyles({
     page: {
       gap: "72px",
+      minWidth: 0,
+      width: "100%",
       maxWidth: 1440,
+      boxSizing: "border-box",
       margin: "0 auto",
       display: "flex",
       minHeight: "100vh",

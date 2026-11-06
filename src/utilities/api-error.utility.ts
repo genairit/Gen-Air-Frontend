@@ -1,6 +1,9 @@
 import { isAxiosError } from "axios";
 import { isRecord } from "./guards/primitive.guard";
 import { UploadValidationError } from "./drive-upload.utility";
+import { SETTINGS_COPY } from "../constants/settings.constant";
+import { API_ERROR_CODES, HTTP_STATUS } from "../constants/api.constant";
+import { AuthorizationContextChangedError } from "../managers/authorization-context.manager";
 
 const GENERIC_ERROR_MESSAGE = "הפעולה נכשלה. נסה שוב בעוד רגע.";
 
@@ -24,8 +27,11 @@ const toMessage = (message: unknown) => {
   return null;
 };
 
-export const getApiErrorMessage = (error: unknown) => {
-  if (error instanceof UploadValidationError) {
+export const getApiErrorMessage = (error: unknown): string => {
+  const isClientValidationError = error instanceof UploadValidationError;
+  const hasChangedAuthorization = error instanceof AuthorizationContextChangedError;
+
+  if (isClientValidationError || hasChangedAuthorization) {
     return error.message;
   }
 
@@ -42,4 +48,17 @@ export const getApiErrorMessage = (error: unknown) => {
   }
 
   return `${statusMessage} (${serverMessage})`;
+};
+
+export const getPasswordChangeErrorMessage = (error: unknown): string => {
+  const body: unknown = isAxiosError(error) ? error.response?.data : null;
+  const isWrongCurrentPassword =
+    isAxiosError(error) &&
+    error.response?.status === HTTP_STATUS.BAD_REQUEST &&
+    isRecord(body) &&
+    body.code === API_ERROR_CODES.INVALID_CURRENT_PASSWORD;
+
+  return isWrongCurrentPassword
+    ? SETTINGS_COPY.CURRENT_PASSWORD_INCORRECT
+    : getApiErrorMessage(error);
 };

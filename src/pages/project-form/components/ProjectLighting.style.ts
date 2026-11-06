@@ -11,7 +11,7 @@ export const useStyles = () =>
       alignItems: "center",
       justifyContent: "space-between",
       borderRadius: "24px",
-      boxShadow: theme.softShadow.raisedMedium,
+      boxShadow: theme.glass.edge,
     },
     copy: { gap: "2px", display: "flex", flexDirection: "column" },
     title: { fontSize: 15, fontWeight: 700 },

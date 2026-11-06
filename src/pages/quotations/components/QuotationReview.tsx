@@ -9,9 +9,8 @@ import Card from "../../../components/Card/Card";
 import Icon from "../../../components/Icon/Icon";
 import { Fragment, type ReactNode, type FC } from "react";
 import { ICON_NAMES } from "../../../constants/icon.constant";
-import { isPaymentTerms } from "../../../utilities/guards/api.guard";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
-import { PAYMENT_TERMS_LABELS } from "../../../constants/payment-terms.constant";
+import { quotationPaymentLabel } from "../../../utilities/quotation-payment.utility";
 import { quotationReviewSections } from "../../../utilities/quotation-presentation.utility";
 
 interface IQuotationReviewProps {
@@ -27,9 +26,7 @@ const QuotationReview: FC<IQuotationReviewProps> = ({
   onEdit,
 }: IQuotationReviewProps) => {
   const sections = quotationReviewSections(quotation);
-  const terms = isPaymentTerms(quotation.paymentTerms)
-    ? PAYMENT_TERMS_LABELS[quotation.paymentTerms].title
-    : "לא נבחרו תנאים";
+  const terms = quotationPaymentLabel(quotation);
   const schedule = quotation.paymentSchedule
     .map(stage => `${stage.percent}% ${stage.text}`)
     .join(" · ");

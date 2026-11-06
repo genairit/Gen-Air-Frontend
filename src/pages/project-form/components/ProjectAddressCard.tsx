@@ -18,7 +18,7 @@ const ProjectAddressCard: FC<IProjectAddressCardProps> = ({
   requiresCity,
   showMissingError,
 }) => (
-  <Card gap="22px" padding="28px">
+  <Card gap="22px" padding="28px" sx={{ zIndex: 1 }}>
     <CardHeader
       icon={ICON_NAMES.LOCATION}
       title={PROJECT_ADDRESS_COPY.LABEL}

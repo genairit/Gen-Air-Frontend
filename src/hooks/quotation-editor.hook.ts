@@ -12,30 +12,43 @@ import type {
 } from "../interfaces/quotation.interface";
 
 import { useRef, useState } from "react";
+import { logger } from "../utilities/logger.utility";
 import { useQueryClient } from "@tanstack/react-query";
 import { useDelayedAsyncTask } from "./delayed-async-task.hook";
 import { quotationService } from "../services/quotation.service";
 import { getApiErrorMessage } from "../utilities/api-error.utility";
+import { AuthorizationContext } from "../managers/authorization-context.manager";
 
 export const useQuotationEditor = (
   initial: IQuotation,
   editable: boolean,
+  canDelete = false,
 ): IQuotationEditorState => {
   const queryClient = useQueryClient();
   const [quotation, setQuotation] = useState(initial);
+  const [deleted, setDeleted] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [commandBusy, setCommandBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const generation = useRef(0);
   const version = useRef(initial.version);
   const commandPending = useRef(false);
   const fail = (failure: unknown): void => setError(getApiErrorMessage(failure));
-  const cache = async (next: IQuotation): Promise<void> => {
+  const cache = async (next: IQuotation, context: AuthorizationContext): Promise<void> => {
+    context.assertCurrent();
     queryClient.setQueryData(QUOTATION_DETAIL_KEY(next.id), next);
     await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
+    context.assertCurrent();
   };
   const update = (next: IQuotation): void => {
-    if (!editable || busy || quotation.status === QUOTATION_STATUS.APPROVED) {
+    if (
+      deleted ||
+      !editable ||
+      commandPending.current ||
+      quotation.status === QUOTATION_STATUS.APPROVED
+    ) {
       return;
     }
     generation.current += 1;
@@ -43,19 +56,22 @@ export const useQuotationEditor = (
     setDirty(true);
     setError(null);
   };
-  const accept = async (next: IQuotation): Promise<void> => {
+  const accept = async (next: IQuotation, context: AuthorizationContext): Promise<void> => {
+    context.assertCurrent();
     version.current = next.version;
     setQuotation(next);
     setDirty(false);
-    await cache(next);
+    await cache(next, context);
   };
   const persist = async (): Promise<void> => {
+    const context = new AuthorizationContext();
     const submittedGeneration = generation.current;
     setBusy(true);
     try {
       const saved = await quotationService.save({ ...quotation, version: version.current });
+      context.assertCurrent();
       version.current = saved.version;
-      await cache(saved);
+      await cache(saved, context);
       if (generation.current === submittedGeneration) {
         setQuotation(saved);
         setDirty(false);
@@ -68,7 +84,7 @@ export const useQuotationEditor = (
       setBusy(false);
     }
   };
-  const autosaveEnabled = dirty && !busy && !error && editable;
+  const autosaveEnabled = !deleted && dirty && !busy && !error && editable;
   useDelayedAsyncTask({
     enabled: autosaveEnabled,
     delayMs: QUOTATION_AUTOSAVE_MS,
@@ -76,14 +92,17 @@ export const useQuotationEditor = (
     onError: fail,
   });
   const command = async (work: () => Promise<IQuotation>): Promise<boolean> => {
-    if (commandPending.current || busy) {
+    if (deleted || commandPending.current || busy) {
       return false;
     }
     commandPending.current = true;
+    const context = new AuthorizationContext();
     setBusy(true);
+    setCommandBusy(true);
     setError(null);
     try {
-      await accept(await work());
+      await accept(await work(), context);
+      context.assertCurrent();
       return true;
     } catch (failure) {
       fail(failure);
@@ -91,6 +110,39 @@ export const useQuotationEditor = (
     } finally {
       commandPending.current = false;
       setBusy(false);
+      setCommandBusy(false);
+    }
+  };
+  const remove = async (): Promise<void> => {
+    if (!canDelete || deleted || dirty || busy || commandPending.current) {
+      return;
+    }
+    commandPending.current = true;
+    const context = new AuthorizationContext();
+    setBusy(true);
+    setCommandBusy(true);
+    setDeleteError(null);
+    try {
+      await quotationService.delete({ id: quotation.id, version: version.current });
+      context.assertCurrent();
+      await queryClient.cancelQueries({
+        queryKey: QUOTATION_DETAIL_KEY(quotation.id),
+        exact: true,
+      });
+      context.assertCurrent();
+      await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
+      context.assertCurrent();
+      setDeleted(true);
+    } catch (failure) {
+      logger.error("Failed to delete quotation", {
+        quotationId: quotation.id,
+        error: getApiErrorMessage(failure),
+      });
+      setDeleteError(getApiErrorMessage(failure));
+    } finally {
+      commandPending.current = false;
+      setBusy(false);
+      setCommandBusy(false);
     }
   };
   const transition = async (status: TQuotationStatus): Promise<boolean> => {
@@ -106,12 +158,17 @@ export const useQuotationEditor = (
     await command(() => quotationService.acknowledge(quotation, keys));
   };
   const reload = async (): Promise<void> => {
+    setDeleteError(null);
     await command(() => quotationService.get(quotation.id));
   };
   return {
+    deleted,
+    deleteError,
+    remove,
     quotation,
     update,
     busy,
+    commandBusy,
     dirty,
     error,
     transition,

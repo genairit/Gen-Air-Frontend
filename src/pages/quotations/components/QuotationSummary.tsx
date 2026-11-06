@@ -1,5 +1,5 @@
-import type { FC } from "react";
 import Button from "./QuotationButton";
+import type { FC, ReactNode } from "react";
 import styles from "../quotation.module.css";
 import Card from "../../../components/Card/Card";
 import QuotationWarnings from "./QuotationWarnings";
@@ -16,6 +16,7 @@ interface IQuotationSummaryProps {
   canApprove: boolean;
   quotation: IQuotation;
   showWarnings?: boolean;
+  deleteAction?: ReactNode;
   onChange: (quotation: IQuotation) => void;
   onAcknowledge: (keys: string[]) => Promise<void>;
   onTransition: (status: TQuotationStatus) => Promise<void>;
@@ -26,6 +27,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
   canApprove,
   blocked,
   showWarnings = true,
+  deleteAction,
   onChange,
   onTransition,
   onAcknowledge,
@@ -129,6 +131,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
           </div>
         )}
       </Card>
+      {deleteAction && <div className={styles.deleteAction}>{deleteAction}</div>}
     </div>
   );
 };

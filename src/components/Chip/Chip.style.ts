@@ -6,15 +6,15 @@ import type { ChipSizeType, ChipVariantType } from "../../constants/chip.constan
 
 type TChipStyle = SystemStyleObject<Theme>;
 
-const { palette, softShadow, radius, font } = theme;
+const { palette, glass, radius, font } = theme;
 
 const STYLE_BY_VARIANT: Record<ChipVariantType, TChipStyle> = {
-  info: { backgroundColor: palette.airBlue, color: palette.charcoal },
+  info: { backgroundColor: palette.airBlue, color: palette.primary },
   plain: { backgroundColor: "transparent", color: palette.charcoal },
-  dark: { backgroundColor: palette.charcoal, color: palette.iceWhite, fontWeight: 700 },
-  alert: { backgroundColor: palette.primary, color: palette.white, fontWeight: 700 },
-  inset: { backgroundColor: palette.iceWhite, boxShadow: softShadow.insetSmall },
-  raised: { backgroundColor: palette.iceWhite, boxShadow: softShadow.raisedSmall },
+  dark: { backgroundColor: palette.charcoal, color: palette.white, fontWeight: 700 },
+  alert: { background: glass.gradient, color: palette.white, fontWeight: 700 },
+  inset: { backgroundColor: palette.white, border: `1px solid ${glass.border}` },
+  raised: { backgroundColor: palette.white, boxShadow: glass.shadowSmall },
 };
 
 const STYLE_BY_SIZE: Record<ChipSizeType, TChipStyle> = {

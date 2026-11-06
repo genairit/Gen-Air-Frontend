@@ -5,11 +5,11 @@ import {
 
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
-import { createFocusRing } from "../../utilities/shadow.utility";
 
-const { palette, softShadow, radius } = theme;
+const { palette, glass, radius } = theme;
 
 interface IFieldSurface {
+  border: string;
   outline: string;
   boxShadow: string;
   backgroundColor: string;
@@ -17,13 +17,15 @@ interface IFieldSurface {
 
 const RESTING_SURFACE: IFieldSurface = {
   outline: "none",
-  boxShadow: softShadow.insetField,
-  backgroundColor: palette.iceWhite,
+  border: `1px solid ${glass.border}`,
+  boxShadow: "none",
+  backgroundColor: palette.white,
 };
 
 const ACTIVE_SURFACE: IFieldSurface = {
   ...RESTING_SURFACE,
-  boxShadow: `${softShadow.insetField}, ${createFocusRing(palette.airBlueOutline)}`,
+  border: `1px solid ${palette.primary}`,
+  boxShadow: glass.focus,
 };
 
 const FIELD_SURFACE_BY_STATUS: Record<AddressFieldStatusType, IFieldSurface> = {
@@ -35,9 +37,8 @@ const FIELD_SURFACE_BY_STATUS: Record<AddressFieldStatusType, IFieldSurface> = {
     outline: `2px dashed ${palette.danger}`,
   },
   [ADDRESS_FIELD_STATUSES.VERIFIED]: {
-    outline: "none",
-    backgroundColor: palette.errorSurface,
-    boxShadow: `${softShadow.insetError}, ${createFocusRing(palette.primary)}`,
+    ...ACTIVE_SURFACE,
+    backgroundColor: palette.white,
   },
 };
 
@@ -79,7 +80,7 @@ export const useStyles = () =>
       outlineOffset: -2,
       alignItems: "center",
       borderRadius: radius.pill,
-      transition: "box-shadow 0.2s ease",
+      transition: "border-color 0.2s ease, box-shadow 0.2s ease",
     }),
     input: {
       flex: 1,
@@ -116,8 +117,8 @@ export const useStyles = () =>
       ...PILL_BADGE,
       color: palette.danger,
       padding: "0 8px 0 14px",
-      boxShadow: softShadow.insetSmall,
-      backgroundColor: palette.iceWhite,
+      border: `1px solid ${glass.border}`,
+      backgroundColor: palette.white,
     },
     hint: {
       fontSize: 12,
@@ -137,8 +138,11 @@ export const useStyles = () =>
       position: "absolute",
       flexDirection: "column",
       borderRadius: radius.card,
-      boxShadow: softShadow.elevated,
-      backgroundColor: palette.iceWhite,
+      border: `1px solid ${glass.border}`,
+      boxShadow: glass.shadow,
+      backgroundColor: palette.white,
+      animation: "genair-menu-enter 180ms ease both",
+      "@media (prefers-reduced-motion: reduce)": { animation: "none" },
     },
     suggestion: (isActive: boolean) => ({
       gap: "14px",
@@ -182,7 +186,8 @@ export const useStyles = () =>
     },
     failurePanel: {
       ...STATUS_PANEL,
-      boxShadow: softShadow.inset,
+      border: `1px solid ${glass.border}`,
+      backgroundColor: palette.white,
     },
     panelText: {
       gap: "2px",

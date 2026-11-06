@@ -16,6 +16,7 @@ import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationReview from "./QuotationReview";
 import QuotationSelect from "./QuotationSelect";
+import QuotationDelete from "./QuotationDelete";
 import Icon from "../../../components/Icon/Icon";
 import Card from "../../../components/Card/Card";
 import QuotationSection from "./QuotationSection";
@@ -35,30 +36,39 @@ import { quotationSaveLabel } from "../../../utilities/quotation-presentation.ut
 import { quotationOpeningLine } from "../../../utilities/quotation-presentation.utility";
 import type { TQuotationStatus, IQuotation } from "../../../interfaces/quotation.interface";
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
+import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-navigation.hook";
 import { updateQuotationSection, moveQuotationSection } from "../../../utilities/quotation.utility";
 
 interface IQuotationEditorProps {
   editable: boolean;
   initial: IQuotation;
   canApprove: boolean;
+  canDelete?: boolean;
 }
 const QuotationEditor: FC<IQuotationEditorProps> = ({
   initial,
   editable,
   canApprove,
+  canDelete = false,
 }: IQuotationEditorProps) => {
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
-  const editor = useQuotationEditor(initial, editable);
+  const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
   const rebrand = useQuotationRebrand({
     quotation,
-    blocked: editor.busy || editor.dirty || !editable,
+    blocked: editor.commandBusy || !editable,
+    confirmBlocked: editor.busy || editor.dirty,
     onChange: update,
   });
   const disabled =
-    !editable || editor.busy || rebrand.busy || quotation.status === QUOTATION_STATUS.APPROVED;
+    !editable ||
+    editor.commandBusy ||
+    rebrand.busy ||
+    quotation.status === QUOTATION_STATUS.APPROVED;
   const blocked = editor.busy || editor.dirty || rebrand.busy || editor.error !== null;
-  const blocker = useUnsavedChangesNavigation(editor.dirty || editor.busy || rebrand.busy);
+  const navigationPending = !editor.deleted && (editor.dirty || editor.busy || rebrand.busy);
+  const blocker = useUnsavedChangesNavigation(navigationPending);
+  useQuotationDeletedNavigation(editor.deleted, quotation.id);
   const showSummary =
     quotation.status !== QUOTATION_STATUS.DRAFT && editingStatus !== quotation.status;
   const showEditor = !showSummary;
@@ -130,6 +140,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             label="חברת מיזוג"
             disabled={disabled}
             value={quotation.brand}
+            caption="חברת מיזוג (לכל ההצעה)"
             onChange={event => rebrand.request(event.target.value)}
           >
             <option value="">בחרו חברה...</option>
@@ -283,6 +294,18 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         showWarnings={showEditor}
         onTransition={transition}
         onAcknowledge={editor.acknowledge}
+        deleteAction={
+          canDelete && (
+            <QuotationDelete
+              number={quotation.number}
+              blocked={blocked}
+              pending={editor.busy}
+              error={editor.deleteError}
+              onDelete={editor.remove}
+              onReload={editor.reload}
+            />
+          )
+        }
       />
     </main>
   );

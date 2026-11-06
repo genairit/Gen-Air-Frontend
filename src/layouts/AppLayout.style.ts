@@ -1,7 +1,8 @@
 import { createStyles } from "../create-styles";
 import { theme } from "../constants/theme.constants";
+import { MOBILE_LAYOUT_QUERY } from "../constants/layout.constant";
 
-const MOBILE_NAV_SHADOW = "0 10px 28px rgba(30, 32, 34, 0.25)";
+const MOBILE_NAV_SHADOW = "0 10px 28px rgba(15, 23, 42, 0.18)";
 
 export const useStyles = () =>
   createStyles({
@@ -19,23 +20,28 @@ export const useStyles = () =>
       position: "sticky",
       paddingBlock: "16px",
       paddingInlineStart: "16px",
+      [`@media ${MOBILE_LAYOUT_QUERY}`]: { display: "none" },
     },
     sidebar: {
       width: "100%",
       height: "100%",
       minHeight: 0,
     },
-    main: ({ isMobile }: { isMobile: boolean }) => ({
+    main: {
       flex: 1,
       minWidth: 0,
       gap: "28px",
       display: "flex",
       flexDirection: "column",
-      padding: isMobile ? "16px 16px 112px" : "16px 24px 48px",
-    }),
+      padding: "16px 24px 48px",
+      [`@media ${MOBILE_LAYOUT_QUERY}`]: {
+        padding: "16px 16px calc(112px + env(safe-area-inset-bottom))",
+      },
+    },
     mobileNavigation: {
+      display: "none",
       zIndex: 10,
-      bottom: 12,
+      bottom: "calc(12px + env(safe-area-inset-bottom))",
       height: 76,
       left: 12,
       right: 12,
@@ -44,5 +50,6 @@ export const useStyles = () =>
       position: "fixed",
       padding: "8px",
       boxShadow: MOBILE_NAV_SHADOW,
+      [`@media ${MOBILE_LAYOUT_QUERY}`]: { display: "grid" },
     },
   });

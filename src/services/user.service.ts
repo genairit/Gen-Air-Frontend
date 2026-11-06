@@ -5,9 +5,16 @@ import {
   isUserRoleCounts,
 } from "../utilities/guards/api.guard";
 
+import type {
+  IUserQuery,
+  IUserPayload,
+  IUpdatePasswordPayload,
+  IUserRoleUpdatePayload,
+} from "../interfaces/api-request.interface";
+
+import type { IApiUser } from "../interfaces/api.interface";
 import { httpClient, ensureResponse } from "./http-client.service";
 import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
-import type { IUserQuery, IUserPayload } from "../interfaces/api-request.interface";
 
 class UserService {
   async getMe() {
@@ -36,12 +43,18 @@ class UserService {
     return ensureResponse(API_ENDPOINTS.USERS, response.data, isApiUser);
   }
 
+  async update(userId: string, changes: IUserRoleUpdatePayload): Promise<IApiUser> {
+    const response = await httpClient.patch<unknown>(API_ENDPOINTS.userById(userId), changes);
+
+    return ensureResponse(API_ENDPOINTS.userById(userId), response.data, isApiUser);
+  }
+
   async delete(userId: string) {
     await httpClient.delete(API_ENDPOINTS.userById(userId));
   }
 
-  async updateMyPassword(password: string) {
-    await httpClient.patch(API_ENDPOINTS.MY_PASSWORD, { password });
+  async updateMyPassword(payload: IUpdatePasswordPayload) {
+    await httpClient.patch(API_ENDPOINTS.MY_PASSWORD, payload);
   }
 }
 

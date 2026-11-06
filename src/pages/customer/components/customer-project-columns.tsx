@@ -1,25 +1,12 @@
 import CustomerProjectNameCell from "./CustomerProjectNameCell";
 import CustomerProjectTypeCell from "./CustomerProjectTypeCell";
-import CustomerProjectStageCell from "./CustomerProjectStageCell";
 import ProjectTeamCell from "../../board/columns/cells/ProjectTeamCell";
 import { PROJECT_TABLE_HEADERS } from "../../../constants/board.constant";
-import type { IApiProjectStage } from "../../../interfaces/api.interface";
 import ProjectUpdatedCell from "../../board/columns/cells/ProjectUpdatedCell";
 import type { IDataTableColumn } from "../../../interfaces/data-table.interface";
-import type { IProjectListItem } from "../../../interfaces/project-list.interface";
 import type { ICustomerProjectItem } from "../../../interfaces/customer-project.interface";
 
-interface ICustomerProjectColumnOptions {
-  canMove: boolean;
-  stages: IApiProjectStage[];
-  onStageChange: (project: IProjectListItem, stageId: string) => void;
-}
-
-export const buildCustomerProjectColumns = ({
-  canMove,
-  stages,
-  onStageChange,
-}: ICustomerProjectColumnOptions): IDataTableColumn<ICustomerProjectItem>[] => [
+export const buildCustomerProjectColumns = (): IDataTableColumn<ICustomerProjectItem>[] => [
   {
     id: "project",
     header: PROJECT_TABLE_HEADERS.PROJECT,
@@ -43,18 +30,5 @@ export const buildCustomerProjectColumns = ({
     header: PROJECT_TABLE_HEADERS.UPDATED,
     track: "100px",
     render: project => <ProjectUpdatedCell project={project} />,
-  },
-  {
-    id: "stage",
-    header: PROJECT_TABLE_HEADERS.STAGE,
-    track: "170px",
-    render: project => (
-      <CustomerProjectStageCell
-        stages={stages}
-        canMove={canMove}
-        project={project}
-        onChange={onStageChange}
-      />
-    ),
   },
 ];

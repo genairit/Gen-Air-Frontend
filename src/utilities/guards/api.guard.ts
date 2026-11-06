@@ -22,6 +22,7 @@ import type {
   IApiApartmentPage,
   IApiProjectMember,
   IApiDriveContents,
+  IApiSharedDocument,
   IApiAuthorizedUser,
   IApiPlaceSuggestion,
   IProjectStageCounts,
@@ -52,11 +53,19 @@ import {
 import { isPermission } from "./permission.guard";
 import { isCustomerContactList } from "../customer-contact.utility";
 import { hasValidProjectLighting } from "../project-constraints.utility";
+import { SHARED_DOCUMENT_STATUS } from "../../constants/shared-document.constant";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
 import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial.utility";
 
 export const isUserRole = (value?: unknown): value is UserRoleType =>
   USER_ROLE_VALUES.some(role => role === value);
+
+const isAssignedRoles = (value: unknown): value is UserRoleType[] => {
+  const isNonEmpty = Array.isArray(value) && value.length > 0;
+  const hasUniqueRoles = isNonEmpty && new Set(value).size === value.length;
+
+  return isNonEmpty && hasUniqueRoles && isArrayOf(isUserRole)(value);
+};
 
 export const isApiUser = (value: unknown): value is IApiUser => {
   if (!isRecord(value)) {
@@ -65,12 +74,23 @@ export const isApiUser = (value: unknown): value is IApiUser => {
 
   const hasIdentity = hasStringFields(value, ["id", "email", "firstName", "lastName"]);
   const hasContact = hasStringFields(value, ["phone", "employeeNumber"]);
+  const activeRole = isUserRole(value.role) ? value.role : null;
+  const hasRole = activeRole !== null;
+  const hasValidAssignedRoles =
+    !("assignedRoles" in value) ||
+    (activeRole !== null &&
+      isAssignedRoles(value.assignedRoles) &&
+      value.assignedRoles.includes(activeRole));
 
-  return hasIdentity && hasContact && isUserRole(value.role);
+  return hasIdentity && hasContact && hasRole && hasValidAssignedRoles;
 };
 
 export const isAuthorizedUser = (value: unknown): value is IApiAuthorizedUser =>
-  isRecord(value) && isApiUser(value) && isArrayOf(isPermission)(value.permissions);
+  isRecord(value) &&
+  isApiUser(value) &&
+  isAssignedRoles(value.assignedRoles) &&
+  value.assignedRoles.includes(value.role) &&
+  isArrayOf(isPermission)(value.permissions);
 
 export const isDetailFieldSet = (value?: unknown): value is ProjectDetailFieldSetType =>
   PROJECT_DETAIL_FIELD_SET_VALUES.some(fieldSet => fieldSet === value);
@@ -101,7 +121,6 @@ const PROJECT_INTAKE_TEXT_FIELDS = [
   "addressCity",
   "contactPhone",
   "addressPlaceId",
-  "paymentTermsNote",
 ] as const;
 
 export const isPaymentTerms = (value?: unknown): value is PaymentTermsType =>
@@ -109,9 +128,7 @@ export const isPaymentTerms = (value?: unknown): value is PaymentTermsType =>
 
 const hasProjectIntake = (value: Record<string, unknown>) => {
   const hasTextFields = PROJECT_INTAKE_TEXT_FIELDS.every(field => isNullableString(value[field]));
-  const hasPaymentTerms = value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
-
-  return hasTextFields && hasPaymentTerms;
+  return hasTextFields;
 };
 
 export const isApiProjectStage = (value: unknown): value is IApiProjectStage => {
@@ -160,6 +177,8 @@ export const isApiProject = (value: unknown): value is IApiProject => {
 
   const hasDetails = hasCustomerDetails(value) && hasProjectIntake(value);
   const hasHierarchy = isNullableString(value.parentProjectId) && isNullableString(value.notes);
+  const hasSharedDocument =
+    !("sharedDocumentFileId" in value) || isNullableString(value.sharedDocumentFileId);
   const hasValidCredit = isOptionalOf(isApartmentCredit)(value.apartmentCredit);
   const hasValidOwnership = isOptionalOf(isApartmentOwnership)(value.apartmentOwnership);
   const hasValidOwnTeam = !("hasOwnTeam" in value) || typeof value.hasOwnTeam === "boolean";
@@ -172,6 +191,7 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     hasValidMembers &&
     hasDetails &&
     hasHierarchy &&
+    hasSharedDocument &&
     hasValidCustomer &&
     hasValidOwnTeam &&
     hasValidCredit &&
@@ -195,7 +215,9 @@ export const isProjectStageCounts = (value: unknown): value is IProjectStageCoun
   isRecord(value) && isNumber(value.total) && isNumberRecord(value.byStage);
 
 export const isUserRoleCounts = (value: unknown): value is TUserRoleCounts =>
-  isNumberRecord(value) && USER_ROLE_VALUES.every(role => isNumber(value[role]));
+  isNumberRecord(value) &&
+  isNumber(value.total) &&
+  USER_ROLE_VALUES.every(role => isNumber(value[role]));
 
 export const isApiStageTransition = (value: unknown): value is IApiStageTransition => {
   if (!isRecord(value)) {
@@ -233,6 +255,32 @@ export const isApiDriveContents = (value: unknown): value is IApiDriveContents =
   const hasFolders = isArrayOf(isApiDriveFolder)(value.folders);
 
   return typeof value.folderId === "string" && hasFiles && hasFolders;
+};
+
+export const isApiSharedDocument = (value: unknown): value is IApiSharedDocument => {
+  if (
+    !isRecord(value) ||
+    typeof value.status !== "string" ||
+    !Object.values(SHARED_DOCUMENT_STATUS).some(status => status === value.status)
+  ) {
+    return false;
+  }
+  if (value.status !== SHARED_DOCUMENT_STATUS.AVAILABLE) {
+    return value.file === null;
+  }
+  if (
+    !isRecord(value.file) ||
+    !hasStringFields(value.file, ["id", "name", "url"]) ||
+    typeof value.file.url !== "string"
+  ) {
+    return false;
+  }
+  try {
+    const url = new URL(value.file.url);
+    return url.protocol === "https:" && url.hostname === "drive.google.com";
+  } catch {
+    return false;
+  }
 };
 
 export const isApiPlaceSuggestion = (value: unknown): value is IApiPlaceSuggestion => {

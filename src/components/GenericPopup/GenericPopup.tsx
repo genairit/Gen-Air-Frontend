@@ -14,11 +14,14 @@ import { Close } from "@mui/icons-material";
 import { useStyles } from "./GenericPopup.style";
 import type { SxProps, Theme } from "@mui/material";
 import { mergeSx } from "../../utilities/sx.utility";
+import { logger } from "../../utilities/logger.utility";
 import UltraSignature from "../UltraSignature/UltraSignature";
 import type { TPopUpIcons } from "./constants/icons.constants";
 import { renderPopupIcon } from "./utilities/renderIcon.utility";
 import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
 import { type FC, type MouseEvent, type ReactNode, useState } from "react";
+import { getPopupActionErrorMessage } from "./utilities/action-error.utility";
+import { AuthorizationContext } from "../../managers/authorization-context.manager";
 
 export type TAlignContent = "left" | "center" | "right";
 
@@ -32,12 +35,14 @@ export interface IGenericPopupProps {
   open: boolean;
   title: string;
   header?: ReactNode;
+  dir?: "ltr" | "rtl";
   sx?: SxProps<Theme>;
   guidelines?: string;
   signature?: boolean;
   content?: ReactNode;
   onClose?: () => void;
   align?: TAlignContent;
+  closeDisabled?: boolean;
   closeAfterAction?: boolean;
   maxWidth?: "sm" | "md" | "lg";
   icon?: TPopUpIcons | ReactNode;
@@ -52,12 +57,14 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   sx,
   icon,
   title,
+  dir,
   onClose,
   buttons,
   content,
   header,
   signature,
   guidelines,
+  closeDisabled = false,
   align = "left",
   maxWidth = "sm",
   closeAfterAction = true,
@@ -65,32 +72,50 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   const styles = useStyles({ align });
 
   const [isSigned, setIsSigned] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [primaryButtonLoading, setPrimaryButtonLoading] = useState(false);
   const [secondaryButtonLoading, setSecondaryButtonLoading] = useState(false);
 
   const needToSign = Boolean(signature) && !isSigned;
+  const handleClose = () => {
+    if (!closeDisabled) {
+      onClose?.();
+    }
+  };
 
   const handlePrimaryButtonClick = async (event: MouseEvent<HTMLButtonElement>) => {
+    const context = new AuthorizationContext();
     try {
+      setActionError(null);
       setPrimaryButtonLoading(true);
       await buttons.primary.onClick(event);
-    } finally {
-      setPrimaryButtonLoading(false);
+      context.assertCurrent();
       if (closeAfterAction) {
         onClose?.();
       }
+    } catch (error) {
+      logger.error("Popup primary action failed", { error });
+      setActionError(getPopupActionErrorMessage(error));
+    } finally {
+      setPrimaryButtonLoading(false);
     }
   };
 
   const handleSecondaryButtonClick = async (event: MouseEvent<HTMLButtonElement>) => {
+    const context = new AuthorizationContext();
     try {
+      setActionError(null);
       setSecondaryButtonLoading(true);
       await buttons?.secondary?.onClick?.(event);
-    } finally {
-      setSecondaryButtonLoading(false);
+      context.assertCurrent();
       if (closeAfterAction) {
         onClose?.();
       }
+    } catch (error) {
+      logger.error("Popup secondary action failed", { error });
+      setActionError(getPopupActionErrorMessage(error));
+    } finally {
+      setSecondaryButtonLoading(false);
     }
   };
 
@@ -98,7 +123,7 @@ const GenericPopup: FC<IGenericPopupProps> = ({
     <>
       <Box sx={styles.headerContainer}>
         <DialogTitle sx={styles.title}>{title ?? ""}</DialogTitle>
-        <IconButton size="small" onClick={onClose}>
+        <IconButton size="small" aria-label="סגירה" onClick={handleClose} disabled={closeDisabled}>
           <Close />
         </IconButton>
       </Box>
@@ -109,9 +134,11 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   return (
     <Dialog
       fullWidth
+      dir={dir}
       open={open}
-      onClose={onClose}
+      aria-label={title}
       maxWidth={maxWidth}
+      onClose={handleClose}
       sx={mergeSx(styles.root, sx ?? null)}
     >
       {popupHeader}
@@ -123,6 +150,11 @@ const GenericPopup: FC<IGenericPopupProps> = ({
         {signature && <UltraSignature isSigned={isSigned} setIsSigned={setIsSigned} />}
 
         {guidelines && <Typography sx={styles.guidelines}>{guidelines}</Typography>}
+        {actionError && (
+          <Box role="alert" sx={styles.actionError}>
+            {actionError}
+          </Box>
+        )}
       </DialogContent>
       <DialogActions sx={styles.actions}>
         {buttons.secondary && (

@@ -4,6 +4,8 @@ import { theme } from "../../../constants/theme.constants";
 export const useStyles = () =>
   createStyles({
     actions: {
+      minWidth: 0,
+      maxWidth: "100%",
       gap: "12px",
       display: "flex",
       flexWrap: "wrap",
@@ -17,9 +19,14 @@ export const useStyles = () =>
       padding: "8px 12px",
       alignItems: "center",
       borderRadius: theme.radius.pill,
-      boxShadow: theme.softShadow.inset,
+      boxShadow: theme.glass.edge,
     },
     link: {
+      minWidth: 0,
+      maxWidth: "100%",
+      whiteSpace: "normal",
+      overflowWrap: "anywhere",
+      boxSizing: "border-box",
       gap: "8px",
       minHeight: 44,
       fontSize: 14,
@@ -30,7 +37,7 @@ export const useStyles = () =>
       textDecoration: "none",
       color: theme.palette.charcoal,
       borderRadius: theme.radius.pill,
-      boxShadow: theme.softShadow.raisedSmall,
+      boxShadow: theme.glass.edge,
       "&:hover": { textDecoration: "underline" },
       "&:focus-visible": { outline: "2px solid " + theme.palette.primary, outlineOffset: 3 },
     },

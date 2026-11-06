@@ -84,11 +84,11 @@ export const FREE_TEXT_COLORS = {
   AMBER: "#9a7508",
   AMBER_LIGHT: "#fcf5e1",
   AMBER_MID: "#ecd68f",
-  ACCENT: "#3b5bd9",
-  ACCENT_WEAK: "#eef1fd",
+  ACCENT: "#1668BD",
+  ACCENT_WEAK: "#E1EDFA",
   SURFACE: "#ffffff",
-  BORDER: "#e2e4ea",
-  MUTED: "#8a90a0",
+  BORDER: "#E2E8F0",
+  MUTED: "#64748B",
 } as const;
 
 export const FREE_TEXT_CHIP_STYLES: Record<TFreeTextStatusType, IFreeTextChipPalette> = {

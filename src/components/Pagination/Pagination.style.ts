@@ -17,6 +17,6 @@ export const useStyles = () =>
     },
     page: ({ isActive }: { isActive: boolean }) => ({
       fontWeight: 700,
-      boxShadow: isActive ? theme.softShadow.pageActive : theme.softShadow.raisedCompact,
+      boxShadow: isActive ? theme.glass.focus : theme.glass.shadowSmall,
     }),
   });

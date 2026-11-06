@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import type { IconNameType } from "../constants/icon.constant";
 import type { CustomerDetailFieldType } from "./api.interface";
-import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { ProjectMemberRoleType } from "../constants/user-role.constant";
 import type { FolderContentStatusType } from "../constants/drive-folder.constant";
 import type { ProjectDetailFieldSetType } from "../constants/project-detail-field-set.constant";
@@ -38,14 +37,8 @@ export interface IVerifiedAddress {
   formattedAddress: string;
 }
 
-export interface IPaymentTermsValues {
-  note: string;
-  terms: PaymentTermsType | null;
-}
-
 export interface IProjectIntakeValues {
   address: IVerifiedAddress | null;
-  paymentTerms: IPaymentTermsValues;
 }
 
 export interface IProjectFormValues extends IProjectIntakeValues {

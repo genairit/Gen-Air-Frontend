@@ -53,7 +53,10 @@ const FreeTextInput: FC<IFreeTextInputProps> = ({
 }) => {
   const [draft, setDraft] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeSuggestion, setActiveSuggestion] = useState({
+    suggestions: [] as string[],
+    index: 0,
+  });
   const [editIndex, setEditIndex] = useState<number | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -65,10 +68,11 @@ const FreeTextInput: FC<IFreeTextInputProps> = ({
     query: draft,
     endpoint: validationEndpoint,
   });
+  const activeIndex = activeSuggestion.suggestions === suggestions ? activeSuggestion.index : 0;
 
   const wordStatuses = useMemo(
     () => resolveFreeTextWordStatuses({ words, segments, divergentWords }),
-    [words, segments, divergentWords]
+    [words, segments, divergentWords],
   );
 
   const showSuggestions = isFocused && !readonly && suggestions.length > 0;
@@ -91,10 +95,6 @@ const FreeTextInput: FC<IFreeTextInputProps> = ({
   });
 
   useEffect(() => {
-    setActiveIndex(0);
-  }, [suggestions]);
-
-  useEffect(() => {
     setIsValid?.(isServerValid);
   }, [isServerValid, setIsValid]);
 
@@ -105,7 +105,7 @@ const FreeTextInput: FC<IFreeTextInputProps> = ({
   const resetCommittedDraftState = (): void => {
     setDraft("");
     setEditIndex(null);
-    setActiveIndex(0);
+    setActiveSuggestion({ suggestions, index: 0 });
   };
 
   const commitDraft = (draft: string): void => {
@@ -167,7 +167,7 @@ const FreeTextInput: FC<IFreeTextInputProps> = ({
   const moveActiveIndex = (delta: number) => {
     const count = suggestions.length;
 
-    setActiveIndex((activeIndex + delta + count) % count);
+    setActiveSuggestion({ suggestions, index: (activeIndex + delta + count) % count });
   };
 
   const handleActiveSuggestionSelection: TFreeTextKeyHandler = event => {
@@ -303,7 +303,7 @@ const FreeTextInput: FC<IFreeTextInputProps> = ({
           />
 
           {renderModel.trailingWords.map((word, index) =>
-            renderChip(word, renderModel.inputPosition + index)
+            renderChip(word, renderModel.inputPosition + index),
           )}
         </Box>
 
