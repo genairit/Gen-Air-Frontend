@@ -19,7 +19,7 @@ export const useStyles = () =>
       padding: "8px 12px",
       alignItems: "center",
       borderRadius: theme.radius.pill,
-      boxShadow: theme.softShadow.inset,
+      boxShadow: theme.glass.edge,
     },
     link: {
       minWidth: 0,
@@ -37,7 +37,7 @@ export const useStyles = () =>
       textDecoration: "none",
       color: theme.palette.charcoal,
       borderRadius: theme.radius.pill,
-      boxShadow: theme.softShadow.raisedSmall,
+      boxShadow: theme.glass.edge,
       "&:hover": { textDecoration: "underline" },
       "&:focus-visible": { outline: "2px solid " + theme.palette.primary, outlineOffset: 3 },
     },

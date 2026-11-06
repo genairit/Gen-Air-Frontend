@@ -20,7 +20,7 @@ export const useStyles = () =>
       height: 20,
       flexShrink: 0,
       borderRadius: theme.radius.pill,
-      boxShadow: theme.softShadow.raisedSmall,
+      boxShadow: theme.glass.edge,
       backgroundColor: theme.palette.iceWhite,
     },
     line: {

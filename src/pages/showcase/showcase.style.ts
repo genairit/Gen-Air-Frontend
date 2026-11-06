@@ -2,12 +2,13 @@ import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 import { MONOSPACE_CAPTION, MUTED_CAPTION } from "../../styles/templates.style";
 
-const { palette, font, softShadow } = theme;
+const { palette, font, glass } = theme;
 
 export const useShowcaseStyles = () =>
   createStyles({
     grid: ({ minColumnWidth, gap = "24px" }: { minColumnWidth: number; gap?: string }) => ({
       gap,
+      minWidth: 0,
       display: "grid",
       alignItems: "start",
       gridTemplateColumns: `repeat(auto-fit, minmax(min(${minColumnWidth}px, 100%), 1fr))`,
@@ -62,7 +63,7 @@ export const useShowcaseStyles = () =>
       height: 110,
       backgroundColor: color,
       borderRadius: "16px",
-      boxShadow: isInsetPreview ? softShadow.insetDeep : "none",
+      boxShadow: isInsetPreview ? glass.edge : "none",
     }),
     typography: ({ fontSize, fontWeight }: { fontSize: number; fontWeight: number }) => ({
       fontSize,
@@ -94,7 +95,7 @@ export const useShowcaseStyles = () =>
       maxWidth: "100%",
       padding: "10px",
       borderRadius: "44px",
-      boxShadow: softShadow.elevated,
+      boxShadow: glass.shadow,
       backgroundColor: palette.iceWhite,
     },
     phoneScreen: {
@@ -103,7 +104,7 @@ export const useShowcaseStyles = () =>
       overflow: "hidden",
       borderRadius: "36px",
       flexDirection: "column",
-      boxShadow: softShadow.insetDeep,
+      boxShadow: glass.edge,
     },
     phoneContent: {
       flex: 1,
@@ -141,7 +142,7 @@ export const useShowcaseStyles = () =>
       textAlign: "center",
     },
     elevated: {
-      boxShadow: softShadow.elevated,
+      boxShadow: glass.shadow,
     },
     alignStart: {
       alignSelf: "flex-start",

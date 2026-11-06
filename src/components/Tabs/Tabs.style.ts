@@ -7,14 +7,14 @@ import { TABS_VARIANTS, type TabsVariantType } from "../../constants/tabs.consta
 
 type TTabsStyle = SystemStyleObject<Theme>;
 
-const { palette, radius, softShadow } = theme;
+const { palette, radius, glass } = theme;
 
 const STRIP_STYLE: TTabsStyle = {
   gap: "6px",
   padding: "6px",
   borderRadius: radius.pill,
   backgroundColor: palette.white,
-  boxShadow: softShadow.inset,
+  boxShadow: glass.edge,
 };
 
 export const TAB_THUMB_STYLE: CSSProperties = {
@@ -24,7 +24,7 @@ export const TAB_THUMB_STYLE: CSSProperties = {
   pointerEvents: "none",
   borderRadius: radius.pill,
   background: palette.airBlue,
-  boxShadow: softShadow.insetSelected,
+  boxShadow: glass.selectedEdge,
 };
 
 const CONTAINER_BY_VARIANT: Record<TabsVariantType, TTabsStyle> = {

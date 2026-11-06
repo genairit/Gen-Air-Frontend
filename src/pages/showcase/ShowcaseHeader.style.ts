@@ -1,7 +1,7 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 
-const { palette, softShadow, radius } = theme;
+const { palette, glass, radius } = theme;
 
 const BADGE_STYLE = {
   height: 48,
@@ -37,7 +37,7 @@ export const useStyles = () =>
     },
     versionBadge: {
       ...BADGE_STYLE,
-      boxShadow: softShadow.raisedLarge,
+      boxShadow: glass.shadowSmall,
     },
     localeBadge: {
       ...BADGE_STYLE,

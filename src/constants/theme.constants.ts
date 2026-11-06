@@ -1,10 +1,3 @@
-import {
-  createCssVariableReferences,
-  createCssVariableDeclarations,
-} from "../utilities/css-variable.utility";
-
-import { createInsetShadow, createRaisedShadow } from "../utilities/shadow.utility";
-
 const PALETTE = {
   white: "#FFFFFF",
   danger: "#DE4040",
@@ -31,103 +24,7 @@ const PALETTE = {
   spinnerTrack: "#D6D7DC",
 } as const;
 
-const SHADOW_COLORS = {
-  light: PALETTE.white,
-  dark: "#DCDCE2",
-  deep: "#D2D2D8",
-  hover: "#D6D6DC",
-  error: "#F5CDCA",
-  track: "#D2D6DD",
-  disabled: "#E2E2E7",
-  airBlueDark: "#C6D6E8",
-  airBlueLight: "#F7FBFF",
-  navActive: "#B8C6D6",
-  primaryGlow: "rgba(31, 127, 219, 0.30)",
-  primaryPressed: "rgba(10, 60, 130, 0.35)",
-  knob: "rgba(0, 0, 0, 0.18)",
-} as const;
-
-const surfaceShadow = { darkColor: SHADOW_COLORS.dark, lightColor: SHADOW_COLORS.light };
-
-const SOFT_SHADOW_VARIABLE_PREFIX = "soft-shadow";
-
-// stylis-plugin-rtl flips only the first box-shadow layer; CSS variables bypass it.
-const SOFT_SHADOW_VALUES = {
-  raised: createRaisedShadow({ ...surfaceShadow, offset: 8, blur: 18 }),
-  raisedSmall: createRaisedShadow({ ...surfaceShadow, offset: 3, blur: 7 }),
-  raisedMedium: createRaisedShadow({ ...surfaceShadow, offset: 5, blur: 12 }),
-  raisedLarge: createRaisedShadow({ ...surfaceShadow, offset: 6, blur: 14 }),
-  raisedCompact: createRaisedShadow({ ...surfaceShadow, offset: 4, blur: 10 }),
-  raisedHover: createRaisedShadow({
-    ...surfaceShadow,
-    darkColor: SHADOW_COLORS.hover,
-    offset: 8,
-    blur: 18,
-  }),
-  elevated: createRaisedShadow({
-    ...surfaceShadow,
-    darkColor: SHADOW_COLORS.deep,
-    offset: 10,
-    blur: 24,
-  }),
-  raisedDark: createRaisedShadow({
-    ...surfaceShadow,
-    darkColor: SHADOW_COLORS.deep,
-    offset: 5,
-    blur: 12,
-  }),
-  inset: createInsetShadow({ ...surfaceShadow, offset: 3, blur: 7 }),
-  insetSmall: createInsetShadow({ ...surfaceShadow, offset: 2, blur: 5 }),
-  insetField: createInsetShadow({ ...surfaceShadow, offset: 4, blur: 9 }),
-  insetDeep: createInsetShadow({ ...surfaceShadow, offset: 4, blur: 10 }),
-  insetLarge: createInsetShadow({ ...surfaceShadow, offset: 5, blur: 12 }),
-  insetError: createInsetShadow({
-    ...surfaceShadow,
-    darkColor: SHADOW_COLORS.error,
-    offset: 4,
-    blur: 9,
-  }),
-  insetTrack: createInsetShadow({
-    ...surfaceShadow,
-    darkColor: SHADOW_COLORS.track,
-    offset: 3,
-    blur: 6,
-  }),
-  insetDisabled: createInsetShadow({
-    ...surfaceShadow,
-    darkColor: SHADOW_COLORS.disabled,
-    offset: 2,
-    blur: 5,
-  }),
-  insetSelected: createInsetShadow({
-    offset: 4,
-    blur: 10,
-    darkColor: SHADOW_COLORS.airBlueDark,
-    lightColor: SHADOW_COLORS.airBlueLight,
-  }),
-  raisedSelectedSmall: createRaisedShadow({
-    offset: 3,
-    blur: 7,
-    darkColor: SHADOW_COLORS.airBlueDark,
-    lightColor: SHADOW_COLORS.airBlueLight,
-  }),
-  primary: createRaisedShadow({
-    ...surfaceShadow,
-    darkColor: SHADOW_COLORS.primaryGlow,
-    offset: 5,
-    blur: 12,
-  }),
-  primaryPressed: `inset 3px 3px 8px ${SHADOW_COLORS.primaryPressed}`,
-  navActive: `inset 2px 2px 4px ${SHADOW_COLORS.navActive}`,
-  pageActive: `inset 2px 2px 5px ${PALETTE.charcoal}`,
-  knob: `2px 2px 5px ${SHADOW_COLORS.knob}`,
-  progressFill: `inset 0 0 0 1px ${PALETTE.airBlueOutline}`,
-};
-
-export const SOFT_SHADOW_CSS_VARIABLES = createCssVariableDeclarations(
-  SOFT_SHADOW_VALUES,
-  SOFT_SHADOW_VARIABLE_PREFIX,
-);
+const GLASS_BORDER = "#E2E8F0";
 
 export const theme = {
   background: {
@@ -159,7 +56,6 @@ export const theme = {
     card: "0 10px 32px -10px rgba(15, 23, 42, 0.18), 0 2px 8px -2px rgba(15, 23, 42, 0.08)",
     secondary: "inset 0 0 0 1px rgba(16,22,26,.2), inset 0 -1px 0 rgba(16,22,26,.1)",
   },
-  softShadow: createCssVariableReferences(SOFT_SHADOW_VALUES, SOFT_SHADOW_VARIABLE_PREFIX),
   radius: {
     card: "22px",
     pill: "999px",
@@ -177,10 +73,12 @@ export const theme = {
     mono: "'JetBrains Mono', monospace",
   },
   glass: {
+    edge: `inset 0 0 0 1px ${GLASS_BORDER}`,
+    selectedEdge: `inset 0 0 0 1px ${PALETTE.primary}`,
     card: "rgba(255, 255, 255, 0.82)",
     strong: "rgba(255, 255, 255, 0.94)",
     rim: "rgba(255, 255, 255, 0.72)",
-    border: "#E2E8F0",
+    border: GLASS_BORDER,
     blur: "blur(16px) saturate(160%)",
     shadow:
       "0 10px 32px -10px rgba(15, 23, 42, 0.18), 0 2px 8px -2px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9)",

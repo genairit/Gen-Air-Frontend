@@ -31,6 +31,7 @@ export const useStyles = () =>
     card: ({ depth, radius, padding, gap, isClickable }: ICardStyleOptions) => ({
       gap,
       padding,
+      minWidth: 0,
       display: "flex",
       position: "relative",
       flexDirection: "column",
@@ -46,7 +47,7 @@ export const useStyles = () =>
           outlineOffset: 2,
         }),
       },
-      ...CARD_MOTION,
+      ...(isClickable ? CARD_MOTION : {}),
     }),
     actionButton: {
       inset: 0,

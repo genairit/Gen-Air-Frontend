@@ -1,6 +1,6 @@
 # GenAir — Design Language
 
-> **Design specification, updated 2 November 2026.** Use the component vocabulary in the local `Smartbase-Client-Package` repository at commit `8f14318f823603e66e03e3592a6693678cd8d245`, adapted to a **blue and white** GenAir brand. Shared GenAir components implement this direction; individual business screens should continue to be checked as they are touched.
+> **Design specification, updated 6 November 2026.** Use the component vocabulary in the local `Smartbase-Client-Package` repository at commit `8f14318f823603e66e03e3592a6693678cd8d245`, adapted to a **blue and white** GenAir brand. Check each component and business screen against the reference as it is touched.
 >
 > **Scope:** visual language, component behavior, responsive composition, RTL, accessibility, and implementation guidance. The Smartbase package is a design reference; GenAir does not currently depend on it. Reuse or adapt a component only after checking its API, dependencies, accessibility, and fit with the current app.
 
@@ -64,7 +64,7 @@ Set the page and Hebrew content to RTL. Use logical `inline-start`/`inline-end` 
 
 The default Smartbase `Card` is a **22px** rounded section with **16px** padding, **12px** internal gap, a translucent white fill, a fine white rim, backdrop blur, soft floating shadow, and an inset white highlight. GenAir uses a stronger near-white fill and omits per-card backdrop blur because cards repeat densely across CRM screens. Reserve blur for menus, the app shell, and dialogs. The `SummaryCard` uses a stronger white fill, the same **22px** radius, light dividers, and compact label/value rows. `FlowHeader` uses an opaque white **20px** rounded surface. Floating menus and tooltips use white or glass with a fine slate border and a clear shadow.
 
-Depth comes from **separation and light**, not the old GenAir pattern of matched opaque surfaces with strong paired raised and inset shadows. Do not use recessed neumorphic fields or a raised shadow around every row. A glass card needs a stable pale canvas underneath; avoid stacking several translucent cards where text and borders become muddy. If blur is unsupported, expensive, or visually noisy, render an opaque white surface with the same border and shadow hierarchy.
+Depth comes from **separation and light**. Smartbase itself uses soft floating shadows on cards, menus, and overlays, including white inset highlights on its glass card. GenAir's old matched light/dark raised and recessed shadows are a different treatment and are not part of this language. Use the shared `theme.glass.shadow` for a floating panel, `theme.glass.shadowSmall` for compact depth, `theme.glass.edge` for a quiet row or nested panel, and `theme.glass.selectedEdge` with a pale blue fill for selection. Do not put a floating shadow around every row. A glass card needs a stable pale canvas underneath; avoid stacking several translucent cards where text and borders become muddy. If blur is unsupported, expensive, or visually noisy, render an opaque white surface with the same edge and shadow hierarchy.
 
 Use the radius of the component being adapted: about **22px** for cards, **20px** for flow headers, **17px** for the basic text field, **14–16px** for choice rows and select triggers, **12px** for notices, and full pills for segmented controls, autocomplete search, and flow footer actions. Do not force a single radius onto every component.
 
@@ -101,7 +101,7 @@ The newer Smartbase `Autocomplete` has a **54px** pill search surface, soft whit
 
 The `Segmented` control uses an animated selected thumb: **36px** option height by default, **30px** compact, within a full pill. Translate the selected gradient to blue and retain a static selected state when motion is reduced. `ChoiceList` rows are at least **48px** high with **14px** corners; selected rows get a pale blue fill, blue border, and visible focus ring. Checkboxes and switches use white/slate inactive surfaces and blue active fills, with labels and controls reachable by keyboard.
 
-GenAir's filter and status `Tabs` use one treatment across screens: a compact white inset pill, dark labels, muted counts, and a pale blue selected thumb that slides to the active tab. Variants may change width or wrapping, but not the selected color or surface treatment. Disable the slide under `prefers-reduced-motion`.
+GenAir's filter and status `Tabs` use one treatment across screens: a compact white pill with a fine edge, dark labels, muted counts, and a pale blue thumb with a blue edge that slides to the active tab. Variants may change width or wrapping, but not the selected color or surface treatment. Disable the slide under `prefers-reduced-motion`.
 
 ### Feedback, overlays, and progress
 
@@ -143,7 +143,7 @@ These are design acceptance criteria, not a claim of completed accessibility cer
 
 ## 10. Implementation and migration map
 
-GenAir's shared theme, cards, fields, buttons, choices, feedback, navigation shell, and overlays have been adapted to the Smartbase language. The Smartbase package targets MUI 5/6 while GenAir uses MUI 9, so these are local adaptations behind GenAir's existing component APIs rather than a direct package dependency. Business-specific components may still use legacy `softShadow` tokens; update those screen by screen when their flow is revisited. Verify the rendered screen after adapting one.
+GenAir's shared theme, cards, fields, buttons, choices, feedback, navigation shell, and overlays are local adaptations of the Smartbase language. The Smartbase package targets MUI 5/6 while GenAir uses MUI 9, so GenAir retains its own component APIs rather than adding a package dependency. The legacy paired raised/recessed shadow tokens have been removed from the shared theme and component styles; repeated business rows now use a fine edge. Some business screens still need visual review for geometry, spacing, and interaction states. Verify the rendered screen after adapting one.
 
 | Concern                   | Smartbase reference                                                                        | GenAir implementation area                                                                                                                                      |
 | ------------------------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |

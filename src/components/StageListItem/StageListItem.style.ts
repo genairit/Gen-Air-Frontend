@@ -2,11 +2,11 @@ import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 import { CENTERED_FLEX, ELLIPSIS_TEXT, MUTED_CAPTION } from "../../styles/templates.style";
 
-const { palette, radius, font, softShadow } = theme;
+const { palette, radius, font, glass } = theme;
 
 const DRAGGING_OPACITY = 0.4;
 
-const HIGHLIGHTED_STYLE = { backgroundColor: palette.airBlue, boxShadow: softShadow.insetSelected };
+const HIGHLIGHTED_STYLE = { backgroundColor: palette.airBlue, boxShadow: glass.selectedEdge };
 
 interface IStageCardStyleOptions {
   isDragging: boolean;
