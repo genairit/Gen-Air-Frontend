@@ -19,15 +19,15 @@ import type { INavigationItem } from "../interfaces/navigation-item.interface";
 const { palette } = theme;
 
 export const SHOWCASE_COLOR_SWATCHES: IColorSwatch[] = [
-  { name: "Deep Charcoal", color: palette.charcoal, usage: "סרגל ניווט וטיפוגרפיה ראשית" },
+  { name: "Slate Ink", color: palette.charcoal, usage: "טיפוגרפיה ראשית ואייקונים" },
   {
     isInsetPreview: true,
     name: "Soft Ice White",
     color: palette.iceWhite,
-    usage: "רקע סביבת העבודה וכרטיסים",
+    usage: "רקע סביבת העבודה",
   },
-  { name: "Genair Blue", color: palette.primary, usage: "פעולה ראשית והתראות קריטיות בלבד" },
-  { name: "Air Blue", color: palette.airBlue, usage: "טאבים פעילים, משני, התקדמות, סטטוס חיובי" },
+  { name: "GenAir Blue", color: palette.primary, usage: "פעולה ראשית, קישורים, בחירה ומיקוד" },
+  { name: "Air Blue", color: palette.airBlue, usage: "רקע בחירה, טאבים ופעולות משניות" },
 ];
 
 export const SHOWCASE_TYPOGRAPHY_SAMPLES: ITypographySample[] = [
@@ -38,8 +38,8 @@ export const SHOWCASE_TYPOGRAPHY_SAMPLES: ITypographySample[] = [
 ];
 
 export const SHOWCASE_DEPTH_SAMPLES: IDepthSample[] = [
-  { label: "מובלט", depth: SURFACE_DEPTHS.RAISED },
-  { label: "מובלט עדין", depth: SURFACE_DEPTHS.RAISED_SOFT },
+  { label: "כרטיס צף", depth: SURFACE_DEPTHS.RAISED },
+  { label: "עומק עדין", depth: SURFACE_DEPTHS.RAISED_SOFT },
   { label: "גבול עדין", depth: SURFACE_DEPTHS.INSET },
 ];
 
