@@ -181,7 +181,12 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
             <button key={item.id} className={styles.result} onClick={() => select(item)}>
               <b>{item.sku}</b> · {item.description}
               <div className={styles.muted}>
-                {item.capacityBtu ?? ""} BTU · {quotationMoney(item.price)}
+                {item.capacityBtu !== null && (
+                  <span dir="ltr" className={styles.btuPair}>
+                    {item.capacityBtu.toLocaleString("he-IL")} BTU
+                  </span>
+                )}{" "}
+                · {quotationMoney(item.price)}
               </div>
             </button>
           ))}

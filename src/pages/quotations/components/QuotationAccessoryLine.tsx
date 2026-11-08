@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import type { FC, Ref } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationDecimalInput from "./QuotationDecimalInput";
@@ -10,11 +10,13 @@ interface IQuotationAccessoryLineProps {
   disabled: boolean;
   line: IQuotationLine;
   onRemove: () => void;
+  quantityRef: Ref<HTMLInputElement>;
   onChange: (line: IQuotationLine) => void;
 }
 const QuotationAccessoryLine: FC<IQuotationAccessoryLineProps> = ({
   line,
   disabled,
+  quantityRef,
   onChange,
   onRemove,
 }) => {
@@ -46,6 +48,7 @@ const QuotationAccessoryLine: FC<IQuotationAccessoryLineProps> = ({
           min="0.0001"
           type="number"
           step="0.0001"
+          ref={quantityRef}
           disabled={disabled}
           value={line.quantity}
           caption={quantityLabel}
