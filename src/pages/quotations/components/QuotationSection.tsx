@@ -37,6 +37,7 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
   const groups = quotationLineGroups(section);
   const amount = quotationMoney(quotationSectionAmount(section));
   const [confirm, setConfirm] = useState(false);
+  const [addedLineId, setAddedLineId] = useState<string | null>(null);
   return (
     <section className={styles.systemSection}>
       <div className={styles.sectionHeader}>
@@ -89,6 +90,8 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
           key={line.id}
           disabled={disabled}
           items={section.items}
+          focusQuantity={line.id === addedLineId}
+          onQuantityFocused={() => setAddedLineId(null)}
           onChange={next => onChange(updateQuotationLine(section, next))}
           onRemove={() => onChange(removeQuotationLine(section, line.id))}
         >
@@ -108,7 +111,10 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
         <QuotationCataloguePicker
           brand={brand}
           section={section}
-          onSelect={line => onChange({ ...section, items: [...section.items, line] })}
+          onSelect={line => {
+            setAddedLineId(line.id);
+            onChange({ ...section, items: [...section.items, line] });
+          }}
         />
       )}
     </section>

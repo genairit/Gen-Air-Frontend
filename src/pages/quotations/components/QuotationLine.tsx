@@ -11,6 +11,7 @@ import QuotationDecimalInput from "./QuotationDecimalInput";
 import QuotationAccessoryLine from "./QuotationAccessoryLine";
 import { EQUIPMENT_ROLE } from "../../../constants/quotation.constant";
 import { quotationLineMoney } from "../../../utilities/quotation.utility";
+import { useFocusAddedInput } from "../../../hooks/focus-added-input.hook";
 import { QUOTATION_DEFAULTS } from "../../../constants/quotation.constant";
 import { QUOTATION_CIRCUITS } from "../../../constants/quotation.constant";
 import type { IQuotationLine } from "../../../interfaces/quotation.interface";
@@ -20,16 +21,20 @@ interface IQuotationLineProps {
   children?: ReactNode;
   onRemove: () => void;
   line: IQuotationLine;
+  focusQuantity: boolean;
   items: IQuotationLine[];
+  onQuantityFocused: () => void;
   onChange: (line: IQuotationLine) => void;
 }
 const QuotationLine: FC<IQuotationLineProps> = ({
   line,
   items,
   disabled,
+  focusQuantity,
   onChange,
   onRemove,
   children,
+  onQuantityFocused,
 }: IQuotationLineProps) => {
   const isEquipment = [EQUIPMENT_ROLE.INDOOR, EQUIPMENT_ROLE.OUTDOOR].some(
     role => role === line.equipmentRole,
@@ -40,6 +45,7 @@ const QuotationLine: FC<IQuotationLineProps> = ({
   const accessory = [EQUIPMENT_ROLE.PIPE, EQUIPMENT_ROLE.HEADER].some(
     role => role === line.equipmentRole,
   );
+  const quantityRef = useFocusAddedInput(focusQuantity, onQuantityFocused);
   if (accessory) {
     return (
       <QuotationAccessoryLine
@@ -47,6 +53,7 @@ const QuotationLine: FC<IQuotationLineProps> = ({
         disabled={disabled}
         onChange={onChange}
         onRemove={onRemove}
+        quantityRef={quantityRef}
       />
     );
   }
@@ -65,7 +72,9 @@ const QuotationLine: FC<IQuotationLineProps> = ({
         </div>
         <div className={styles.lineDetails}>
           {line.capacityBtu !== null && (
-            <span className={styles.muted}>BTU · {line.capacityBtu.toLocaleString("he-IL")}</span>
+            <span dir="ltr" className={styles.btuPair}>
+              {line.capacityBtu.toLocaleString("he-IL")} BTU
+            </span>
           )}
           {line.includesRemote && <span className={styles.muted}>כולל שלט במחיר היחידה</span>}
           {line.includesThermostat && (
@@ -101,6 +110,7 @@ const QuotationLine: FC<IQuotationLineProps> = ({
           min="0.0001"
           type="number"
           step="0.0001"
+          ref={quantityRef}
           disabled={disabled}
           value={line.quantity}
           label={`כמות (${line.unit})`}

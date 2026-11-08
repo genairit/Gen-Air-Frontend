@@ -447,6 +447,12 @@
   gap: 10px;
   min-width: 0;
 }
+.btuPair {
+  display: inline-block;
+  white-space: nowrap;
+  unicode-bidi: isolate;
+  direction: ltr;
+}
 .line .input,
 .line .select {
   height: 38px;

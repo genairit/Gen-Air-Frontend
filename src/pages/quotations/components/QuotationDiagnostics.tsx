@@ -33,8 +33,18 @@ const QuotationDiagnostics: FC<IQuotationDiagnosticsProps> = ({ quotation }) => 
             <b>
               מעגל {circuit.key} · יחס {circuit.ratio ?? "—"}
             </b>
-            <span>פנים {circuit.indoor} BTU</span>
-            <span>מעבה {circuit.outdoor} BTU</span>
+            <span>
+              פנים{" "}
+              <span dir="ltr" className={styles.btuPair}>
+                {circuit.indoor} BTU
+              </span>
+            </span>
+            <span>
+              מעבה{" "}
+              <span dir="ltr" className={styles.btuPair}>
+                {circuit.outdoor} BTU
+              </span>
+            </span>
           </div>
         ))}
       </div>
