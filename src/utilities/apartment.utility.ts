@@ -59,8 +59,6 @@ export const formatVisibleApartments = ({ visible, total }: { visible: number; t
 export const formatApartmentPosition = (position: IApartmentPosition, buildingName: string) =>
   `דירה ${position.position} מתוך ${position.total} בבניין ${buildingName}`;
 
-export const toOptionalText = (value: string) => value.trim() || null;
-
 export const toApartmentPayload = (values: IApartmentFormValues): IApartmentPayload => ({
   customerId: values.customerId ?? "",
   customerFloor: Number(values.floor),

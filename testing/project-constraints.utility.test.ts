@@ -37,6 +37,21 @@ test("new and legacy projects default lighting off with an empty input", () => {
   }
 });
 
+test("building notes load from the project and remain in the create or edit payload", () => {
+  const notes = "תמ״א 38\nגישה דרך חדר מדרגות";
+  const values = toProjectFormValues({ ...project, notes });
+  const payload = toProjectPayload({ values, fieldSet: null, originalIntake: null });
+
+  assert.equal(values.notes, notes);
+  assert.equal(payload?.notes, notes);
+  assert.equal(toProjectFormValues(null).notes, "");
+  assert.equal(
+    toProjectPayload({ values: { ...values, notes: "  " }, fieldSet: null, originalIntake: null })
+      ?.notes,
+    null,
+  );
+});
+
 test("reading an enabled saved zero or decimal restores exact numeric text", () => {
   for (const height of [0, 25.5]) {
     const values = toProjectFormValues({
