@@ -27,10 +27,13 @@ import ProjectForm from "../src/pages/project-form/components/ProjectForm";
 import { PROJECT_FORM_MODES } from "../src/constants/project-form.constant";
 import type { IProjectFormValues } from "../src/interfaces/project.interface";
 import { getProjectNameAvailability } from "../src/services/project-name.service";
+import type { IApartmentFormValues } from "../src/interfaces/apartment.interface";
 import { useProjectNameAvailability } from "../src/hooks/queries/project-name.query";
 import { PROJECT_CONSTRAINT_COPY } from "../src/constants/project-constraints.constant";
 import ProjectDetailsCard from "../src/pages/project-form/components/ProjectDetailsCard";
 import ProjectLightingFields from "../src/pages/project-form/components/ProjectLightingFields";
+import { EMPTY_APARTMENT_FORM, APARTMENT_LIGHTING_COPY } from "../src/constants/apartment.constant";
+import ApartmentLightingDraftCard from "../src/pages/apartment-form/components/ApartmentLightingDraftCard";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 after(installDomEventTargets());
@@ -285,6 +288,47 @@ const LightingHarness = ({
     />
   );
 };
+
+const ApartmentLightingHarness = () => {
+  const [values, setValues] = useState<IApartmentFormValues>(EMPTY_APARTMENT_FORM);
+  const building = {
+    ...project,
+    hasGeneralLightingCeilingLowering: true,
+    generalLightingCeilingLoweringHeight: 25,
+  };
+  return (
+    <ApartmentLightingDraftCard
+      values={values}
+      building={building}
+      isSubmitAttempted={false}
+      onChange={changes => setValues(current => ({ ...current, ...changes }))}
+    />
+  );
+};
+
+test("apartment lighting card copies the building value and restores inheritance", async () => {
+  const state = rendererState();
+  try {
+    await act(async () => {
+      state.renderer = create(<ApartmentLightingHarness />, { createNodeMock });
+    });
+    const renderer = state.renderer;
+    assert.ok(renderer);
+    assert.equal(renderer.root.findAllByType(TextField).length, 0);
+    const change = renderer.root.findByType(Button);
+    assert.equal(change.props.text, APARTMENT_LIGHTING_COPY.OVERRIDE);
+    await act(async () => change.props.onClick());
+    assert.equal(renderer.root.findByType(TextField).props.value, "25");
+    const restore = renderer.root
+      .findAllByType(Button)
+      .find(button => button.props.text === APARTMENT_LIGHTING_COPY.RESET);
+    assert.ok(restore);
+    await act(async () => restore.props.onClick());
+    assert.equal(renderer.root.findAllByType(TextField).length, 0);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+  }
+});
 
 test("lighting toggle reveals a required centimeter field and disabling clears entered height", async () => {
   const state = rendererState();

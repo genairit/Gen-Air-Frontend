@@ -16,6 +16,9 @@ export const EMPTY_APARTMENT_FORM: IApartmentFormValues = {
   floor: "",
   customerId: null,
   members: null,
+  hasOwnLighting: false,
+  hasGeneralLightingCeilingLowering: false,
+  generalLightingCeilingLoweringHeight: "",
   apartmentNumber: "",
 };
 
@@ -160,4 +163,15 @@ export const APARTMENT_TEAM_COPY = {
   SAVE: "שמור צוות",
   NEW_CUSTOMER: "+ לקוח חדש",
   INVALID_CUSTOMER: "בחר לקוח לדירה לפני השמירה",
+} as const;
+
+export const APARTMENT_LIGHTING_COPY = {
+  TITLE: "הנמכה כללית לתאורה",
+  SUBTITLE: "הגובה עובר מהבניין כל עוד לא שונה בדירה",
+  FORM_SUBTITLE: "הדירה כוללת הנמכת תקרה כללית לצורכי תאורה",
+  OVERRIDE: "שנה לדירה זו",
+  RESET: "חזור לערך הבניין",
+  SAVE: "שמור הנמכה",
+  DISABLED: "אין הנמכה כללית",
+  VALUE_LABEL: "הנמכה בדירה",
 } as const;
