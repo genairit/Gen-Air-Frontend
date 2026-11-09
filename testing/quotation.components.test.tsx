@@ -21,6 +21,59 @@ import QuotationCataloguePicker from "../src/pages/quotations/components/Quotati
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 Reflect.set(globalThis, "window", new EventTarget());
+test("brand and General tabs show only their own catalogue sections", async () => {
+  const base = quotationFixture();
+  base.brands = ["אלקטרה", "תדיראן"];
+  base.sections = [
+    { id: "alpha", title: "אלפא", systemType: "VRF", brand: "אלקטרה", items: [] },
+    { id: "beta", title: "בטא", systemType: "VRF", brand: "תדיראן", items: [] },
+    { id: "general", title: "כללי", systemType: "GEN", brand: null, items: [] },
+  ];
+  const customers = mock.method(customerService, "getByFilter", async () => []);
+  const customer = mock.method(customerService, "getById", async () => ({
+    id: base.customerId,
+    name: "Customer",
+  }));
+  const projects = mock.method(quotationService, "projectChoices", async () => []);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const router = createMemoryRouter([
+    {
+      path: "/",
+      element: (
+        <QueryClientProvider client={client}>
+          <QuotationEditor editable canApprove initial={base} />
+        </QueryClientProvider>
+      ),
+    },
+  ]);
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  try {
+    await act(async () => {
+      state.renderer = create(<RouterProvider router={router} />);
+    });
+    const sections = () =>
+      state.renderer!.root.findAllByType(QuotationSection).map(node => node.props.section.id);
+    const tab = (name: string) =>
+      state
+        .renderer!.root.findAllByProps({ role: "tab" })
+        .find(node => node.children.includes(name));
+    assert.deepEqual(sections(), ["alpha"]);
+    await act(() => tab("תדיראן")!.props.onClick());
+    assert.deepEqual(sections(), ["beta"]);
+    await act(() => tab("כללי")!.props.onClick());
+    assert.deepEqual(sections(), ["general"]);
+    assert.equal(state.renderer!.root.findByType(QuotationCataloguePicker).props.brand, "");
+  } finally {
+    await act(async () => {
+      state.renderer?.unmount();
+    });
+    client.clear();
+    router.dispose();
+    customers.mock.restore();
+    customer.mock.restore();
+    projects.mock.restore();
+  }
+});
 for (const [initialStatus, nextStatus, expectedReviews] of [
   ["draft", "review", 1],
   ["review", "draft", 0],
