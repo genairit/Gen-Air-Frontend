@@ -54,6 +54,7 @@ test("payment stages replace a copied fixed term without losing the quotation no
 test("catalogue response guard rejects invalid price and included-controller metadata", () => {
   const item = catalogueFixture();
   assert.ok(isCatalogueItem(item));
+  assert.ok(isCatalogueItem({ ...item, brand: "", systemType: "" }));
   assert.equal(isCatalogueItem({ ...item, price: 10 }), false);
   assert.equal(isCatalogueItem({ ...item, includesRemote: "true" }), false);
 });

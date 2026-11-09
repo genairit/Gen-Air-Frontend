@@ -60,7 +60,7 @@ export const isCatalogueItem = (value: unknown): value is ICatalogueItem => {
     Array.isArray(value.equipmentTypes) &&
     value.equipmentTypes.every(type => typeof type === "string");
   const equipment =
-    (value.systemType === null || isQuotationSystem(value.systemType)) &&
+    (value.systemType === null || value.systemType === "" || isQuotationSystem(value.systemType)) &&
     isNullableNumber(value.capacityBtu) &&
     typeof value.includesRemote === "boolean" &&
     typeof value.includesThermostat === "boolean";
