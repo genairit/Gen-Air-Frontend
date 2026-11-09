@@ -171,7 +171,7 @@ test("generic radio preserves checked standalone button activation", async () =>
   }
 });
 
-test("employee role assignments show six checkbox tiles with one shared helper per form", async () => {
+test("employee role assignments show every account role with one shared helper per form", async () => {
   const renderer = await renderComponent(
     <>
       <RoleAssignmentFields onAssignedRolesChange={noop} assignedRoles={user.assignedRoles} />
@@ -198,6 +198,32 @@ test("employee role assignments show six checkbox tiles with one shared helper p
       .filter(node => node.props.id === groups[0].props["aria-describedby"]);
     assert.equal(assignmentHelpers.length, 1);
     assert.equal(assignmentHelpers[0].children[0], EMPLOYEES_COPY.ROLE_ASSIGNMENT_HELPER);
+  } finally {
+    await act(async () => renderer.unmount());
+  }
+});
+
+test("header role menu switches to the purchasing and execution account role", async () => {
+  const changes: string[] = [];
+  const renderer = await renderComponent(
+    <UserMenuButton
+      user={toPerson(user)}
+      activeRole={USER_ROLES.SYSTEM_ADMIN}
+      onRoleChange={async role => {
+        changes.push(role);
+      }}
+      assignedRoles={[USER_ROLES.SYSTEM_ADMIN, USER_ROLES.PURCHASING_EXECUTION_MANAGER]}
+    />,
+  );
+  try {
+    await act(async () => renderer.root.findByType("button").props.onClick({ currentTarget: {} }));
+    assert.ok(JSON.stringify(renderer.toJSON()).includes("מנהל רכש וביצוע"));
+    const option = renderer.root
+      .findAllByProps({ role: "menuitemradio" })
+      .find(item => item.props["aria-checked"] === false);
+    assert.ok(option);
+    await act(async () => option.props.onClick());
+    assert.deepEqual(changes, [USER_ROLES.PURCHASING_EXECUTION_MANAGER]);
   } finally {
     await act(async () => renderer.unmount());
   }
