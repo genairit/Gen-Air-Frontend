@@ -5,6 +5,7 @@ import { usePageStyles } from "../../page.style";
 import ApartmentNotesCard from "./ApartmentNotesCard";
 import ApartmentHeaderCard from "./ApartmentHeaderCard";
 import ApartmentContactCard from "./ApartmentContactCard";
+import ApartmentLightingCard from "./ApartmentLightingCard";
 import ApartmentInheritedCard from "./ApartmentInheritedCard";
 import { useSessionUser } from "../../../store/session.store";
 import ApartmentCommercialCard from "./ApartmentCommercialCard";
@@ -41,6 +42,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
       </Box>
 
       <ApartmentCommercialCard apartment={apartment} />
+      <ApartmentLightingCard canEdit={canEdit} apartment={apartment} />
       {canReadDrive && <SharedProjectDocumentCard apartmentId={apartment.id} />}
       {canReadDrive && <ProjectDriveCard projectId={apartment.id} />}
 

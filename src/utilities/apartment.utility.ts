@@ -13,10 +13,14 @@ import type {
 import { getFullName } from "./mappers/user.mapper";
 import { getAssignedRoles } from "./user-role.utility";
 import { APARTMENT_UNIT_FIELDS } from "../constants/apartment.constant";
+import { APARTMENT_LIGHTING_COPY } from "../constants/apartment.constant";
 import type { IApartmentPayload } from "../interfaces/api-request.interface";
 import type { IApiProjectMember, IApiUser } from "../interfaces/api.interface";
 import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
+import type { IProjectLightingFormValues } from "../interfaces/project.interface";
+import { PROJECT_CONSTRAINT_COPY } from "../constants/project-constraints.constant";
 import { USER_ROLE_LABELS, PROJECT_MEMBER_ROLES } from "../constants/user-role.constant";
+import { getLightingHeightError, toLightingPayload } from "./project-constraints.utility";
 
 export type ProjectKindType = "building" | "apartment" | "standalone";
 
@@ -64,14 +68,27 @@ export const toApartmentPayload = (values: IApartmentFormValues): IApartmentPayl
   customerFloor: Number(values.floor),
   customerApartment: values.apartmentNumber.trim(),
   ...(values.members === null ? {} : { members: toApartmentAssignments(values.members) }),
+  ...(values.hasOwnLighting ? { hasOwnLighting: true, ...toLightingPayload(values) } : {}),
 });
+
+export const toApartmentLightingValues = (project: IApiProject): IProjectLightingFormValues => ({
+  hasGeneralLightingCeilingLowering: project.hasGeneralLightingCeilingLowering ?? false,
+  generalLightingCeilingLoweringHeight:
+    project.generalLightingCeilingLoweringHeight?.toString() ?? "",
+});
+
+export const formatApartmentLighting = (values: IProjectLightingFormValues): string =>
+  values.hasGeneralLightingCeilingLowering
+    ? `${values.generalLightingCeilingLoweringHeight} ${PROJECT_CONSTRAINT_COPY.HEIGHT_UNIT}`
+    : APARTMENT_LIGHTING_COPY.DISABLED;
 
 export const countInvalidApartmentFields = (values: IApartmentFormValues) => {
   const unitErrors = APARTMENT_FORM_FIELDS.filter(
     config => !config.validate(values[config.field]).isValid,
   ).length;
   const customerErrors = Number(!values.customerId);
-  return unitErrors + customerErrors;
+  const lightingErrors = Number(values.hasOwnLighting && Boolean(getLightingHeightError(values)));
+  return unitErrors + customerErrors + lightingErrors;
 };
 
 export const toApartmentAssignments = (members: IApiProjectMember[]) =>

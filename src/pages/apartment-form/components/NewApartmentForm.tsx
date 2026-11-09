@@ -22,6 +22,7 @@ import { ICON_NAMES } from "../../../constants/icon.constant";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { buildProjectPath } from "../../../utilities/route.utility";
 import type { IApiProject } from "../../../interfaces/api.interface";
+import ApartmentLightingDraftCard from "./ApartmentLightingDraftCard";
 import InlineError from "../../../components/InlineError/InlineError";
 import { useCustomerQuery } from "../../../hooks/queries/customer.query";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
@@ -115,6 +116,12 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
         building={building}
         members={values.members}
         onChange={members => updateValues({ members })}
+      />
+      <ApartmentLightingDraftCard
+        values={values}
+        building={building}
+        onChange={updateValues}
+        isSubmitAttempted={isSubmitAttempted}
       />
       <InheritedPreviewCard building={building} />
 

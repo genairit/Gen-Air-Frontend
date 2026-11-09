@@ -13,17 +13,19 @@ import { Box } from "@mui/material";
 import { useStyles } from "./ProjectLighting.style";
 import Switch from "../../../components/Switch/Switch";
 import TextField from "../../../components/TextField/TextField";
-import type { IProjectFormValues } from "../../../interfaces/project.interface";
+import type { IProjectLightingFormValues } from "../../../interfaces/project.interface";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 
 interface IProjectLightingFieldsProps {
+  subtitle?: string;
   isSubmitAttempted: boolean;
-  values: IProjectFormValues;
-  onChange: (changes: Partial<IProjectFormValues>) => void;
+  values: IProjectLightingFormValues;
+  onChange: (changes: Partial<IProjectLightingFormValues>) => void;
 }
 
 const ProjectLightingFields: FC<IProjectLightingFieldsProps> = ({
   values,
+  subtitle = PROJECT_CONSTRAINT_COPY.LIGHTING_SUBTITLE,
   onChange,
   isSubmitAttempted,
 }) => {
@@ -55,7 +57,7 @@ const ProjectLightingFields: FC<IProjectLightingFieldsProps> = ({
             {PROJECT_CONSTRAINT_COPY.LIGHTING_TITLE}
           </Box>
           <Box component="span" sx={styles.subtitle}>
-            {PROJECT_CONSTRAINT_COPY.LIGHTING_SUBTITLE}
+            {subtitle}
           </Box>
         </Box>
         <Switch
