@@ -209,10 +209,10 @@ test("header role menu switches to the purchasing and execution account role", a
     <UserMenuButton
       user={toPerson(user)}
       activeRole={USER_ROLES.SYSTEM_ADMIN}
+      assignedRoles={[USER_ROLES.SYSTEM_ADMIN, USER_ROLES.PURCHASING_EXECUTION_MANAGER]}
       onRoleChange={async role => {
         changes.push(role);
       }}
-      assignedRoles={[USER_ROLES.SYSTEM_ADMIN, USER_ROLES.PURCHASING_EXECUTION_MANAGER]}
     />,
   );
   try {
