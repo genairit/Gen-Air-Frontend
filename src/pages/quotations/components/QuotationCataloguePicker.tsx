@@ -58,7 +58,7 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
   const tracksCircuit = [EQUIPMENT_ROLE.INDOOR, EQUIPMENT_ROLE.OUTDOOR].some(
     value => value === role,
   );
-  const queryEnabled = showMatches && (hasSearch || hasRole || hasCapacity);
+  const queryEnabled = showMatches && (!brand || hasSearch || hasRole || hasCapacity);
   const catalogue = useQuotationCatalogueQuery(query, queryEnabled);
   const changeRole = (value: string): void => {
     setRole(value);
