@@ -258,30 +258,14 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               </p>
             </div>
           </div>
-          {typeof document === "undefined" ? (
-            <div role="tablist" aria-label="לשוניות חברות ופריטים כלליים">
-              {tabs.map(tab => (
-                <button
-                  role="tab"
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
-                  aria-selected={tab.id === selectedTab}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <Tabs
-              items={tabs}
-              mode={TAB_MODES.TABS}
-              activeId={selectedTab}
-              onChange={setActiveTab}
-              variant={TABS_VARIANTS.PILLS}
-              ariaLabel="לשוניות חברות ופריטים כלליים"
-            />
-          )}
+          <Tabs
+            items={tabs}
+            mode={TAB_MODES.TABS}
+            activeId={selectedTab}
+            onChange={setActiveTab}
+            variant={TABS_VARIANTS.PILLS}
+            ariaLabel="לשוניות חברות ופריטים כלליים"
+          />
           {!disabled && (
             <div className={styles.row}>
               <QuotationSelect
