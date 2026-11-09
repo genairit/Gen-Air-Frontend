@@ -271,6 +271,25 @@ export const findTaskAssignee = (
   );
 };
 
+export const resolveAssigneeAfterProjectChange = ({
+  currentProjectId,
+  nextProjectId,
+  assigneeOptionId,
+  availableUsers,
+}: {
+  currentProjectId: string | null;
+  nextProjectId: string | null;
+  assigneeOptionId: string | null;
+  availableUsers: IApiUser[];
+}): string | null => {
+  if (currentProjectId === nextProjectId || assigneeOptionId === POOL_ASSIGNEE_ID) {
+    return assigneeOptionId;
+  }
+  return availableUsers.some(user => user.id === assigneeOptionId)
+    ? assigneeOptionId
+    : POOL_ASSIGNEE_ID;
+};
+
 export const toAssigneeId = (optionId: string | null) => {
   if (optionId === POOL_ASSIGNEE_ID) {
     return null;

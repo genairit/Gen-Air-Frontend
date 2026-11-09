@@ -5,6 +5,7 @@ import {
   countTaskFormErrors,
   formatUrgencyRecipient,
   toInitialTaskFormValues,
+  resolveAssigneeAfterProjectChange,
 } from "../../../utilities/task.utility";
 
 import type {
@@ -71,7 +72,16 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
     setValues(current => ({ ...current, ...changes }));
 
   const changeLink = (option: ITaskLinkOption | null) => {
-    updateValues({ projectId: option?.id ?? null });
+    const nextProjectId = option?.id ?? null;
+    updateValues({
+      projectId: nextProjectId,
+      assigneeOptionId: resolveAssigneeAfterProjectChange({
+        currentProjectId: values.projectId,
+        nextProjectId,
+        assigneeOptionId: values.assigneeOptionId,
+        availableUsers: usersQuery.data ?? [],
+      }),
+    });
   };
 
   const createTask = () => {

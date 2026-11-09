@@ -122,7 +122,9 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const fieldSet = findDetailFieldSet(projectTypes, values.typeId);
   const selectedTypeName = projectTypes.find(type => type.id === values.typeId)?.name ?? "";
   const canHaveApartments =
-    projectTypes.find(type => type.id === values.typeId)?.canHaveApartments ?? false;
+    projectTypes.find(type => type.id === values.typeId)?.canHaveApartments ??
+    (values.typeId === project?.projectTypeId ? project.projectType?.canHaveApartments : false) ??
+    false;
   const mutationError = createMutation.error ?? updateMutation.error ?? deleteMutation.error;
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const canDelete = isEditMode && hasPermission(sessionUser, PERMISSIONS.PROJECTS_DELETE);

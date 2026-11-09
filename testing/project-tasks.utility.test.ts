@@ -15,6 +15,7 @@ import {
   formatTransitionAuthor,
   toInitialTaskFormValues,
   toProjectTaskAssigneeOptions,
+  resolveAssigneeAfterProjectChange,
 } from "../src/utilities/task.utility";
 
 import moment from "moment";
@@ -116,6 +117,27 @@ test("inactive apartment engineers are not selectable as task assignees", () => 
   assert.deepEqual(
     toProjectTaskAssigneeOptions([], apartment).map(option => option.id),
     [POOL_ASSIGNEE_ID],
+  );
+});
+
+test("changing apartments clears a recommended engineer outside the global user page", () => {
+  assert.equal(
+    resolveAssigneeAfterProjectChange({
+      currentProjectId: "apartment-a",
+      nextProjectId: "apartment-b",
+      assigneeOptionId: engineer.id,
+      availableUsers: [],
+    }),
+    POOL_ASSIGNEE_ID,
+  );
+  assert.equal(
+    resolveAssigneeAfterProjectChange({
+      currentProjectId: "apartment-a",
+      nextProjectId: "apartment-b",
+      assigneeOptionId: engineer.id,
+      availableUsers: [engineer],
+    }),
+    engineer.id,
   );
 });
 
