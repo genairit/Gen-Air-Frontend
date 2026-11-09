@@ -98,17 +98,22 @@ export const quotationPaymentTotal = (quotation: IQuotation): string =>
   quotation.paymentSchedule
     .reduce((total, stage) => total.plus(stage.percent || 0), new QUOTATION_DECIMAL(0))
     .toString();
-export const quotationReviewSections = (quotation: IQuotation): IQuotationReviewSection[] =>
-  quotation.sections.map(section => ({
-    id: section.id,
-    title: `${section.brand ?? "כללי"} · ${section.title || QUOTATION_SYSTEM_LABELS[section.systemType]}`,
-    items: section.items.map(line => ({
-      ...line,
-      amount: quotationLineMoney(line),
-      priceLabel: quotationMoney(line.quotedPrice),
-      quantityLabel: quotationDecimalInput(line.quantity),
-    })),
-  }));
+export const quotationReviewSections = (quotation: IQuotation): IQuotationReviewSection[] => {
+  const order = (brand: string | null): number =>
+    brand === null ? quotation.brands.length : quotation.brands.indexOf(brand);
+  return [...quotation.sections]
+    .sort((left, right) => order(left.brand) - order(right.brand))
+    .map(section => ({
+      id: section.id,
+      title: `${section.brand ?? "כללי"} · ${section.title || QUOTATION_SYSTEM_LABELS[section.systemType]}`,
+      items: section.items.map(line => ({
+        ...line,
+        amount: quotationLineMoney(line),
+        priceLabel: quotationMoney(line.quotedPrice),
+        quantityLabel: quotationDecimalInput(line.quantity),
+      })),
+    }));
+};
 
 export const quotationLineGroups = (section: IQuotationSection): IQuotationLineGroup[] =>
   section.items
