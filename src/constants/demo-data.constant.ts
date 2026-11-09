@@ -19,13 +19,14 @@ import type { IEmployee, IRoleAssignment } from "../interfaces/employee.interfac
 const { palette } = theme;
 
 export const DEMO_BOARD_COLUMNS: IBoardColumn[] = [
-  { stageId: "quote", title: "ממתין", dotColor: palette.statusGray },
-  { stageId: "order", title: "בעבודה", dotColor: palette.charcoal },
-  { stageId: "execution", title: "להמתין", dotColor: palette.primary },
+  { stageId: "not-started", title: "טרם בעבודה", dotColor: palette.statusGray },
+  { stageId: "in-progress", title: "בעבודה", dotColor: palette.charcoal },
+  { stageId: "waiting-response", title: "מחכה לתשובה", dotColor: palette.primary },
+  { stageId: "completed", title: "הושלם", dotColor: theme.colors.success },
 ];
 
 export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
-  quote: [
+  "not-started": [
     {
       progress: 20,
       apartmentsLabel: null,
@@ -47,7 +48,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
       teamInitials: ["אי", "יו", "+2"],
     },
   ],
-  order: [
+  "in-progress": [
     {
       progress: 55,
       apartmentsLabel: null,
@@ -69,7 +70,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
       teamInitials: ["אי", "יו", "+3"],
     },
   ],
-  execution: [
+  "waiting-response": [
     {
       progress: 72,
       apartmentsLabel: null,
@@ -91,6 +92,7 @@ export const DEMO_PROJECTS_BY_STAGE: Record<string, IProjectSummary[]> = {
       teamInitials: ["יו", "אי", "טכ"],
     },
   ],
+  completed: [],
 };
 
 export const DEMO_PROJECT_TYPE_OPTIONS: IProjectTypeOption[] = [
@@ -268,10 +270,10 @@ export const DEMO_PROJECT_ROLE_ASSIGNMENTS: IRoleAssignment[] = [
 ];
 
 export const DEMO_STATUS_STAGES: IStatusStage[] = [
-  { id: "waiting", name: "ממתין", tag: "קבוע", description: "הפרויקט ממתין לתחילת עבודה" },
+  { id: "not-started", name: "טרם בעבודה", tag: "קבוע", description: "העבודה על הפרויקט טרם החלה" },
   { id: "in-progress", name: "בעבודה", tag: "קבוע", description: "עבודה על הפרויקט מתבצעת כעת" },
-  { id: "on-hold", name: "להמתין", tag: "קבוע", description: "העבודה על הפרויקט בהמתנה" },
-  { id: "completed", name: "הסתיים", tag: "קבוע", description: "העבודה על הפרויקט הסתיימה" },
+  { id: "waiting-response", name: "מחכה לתשובה", tag: "קבוע", description: "הפרויקט מחכה לתשובה" },
+  { id: "completed", name: "הושלם", tag: "קבוע", description: "העבודה על הפרויקט הושלמה" },
 ];
 
 export const DEMO_EMPLOYEES: IEmployee[] = [
