@@ -2,6 +2,7 @@ import type { FC } from "react";
 import { Box } from "@mui/material";
 import { usePageStyles } from "../../page.style";
 import DetailTile from "../../../components/DetailTile/DetailTile";
+import { toTelephoneHref } from "../../../utilities/phone.utility";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { APARTMENT_PAGE_COPY } from "../../../constants/apartment.constant";
 
@@ -26,7 +27,7 @@ const ApartmentLegacyContact: FC<IApartmentLegacyContactProps> = ({ apartment, c
         <DetailTile
           isLtr
           value={phone}
-          href={`tel:${phone}`}
+          href={toTelephoneHref(phone)}
           label={APARTMENT_PAGE_COPY.CONTACT_PHONE}
         />
       )}

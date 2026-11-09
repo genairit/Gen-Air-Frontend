@@ -51,9 +51,9 @@ import {
 } from "../../constants/project-detail-field-set.constant";
 
 import { isPermission } from "./permission.guard";
-import { isCustomerContactList } from "../customer-contact.utility";
 import { hasValidProjectLighting } from "../project-constraints.utility";
 import { SHARED_DOCUMENT_STATUS } from "../../constants/shared-document.constant";
+import { isCustomerContact, isCustomerContactList } from "../customer-contact.utility";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
 import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial.utility";
 
@@ -304,18 +304,12 @@ export const isApiPlaceAddress = (value: unknown): value is IApiPlaceAddress => 
 export const isPrioritySyncStatus = (value?: unknown): value is PrioritySyncStatusType =>
   PRIORITY_SYNC_STATUS_VALUES.some(status => status === value);
 
-const CUSTOMER_REQUIRED_TEXT_FIELDS = [
-  "id",
-  "name",
-  "phone",
-  "email",
-  "taxId",
-  "address",
-  "createdAt",
-  "contactName",
-] as const;
+const CUSTOMER_REQUIRED_TEXT_FIELDS = ["id", "name", "taxId", "address", "createdAt"] as const;
 
 const CUSTOMER_NULLABLE_TEXT_FIELDS = [
+  "phone",
+  "email",
+  "contactName",
   "priorityId",
   "prioritySyncedAt",
   "prioritySyncError",
@@ -337,6 +331,7 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
   const hasPaymentDefault =
     !("paymentTerms" in value) || value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
   const hasValidContacts = isOptionalOf(isCustomerContactList)(value.contacts);
+  const hasValidPrimary = isOptionalOf(isCustomerContact)(value.primaryContact);
 
   return (
     hasIdentity &&
@@ -346,7 +341,8 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     hasSyncDetails &&
     hasValidCreator &&
     hasPaymentDefault &&
-    hasValidContacts
+    hasValidContacts &&
+    hasValidPrimary
   );
 };
 

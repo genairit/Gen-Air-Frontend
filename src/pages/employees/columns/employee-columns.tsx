@@ -10,7 +10,7 @@ import Button from "../../../components/Button/Button";
 import { theme } from "../../../constants/theme.constants";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { EMPLOYEE_COLUMN_STYLES } from "./employee-columns.style";
-import { toTelephoneHref } from "../../../utilities/employee.utility";
+import { toTelephoneHref } from "../../../utilities/phone.utility";
 import type { IEmployee } from "../../../interfaces/employee.interface";
 import { USER_ROLE_LABELS } from "../../../constants/user-role.constant";
 import PersonSummary from "../../../components/PersonSummary/PersonSummary";

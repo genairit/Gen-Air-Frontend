@@ -197,20 +197,22 @@ export interface IApiPlaceAddress {
 export interface IApiCustomer {
   id: string;
   name: string;
-  phone: string;
-  email: string;
   taxId: string;
   address: string;
   createdAt: string;
-  contactName: string;
+  phone: string | null;
+  email: string | null;
   createdBy?: IApiUser;
   priorityId: string | null;
+  contactName: string | null;
   prioritySyncAttempts: number;
   contacts?: ICustomerContact[];
   prioritySyncedAt: string | null;
+  primaryContactId?: string | null;
   prioritySyncError: string | null;
   paymentTerms?: PaymentTermsType | null;
   customerType: ProjectDetailFieldSetType;
+  primaryContact?: ICustomerContact | null;
   prioritySyncStatus: PrioritySyncStatusType;
 }
 

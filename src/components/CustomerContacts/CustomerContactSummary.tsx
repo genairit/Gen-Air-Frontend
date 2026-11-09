@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import { useStyles } from "./CustomerContacts.style";
+import { toTelephoneHref } from "../../utilities/phone.utility";
 import { CUSTOMER_CONTACT_COPY } from "../../constants/customer-contact.constant";
 import type { ICustomerContact } from "../../interfaces/customer-contact.interface";
 
@@ -27,7 +28,7 @@ const CustomerContactSummary: FC<ICustomerContactSummaryProps> = ({ contacts }) 
               </Box>
             )}
             {contact.phone ? (
-              <Box component="a" sx={styles.summaryLink} href={`tel:${contact.phone}`}>
+              <Box component="a" sx={styles.summaryLink} href={toTelephoneHref(contact.phone)}>
                 <bdi>{contact.phone}</bdi>
               </Box>
             ) : (

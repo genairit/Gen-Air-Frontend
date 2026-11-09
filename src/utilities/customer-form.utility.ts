@@ -1,22 +1,36 @@
+import type {
+  TCustomerFormErrors,
+  ICreateCustomerPayload,
+  ICustomerCreateRequest,
+} from "../interfaces/customer.interface";
+
 import { CUSTOMER_FORM_COPY, CUSTOMER_FORM_FIELDS } from "../constants/customer-form.constant";
 import { PROJECT_DETAIL_FIELD_SET_VALUES } from "../constants/project-detail-field-set.constant";
-import type { TCustomerFormErrors, ICreateCustomerPayload } from "../interfaces/customer.interface";
 
-export const normalizeCustomerForm = (values: ICreateCustomerPayload): ICreateCustomerPayload => ({
+export const normalizeCustomerForm = (values: ICreateCustomerPayload): ICustomerCreateRequest => ({
   paymentTerms: values.paymentTerms ?? null,
   name: values.name.trim(),
   taxId: values.taxId.trim(),
   address: values.address.trim(),
-  contactName: values.contactName.trim(),
-  phone: values.phone.trim(),
-  email: values.email.trim(),
+  contactName: values.contactName.trim() || null,
+  phone: values.phone.trim() || null,
+  email: values.email.trim() || null,
   customerType: values.customerType,
 });
 
 export const getCustomerFormErrors = (values: ICreateCustomerPayload): TCustomerFormErrors => {
   const payload = normalizeCustomerForm(values);
   const fieldErrors = CUSTOMER_FORM_FIELDS.flatMap(field => {
-    const value = payload[field.field];
+    const value = values[field.field].trim();
+    const isOptionalContactDetail = field.field === "phone" || field.field === "email";
+    const isEmptyOptionalContact =
+      !value &&
+      (isOptionalContactDetail ||
+        (field.field === "contactName" && !payload.phone && !payload.email));
+    if (isEmptyOptionalContact) {
+      return [];
+    }
+
     const result = field.validator(value);
     if (!result.isValid) {
       return [[field.field, result.errorText]];
@@ -31,7 +45,11 @@ export const getCustomerFormErrors = (values: ICreateCustomerPayload): TCustomer
   const typeErrors = PROJECT_DETAIL_FIELD_SET_VALUES.includes(payload.customerType)
     ? []
     : [["customerType", CUSTOMER_FORM_COPY.REQUIRED_TYPE]];
-  return Object.fromEntries([...fieldErrors, ...typeErrors]);
+  const contactNameErrors =
+    !payload.contactName && (payload.phone || payload.email)
+      ? [["contactName", CUSTOMER_FORM_COPY.CONTACT_NAME_REQUIRED]]
+      : [];
+  return Object.fromEntries([...fieldErrors, ...typeErrors, ...contactNameErrors]);
 };
 
 export const countCustomerFormErrors = (values: ICreateCustomerPayload) =>

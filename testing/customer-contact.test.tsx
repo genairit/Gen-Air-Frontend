@@ -1,4 +1,10 @@
 import {
+  normalizeCustomerForm,
+  getCustomerFormErrors,
+  countCustomerFormErrors,
+} from "../src/utilities/customer-form.utility";
+
+import {
   toIntakeValues,
   toIntakePayload,
   countIntakeErrors,
@@ -27,9 +33,13 @@ import { PERMISSIONS } from "../src/constants/permission.constant";
 import { hasPermission } from "../src/utilities/permission.utility";
 import { PAYMENT_TERMS } from "../src/constants/payment-terms.constant";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { projectContactService } from "../src/services/project-contact.service";
 import { customerContactService } from "../src/services/customer-contact.service";
+import { toDialablePhone, toTelephoneHref } from "../src/utilities/phone.utility";
 import { saveCustomerContactAction } from "../src/actions/customer-contact.action";
+import { saveProjectContactAction } from "../src/actions/contact-directory.action";
 import CustomerContacts from "../src/components/CustomerContacts/CustomerContacts";
+import { contactDirectoryService } from "../src/services/contact-directory.service";
 import { toProjectPayload, toProjectFormValues } from "../src/utilities/project.utility";
 import CustomerContactItem from "../src/components/CustomerContacts/CustomerContactItem";
 import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
@@ -51,6 +61,42 @@ const contact = {
 };
 const noop = () => {};
 
+test("optional customer contact stays null without dummy values", () => {
+  const values = {
+    name: "לקוח לבדיקה",
+    taxId: "514287937",
+    address: "הרצל 12 תל אביב",
+    customerType: PROJECT_DETAIL_FIELD_SETS.COMPANY,
+    contactName: "",
+    phone: "",
+    email: "",
+  };
+  assert.equal(countCustomerFormErrors(values), 0);
+  assert.deepEqual(normalizeCustomerForm(values), {
+    ...values,
+    paymentTerms: null,
+    contactName: null,
+    phone: null,
+    email: null,
+  });
+  assert.equal(countCustomerFormErrors({ ...values, phone: "+442071838750" }), 1);
+  assert.match(
+    getCustomerFormErrors({ ...values, phone: "+442071838750" }).contactName ?? "",
+    /שם איש קשר/,
+  );
+  assert.equal(
+    countCustomerFormErrors({ ...values, contactName: "נועה", phone: "+442071838750" }),
+    0,
+  );
+});
+
+test("Israeli and international phone inputs use country-coded dial links", () => {
+  assert.equal(toDialablePhone("052-1234567"), "+972521234567");
+  assert.equal(toDialablePhone("+442071838750"), "+442071838750");
+  assert.equal(toTelephoneHref("+442071838750"), "tel:+442071838750");
+  assert.equal(toDialablePhone("+44123"), null);
+});
+
 test("name is required; optional contact fields serialize to null", () => {
   const draft = { name: "  ישראל ישראלי ", phone: " ", email: "", role: "" };
   assert.deepEqual(validateCustomerContactDraft(draft), []);
@@ -63,14 +109,68 @@ test("name is required; optional contact fields serialize to null", () => {
   assert.equal(validateCustomerContactDraft(toCustomerContactDraft(null)).length, 1);
 });
 
-test("customer contact labels use current customer-owned rows for empty, one and many contacts", () => {
+test("a failed project link retries the created contact without directory edit permission", async () => {
+  const originalCreate = contactDirectoryService.create;
+  const originalUpdate = contactDirectoryService.update;
+  const originalLink = projectContactService.link;
+  const calls = { create: 0, update: 0, link: 0, createdContactId: null as string | null };
+  contactDirectoryService.create = async () => {
+    calls.create += 1;
+    return { ...contact, customerId: null };
+  };
+  contactDirectoryService.update = async () => {
+    calls.update += 1;
+    throw new Error("directory edit is forbidden");
+  };
+  projectContactService.link = async projectId => {
+    calls.link += 1;
+    if (calls.link === 1) {
+      throw new Error("temporary link failure");
+    }
+    return {
+      projectId,
+      contactId: contact.id,
+      role: null,
+      isPrimary: true,
+      contact: { ...contact, customerId: null },
+    };
+  };
+  const save = () =>
+    saveProjectContactAction({
+      projectId: "project-1",
+      draft: toCustomerContactDraft(contact),
+      contactId: null,
+      createdContactId: calls.createdContactId,
+      isFirstContact: true,
+      onContactCreated: id => {
+        calls.createdContactId = id;
+      },
+    });
+  try {
+    await assert.rejects(save(), /temporary link failure/);
+    await save();
+    assert.deepEqual(calls, {
+      create: 1,
+      update: 0,
+      link: 2,
+      createdContactId: contact.id,
+    });
+  } finally {
+    contactDirectoryService.create = originalCreate;
+    contactDirectoryService.update = originalUpdate;
+    projectContactService.link = originalLink;
+  }
+});
+
+test("customer primary label follows the explicit selected contact ID", () => {
   assert.equal(formatCustomerContactCount([]), "0 אנשי קשר");
   assert.equal(formatCustomerContactCount([contact]), "איש קשר אחד");
   const contacts = [contact, { ...contact, id: "contact-2", name: "איש קשר שני" }];
   assert.equal(formatCustomerContactCount(contacts), "2 אנשי קשר");
-  assert.equal(formatCustomerPrimaryContact([]), "טרם נוספו אנשי קשר ללקוח");
-  assert.equal(formatCustomerPrimaryContact([contact]), contact.name);
-  assert.equal(formatCustomerPrimaryContact(contacts), `${contact.name} (+1)`);
+  assert.equal(formatCustomerPrimaryContact([], null), "אין אנשי קשר נוספים");
+  assert.equal(formatCustomerPrimaryContact(contacts, null), "אין אנשי קשר נוספים");
+  assert.equal(formatCustomerPrimaryContact(contacts, contact.id), contact.name);
+  assert.equal(formatCustomerPrimaryContact(contacts, "contact-2"), "איש קשר שני");
 });
 
 test("invalid supplied email, phone, role and name are rejected", () => {
@@ -97,7 +197,7 @@ test("invalid supplied email, phone, role and name are rejected", () => {
 test("response guard requires contact identity and nullable optional fields", () => {
   assert.equal(isCustomerContactList([contact]), true);
   assert.equal(isCustomerContactList([null]), false);
-  assert.equal(isCustomerContactList([{ ...contact, customerId: null }]), false);
+  assert.equal(isCustomerContactList([{ ...contact, customerId: null }]), true);
   assert.equal(isCustomerContactList([{ ...contact, phone: 5 }]), false);
   assert.equal(isCustomerContactList({ items: [contact] }), false);
 });
@@ -460,7 +560,7 @@ test("unrecognized contact responses use safe status-specific Hebrew fallbacks",
 test("contact summaries preserve callable phone links and email-only fallbacks", () => {
   const phone = "03-1234567";
   const html = renderToStaticMarkup(<CustomerContactSummary contacts={[{ ...contact, phone }]} />);
-  assert.match(html, /href="tel:03-1234567"/);
+  assert.match(html, /href="tel:\+97231234567"/);
   assert.match(html, /<bdi>03-1234567<\/bdi>/);
   const emailOnly = renderToStaticMarkup(
     <CustomerContactSummary contacts={[{ ...contact, email: "person@example.com" }]} />,
@@ -483,7 +583,7 @@ test("legacy apartment contact is read-only, callable, and permission gated", ()
     <ApartmentLegacyContact canRead apartment={legacyApartment} />,
   );
   assert.match(markup, /איש קשר היסטורי/);
-  assert.match(markup, /href="tel:0501234567"/);
+  assert.match(markup, /href="tel:\+972501234567"/);
   assert.doesNotMatch(markup, /<input|<button/);
   assert.equal(
     renderToStaticMarkup(<ApartmentLegacyContact canRead={false} apartment={legacyApartment} />),

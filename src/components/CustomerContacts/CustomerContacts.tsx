@@ -27,8 +27,13 @@ import { useSaveCustomerContactMutation } from "../../hooks/mutations/customer-c
 interface ICustomerContactsProps {
   customerId: string;
   editable?: boolean;
+  excludeContactId?: string | null;
 }
-const CustomerContacts: FC<ICustomerContactsProps> = ({ customerId, editable = false }) => {
+const CustomerContacts: FC<ICustomerContactsProps> = ({
+  customerId,
+  editable = false,
+  excludeContactId = null,
+}) => {
   const styles = usePageStyles();
   const contactStyles = useStyles();
   const user = useSessionUser();
@@ -38,7 +43,7 @@ const CustomerContacts: FC<ICustomerContactsProps> = ({ customerId, editable = f
   const saveMutation = useSaveCustomerContactMutation();
   const canManage = editable && hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
   const canStart = canManage && editor === null;
-  const contacts = contactsQuery.data ?? [];
+  const contacts = (contactsQuery.data ?? []).filter(contact => contact.id !== excludeContactId);
   const isEmpty = contactsQuery.isSuccess && contacts.length === 0;
   const queryError = contactsQuery.isError
     ? getCustomerImportErrorMessage(contactsQuery.error)

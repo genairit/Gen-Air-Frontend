@@ -11,6 +11,7 @@ import type {
   IEmployeeFormValues,
 } from "../interfaces/employee.interface";
 
+import { toTelephoneHref } from "./phone.utility";
 import type { TUserRoleCounts } from "../interfaces/api.interface";
 import type { IUserPayload } from "../interfaces/api-request.interface";
 
@@ -69,7 +70,5 @@ export const countUsersForFilter = (
 
   return roleCounts[filter.role];
 };
-
-export const toTelephoneHref = (phone: string) => `tel:${phone.replace(/-/g, "")}`;
 
 export const callPhoneNumber = (phone: string) => window.location.assign(toTelephoneHref(phone));

@@ -17,6 +17,7 @@ import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { CUSTOMER_PAGE_COPY } from "../../constants/customer.constant";
 import { NAVIGATION_LABELS } from "../../constants/navigation.constant";
 import { ROUTE_PARAMS, ROUTE_PATHS } from "../../constants/routes.constant";
+import CustomerPrimaryContactCard from "./components/CustomerPrimaryContactCard";
 import { CUSTOMER_PROJECT_COPY } from "../../constants/customer-project.constant";
 import CustomerContacts from "../../components/CustomerContacts/CustomerContacts";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
@@ -58,11 +59,12 @@ const CustomerPage = () => {
       <CustomerHeaderCard customer={customer} />
       <CustomerSyncCard customer={customer} />
       <CustomerDetailsCard customer={customer} />
+      <CustomerPrimaryContactCard customer={customer} />
       <CustomerPaymentDefault customer={customer} key={`customer-payment:${customer.id}`} />
       <CustomerContacts
-        editable
         customerId={customer.id}
         key={`customer-contacts:${customer.id}`}
+        excludeContactId={customer.primaryContactId ?? null}
       />
       {hasPermission(user, PERMISSIONS.PROJECTS_READ) && (
         <Box
