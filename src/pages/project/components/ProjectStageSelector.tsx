@@ -9,6 +9,7 @@ import { useStageReasonGate } from "../../../hooks/stage-reason-gate.hook";
 import { PROJECT_PAGE_COPY } from "../../../constants/project-page.constant";
 import { useProjectStagesQuery } from "../../../hooks/queries/project.query";
 import { PROJECT_STAGE_SELECTOR_STYLES } from "./ProjectStageSelector.style";
+import { STAGE_REASON_COPY } from "../../../constants/project-stage.constant";
 import StageReasonPopup from "../../../components/StageReasonPopup/StageReasonPopup";
 import { useMoveProjectStageMutation } from "../../../hooks/mutations/project.mutation";
 
@@ -55,9 +56,9 @@ const ProjectStageSelector: FC<IProjectStageSelectorProps> = ({ project }) => {
       {error && <InlineError message={getApiErrorMessage(error)} />}
       <StageReasonPopup
         open={stageGate.isReasonOpen}
+        title={STAGE_REASON_COPY.TITLE}
         onCancel={stageGate.cancelReason}
         onConfirm={stageGate.confirmReason}
-        title={PROJECT_PAGE_COPY.WAITING_REASON_TITLE}
         contextText={PROJECT_PAGE_COPY.WAITING_REASON_CONTEXT}
       />
     </Box>

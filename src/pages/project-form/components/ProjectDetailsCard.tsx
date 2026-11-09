@@ -74,8 +74,7 @@ const ProjectDetailsCard: FC<IProjectDetailsCardProps> = ({
     ? PROJECT_CONSTRAINT_COPY.NAME_CHECKING
     : PROJECT_CONSTRAINT_COPY.NAME_HINT;
   const stageLabel = findOptionLabelById(stageOptions, values.stageId);
-  const isStageNoteVisible =
-    isEditMode && requiresStageNote({ stageId: values.stageId, originalStageId });
+  const isStageNoteVisible = requiresStageNote({ stageId: values.stageId, originalStageId });
 
   const modeBadge = isEditMode ? (
     <Chip size={CHIP_SIZES.MEDIUM} label={stageLabel ?? ""} dotColor={theme.palette.primary} />

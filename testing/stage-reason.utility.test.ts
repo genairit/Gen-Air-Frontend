@@ -1,5 +1,4 @@
 import {
-  isolateText,
   requiresStageNote,
   toStageMovePayload,
   validateStageReason,
@@ -17,6 +16,7 @@ import {
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
 import { project } from "./project-tasks.fixture";
+import { isolateText } from "../src/utilities/text.utility";
 import { API_ENDPOINTS } from "../src/constants/api.constant";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
@@ -192,11 +192,14 @@ test("banner lines isolate the reason and add meta only from the matching transi
     latestTransition: withName,
   });
 
-  assert.equal(reasonLine, `⁨${REASON}⁩`);
-  assert.match(metaLine, /^עודכן ⁨\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}⁩ · ⁨רינה כהן⁩$/);
+  assert.equal(reasonLine, `\u2068${REASON}\u2069`);
+  assert.match(
+    metaLine,
+    /^עודכן \u2068\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}\u2069 · \u2068רינה כהן\u2069$/,
+  );
   assert.match(
     toWaitingReasonLines({ waitingReason: REASON, latestTransition: createTransition() })[1],
-    /· ⁨מנהל/,
+    /· \u2068מנהל/,
   );
 });
 

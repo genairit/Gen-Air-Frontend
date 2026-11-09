@@ -96,7 +96,7 @@ const typeReason = (renderer: ReturnType<typeof create>, value: string) =>
   act(async () => renderer.root.findByType(StageReasonField).props.onChange(value));
 
 const waitingReasonError = () =>
-  new AxiosError("Bad Request", "ERR_BAD_REQUEST", undefined, undefined, {
+  new AxiosError("Bad Request", AxiosError.ERR_BAD_REQUEST, null, null, {
     status: 400,
     statusText: "Bad Request",
     headers: {},

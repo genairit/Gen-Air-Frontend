@@ -30,6 +30,7 @@ import { ICON_TILE_SIZES } from "../../../constants/icon-tile.constant";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useStageReasonGate } from "../../../hooks/stage-reason-gate.hook";
 import { APARTMENT_PAGE_COPY } from "../../../constants/apartment.constant";
+import { STAGE_REASON_COPY } from "../../../constants/project-stage.constant";
 import WaitingReasonBanner from "../../project/components/WaitingReasonBanner";
 import { useAllApartmentsQuery } from "../../../hooks/queries/apartment.query";
 import StageReasonPopup from "../../../components/StageReasonPopup/StageReasonPopup";
@@ -49,9 +50,9 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
   const navigate = useNavigate();
   const user = useSessionUser();
   const canChangeStatus = hasPermission(user, PERMISSIONS.PROJECTS_STATUS_CHANGE);
+  const stageTabsRef = useRef<HTMLDivElement>(null);
   const siblingsQuery = useAllApartmentsQuery(building.id);
   const moveMutation = useMoveApartmentsMutation();
-  const stageTabsRef = useRef<HTMLDivElement>(null);
 
   const position = findApartmentPosition(siblingsQuery.data ?? [], apartment.id);
 
@@ -153,9 +154,9 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
       {isMoveErrorVisible && <InlineError message={getApiErrorMessage(moveMutation.error)} />}
       <StageReasonPopup
         open={stageGate.isReasonOpen}
+        title={STAGE_REASON_COPY.TITLE}
         onCancel={stageGate.cancelReason}
         onConfirm={stageGate.confirmReason}
-        title={APARTMENT_PAGE_COPY.WAITING_REASON_TITLE}
         contextText={APARTMENT_PAGE_COPY.WAITING_REASON_CONTEXT}
         onCancelClosed={() => focusActiveTab(stageTabsRef.current)}
       />

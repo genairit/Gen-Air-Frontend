@@ -128,13 +128,11 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const canDelete = isEditMode && hasPermission(sessionUser, PERMISSIONS.PROJECTS_DELETE);
   const originalIntake = project ? toIntakeValues(project) : null;
   const originalStageId = project?.stageId ?? null;
-  const stageNoteErrorCount = isEditMode
-    ? countStageNoteErrors({
-        stageId: values.stageId,
-        originalStageId,
-        stageNote: values.stageNote,
-      })
-    : 0;
+  const stageNoteErrorCount = countStageNoteErrors({
+    originalStageId,
+    stageId: values.stageId,
+    stageNote: values.stageNote,
+  });
   const requiredIntake = getRequiredIntakeGroups(values, originalIntake);
   const intakeErrorCount = countIntakeErrors({ values, fieldSet, original: originalIntake });
   const hasSiteDetails = getSiteDetailFields(fieldSet).length > 0;

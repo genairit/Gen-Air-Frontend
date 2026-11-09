@@ -8,6 +8,7 @@ import {
   WAITING_FOR_RESPONSE_STAGE_ID,
 } from "../constants/project-stage.constant";
 
+import { isolateText } from "./text.utility";
 import { getFullName } from "./mappers/user.mapper";
 import { VALID_FIELD } from "./field-feedback.utility";
 import { DATE_FORMAT } from "../constants/date.constants";
@@ -26,12 +27,6 @@ interface IWaitingReasonSource {
   waitingReason: string | null;
   latestTransition: IApiStageTransition | null;
 }
-
-const FIRST_STRONG_ISOLATE = "⁨";
-const POP_DIRECTIONAL_ISOLATE = "⁩";
-
-export const isolateText = (text: string) =>
-  `${FIRST_STRONG_ISOLATE}${text}${POP_DIRECTIONAL_ISOLATE}`;
 
 export const isWaitingForResponseStage = (stageId?: string | null) =>
   stageId === WAITING_FOR_RESPONSE_STAGE_ID;

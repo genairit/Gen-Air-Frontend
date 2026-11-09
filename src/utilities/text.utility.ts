@@ -1,3 +1,5 @@
+import { BIDI_ISOLATES } from "../constants/text.constant";
+
 export const formatFileCount = (count: number) => `${count} קבצים`;
 
 export const toOptionalText = (value: string): string | null => value.trim() || null;
@@ -45,3 +47,6 @@ export const formatNeededFields = (labels: string) => `שדות חדשים למ�
 export const formatHiddenFields = (labels: string) =>
   `נשמרו בצד ולא יישלחו: ${labels}. יוחזרו אם תחזור לסוג הקודם.`;
 export const formatParenthesizedCount = (count: number): string => `(${count})`;
+
+export const isolateText = (text: string) =>
+  `${BIDI_ISOLATES.FIRST_STRONG}${text}${BIDI_ISOLATES.POP_DIRECTIONAL}`;

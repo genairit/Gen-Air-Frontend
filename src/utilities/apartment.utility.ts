@@ -12,6 +12,7 @@ import type {
 
 import { getFullName } from "./mappers/user.mapper";
 import { getAssignedRoles } from "./user-role.utility";
+import { STAGE_REASON_COPY } from "../constants/project-stage.constant";
 import { APARTMENT_UNIT_FIELDS } from "../constants/apartment.constant";
 import { APARTMENT_LIGHTING_COPY } from "../constants/apartment.constant";
 import type { IApartmentPayload } from "../interfaces/api-request.interface";
@@ -166,7 +167,7 @@ export const formatSelectedApartments = (count: number) =>
   `${count} ${BUILDING_PAGE_COPY.SELECTED}`;
 
 export const formatBulkWaitingReasonTitle = (count: number) =>
-  `העברת ${count} דירות לשלב ״מחכה לתשובה״`;
+  `העברת ${count} דירות לשלב ״${STAGE_REASON_COPY.STAGE_NAME}״`;
 
 export const formatBulkWaitingReasonContext = (count: number) =>
   `הסיבה תישמר עבור כל ${count} הדירות שנבחרו ותוצג בציר הזמן של כל דירה.`;
