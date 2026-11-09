@@ -8,6 +8,7 @@ import {
 
 import {
   QUOTATION_BRANDS,
+  QUOTATION_SYSTEM,
   QUOTATION_STATUS_LABELS,
   QUOTATION_SYSTEM_OPTIONS,
   QUOTATION_GENERAL_TAB_ID,
@@ -268,7 +269,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                 label="הוספת לשונית חברה"
                 onChange={event => {
                   const brand = event.target.value;
-                  if (!brand || quotation.brands.includes(brand)) return;
+                  if (!brand || quotation.brands.includes(brand)) {
+                    return;
+                  }
                   update(addQuotationBrand(quotation, brand));
                   setActiveTab(brand);
                 }}
@@ -316,7 +319,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               <span>הוספת מערכת / קומה</span>
               <div className={styles.row}>
                 {systems
-                  .filter(({ value }) => brandTabs.brand !== null || value === "GEN")
+                  .filter(
+                    ({ value }) => brandTabs.brand !== null || value === QUOTATION_SYSTEM.GENERAL,
+                  )
                   .map(({ value: systemType, label }) => (
                     <Button
                       key={systemType}

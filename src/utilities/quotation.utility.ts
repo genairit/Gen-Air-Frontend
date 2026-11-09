@@ -147,10 +147,11 @@ export const moveQuotationSection = (
     current.brand === section.brand ? [position] : [],
   );
   const siblingPosition = siblingIndexes.indexOf(index);
-  const target = siblingIndexes[siblingPosition + direction];
-  if (target === undefined) {
+  const targetPosition = siblingPosition + direction;
+  if (targetPosition < 0 || targetPosition >= siblingIndexes.length) {
     return quotation;
   }
+  const target = siblingIndexes[targetPosition];
   const sections = [...quotation.sections];
   [sections[index], sections[target]] = [sections[target], sections[index]];
   return { ...quotation, sections };
@@ -176,7 +177,9 @@ export const quotationBrandTabs = (quotation: IQuotation, activeId: string) => {
 };
 
 export const addQuotationBrand = (quotation: IQuotation, brand: string): IQuotation => {
-  if (!brand || quotation.brands.includes(brand)) return quotation;
+  if (!brand || quotation.brands.includes(brand)) {
+    return quotation;
+  }
   const brands = [...quotation.brands, brand];
   return { ...quotation, brands, brand: brands[0] };
 };

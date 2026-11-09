@@ -23,13 +23,13 @@ await runBundledTest({
         id === "\0tabs-renderer-stub"
           ? {
               code: `import React from "react";
-          export default function Tabs({items, activeId, onChange, ariaLabel}) {
-            return React.createElement("div", {role: "tablist", "aria-label": ariaLabel},
+          const Tabs = ({items, activeId, onChange, ariaLabel}) =>
+            React.createElement("div", {role: "tablist", "aria-label": ariaLabel},
               items.map(item => React.createElement("button", {
                 key: item.id, role: "tab", "aria-selected": item.id === activeId,
                 onClick: () => onChange(item.id)
               }, item.label)));
-          }`,
+          export default Tabs;`,
               moduleType: "js",
             }
           : null,

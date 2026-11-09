@@ -7,6 +7,7 @@ import { customerService } from "../src/services/customer.service";
 import { quotationService } from "../src/services/quotation.service";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { getActiveNavigationId } from "../src/utilities/route.utility";
+import { QUOTATION_SYSTEM } from "../src/constants/quotation.constant";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { QUOTATION_DETAIL_KEY } from "../src/constants/quotation.constant";
 import { QUOTATION_AUTOSAVE_MS } from "../src/constants/quotation.constant";
@@ -27,7 +28,7 @@ test("brand and General tabs show only their own catalogue sections", async () =
   base.sections = [
     { id: "alpha", title: "אלפא", systemType: "VRF", brand: "אלקטרה", items: [] },
     { id: "beta", title: "בטא", systemType: "VRF", brand: "תדיראן", items: [] },
-    { id: "general", title: "כללי", systemType: "GEN", brand: null, items: [] },
+    { id: "general", title: "כללי", systemType: QUOTATION_SYSTEM.GENERAL, brand: null, items: [] },
   ];
   const customers = mock.method(customerService, "getByFilter", async () => []);
   const customer = mock.method(customerService, "getById", async () => ({

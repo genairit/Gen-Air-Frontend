@@ -15,6 +15,7 @@ import {
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { QUOTATION_SYSTEM } from "../src/constants/quotation.constant";
 import { quotationFixture, catalogueFixture } from "./quotation.fixture";
 import { isQuotation, isCatalogueItem } from "../src/utilities/guards/quotation.guard";
 import { quotationReviewSections } from "../src/utilities/quotation-presentation.utility";
@@ -109,9 +110,9 @@ test("brand tabs persist with section ownership and reordering stays inside a ta
   quotation.brands = ["אלקטרה", "תדיראן"];
   quotation.sections = [
     { id: "a", title: "A", systemType: "VRF", brand: "אלקטרה", items: [] },
-    { id: "b", title: "B", systemType: "GEN", brand: null, items: [] },
+    { id: "b", title: "B", systemType: QUOTATION_SYSTEM.GENERAL, brand: null, items: [] },
     { id: "c", title: "C", systemType: "VRF", brand: "תדיראן", items: [] },
-    { id: "d", title: "D", systemType: "GEN", brand: "אלקטרה", items: [] },
+    { id: "d", title: "D", systemType: QUOTATION_SYSTEM.GENERAL, brand: "אלקטרה", items: [] },
   ];
   assert.deepEqual(
     moveQuotationSection(quotation, 0, 1).sections.map(section => section.id),
@@ -323,6 +324,14 @@ test("VRF diagnostics isolate sections and circuits, multiply quantities and avo
     { id: "one:B", key: "same · B", indoor: "0", outdoor: "0", ratio: null },
     { id: "two:A", key: "same · A", indoor: "10000", outdoor: "0", ratio: null },
   ]);
+  const branded = structuredClone(quotation);
+  branded.brands = ["אלקטרה", "תדיראן"];
+  branded.sections[0].brand = "אלקטרה";
+  branded.sections[1].brand = "תדיראן";
+  assert.deepEqual(
+    quotationCircuits(branded).map(circuit => circuit.key),
+    ["אלקטרה · same · A", "אלקטרה · same · B", "תדיראן · same · A"],
+  );
   assert.deepEqual(quotation, before);
 });
 
