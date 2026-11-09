@@ -17,6 +17,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { quotationFixture, catalogueFixture } from "./quotation.fixture";
 import { isQuotation, isCatalogueItem } from "../src/utilities/guards/quotation.guard";
+import { quotationReviewSections } from "../src/utilities/quotation-presentation.utility";
 
 test("quotation response guard rejects malformed snapshots, totals and warning payloads", () => {
   const quotation = quotationFixture();
@@ -122,6 +123,10 @@ test("brand tabs persist with section ownership and reordering stays inside a ta
   assert.deepEqual(
     body.sections.map(section => section.brand),
     ["אלקטרה", null, "תדיראן", "אלקטרה"],
+  );
+  assert.deepEqual(
+    quotationReviewSections(quotation).map(section => section.id),
+    ["a", "d", "c", "b"],
   );
 });
 test("financial formatting retains cents beyond JavaScript safe integer precision", () => {
