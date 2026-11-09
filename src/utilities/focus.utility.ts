@@ -1,3 +1,5 @@
+import { ACTIVE_TAB_SELECTOR } from "../constants/tabs.constant";
+
 export const focusAddedInput = (input: HTMLInputElement): void => {
   input.focus({ preventScroll: true });
   input.select();
@@ -12,4 +14,8 @@ export const focusAddedInput = (input: HTMLInputElement): void => {
   if (isOutsideViewport) {
     input.scrollIntoView({ block: "nearest", inline: "nearest" });
   }
+};
+
+export const focusActiveTab = (tabList: HTMLElement | null): void => {
+  tabList?.querySelector<HTMLElement>(ACTIVE_TAB_SELECTOR)?.focus();
 };

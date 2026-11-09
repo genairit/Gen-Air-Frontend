@@ -7,8 +7,8 @@ import {
   formatApartmentPosition,
 } from "../../../utilities/apartment.utility";
 
-import type { FC } from "react";
 import { Box } from "@mui/material";
+import { type FC, useRef } from "react";
 import Tabs from "../../../components/Tabs/Tabs";
 import Card from "../../../components/Card/Card";
 import Chip from "../../../components/Chip/Chip";
@@ -21,6 +21,7 @@ import { ICON_NAMES } from "../../../constants/icon.constant";
 import { TABS_VARIANTS } from "../../../constants/tabs.constant";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { CHIP_VARIANTS } from "../../../constants/chip.constant";
+import { focusActiveTab } from "../../../utilities/focus.utility";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
@@ -50,6 +51,7 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
   const canChangeStatus = hasPermission(user, PERMISSIONS.PROJECTS_STATUS_CHANGE);
   const siblingsQuery = useAllApartmentsQuery(building.id);
   const moveMutation = useMoveApartmentsMutation();
+  const stageTabsRef = useRef<HTMLDivElement>(null);
 
   const position = findApartmentPosition(siblingsQuery.data ?? [], apartment.id);
 
@@ -139,6 +141,7 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
       </Box>
       <Tabs
         isFullWidth
+        ref={stageTabsRef}
         onChange={moveToStage}
         disabled={!canChangeStatus}
         items={toStageTabs(stages)}
@@ -154,6 +157,7 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
         onConfirm={stageGate.confirmReason}
         title={APARTMENT_PAGE_COPY.WAITING_REASON_TITLE}
         contextText={APARTMENT_PAGE_COPY.WAITING_REASON_CONTEXT}
+        onCancelClosed={() => focusActiveTab(stageTabsRef.current)}
       />
     </Card>
   );

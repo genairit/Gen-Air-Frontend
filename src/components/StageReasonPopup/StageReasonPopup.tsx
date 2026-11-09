@@ -1,10 +1,11 @@
 import { Box } from "@mui/material";
-import { type FC, useState } from "react";
+import { type FC, useRef, useState } from "react";
 import StageReasonField from "./StageReasonField";
 import InlineError from "../InlineError/InlineError";
 import { useStyles } from "./StageReasonPopup.style";
 import GenericPopup from "../GenericPopup/GenericPopup";
 import { logger } from "../../utilities/logger.utility";
+import { useClosedCallback } from "../../hooks/closed-callback.hook";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { STAGE_REASON_COPY } from "../../constants/project-stage.constant";
 
@@ -13,6 +14,7 @@ interface IStageReasonPopupProps {
   title: string;
   contextText: string;
   onCancel: () => void;
+  onCancelClosed?: () => void;
   onConfirm: (note: string) => Promise<void>;
 }
 
@@ -22,12 +24,14 @@ const StageReasonPopup: FC<IStageReasonPopupProps> = ({
   onCancel,
   onConfirm,
   contextText,
+  onCancelClosed,
 }) => {
   const styles = useStyles();
   const [reason, setReason] = useState("");
   const [isTouched, setIsTouched] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<unknown>(null);
+  const isCancellingRef = useRef(false);
 
   const trimmedReason = reason.trim();
 
@@ -42,7 +46,19 @@ const StageReasonPopup: FC<IStageReasonPopupProps> = ({
     setIsTouched(true);
   };
 
+  const notifyCancelClosed = () => {
+    if (!isCancellingRef.current) {
+      return;
+    }
+
+    isCancellingRef.current = false;
+    onCancelClosed?.();
+  };
+
+  useClosedCallback(open, notifyCancelClosed);
+
   const cancel = () => {
+    isCancellingRef.current = true;
     resetReason();
     onCancel();
   };

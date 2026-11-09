@@ -5,6 +5,8 @@ import {
 
 import assert from "node:assert/strict";
 import { test, mock, after } from "node:test";
+import Tabs from "../src/components/Tabs/Tabs";
+import { MemoryRouter } from "react-router-dom";
 import { AxiosError, AxiosHeaders } from "axios";
 import { project } from "./project-tasks.fixture";
 import { setTimeout } from "node:timers/promises";
@@ -17,6 +19,7 @@ import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import InlineError from "../src/components/InlineError/InlineError";
+import { ACTIVE_TAB_SELECTOR } from "../src/constants/tabs.constant";
 import { installDomEventTargets } from "./dom-event-targets.utility";
 import Autocomplete from "../src/components/Autocomplete/Autocomplete";
 import GenericPopup from "../src/components/GenericPopup/GenericPopup";
@@ -25,6 +28,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { PROJECT_FORM_MODES } from "../src/constants/project-form.constant";
 import StageReasonPopup from "../src/components/StageReasonPopup/StageReasonPopup";
 import StageReasonField from "../src/components/StageReasonPopup/StageReasonField";
+import ApartmentHeaderCard from "../src/pages/apartment/components/ApartmentHeaderCard";
 import ProjectStageSelector from "../src/pages/project/components/ProjectStageSelector";
 import ProjectDetailsCard from "../src/pages/project-form/components/ProjectDetailsCard";
 import ApartmentSelectionBar from "../src/pages/project/components/building/ApartmentSelectionBar";
@@ -58,6 +62,8 @@ const stages = [
   { id: "done-stage", name: "הושלם", position: 2, tag: null, color: null, description: null },
 ];
 
+const EMPTY_RECT = { x: 0, y: 0, top: 0, left: 0, right: 0, bottom: 0, width: 0, height: 0 };
+
 const createNodeMock = () => ({
   value: "",
   style: {},
@@ -68,6 +74,7 @@ const createNodeMock = () => ({
   setAttribute: () => {},
   removeAttribute: () => {},
   setSelectionRange: () => {},
+  getBoundingClientRect: () => EMPTY_RECT,
 });
 
 const render = async (element: React.ReactElement) => {
@@ -319,6 +326,82 @@ test("bulk waiting moves send one reason per apartment and clear selection only 
     );
   } finally {
     errorLog.mock.restore();
+    patch.mock.restore();
+    await act(async () => renderer.unmount());
+  }
+});
+
+test("cancelling the apartment reason dialog returns focus to the active status tab", async () => {
+  setSession({
+    accessToken: "test-token",
+    user: { ...constraintUser, permissions: [PERMISSIONS.PROJECTS_STATUS_CHANGE] },
+  });
+  const patch = mock.method(httpClient, "patch", async () => ({ data: project }));
+  const focusedSelectors: string[] = [];
+  const tabListMock = {
+    ...createNodeMock(),
+    querySelector: (selector: string) => ({ focus: () => focusedSelectors.push(selector) }),
+  };
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } },
+  });
+  const building = { ...project, id: "building-1" };
+  const apartment = { ...project, id: "apt-1", parentProjectId: building.id };
+  client.setQueryData(QUERY_KEYS.allApartments(building.id), [apartment]);
+  client.setQueryData(QUERY_KEYS.transitions(apartment.id), []);
+  const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
+  await act(async () => {
+    state.renderer = create(
+      <QueryClientProvider client={client}>
+        <MemoryRouter>
+          <ApartmentHeaderCard stages={stages} building={building} apartment={apartment} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+      {
+        createNodeMock: element =>
+          element.props["aria-label"] === "שלב הדירה" ? tabListMock : createNodeMock(),
+      },
+    );
+  });
+  const renderer = state.renderer;
+  assert.ok(renderer);
+
+  try {
+    const isOpen = () => renderer.root.findByType(StageReasonPopup).props.open;
+
+    await act(async () => renderer.root.findByType(Tabs).props.onChange("draft-stage"));
+    assert.equal(isOpen(), false);
+    assert.equal(patch.mock.callCount(), 0);
+
+    await act(async () =>
+      renderer.root.findByType(Tabs).props.onChange(WAITING_FOR_RESPONSE_STAGE_ID),
+    );
+    assert.equal(isOpen(), true);
+    assert.equal(patch.mock.callCount(), 0);
+    assert.deepEqual(focusedSelectors, []);
+
+    await typeReason(renderer, REASON);
+    await act(async () => getSecondary(renderer).onClick());
+    assert.equal(isOpen(), false);
+    assert.equal(patch.mock.callCount(), 0);
+    assert.deepEqual(focusedSelectors, [ACTIVE_TAB_SELECTOR]);
+    assert.equal(renderer.root.findByType(Tabs).props.activeId, "draft-stage");
+
+    await act(async () =>
+      renderer.root.findByType(Tabs).props.onChange(WAITING_FOR_RESPONSE_STAGE_ID),
+    );
+    await typeReason(renderer, REASON);
+    await act(async () => {
+      await getPrimary(renderer).onClick();
+      await settle();
+    });
+    assert.equal(isOpen(), false);
+    assert.deepEqual(focusedSelectors, [ACTIVE_TAB_SELECTOR]);
+    assert.deepEqual(patch.mock.calls[0].arguments, [
+      API_ENDPOINTS.projectStage(apartment.id),
+      { stageId: WAITING_FOR_RESPONSE_STAGE_ID, note: REASON },
+    ]);
+  } finally {
     patch.mock.restore();
     await act(async () => renderer.unmount());
   }
