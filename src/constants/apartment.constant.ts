@@ -15,6 +15,7 @@ export const APARTMENT_SCROLL_ROOT_MARGIN = "200px";
 export const EMPTY_APARTMENT_FORM: IApartmentFormValues = {
   floor: "",
   customerId: null,
+  engineerUserId: null,
   members: null,
   hasOwnLighting: false,
   hasGeneralLightingCeilingLowering: false,
@@ -149,11 +150,14 @@ export const ADD_APARTMENT_COPY = {
 
 export const APARTMENT_TEAM_COPY = {
   TITLE: "צוות הדירה",
-  DESCRIPTION: "כברירת מחדל הצוות של הבניין. אפשר להרכיב לדירה צוות משלה",
+  DESCRIPTION: "עובד ההנדסה נקבע לדירה. שאר הצוות עובר מהבניין עד לשינוי בדירה.",
+  ENGINEER: "עובד הנדסה בדירה",
+  NO_ENGINEER: "ללא עובד הנדסה",
+  OTHER_TEAM: "שאר צוות הדירה",
   INHERITED: "עובר מהבניין",
   OWN: "שונה בדירה זו",
   OVERRIDE: "שנה לדירה זו",
-  RESET: "חזור לצוות הבניין",
+  RESET: "חזור לשאר צוות הבניין",
   ADD: "הוסף חבר צוות…",
   REMOVE: "הסר חבר צוות",
   EMPTY: "לדירה אין צוות. הוסף חבר צוות או חזור לצוות הבניין.",

@@ -4,6 +4,12 @@ import {
   APARTMENT_PAGE_COPY,
 } from "../constants/apartment.constant";
 
+import {
+  USER_ROLES,
+  USER_ROLE_LABELS,
+  PROJECT_MEMBER_ROLES,
+} from "../constants/user-role.constant";
+
 import type {
   IApartmentPosition,
   IApartmentFormValues,
@@ -19,7 +25,6 @@ import type { IApiProjectMember, IApiUser } from "../interfaces/api.interface";
 import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
 import type { IProjectLightingFormValues } from "../interfaces/project.interface";
 import { PROJECT_CONSTRAINT_COPY } from "../constants/project-constraints.constant";
-import { USER_ROLE_LABELS, PROJECT_MEMBER_ROLES } from "../constants/user-role.constant";
 import { getLightingHeightError, toLightingPayload } from "./project-constraints.utility";
 
 export type ProjectKindType = "building" | "apartment" | "standalone";
@@ -67,6 +72,7 @@ export const toApartmentPayload = (values: IApartmentFormValues): IApartmentPayl
   customerId: values.customerId ?? "",
   customerFloor: Number(values.floor),
   customerApartment: values.apartmentNumber.trim(),
+  engineerUserId: values.engineerUserId,
   ...(values.members === null ? {} : { members: toApartmentAssignments(values.members) }),
   ...(values.hasOwnLighting ? { hasOwnLighting: true, ...toLightingPayload(values) } : {}),
 });
@@ -107,6 +113,7 @@ export const getApartmentTeamCandidates = (
 
     const assignedRoles = getAssignedRoles(user);
     const availableRoles = PROJECT_MEMBER_ROLES.filter(role => {
+      if (role === USER_ROLES.ENGINEER) return false;
       const hasAssignedRole = assignedRoles.includes(role);
       const roleHasMember = members.some(member => member.role === role);
 

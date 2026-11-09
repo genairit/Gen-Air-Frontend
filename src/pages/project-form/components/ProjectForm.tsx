@@ -121,7 +121,8 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const projectTypes = typesQuery.data ?? [];
   const fieldSet = findDetailFieldSet(projectTypes, values.typeId);
   const selectedTypeName = projectTypes.find(type => type.id === values.typeId)?.name ?? "";
-  const isBuilding = projectTypes.some(type => type.id === values.typeId && type.canHaveApartments);
+  const canHaveApartments =
+    projectTypes.find(type => type.id === values.typeId)?.canHaveApartments ?? false;
   const mutationError = createMutation.error ?? updateMutation.error ?? deleteMutation.error;
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const canDelete = isEditMode && hasPermission(sessionUser, PERMISSIONS.PROJECTS_DELETE);
@@ -155,10 +156,13 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
 
   const submitByMode: Record<ProjectFormModeType, () => void> = {
     new: () =>
-      createMutation.mutate({ values, fieldSet, originalIntake }, { onSuccess: openProject }),
+      createMutation.mutate(
+        { values, fieldSet, originalIntake, canHaveApartments },
+        { onSuccess: openProject },
+      ),
     edit: () =>
       updateMutation.mutate(
-        { projectId: projectId ?? "", values, fieldSet, originalIntake },
+        { projectId: projectId ?? "", values, fieldSet, originalIntake, canHaveApartments },
         { onSuccess: openProject },
       ),
   };
@@ -301,12 +305,13 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           }
         />
       )}
-      {isBuilding && (
+      {canHaveApartments && (
         <ProjectNotesCard notes={values.notes} onChange={notes => updateValues({ notes })} />
       )}
       <ProjectRolesCard
         assignees={values.assignees}
         users={usersQuery.data ?? []}
+        isBuilding={canHaveApartments}
         onAssigneeChange={handleAssigneeChange}
       />
 

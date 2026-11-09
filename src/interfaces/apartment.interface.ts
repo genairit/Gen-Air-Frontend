@@ -10,6 +10,7 @@ export interface IApartmentFormValues extends IProjectLightingFormValues {
   apartmentNumber: string;
   hasOwnLighting: boolean;
   customerId: string | null;
+  engineerUserId: string | null;
   members: IApiProjectMember[] | null;
 }
 

@@ -9,7 +9,9 @@ import ApartmentTeamMembers from "./ApartmentTeamMembers";
 import ApartmentLegacyContact from "./ApartmentLegacyContact";
 import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import ApartmentEngineerPicker from "./ApartmentEngineerPicker";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { USER_ROLES } from "../../../constants/user-role.constant";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
@@ -33,7 +35,11 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
   const updateMutation = useUpdateApartmentMutation();
   const isEditing = draft !== null;
   const isOwn = apartment.hasOwnTeam === true || isEditing;
-  const members = draft ?? apartment.members ?? [];
+  const members = (draft ?? apartment.members ?? []).filter(
+    member => member.role !== USER_ROLES.ENGINEER,
+  );
+  const engineerUserId =
+    apartment.members?.find(member => member.role === USER_ROLES.ENGINEER)?.userId ?? null;
   const badge = isOwn ? APARTMENT_TEAM_COPY.OWN : APARTMENT_TEAM_COPY.INHERITED;
   const teamChangeProps = isEditing ? { onChange: setDraft } : {};
   const saveTeam = () =>
@@ -60,9 +66,16 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
         <CustomerContactPreview key={apartment.customerId} customerId={apartment.customerId} />
       )}
       <ApartmentLegacyContact apartment={apartment} canRead={canReadCustomer} />
+      <ApartmentEngineerPicker
+        value={engineerUserId}
+        disabled={!canEdit || updateMutation.isPending}
+        onChange={userId =>
+          updateMutation.mutate({ apartmentId: apartment.id, changes: { engineerUserId: userId } })
+        }
+      />
       <Box sx={styles.spacedRow}>
         <Box sx={styles.row({})}>
-          <b>{APARTMENT_TEAM_COPY.TITLE}</b>
+          <b>{APARTMENT_TEAM_COPY.OTHER_TEAM}</b>
           <Chip label={badge} />
         </Box>
         {canEdit && (
