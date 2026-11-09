@@ -56,14 +56,6 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
 
   const position = findApartmentPosition(siblingsQuery.data ?? [], apartment.id);
 
-  const openSibling = (apartmentId: string | null) => {
-    if (!apartmentId) {
-      return;
-    }
-
-    navigate(buildApartmentPath(building.id, apartmentId));
-  };
-
   const stageGate = useStageReasonGate({
     onCancel: moveMutation.reset,
     moveToStage: stageId => moveMutation.mutate({ stageId, apartmentIds: [apartment.id] }),
@@ -71,6 +63,14 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
   });
 
   const isMoveErrorVisible = moveMutation.isError && !stageGate.isReasonOpen;
+
+  const openSibling = (apartmentId: string | null) => {
+    if (!apartmentId) {
+      return;
+    }
+
+    navigate(buildApartmentPath(building.id, apartmentId));
+  };
 
   const moveToStage = (stageId: string) => {
     if (stageId === apartment.stageId || moveMutation.isPending) {

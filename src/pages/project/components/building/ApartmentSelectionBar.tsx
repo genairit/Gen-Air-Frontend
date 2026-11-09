@@ -18,7 +18,6 @@ import ActionBar from "../../../../components/ActionBar/ActionBar";
 import { PERMISSIONS } from "../../../../constants/permission.constant";
 import { hasPermission } from "../../../../utilities/permission.utility";
 import InlineError from "../../../../components/InlineError/InlineError";
-import type { IStageMove } from "../../../../interfaces/project.interface";
 import Autocomplete from "../../../../components/Autocomplete/Autocomplete";
 import type { IApiProjectStage } from "../../../../interfaces/api.interface";
 import { getApiErrorMessage } from "../../../../utilities/api-error.utility";
@@ -45,14 +44,9 @@ const ApartmentSelectionBar: FC<IApartmentSelectionBarProps> = ({
   const stageOptions = toOptions(stages);
   const selectedCount = apartmentIds.length;
 
-  const moveWithReason = async (move: IStageMove) => {
-    await moveMutation.mutateAsync({ ...move, apartmentIds });
-    onClear();
-  };
-
   const stageGate = useStageReasonGate({
-    moveWithReason,
     onCancel: moveMutation.reset,
+    moveWithReason: move => moveMutation.mutateAsync({ ...move, apartmentIds }).then(onClear),
     moveToStage: stageId => moveMutation.mutate({ stageId, apartmentIds }, { onSuccess: onClear }),
   });
 

@@ -85,7 +85,7 @@ export const countStageNoteErrors = (change: IStageChange & { stageNote: string 
 export const toTransitionNote = (transition: IApiStageTransition) =>
   toOptionalNote(transition.note);
 
-export const formatTransitionActor = (transition: IApiStageTransition) => {
+const formatTransitionActor = (transition: IApiStageTransition) => {
   if (!transition.changedBy) {
     return USER_ROLE_LABELS[transition.changedByRole];
   }

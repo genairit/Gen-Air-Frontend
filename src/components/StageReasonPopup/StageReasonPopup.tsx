@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { type FC, useRef, useState } from "react";
+import { type FC, useState } from "react";
 import StageReasonField from "./StageReasonField";
 import InlineError from "../InlineError/InlineError";
 import { useStyles } from "./StageReasonPopup.style";
@@ -31,7 +31,7 @@ const StageReasonPopup: FC<IStageReasonPopupProps> = ({
   const [isTouched, setIsTouched] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<unknown>(null);
-  const isCancellingRef = useRef(false);
+  const armCancelClosed = useClosedCallback(open, onCancelClosed);
 
   const trimmedReason = reason.trim();
 
@@ -46,19 +46,8 @@ const StageReasonPopup: FC<IStageReasonPopupProps> = ({
     setIsTouched(true);
   };
 
-  const notifyCancelClosed = () => {
-    if (!isCancellingRef.current) {
-      return;
-    }
-
-    isCancellingRef.current = false;
-    onCancelClosed?.();
-  };
-
-  useClosedCallback(open, notifyCancelClosed);
-
   const cancel = () => {
-    isCancellingRef.current = true;
+    armCancelClosed();
     resetReason();
     onCancel();
   };
