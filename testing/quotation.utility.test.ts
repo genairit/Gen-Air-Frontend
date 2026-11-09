@@ -103,6 +103,27 @@ test("section reordering preserves identities and bounds", () => {
   );
   assert.equal(moveQuotationSection(quotation, 0, -1), quotation);
 });
+test("brand tabs persist with section ownership and reordering stays inside a tab", () => {
+  const quotation = quotationFixture();
+  quotation.brands = ["אלקטרה", "תדיראן"];
+  quotation.sections = [
+    { id: "a", title: "A", systemType: "VRF", brand: "אלקטרה", items: [] },
+    { id: "b", title: "B", systemType: "GEN", brand: null, items: [] },
+    { id: "c", title: "C", systemType: "VRF", brand: "תדיראן", items: [] },
+    { id: "d", title: "D", systemType: "GEN", brand: "אלקטרה", items: [] },
+  ];
+  assert.deepEqual(
+    moveQuotationSection(quotation, 0, 1).sections.map(section => section.id),
+    ["d", "b", "c", "a"],
+  );
+  assert.equal(moveQuotationSection(quotation, 1, 1), quotation);
+  const body = quotationPayload(quotation);
+  assert.deepEqual(body.brands, ["אלקטרה", "תדיראן"]);
+  assert.deepEqual(
+    body.sections.map(section => section.brand),
+    ["אלקטרה", null, "תדיראן", "אלקטרה"],
+  );
+});
 test("financial formatting retains cents beyond JavaScript safe integer precision", () => {
   const rendered = quotationMoney("10821521067063092717.57");
   assert.ok(rendered.includes(".57"), rendered);

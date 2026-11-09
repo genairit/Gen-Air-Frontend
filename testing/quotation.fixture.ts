@@ -8,6 +8,7 @@ export const quotationFixture = (): IQuotation => ({
   status: "draft",
   date: "2026-10-31",
   brand: "אלקטרה",
+  brands: ["אלקטרה"],
   paymentTerms: "prepaid",
   paymentTermsNote: "",
   paymentSchedule: [],

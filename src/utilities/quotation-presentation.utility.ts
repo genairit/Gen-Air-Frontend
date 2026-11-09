@@ -101,7 +101,7 @@ export const quotationPaymentTotal = (quotation: IQuotation): string =>
 export const quotationReviewSections = (quotation: IQuotation): IQuotationReviewSection[] =>
   quotation.sections.map(section => ({
     id: section.id,
-    title: section.title || QUOTATION_SYSTEM_LABELS[section.systemType],
+    title: `${section.brand ?? "כללי"} · ${section.title || QUOTATION_SYSTEM_LABELS[section.systemType]}`,
     items: section.items.map(line => ({
       ...line,
       amount: quotationLineMoney(line),

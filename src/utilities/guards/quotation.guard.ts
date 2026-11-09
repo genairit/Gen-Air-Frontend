@@ -96,6 +96,7 @@ export const isQuotationSection = (value: unknown): value is IQuotationSection =
   isRecord(value) &&
   hasStringFields(value, ["id", "title"]) &&
   isQuotationSystem(value.systemType) &&
+  isNullableString(value.brand) &&
   Array.isArray(value.items) &&
   value.items.every(isQuotationLine);
 export const isQuotationWarning = (value: unknown): value is IQuotationWarning =>
@@ -114,6 +115,10 @@ const hasQuotationIdentity = (value: { [field: string]: unknown }): boolean =>
     "updatedAt",
   ]) &&
   isQuotationStatus(value.status) &&
+  Array.isArray(value.brands) &&
+  value.brands.every((brand: unknown) => typeof brand === "string" && brand.length > 0) &&
+  new Set(value.brands).size === value.brands.length &&
+  (value.brands[0] ?? "") === value.brand &&
   Number.isInteger(value.version) &&
   Number(value.version) > 0 &&
   isNullableString(value.projectId) &&

@@ -31,6 +31,7 @@ export const quotationPayload = (quotation: IQuotation): IQuotationSavePayload =
     projectId,
     date,
     brand,
+    brands,
     paymentTerms,
     paymentTermsNote,
     paymentSchedule,
@@ -44,6 +45,7 @@ export const quotationPayload = (quotation: IQuotation): IQuotationSavePayload =
     projectId,
     date,
     brand,
+    brands,
     paymentTerms,
     paymentTermsNote,
     paymentSchedule,
@@ -54,6 +56,7 @@ export const quotationPayload = (quotation: IQuotation): IQuotationSavePayload =
       id: section.id,
       title: section.title,
       systemType: section.systemType,
+      brand: section.brand,
       items: section.items.map(item => ({
         id: item.id,
         catalogueItemId: item.catalogueItemId,
@@ -131,8 +134,16 @@ export const moveQuotationSection = (
   index: number,
   direction: number,
 ): IQuotation => {
-  const target = index + direction;
-  if (target < 0 || target >= quotation.sections.length) {
+  const section = quotation.sections[index];
+  if (!section) {
+    return quotation;
+  }
+  const siblingIndexes = quotation.sections.flatMap((current, position) =>
+    current.brand === section.brand ? [position] : [],
+  );
+  const siblingPosition = siblingIndexes.indexOf(index);
+  const target = siblingIndexes[siblingPosition + direction];
+  if (target === undefined) {
     return quotation;
   }
   const sections = [...quotation.sections];

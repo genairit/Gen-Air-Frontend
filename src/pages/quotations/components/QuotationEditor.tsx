@@ -19,6 +19,7 @@ import QuotationSelect from "./QuotationSelect";
 import QuotationDelete from "./QuotationDelete";
 import Icon from "../../../components/Icon/Icon";
 import Card from "../../../components/Card/Card";
+import Tabs from "../../../components/Tabs/Tabs";
 import QuotationSection from "./QuotationSection";
 import QuotationSummary from "./QuotationSummary";
 import QuotationPayments from "./QuotationPayments";
@@ -32,12 +33,15 @@ import { QUOTATION_STEPS } from "../../../constants/quotation.constant";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
+import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
 import { quotationSaveLabel } from "../../../utilities/quotation-presentation.utility";
 import { quotationOpeningLine } from "../../../utilities/quotation-presentation.utility";
 import type { TQuotationStatus, IQuotation } from "../../../interfaces/quotation.interface";
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
 import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-navigation.hook";
 import { updateQuotationSection, moveQuotationSection } from "../../../utilities/quotation.utility";
+
+const GENERAL_TAB = "__general__";
 
 interface IQuotationEditorProps {
   editable: boolean;
@@ -52,6 +56,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   canDelete = false,
 }: IQuotationEditorProps) => {
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
+  const [activeTab, setActiveTab] = useState(initial.brands[0] ?? GENERAL_TAB);
   const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
   const rebrand = useQuotationRebrand({
@@ -78,6 +83,18 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     updatedAt: quotation.updatedAt,
   });
   const systems = QUOTATION_SYSTEM_OPTIONS;
+  const selectedTab =
+    activeTab === GENERAL_TAB || quotation.brands.includes(activeTab)
+      ? activeTab
+      : (quotation.brands[0] ?? GENERAL_TAB);
+  const activeBrand = selectedTab === GENERAL_TAB ? null : selectedTab;
+  const selectedSections = quotation.sections
+    .map((section, index) => ({ section, index }))
+    .filter(({ section }) => section.brand === activeBrand);
+  const tabs = [
+    ...quotation.brands.map(brand => ({ id: brand, label: brand })),
+    { id: GENERAL_TAB, label: "כללי" },
+  ];
   const openingLine = quotationOpeningLine(quotation);
   const transition = async (status: TQuotationStatus): Promise<void> => {
     const accepted = await editor.transition(status);
@@ -136,18 +153,19 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             selectedName={quotation.projectName}
             onChange={projectId => update({ ...quotation, projectId })}
           />
-          <QuotationSelect
-            label="חברת מיזוג"
-            disabled={disabled}
-            value={quotation.brand}
-            caption="חברת מיזוג (לכל ההצעה)"
-            onChange={event => rebrand.request(event.target.value)}
-          >
-            <option value="">בחרו חברה...</option>
-            {QUOTATION_BRANDS.map(brand => (
-              <option key={brand}>{brand}</option>
-            ))}
-          </QuotationSelect>
+          {quotation.brands.length === 1 && (
+            <QuotationSelect
+              label="חברת מיזוג"
+              disabled={disabled}
+              value={quotation.brand}
+              caption="החלפת החברה בלשונית הקיימת"
+              onChange={event => rebrand.request(event.target.value)}
+            >
+              {QUOTATION_BRANDS.map(brand => (
+                <option key={brand}>{brand}</option>
+              ))}
+            </QuotationSelect>
+          )}
           <QuotationDecimalInput
             min="0"
             max="100"
@@ -240,12 +258,71 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               </p>
             </div>
           </div>
-          {quotation.sections.map((section, index) => (
+          {typeof document === "undefined" ? (
+            <div role="tablist" aria-label="לשוניות חברות ופריטים כלליים">
+              {tabs.map(tab => (
+                <button
+                  role="tab"
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  aria-selected={tab.id === selectedTab}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <Tabs
+              items={tabs}
+              mode={TAB_MODES.TABS}
+              activeId={selectedTab}
+              onChange={setActiveTab}
+              variant={TABS_VARIANTS.PILLS}
+              ariaLabel="לשוניות חברות ופריטים כלליים"
+            />
+          )}
+          {!disabled && (
+            <div className={styles.row}>
+              <QuotationSelect
+                value=""
+                label="הוספת לשונית חברה"
+                onChange={event => {
+                  const brand = event.target.value;
+                  if (!brand || quotation.brands.includes(brand)) return;
+                  const brands = [...quotation.brands, brand];
+                  update({ ...quotation, brands, brand: brands[0] });
+                  setActiveTab(brand);
+                }}
+              >
+                <option value="">בחרו חברה להוספה...</option>
+                {QUOTATION_BRANDS.filter(brand => !quotation.brands.includes(brand)).map(brand => (
+                  <option key={brand} value={brand}>
+                    {brand}
+                  </option>
+                ))}
+              </QuotationSelect>
+              {activeBrand &&
+                !quotation.sections.some(section => section.brand === activeBrand) && (
+                  <Button
+                    text="הסר לשונית ריקה"
+                    size={BUTTON_SIZES.COMPACT}
+                    variant={BUTTON_VARIANTS.NEUTRAL}
+                    onClick={() => {
+                      const brands = quotation.brands.filter(brand => brand !== activeBrand);
+                      update({ ...quotation, brands, brand: brands[0] ?? "" });
+                      setActiveTab(brands[0] ?? GENERAL_TAB);
+                    }}
+                  />
+                )}
+            </div>
+          )}
+          {selectedSections.map(({ section, index }) => (
             <QuotationSection
               key={section.id}
               section={section}
               disabled={disabled}
-              brand={quotation.brand}
+              brand={activeBrand ?? ""}
               onChange={next => update(updateQuotationSection(quotation, next))}
               onMove={direction => update(moveQuotationSection(quotation, index, direction))}
               onRemove={() =>
@@ -260,23 +337,31 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             <div className={styles.systemActions}>
               <span>הוספת מערכת / קומה</span>
               <div className={styles.row}>
-                {systems.map(({ value: systemType, label }) => (
-                  <Button
-                    key={systemType}
-                    text={`+ ${label}`}
-                    size={BUTTON_SIZES.COMPACT}
-                    variant={BUTTON_VARIANTS.NEUTRAL}
-                    onClick={() =>
-                      update({
-                        ...quotation,
-                        sections: [
-                          ...quotation.sections,
-                          { id: crypto.randomUUID(), title: "", systemType, items: [] },
-                        ],
-                      })
-                    }
-                  />
-                ))}
+                {systems
+                  .filter(({ value }) => activeBrand !== null || value === "GEN")
+                  .map(({ value: systemType, label }) => (
+                    <Button
+                      key={systemType}
+                      text={`+ ${label}`}
+                      size={BUTTON_SIZES.COMPACT}
+                      variant={BUTTON_VARIANTS.NEUTRAL}
+                      onClick={() =>
+                        update({
+                          ...quotation,
+                          sections: [
+                            ...quotation.sections,
+                            {
+                              id: crypto.randomUUID(),
+                              title: "",
+                              systemType,
+                              brand: activeBrand,
+                              items: [],
+                            },
+                          ],
+                        })
+                      }
+                    />
+                  ))}
               </div>
             </div>
           )}

@@ -40,6 +40,7 @@ export interface IQuotationLine {
 export interface IQuotationSection {
   id: string;
   title: string;
+  brand: string | null;
   items: IQuotationLine[];
   systemType: TQuotationSystem;
 }
@@ -55,6 +56,7 @@ export interface IQuotation {
   number: string;
   vatRate: string;
   version: number;
+  brands: string[];
   updatedAt: string;
   customerId: string;
   customerName?: string;
@@ -124,7 +126,7 @@ export type TQuotationSaveLine = Pick<
 >;
 export interface IQuotationSaveSection extends Pick<
   IQuotationSection,
-  "id" | "title" | "systemType"
+  "id" | "title" | "systemType" | "brand"
 > {
   items: TQuotationSaveLine[];
 }
@@ -135,6 +137,7 @@ export interface IQuotationSavePayload extends Pick<
   | "projectId"
   | "date"
   | "brand"
+  | "brands"
   | "paymentTerms"
   | "paymentTermsNote"
   | "paymentSchedule"

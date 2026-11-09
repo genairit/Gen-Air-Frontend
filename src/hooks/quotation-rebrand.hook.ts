@@ -31,11 +31,26 @@ export const useQuotationRebrand = ({
       return;
     }
     setError(null);
-    if (quotation.sections.some(section => section.items.length)) {
+    if (
+      quotation.sections.some(
+        section =>
+          (section.brand === undefined ? quotation.brand : section.brand) === quotation.brand &&
+          section.items.length,
+      )
+    ) {
       setPendingBrand(brand);
       return;
     }
-    onChange({ ...quotation, brand });
+    onChange({
+      ...quotation,
+      brand,
+      brands: brand ? [brand] : [],
+      sections: quotation.sections.map(section =>
+        (section.brand === undefined ? quotation.brand : section.brand) === quotation.brand
+          ? { ...section, brand: brand || null }
+          : section,
+      ),
+    });
   };
   const confirm = async (): Promise<void> => {
     if (pendingBrand === null || inFlight.current || blocked || confirmBlocked) {

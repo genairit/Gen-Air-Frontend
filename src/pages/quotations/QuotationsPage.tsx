@@ -163,7 +163,7 @@ const QuotationsPage: FC = () => {
               <b>{quotation.customerName ?? "לקוח"}</b>
               <span className={styles.muted}>{quotation.projectName ?? "לא מקושרת לפרויקט"}</span>
             </div>
-            <span className={styles.muted}>{quotation.brand || "טרם נבחרה חברה"}</span>
+            <span className={styles.muted}>{quotation.brands.join(" · ") || "כללי"}</span>
             <span className={styles.badge} data-status={quotation.status}>
               {QUOTATION_STATUS_LABELS[quotation.status]}
             </span>

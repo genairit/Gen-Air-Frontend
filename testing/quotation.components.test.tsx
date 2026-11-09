@@ -145,6 +145,7 @@ test("autosave keeps quotation fields and catalogue picker mounted and editable"
       id: "section",
       title: "קומה 1",
       systemType: "VRF",
+      brand: "אלקטרה",
       items: [catalogueLine(catalogueFixture(), null)],
     },
   ];
@@ -515,6 +516,7 @@ test("diagnostics hide without VRF equipment and display a missing condenser rat
         id: "vrf",
         title: "קומה",
         systemType: "VRF",
+        brand: "אלקטרה",
         items: [{ ...catalogueLine(catalogueFixture(), null), quantity: "2" }],
       },
     ];

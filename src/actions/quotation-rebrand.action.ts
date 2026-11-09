@@ -101,14 +101,25 @@ const rebrandSection = async (
     }),
   };
 };
+const isLegacyBrandSection = (section: IQuotationSection, brand: string): boolean =>
+  (section.brand === undefined ? brand : section.brand) === brand;
 export const rebrandQuotationAction = async (
   quotation: IQuotation,
   brand: string,
 ): Promise<IQuotation> => {
   const context = new AuthorizationContext();
   const sections = await Promise.all(
-    quotation.sections.map(section => rebrandSection(section, brand)),
+    quotation.sections.map(section =>
+      isLegacyBrandSection(section, quotation.brand) ? rebrandSection(section, brand) : section,
+    ),
   );
   context.assertCurrent();
-  return { ...quotation, brand, sections };
+  return {
+    ...quotation,
+    brand,
+    brands: brand ? [brand] : [],
+    sections: sections.map(section =>
+      isLegacyBrandSection(section, quotation.brand) ? { ...section, brand: brand || null } : section,
+    ),
+  };
 };
