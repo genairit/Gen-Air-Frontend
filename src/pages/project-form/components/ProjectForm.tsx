@@ -51,6 +51,7 @@ import ProjectTypeCard from "./ProjectTypeCard";
 import { usePageStyles } from "../../page.style";
 import Chip from "../../../components/Chip/Chip";
 import ProjectRolesCard from "./ProjectRolesCard";
+import ProjectNotesCard from "./ProjectNotesCard";
 import TypeSwitchBanner from "./TypeSwitchBanner";
 import ProjectAddressCard from "./ProjectAddressCard";
 import ProjectDetailsCard from "./ProjectDetailsCard";
@@ -120,6 +121,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const projectTypes = typesQuery.data ?? [];
   const fieldSet = findDetailFieldSet(projectTypes, values.typeId);
   const selectedTypeName = projectTypes.find(type => type.id === values.typeId)?.name ?? "";
+  const isBuilding = projectTypes.some(type => type.id === values.typeId && type.canHaveApartments);
   const mutationError = createMutation.error ?? updateMutation.error ?? deleteMutation.error;
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const canDelete = isEditMode && hasPermission(sessionUser, PERMISSIONS.PROJECTS_DELETE);
@@ -298,6 +300,9 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
             )
           }
         />
+      )}
+      {isBuilding && (
+        <ProjectNotesCard notes={values.notes} onChange={notes => updateValues({ notes })} />
       )}
       <ProjectRolesCard
         assignees={values.assignees}

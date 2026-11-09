@@ -1,4 +1,11 @@
 import {
+  toApartmentPayload,
+  formatApartmentLighting,
+  toApartmentLightingValues,
+  countInvalidApartmentFields,
+} from "../src/utilities/apartment.utility";
+
+import {
   toLightingPayload,
   isProjectNameConflict,
   getLightingHeightError,
@@ -19,6 +26,7 @@ import { isApiProject } from "../src/utilities/guards/api.guard";
 import { isRecord } from "../src/utilities/guards/primitive.guard";
 import { LOCAL_STORAGE_KEYS } from "../src/constants/storage.constant";
 import { PAYMENT_TERMS } from "../src/constants/payment-terms.constant";
+import { EMPTY_APARTMENT_FORM } from "../src/constants/apartment.constant";
 import { makeValues, createMemoryStorage } from "./project-constraints.fixture";
 import { toProjectFormValues, toProjectPayload } from "../src/utilities/project.utility";
 import { saveProjectDraft, readProjectDraft } from "../src/utilities/project-draft.utility";
@@ -28,6 +36,53 @@ const draftKey = `${LOCAL_STORAGE_KEYS.PROJECT_FORM_DRAFT}:${draftUserId}`;
 const memory = createMemoryStorage();
 Reflect.set(globalThis, "localStorage", memory);
 
+test("apartment creation inherits lighting until a local override is selected", () => {
+  const base = {
+    ...EMPTY_APARTMENT_FORM,
+    floor: "3",
+    apartmentNumber: "24",
+    customerId: "customer-id",
+  };
+  assert.equal(Object.hasOwn(toApartmentPayload(base), "hasOwnLighting"), false);
+  assert.equal(countInvalidApartmentFields(base), 0);
+
+  const overridden = {
+    ...base,
+    hasOwnLighting: true,
+    hasGeneralLightingCeilingLowering: true,
+    generalLightingCeilingLoweringHeight: "25.5",
+  };
+  assert.deepEqual(toApartmentPayload(overridden), {
+    customerId: "customer-id",
+    customerFloor: 3,
+    customerApartment: "24",
+    hasOwnLighting: true,
+    hasGeneralLightingCeilingLowering: true,
+    generalLightingCeilingLoweringHeight: 25.5,
+  });
+  assert.equal(countInvalidApartmentFields(overridden), 0);
+  assert.equal(
+    countInvalidApartmentFields({ ...overridden, generalLightingCeilingLoweringHeight: "" }),
+    1,
+  );
+});
+
+test("apartment lighting display preserves inherited zero and local off", () => {
+  const inherited = toApartmentLightingValues({
+    ...project,
+    hasGeneralLightingCeilingLowering: true,
+    generalLightingCeilingLoweringHeight: 0,
+  });
+  assert.equal(formatApartmentLighting(inherited), "0 ס״מ");
+  assert.equal(
+    formatApartmentLighting({
+      hasGeneralLightingCeilingLowering: false,
+      generalLightingCeilingLoweringHeight: "",
+    }),
+    "אין הנמכה כללית",
+  );
+});
+
 test("new and legacy projects default lighting off with an empty input", () => {
   const empty = toProjectFormValues(null);
   const legacy = toProjectFormValues(project);
@@ -35,6 +90,21 @@ test("new and legacy projects default lighting off with an empty input", () => {
     assert.equal(values.hasGeneralLightingCeilingLowering, false);
     assert.equal(values.generalLightingCeilingLoweringHeight, "");
   }
+});
+
+test("building notes load from the project and remain in the create or edit payload", () => {
+  const notes = "תמ״א 38\nגישה דרך חדר מדרגות";
+  const values = toProjectFormValues({ ...project, notes });
+  const payload = toProjectPayload({ values, fieldSet: null, originalIntake: null });
+
+  assert.equal(values.notes, notes);
+  assert.equal(payload?.notes, notes);
+  assert.equal(toProjectFormValues(null).notes, "");
+  assert.equal(
+    toProjectPayload({ values: { ...values, notes: "  " }, fieldSet: null, originalIntake: null })
+      ?.notes,
+    null,
+  );
 });
 
 test("reading an enabled saved zero or decimal restores exact numeric text", () => {

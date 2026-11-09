@@ -24,6 +24,7 @@ export interface IProjectPayload
   name: string;
   stageId?: string;
   customerId: string;
+  notes: string | null;
   projectTypeId: string;
   members: IProjectMemberAssignment[];
   hasGeneralLightingCeilingLowering?: boolean;
@@ -83,12 +84,18 @@ export interface IApartmentQuery {
 export interface IApartmentPayload {
   customerId: string;
   customerFloor: number;
+  hasOwnLighting?: boolean;
   customerApartment: string;
   members?: IProjectMemberAssignment[];
+  hasGeneralLightingCeilingLowering?: boolean;
+  generalLightingCeilingLoweringHeight?: number | null;
 }
 
 export interface IApartmentChanges {
   hasOwnTeam?: boolean;
   notes?: string | null;
+  hasOwnLighting?: boolean;
   members?: IProjectMemberAssignment[];
+  hasGeneralLightingCeilingLowering?: boolean;
+  generalLightingCeilingLoweringHeight?: number | null;
 }

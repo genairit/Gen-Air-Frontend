@@ -1,12 +1,14 @@
 import type { ChipVariantType } from "../constants/chip.constant";
 import type { IApiUser, IApiProjectMember } from "./api.interface";
+import type { IProjectLightingFormValues } from "./project.interface";
 import type { IValidationResult } from "./validation-result.interface";
 import type { ProjectMemberRoleType } from "../constants/user-role.constant";
 import type { TFieldType } from "../components/TextField/constants/textfield.constants";
 
-export interface IApartmentFormValues {
+export interface IApartmentFormValues extends IProjectLightingFormValues {
   floor: string;
   apartmentNumber: string;
+  hasOwnLighting: boolean;
   customerId: string | null;
   members: IApiProjectMember[] | null;
 }

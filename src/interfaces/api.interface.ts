@@ -114,6 +114,7 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   hasOwnTeam?: boolean;
   projectTypeId: string;
   apartmentCount?: number;
+  hasOwnLighting?: boolean;
   stage?: IApiProjectStage;
   customerId: string | null;
   priorityId: string | null;

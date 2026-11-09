@@ -41,15 +41,19 @@ export interface IProjectIntakeValues {
   address: IVerifiedAddress | null;
 }
 
-export interface IProjectFormValues extends IProjectIntakeValues {
+export interface IProjectLightingFormValues {
+  hasGeneralLightingCeilingLowering: boolean;
+  generalLightingCeilingLoweringHeight: string;
+}
+
+export interface IProjectFormValues extends IProjectIntakeValues, IProjectLightingFormValues {
   name: string;
+  notes: string;
   typeId: string | null;
   stageId: string | null;
   customerId: string | null;
   assignees: TRoleAssignees;
   customerDetails: TCustomerDetailValues;
-  hasGeneralLightingCeilingLowering: boolean;
-  generalLightingCeilingLoweringHeight: string;
 }
 
 export interface IProjectSubmission {

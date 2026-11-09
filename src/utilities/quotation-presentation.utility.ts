@@ -53,7 +53,7 @@ const circuitCapacity = (lines: IQuotationLine[], role: string): Decimal =>
         total.plus(new QUOTATION_DECIMAL(line.quantity || 0).times(line.capacityBtu ?? 0)),
       new QUOTATION_DECIMAL(0),
     );
-const sectionCircuits = (section: IQuotationSection): IQuotationCircuit[] => {
+const sectionCircuits = (section: IQuotationSection, brandPrefix: string): IQuotationCircuit[] => {
   const equipment = section.items.filter(
     line =>
       line.equipmentRole === EQUIPMENT_ROLE.INDOOR || line.equipmentRole === EQUIPMENT_ROLE.OUTDOOR,
@@ -66,7 +66,7 @@ const sectionCircuits = (section: IQuotationSection): IQuotationCircuit[] => {
     const outdoor = circuitCapacity(lines, EQUIPMENT_ROLE.OUTDOOR);
     return {
       id: `${section.id}:${circuit}`,
-      key: `${section.title || QUOTATION_SYSTEM.VRF} · ${circuit}`,
+      key: `${brandPrefix}${section.title || QUOTATION_SYSTEM.VRF} · ${circuit}`,
       indoor: indoor.toFixed(0),
       outdoor: outdoor.toFixed(0),
       ratio: outdoor.gt(0) ? indoor.div(outdoor).toFixed(2) : null,
@@ -76,7 +76,12 @@ const sectionCircuits = (section: IQuotationSection): IQuotationCircuit[] => {
 export const quotationCircuits = (quotation: IQuotation): IQuotationCircuit[] =>
   quotation.sections
     .filter(section => section.systemType === QUOTATION_SYSTEM.VRF)
-    .flatMap(sectionCircuits);
+    .flatMap(section =>
+      sectionCircuits(
+        section,
+        quotation.brands.length > 1 && section.brand ? `${section.brand} · ` : "",
+      ),
+    );
 export const quotationOpeningLine = (quotation: IQuotation): string | null =>
   quotation.sections
     .flatMap(section => section.items)
@@ -98,17 +103,22 @@ export const quotationPaymentTotal = (quotation: IQuotation): string =>
   quotation.paymentSchedule
     .reduce((total, stage) => total.plus(stage.percent || 0), new QUOTATION_DECIMAL(0))
     .toString();
-export const quotationReviewSections = (quotation: IQuotation): IQuotationReviewSection[] =>
-  quotation.sections.map(section => ({
-    id: section.id,
-    title: section.title || QUOTATION_SYSTEM_LABELS[section.systemType],
-    items: section.items.map(line => ({
-      ...line,
-      amount: quotationLineMoney(line),
-      priceLabel: quotationMoney(line.quotedPrice),
-      quantityLabel: quotationDecimalInput(line.quantity),
-    })),
-  }));
+export const quotationReviewSections = (quotation: IQuotation): IQuotationReviewSection[] => {
+  const order = (brand: string | null): number =>
+    brand === null ? quotation.brands.length : quotation.brands.indexOf(brand);
+  return [...quotation.sections]
+    .sort((left, right) => order(left.brand) - order(right.brand))
+    .map(section => ({
+      id: section.id,
+      title: `${section.brand ?? "כללי"} · ${section.title || QUOTATION_SYSTEM_LABELS[section.systemType]}`,
+      items: section.items.map(line => ({
+        ...line,
+        amount: quotationLineMoney(line),
+        priceLabel: quotationMoney(line.quotedPrice),
+        quantityLabel: quotationDecimalInput(line.quantity),
+      })),
+    }));
+};
 
 export const quotationLineGroups = (section: IQuotationSection): IQuotationLineGroup[] =>
   section.items

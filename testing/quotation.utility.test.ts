@@ -15,8 +15,10 @@ import {
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { QUOTATION_SYSTEM } from "../src/constants/quotation.constant";
 import { quotationFixture, catalogueFixture } from "./quotation.fixture";
 import { isQuotation, isCatalogueItem } from "../src/utilities/guards/quotation.guard";
+import { quotationReviewSections } from "../src/utilities/quotation-presentation.utility";
 
 test("quotation response guard rejects malformed snapshots, totals and warning payloads", () => {
   const quotation = quotationFixture();
@@ -52,6 +54,7 @@ test("payment stages replace a copied fixed term without losing the quotation no
 test("catalogue response guard rejects invalid price and included-controller metadata", () => {
   const item = catalogueFixture();
   assert.ok(isCatalogueItem(item));
+  assert.ok(isCatalogueItem({ ...item, brand: "", systemType: "" }));
   assert.equal(isCatalogueItem({ ...item, price: 10 }), false);
   assert.equal(isCatalogueItem({ ...item, includesRemote: "true" }), false);
 });
@@ -102,6 +105,31 @@ test("section reordering preserves identities and bounds", () => {
     ["b", "a"],
   );
   assert.equal(moveQuotationSection(quotation, 0, -1), quotation);
+});
+test("brand tabs persist with section ownership and reordering stays inside a tab", () => {
+  const quotation = quotationFixture();
+  quotation.brands = ["אלקטרה", "תדיראן"];
+  quotation.sections = [
+    { id: "a", title: "A", systemType: "VRF", brand: "אלקטרה", items: [] },
+    { id: "b", title: "B", systemType: QUOTATION_SYSTEM.GENERAL, brand: null, items: [] },
+    { id: "c", title: "C", systemType: "VRF", brand: "תדיראן", items: [] },
+    { id: "d", title: "D", systemType: QUOTATION_SYSTEM.GENERAL, brand: "אלקטרה", items: [] },
+  ];
+  assert.deepEqual(
+    moveQuotationSection(quotation, 0, 1).sections.map(section => section.id),
+    ["d", "b", "c", "a"],
+  );
+  assert.equal(moveQuotationSection(quotation, 1, 1), quotation);
+  const body = quotationPayload(quotation);
+  assert.deepEqual(body.brands, ["אלקטרה", "תדיראן"]);
+  assert.deepEqual(
+    body.sections.map(section => section.brand),
+    ["אלקטרה", null, "תדיראן", "אלקטרה"],
+  );
+  assert.deepEqual(
+    quotationReviewSections(quotation).map(section => section.id),
+    ["a", "d", "c", "b"],
+  );
 });
 test("financial formatting retains cents beyond JavaScript safe integer precision", () => {
   const rendered = quotationMoney("10821521067063092717.57");
@@ -297,6 +325,14 @@ test("VRF diagnostics isolate sections and circuits, multiply quantities and avo
     { id: "one:B", key: "same · B", indoor: "0", outdoor: "0", ratio: null },
     { id: "two:A", key: "same · A", indoor: "10000", outdoor: "0", ratio: null },
   ]);
+  const branded = structuredClone(quotation);
+  branded.brands = ["אלקטרה", "תדיראן"];
+  branded.sections[0].brand = "אלקטרה";
+  branded.sections[1].brand = "תדיראן";
+  assert.deepEqual(
+    quotationCircuits(branded).map(circuit => circuit.key),
+    ["אלקטרה · same · A", "אלקטרה · same · B", "תדיראן · same · A"],
+  );
   assert.deepEqual(quotation, before);
 });
 

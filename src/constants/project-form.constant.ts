@@ -47,6 +47,10 @@ export const PROJECT_FORM_MODE_PERMISSIONS: Record<ProjectFormModeType, Permissi
 
 export const PROJECT_FORM_COPY = {
   CANCEL: "ביטול",
+  NOTES_TITLE: "הערות כלליות לבניין",
+  NOTES_SUBTITLE: "הערות אלה מוצגות גם בדירות כמידע מהבניין",
+  NOTES_LABEL: "הערות כלליות",
+  NOTES_PLACEHOLDER: "למשל, הנחיות תמ״א או מידע משותף לכל הדירות",
   DRAFT_RESTORED: "טיוטת הפרויקט שוחזרה",
   DRAFT_NOTICE: "פרטי הפרויקט נשמרים כטיוטה במכשיר זה",
   DISCARD_DRAFT: "מחק טיוטה והתחל מחדש",
