@@ -43,6 +43,7 @@ export interface IProjectIntakeValues {
 
 export interface IProjectFormValues extends IProjectIntakeValues {
   name: string;
+  notes: string;
   typeId: string | null;
   stageId: string | null;
   customerId: string | null;

@@ -24,6 +24,7 @@ export interface IProjectPayload
   name: string;
   stageId?: string;
   customerId: string;
+  notes: string | null;
   projectTypeId: string;
   members: IProjectMemberAssignment[];
   hasGeneralLightingCeilingLowering?: boolean;

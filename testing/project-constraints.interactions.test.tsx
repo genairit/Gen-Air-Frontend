@@ -19,6 +19,7 @@ import { setSession } from "../src/store/session.store";
 import { QueryClientProvider } from "@tanstack/react-query";
 import TextField from "../src/components/TextField/TextField";
 import { API_ENDPOINTS } from "../src/constants/api.constant";
+import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { QUERY_ROOTS } from "../src/constants/query-key.constant";
 import { installDomEventTargets } from "./dom-event-targets.utility";
@@ -26,19 +27,35 @@ import { SEARCH_DEBOUNCE_MS } from "../src/constants/search.constant";
 import ProjectForm from "../src/pages/project-form/components/ProjectForm";
 import { PROJECT_FORM_MODES } from "../src/constants/project-form.constant";
 import type { IProjectFormValues } from "../src/interfaces/project.interface";
+import type { IProjectPayload } from "../src/interfaces/api-request.interface";
 import { getProjectNameAvailability } from "../src/services/project-name.service";
+import ProjectTypeCard from "../src/pages/project-form/components/ProjectTypeCard";
+import ProjectNotesCard from "../src/pages/project-form/components/ProjectNotesCard";
 import { useProjectNameAvailability } from "../src/hooks/queries/project-name.query";
 import { PROJECT_CONSTRAINT_COPY } from "../src/constants/project-constraints.constant";
 import ProjectDetailsCard from "../src/pages/project-form/components/ProjectDetailsCard";
+import { PROJECT_DETAIL_FIELD_SETS } from "../src/constants/project-detail-field-set.constant";
 import ProjectLightingFields from "../src/pages/project-form/components/ProjectLightingFields";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 after(installDomEventTargets());
+Reflect.set(Reflect.get(globalThis, "window"), "getComputedStyle", () => ({
+  width: "100px",
+  boxSizing: "border-box",
+  paddingBottom: "0px",
+  paddingTop: "0px",
+  borderBottomWidth: "0px",
+  borderTopWidth: "0px",
+}));
+Reflect.set(globalThis, "cancelAnimationFrame", () => {});
+after(() => Reflect.deleteProperty(globalThis, "cancelAnimationFrame"));
 const settle = () => setTimeout(20);
 const rendererState = (): { renderer: ReturnType<typeof create> | null } => ({ renderer: null });
 
 const createNodeMock = () => ({
   value: "",
+  style: {},
+  scrollHeight: 20,
   nodeName: "INPUT",
   focus: () => {},
   blur: () => {},
@@ -425,6 +442,87 @@ test("project form prevents duplicate or pending names from submitting despite d
   } finally {
     await act(async () => state.renderer?.unmount());
     client.clear();
+    request.mock.restore();
+    patch.mock.restore();
+    setSession(null);
+  }
+});
+
+test("building notes appear only for buildings and are submitted with edits", async () => {
+  const client = createConstraintClient();
+  const buildingClient = createConstraintClient();
+  buildingClient.setQueryDefaults(QUERY_KEYS.PROJECT_TYPES, { gcTime: Infinity });
+  const state = rendererState();
+  const projectType = {
+    id: project.projectTypeId,
+    name: "בנייה רוויה",
+    position: 0,
+    tag: null,
+    icon: null,
+    subtitle: null,
+    description: null,
+    canHaveApartments: true,
+    detailFieldSet: PROJECT_DETAIL_FIELD_SETS.COMPANY,
+  };
+  const request = mock.method(httpClient, "get", async () => ({ data: { available: true } }));
+  const patch = mock.method(
+    httpClient,
+    "patch",
+    async (_url: string, payload: IProjectPayload) => ({
+      data: { ...project, notes: payload.notes },
+    }),
+  );
+  client.setQueryData(QUERY_KEYS.PROJECT_TYPES, [{ ...projectType, canHaveApartments: false }]);
+  setSession({ accessToken: "test-token", user: constraintUser });
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={client}>
+          <MemoryRouter>
+            <ProjectForm project={project} mode={PROJECT_FORM_MODES.EDIT} />
+          </MemoryRouter>
+        </QueryClientProvider>,
+        { createNodeMock },
+      );
+      await settle();
+    });
+    const renderer = state.renderer;
+    assert.ok(renderer);
+    assert.equal(renderer.root.findAllByType(ProjectNotesCard).length, 0);
+    await act(async () => renderer.unmount());
+    buildingClient.setQueryData(QUERY_KEYS.PROJECT_TYPES, [projectType]);
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={buildingClient}>
+          <MemoryRouter>
+            <ProjectForm project={project} mode={PROJECT_FORM_MODES.EDIT} />
+          </MemoryRouter>
+        </QueryClientProvider>,
+        { createNodeMock },
+      );
+      await settle();
+    });
+    const buildingRenderer = state.renderer;
+    assert.ok(buildingRenderer);
+    assert.deepEqual(buildingClient.getQueryData(QUERY_KEYS.PROJECT_TYPES), [projectType]);
+    assert.equal(buildingRenderer.root.findByType(ProjectTypeCard).props.options.length, 1);
+    const notes = buildingRenderer.root.findByType(ProjectNotesCard);
+    assert.equal(notes.props.notes, "");
+    await act(async () => notes.props.onChange("תמ״א 38\nגישה מחדר מדרגות"));
+    const save = buildingRenderer.root
+      .findAllByType(Button)
+      .find(item => item.props.text === "שמור שינויים");
+    assert.ok(save);
+    await act(async () => {
+      save.props.onClick();
+      await settle();
+    });
+    assert.equal(patch.mock.callCount(), 1);
+    assert.equal(patch.mock.calls[0].arguments[1].notes, "תמ״א 38\nגישה מחדר מדרגות");
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    client.clear();
+    buildingClient.clear();
     request.mock.restore();
     patch.mock.restore();
     setSession(null);

@@ -10,6 +10,7 @@ import type {
   IProjectSubmission,
 } from "../interfaces/project.interface";
 
+import { toOptionalText } from "./text.utility";
 import { BOARD_COPY } from "../constants/board.constant";
 import { mapProjectMemberRoles } from "./user-role.utility";
 import { toLightingPayload } from "./project-constraints.utility";
@@ -30,6 +31,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
   if (!project) {
     return {
       name: "",
+      notes: "",
       hasGeneralLightingCeilingLowering: false,
       generalLightingCeilingLoweringHeight: "",
       typeId: null,
@@ -43,6 +45,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
 
   return {
     name: project.name,
+    notes: project.notes ?? "",
     hasGeneralLightingCeilingLowering: project.hasGeneralLightingCeilingLowering ?? false,
     generalLightingCeilingLoweringHeight:
       project.generalLightingCeilingLoweringHeight?.toString() ?? "",
@@ -81,6 +84,7 @@ export const toProjectPayload = ({
     ...toIntakePayload(values, originalIntake),
     ...toLightingPayload(values),
     name: values.name.trim(),
+    notes: toOptionalText(values.notes),
     projectTypeId: values.typeId,
     customerId: values.customerId,
     members: toMemberAssignments(values.assignees),
