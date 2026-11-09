@@ -120,6 +120,7 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   priorityId: string | null;
   parentNotes?: string | null;
   driveFolderId: string | null;
+  waitingReason?: string | null;
   projectType?: IApiProjectType;
   members?: IApiProjectMember[];
   customer?: IApiCustomer | null;
@@ -145,7 +146,7 @@ export interface IApiStageTransition {
   id: string;
   createdAt: string;
   toStageId: string;
-  note: string | null;
+  note?: string | null;
   changedBy?: IApiUser;
   toStage?: IApiProjectStage;
   changedByRole: UserRoleType;

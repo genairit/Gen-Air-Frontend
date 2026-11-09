@@ -49,6 +49,7 @@ export interface IProjectLightingFormValues {
 export interface IProjectFormValues extends IProjectIntakeValues, IProjectLightingFormValues {
   name: string;
   notes: string;
+  stageNote: string;
   typeId: string | null;
   stageId: string | null;
   customerId: string | null;
@@ -58,6 +59,7 @@ export interface IProjectFormValues extends IProjectIntakeValues, IProjectLighti
 
 export interface IProjectSubmission {
   values: IProjectFormValues;
+  originalStageId?: string | null;
   fieldSet: ProjectDetailFieldSetType | null;
   originalIntake: IProjectIntakeValues | null;
 }
@@ -83,7 +85,13 @@ export interface ITimelineEntry {
   author: string;
   dotColor: string;
   badge?: ReactNode;
+  note?: string | null;
   isHighlighted?: boolean;
+}
+
+export interface IStageMove {
+  stageId: string;
+  note?: string | null;
 }
 
 export interface IProjectFolder {

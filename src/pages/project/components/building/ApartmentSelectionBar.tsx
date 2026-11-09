@@ -4,6 +4,12 @@ import {
   findOptionIdByLabel,
 } from "../../../../utilities/option.utility";
 
+import {
+  formatSelectedApartments,
+  formatBulkWaitingReasonTitle,
+  formatBulkWaitingReasonContext,
+} from "../../../../utilities/apartment.utility";
+
 import type { FC } from "react";
 import Button from "../../../../components/Button/Button";
 import { useSessionUser } from "../../../../store/session.store";
@@ -12,11 +18,13 @@ import ActionBar from "../../../../components/ActionBar/ActionBar";
 import { PERMISSIONS } from "../../../../constants/permission.constant";
 import { hasPermission } from "../../../../utilities/permission.utility";
 import InlineError from "../../../../components/InlineError/InlineError";
+import type { IStageMove } from "../../../../interfaces/project.interface";
 import Autocomplete from "../../../../components/Autocomplete/Autocomplete";
 import type { IApiProjectStage } from "../../../../interfaces/api.interface";
 import { getApiErrorMessage } from "../../../../utilities/api-error.utility";
+import { useStageReasonGate } from "../../../../hooks/stage-reason-gate.hook";
 import { BUILDING_PAGE_COPY } from "../../../../constants/apartment.constant";
-import { formatSelectedApartments } from "../../../../utilities/apartment.utility";
+import StageReasonPopup from "../../../../components/StageReasonPopup/StageReasonPopup";
 import { useMoveApartmentsMutation } from "../../../../hooks/mutations/apartment.mutation";
 import { BUTTON_VARIANTS } from "../../../../components/Button/constants/button.constants";
 
@@ -35,6 +43,20 @@ const ApartmentSelectionBar: FC<IApartmentSelectionBarProps> = ({
   const canChangeStatus = hasPermission(user, PERMISSIONS.PROJECTS_STATUS_CHANGE);
   const moveMutation = useMoveApartmentsMutation();
   const stageOptions = toOptions(stages);
+  const selectedCount = apartmentIds.length;
+
+  const moveWithReason = async (move: IStageMove) => {
+    await moveMutation.mutateAsync({ ...move, apartmentIds });
+    onClear();
+  };
+
+  const stageGate = useStageReasonGate({
+    moveWithReason,
+    onCancel: moveMutation.reset,
+    moveToStage: stageId => moveMutation.mutate({ stageId, apartmentIds }, { onSuccess: onClear }),
+  });
+
+  const isMoveErrorVisible = moveMutation.isError && !stageGate.isReasonOpen;
 
   const moveToStage = (stageLabel: string | null) => {
     const stageId = findOptionIdByLabel(stageOptions, stageLabel);
@@ -43,7 +65,7 @@ const ApartmentSelectionBar: FC<IApartmentSelectionBarProps> = ({
       return;
     }
 
-    moveMutation.mutate({ stageId, apartmentIds }, { onSuccess: onClear });
+    stageGate.requestStage(stageId);
   };
 
   if (!canChangeStatus) {
@@ -52,10 +74,7 @@ const ApartmentSelectionBar: FC<IApartmentSelectionBarProps> = ({
 
   return (
     <>
-      <ActionBar
-        captionIcon={ICON_NAMES.DONE}
-        caption={formatSelectedApartments(apartmentIds.length)}
-      >
+      <ActionBar captionIcon={ICON_NAMES.DONE} caption={formatSelectedApartments(selectedCount)}>
         <Autocomplete
           value={null}
           isAutocomplete={false}
@@ -70,7 +89,14 @@ const ApartmentSelectionBar: FC<IApartmentSelectionBarProps> = ({
           text={BUILDING_PAGE_COPY.CLEAR_SELECTION}
         />
       </ActionBar>
-      {moveMutation.isError && <InlineError message={getApiErrorMessage(moveMutation.error)} />}
+      {isMoveErrorVisible && <InlineError message={getApiErrorMessage(moveMutation.error)} />}
+      <StageReasonPopup
+        open={stageGate.isReasonOpen}
+        onCancel={stageGate.cancelReason}
+        onConfirm={stageGate.confirmReason}
+        title={formatBulkWaitingReasonTitle(selectedCount)}
+        contextText={formatBulkWaitingReasonContext(selectedCount)}
+      />
     </>
   );
 };

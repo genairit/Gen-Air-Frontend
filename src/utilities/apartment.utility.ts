@@ -165,6 +165,12 @@ export const findStage = (stages: IApiProjectStage[], stageId: string) =>
 export const formatSelectedApartments = (count: number) =>
   `${count} ${BUILDING_PAGE_COPY.SELECTED}`;
 
+export const formatBulkWaitingReasonTitle = (count: number) =>
+  `העברת ${count} דירות לשלב ״מחכה לתשובה״`;
+
+export const formatBulkWaitingReasonContext = (count: number) =>
+  `הסיבה תישמר עבור כל ${count} הדירות שנבחרו ותוצג בציר הזמן של כל דירה.`;
+
 export const formatInheritedNotesSummary = (notes: string | null) => {
   if (hasTamaNote(notes)) {
     return ADD_APARTMENT_COPY.HAS_NOTES;

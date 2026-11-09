@@ -27,8 +27,11 @@ import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { ICON_TILE_SIZES } from "../../../constants/icon-tile.constant";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { useStageReasonGate } from "../../../hooks/stage-reason-gate.hook";
 import { APARTMENT_PAGE_COPY } from "../../../constants/apartment.constant";
+import WaitingReasonBanner from "../../project/components/WaitingReasonBanner";
 import { useAllApartmentsQuery } from "../../../hooks/queries/apartment.query";
+import StageReasonPopup from "../../../components/StageReasonPopup/StageReasonPopup";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 import { useMoveApartmentsMutation } from "../../../hooks/mutations/apartment.mutation";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
@@ -58,8 +61,21 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
     navigate(buildApartmentPath(building.id, apartmentId));
   };
 
-  const moveToStage = (stageId: string) =>
-    moveMutation.mutate({ stageId, apartmentIds: [apartment.id] });
+  const stageGate = useStageReasonGate({
+    onCancel: moveMutation.reset,
+    moveToStage: stageId => moveMutation.mutate({ stageId, apartmentIds: [apartment.id] }),
+    moveWithReason: move => moveMutation.mutateAsync({ ...move, apartmentIds: [apartment.id] }),
+  });
+
+  const isMoveErrorVisible = moveMutation.isError && !stageGate.isReasonOpen;
+
+  const moveToStage = (stageId: string) => {
+    if (stageId === apartment.stageId || moveMutation.isPending) {
+      return;
+    }
+
+    stageGate.requestStage(stageId);
+  };
 
   return (
     <Card gap="18px">
@@ -130,7 +146,15 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
         variant={TABS_VARIANTS.STATUS}
         ariaLabel={APARTMENT_PAGE_COPY.STAGE_TITLE}
       />
-      {moveMutation.isError && <InlineError message={getApiErrorMessage(moveMutation.error)} />}
+      <WaitingReasonBanner project={apartment} />
+      {isMoveErrorVisible && <InlineError message={getApiErrorMessage(moveMutation.error)} />}
+      <StageReasonPopup
+        open={stageGate.isReasonOpen}
+        onCancel={stageGate.cancelReason}
+        onConfirm={stageGate.confirmReason}
+        title={APARTMENT_PAGE_COPY.WAITING_REASON_TITLE}
+        contextText={APARTMENT_PAGE_COPY.WAITING_REASON_CONTEXT}
+      />
     </Card>
   );
 };

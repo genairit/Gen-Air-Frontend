@@ -15,6 +15,8 @@ export const PROJECT_PAGE_COPY = {
   NOT_FOUND_TITLE: "הפרויקט לא נמצא",
   NOT_FOUND_DESCRIPTION: "ייתכן שהפרויקט נמחק או שהקישור שגוי.",
   BACK_TO_BOARD: "חזרה ללוח הבקרה",
+  WAITING_REASON_TITLE: "העברה לשלב ״מחכה לתשובה״",
+  WAITING_REASON_CONTEXT: "יש לפרט למה או למי הפרויקט ממתין. הסיבה תוצג בעמוד הפרויקט ובציר הזמן.",
 } as const;
 
 export const PROJECT_PAGE_STATUS_COPY = {

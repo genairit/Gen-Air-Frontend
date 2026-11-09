@@ -231,6 +231,7 @@ export const DEMO_PROJECT_TIMELINE: ITimelineEntry[] = [
     date: "02/11/2023 09:15",
     label: "הועבר לביצוע",
     dotColor: palette.charcoal,
+    note: "ממתינים לאישור התוכנית מהאדריכל",
     author: "שונה ע״י מירב כהן (מזכירה)",
   },
   {

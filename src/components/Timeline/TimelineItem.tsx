@@ -4,6 +4,7 @@ import Chip from "../Chip/Chip";
 import { Box } from "@mui/material";
 import { useStyles } from "./TimelineItem.style";
 import type { ITimelineEntry } from "../../interfaces/project.interface";
+import { STAGE_REASON_COPY } from "../../constants/project-stage.constant";
 import { CHIP_VARIANTS, type ChipVariantType } from "../../constants/chip.constant";
 
 interface ITimelineItemProps {
@@ -34,6 +35,16 @@ const TimelineItem: FC<ITimelineItemProps> = ({ entry, isLast }) => {
             {entry.date}
           </Box>
         </Box>
+        {entry.note && (
+          <Box sx={styles.note}>
+            <Box component="span" sx={styles.noteLabel}>
+              {STAGE_REASON_COPY.TIMELINE_LABEL}
+            </Box>
+            <Box component="bdi" sx={styles.noteText}>
+              {entry.note}
+            </Box>
+          </Box>
+        )}
         <Box component="span" sx={styles.author}>
           {entry.author}
         </Box>
