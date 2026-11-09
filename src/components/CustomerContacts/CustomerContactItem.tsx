@@ -4,6 +4,7 @@ import Button from "../Button/Button";
 import Avatar from "../Avatar/Avatar";
 import { useStyles } from "./CustomerContacts.style";
 import { getInitials } from "../../utilities/text.utility";
+import { toTelephoneHref } from "../../utilities/phone.utility";
 import { CUSTOMER_CONTACT_COPY } from "../../constants/customer-contact.constant";
 import type { ICustomerContact } from "../../interfaces/customer-contact.interface";
 import { BUTTON_SIZES, BUTTON_VARIANTS } from "../Button/constants/button.constants";
@@ -14,7 +15,7 @@ interface ICustomerContactItemProps {
 }
 const CustomerContactItem: FC<ICustomerContactItemProps> = ({ contact, onEdit }) => {
   const styles = useStyles();
-  const phoneLinkProps = contact.phone ? { href: `tel:${contact.phone}` } : {};
+  const phoneLinkProps = contact.phone ? { href: toTelephoneHref(contact.phone) } : {};
 
   return (
     <Box sx={styles.item}>

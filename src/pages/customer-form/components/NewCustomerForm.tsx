@@ -27,15 +27,12 @@ import {
 
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Card from "../../../components/Card/Card";
 import { usePageStyles } from "../../page.style";
 import CustomerFieldsCard from "./CustomerFieldsCard";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import CustomerSaveSummaryCard from "./CustomerSaveSummaryCard";
-import { ROUTE_PATHS } from "../../../constants/routes.constant";
-import { buildCustomerPath } from "../../../utilities/route.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { isDetailFieldSet } from "../../../utilities/guards/api.guard";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
@@ -47,11 +44,12 @@ import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.con
 
 interface INewCustomerFormProps {
   creatorName: string;
+  onCancel: () => void;
+  onCreated: (customerId: string) => void;
 }
 
-const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
+const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, onCancel }) => {
   const styles = usePageStyles();
-  const navigate = useNavigate();
   const [values, setValues] = useState<ICreateCustomerPayload>(EMPTY_CUSTOMER_FORM);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const mutation = useCreateCustomerMutation();
@@ -89,7 +87,7 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
     }
 
     mutation.mutate(normalizeCustomerForm(values), {
-      onSuccess: id => navigate(buildCustomerPath(id)),
+      onSuccess: onCreated,
     });
   };
 
@@ -140,10 +138,10 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
       {mutation.isError && <InlineError message={getApiErrorMessage(mutation.error)} />}
       <Box sx={styles.endRow}>
         <Button
+          onClick={onCancel}
           disabled={mutation.isPending}
           text={CUSTOMER_FORM_COPY.CANCEL}
           variant={BUTTON_VARIANTS.NEUTRAL}
-          onClick={() => navigate(ROUTE_PATHS.CUSTOMERS)}
         />
         <Button
           onClick={save}

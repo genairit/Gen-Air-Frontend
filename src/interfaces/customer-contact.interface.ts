@@ -7,7 +7,7 @@ export interface ICustomerContactInput {
 
 export interface ICustomerContact extends ICustomerContactInput {
   id: string;
-  customerId: string;
+  customerId: string | null;
 }
 
 export interface ICustomerContactDraft {

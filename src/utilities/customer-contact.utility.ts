@@ -5,9 +5,10 @@ import type {
 } from "../interfaces/customer-contact.interface";
 
 import { isEmail } from "class-validator";
+import { toDialablePhone } from "./phone.utility";
 import { isRecord, isNullableString } from "./guards/primitive.guard";
+import { FIELD_INPUT_LIMITS } from "../constants/field-validation.constant";
 import { CUSTOMER_CONTACT_COPY } from "../constants/customer-contact.constant";
-import { FIELD_INPUT_LIMITS, FIELD_VALIDATION_REGEX } from "../constants/field-validation.constant";
 
 export const isCustomerContact = (value: unknown): value is ICustomerContact => {
   if (!isRecord(value)) {
@@ -16,7 +17,7 @@ export const isCustomerContact = (value: unknown): value is ICustomerContact => 
 
   const hasIdentity =
     typeof value.id === "string" &&
-    typeof value.customerId === "string" &&
+    isNullableString(value.customerId) &&
     typeof value.name === "string";
   const hasDetails =
     isNullableString(value.phone) && isNullableString(value.email) && isNullableString(value.role);
@@ -47,9 +48,7 @@ export const getCustomerContactFieldErrors = (draft: ICustomerContactDraft) => {
   const invalidName =
     input.name.length < FIELD_INPUT_LIMITS.MIN_TEXT_LENGTH ||
     input.name.length > FIELD_INPUT_LIMITS.CUSTOMER_NAME_CHARACTERS;
-  const invalidPhone = Boolean(
-    input.phone && !FIELD_VALIDATION_REGEX.ISRAELI_PHONE.test(input.phone),
-  );
+  const invalidPhone = Boolean(input.phone && !toDialablePhone(input.phone));
   const invalidEmail = Boolean(input.email && !isEmail(input.email));
   const invalidRole = Boolean(
     input.role && input.role.length > FIELD_INPUT_LIMITS.CONTACT_ROLE_CHARACTERS,
@@ -69,12 +68,14 @@ export const validateCustomerContactDraft = (draft: ICustomerContactDraft): stri
 export const formatCustomerContactCount = (contacts: ICustomerContact[]) =>
   contacts.length === 1 ? "איש קשר אחד" : `${contacts.length} אנשי קשר`;
 
-export const formatCustomerPrimaryContact = (contacts: ICustomerContact[]) => {
-  const primary = contacts[0];
+export const formatCustomerPrimaryContact = (
+  contacts: ICustomerContact[],
+  primaryContactId: string | null,
+) => {
+  const primary = contacts.find(contact => contact.id === primaryContactId);
   if (!primary) {
     return CUSTOMER_CONTACT_COPY.EMPTY;
   }
 
-  const additionalCount = contacts.length - 1;
-  return additionalCount > 0 ? `${primary.name} (+${additionalCount})` : primary.name;
+  return primary.name;
 };

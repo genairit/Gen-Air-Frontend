@@ -10,7 +10,6 @@ import {
 } from "../../../constants/apartment.constant";
 
 import { Box } from "@mui/material";
-import { Link } from "react-router-dom";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePageStyles } from "../../page.style";
@@ -19,7 +18,6 @@ import ApartmentFieldsCard from "./ApartmentFieldsCard";
 import InheritedPreviewCard from "./InheritedPreviewCard";
 import ApartmentTeamDraftCard from "./ApartmentTeamDraftCard";
 import { ICON_NAMES } from "../../../constants/icon.constant";
-import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { buildProjectPath } from "../../../utilities/route.utility";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import ApartmentLightingDraftCard from "./ApartmentLightingDraftCard";
@@ -27,13 +25,11 @@ import InlineError from "../../../components/InlineError/InlineError";
 import { useCustomerQuery } from "../../../hooks/queries/customer.query";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { isCustomerSelectable } from "../../../utilities/customer.utility";
-import { APARTMENT_TEAM_COPY } from "../../../constants/apartment.constant";
 import type { IApartmentFormValues } from "../../../interfaces/apartment.interface";
 import { formatApartmentValidationCount } from "../../../utilities/apartment.utility";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { useCreateApartmentMutation } from "../../../hooks/mutations/apartment.mutation";
 import ProjectCustomerPickerCard from "../../project-form/components/ProjectCustomerPickerCard";
-import { useStyles as useCustomerPickerStyles } from "../../project-form/components/ProjectCustomerPicker.style";
 
 interface INewApartmentFormProps {
   building: IApiProject;
@@ -41,7 +37,6 @@ interface INewApartmentFormProps {
 
 const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const styles = usePageStyles();
-  const pickerStyles = useCustomerPickerStyles();
   const navigate = useNavigate();
   const [values, setValues] = useState<IApartmentFormValues>(EMPTY_APARTMENT_FORM);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
@@ -100,17 +95,6 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
         title={ADD_APARTMENT_COPY.PEOPLE_TITLE}
         subtitle={ADD_APARTMENT_COPY.PEOPLE_SUBTITLE}
         onChange={customerId => updateValues({ customerId })}
-        action={
-          <Box
-            component={Link}
-            to={ROUTE_PATHS.NEW_CUSTOMER}
-            target="_blank"
-            rel="noopener noreferrer"
-            sx={pickerStyles.link}
-          >
-            {APARTMENT_TEAM_COPY.NEW_CUSTOMER}
-          </Box>
-        }
       />
       <ApartmentTeamDraftCard
         building={building}

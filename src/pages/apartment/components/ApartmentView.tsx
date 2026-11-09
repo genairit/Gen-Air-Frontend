@@ -15,6 +15,7 @@ import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import ProjectDriveCard from "../../project/components/ProjectDriveCard";
 import ProjectTimelineCard from "../../project/components/ProjectTimelineCard";
+import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 
 interface IApartmentViewProps {
@@ -40,6 +41,8 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
         </Box>
         <ApartmentInheritedCard apartment={apartment} />
       </Box>
+
+      <ProjectContacts canEdit={canEdit} projectId={apartment.id} />
 
       <ApartmentCommercialCard apartment={apartment} />
       <ApartmentLightingCard canEdit={canEdit} apartment={apartment} />

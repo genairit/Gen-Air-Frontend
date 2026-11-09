@@ -109,4 +109,4 @@ export const getCustomerPickerLabel = (search: string) => {
 };
 
 export const formatCustomerContactLine = (customer: IApiCustomer) =>
-  [customer.contactName, customer.phone, customer.email].join(" · ");
+  [customer.contactName, customer.phone, customer.email].filter(Boolean).join(" · ");
