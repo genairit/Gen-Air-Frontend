@@ -83,14 +83,21 @@ const CustomerPrimaryContactCard: FC<ICustomerPrimaryContactCardProps> = ({ cust
       />
       {primary ? (
         <Box sx={styles.spacedRow}>
-          <Box component="b">{primary.name}</Box>
+          <Box component="b" sx={styles.wrappingText}>
+            {primary.name}
+          </Box>
           {primary.phone && (
-            <Box dir="ltr" component="a" href={toTelephoneHref(primary.phone)}>
+            <Box
+              dir="ltr"
+              component="a"
+              sx={styles.wrappingText}
+              href={toTelephoneHref(primary.phone)}
+            >
               {primary.phone}
             </Box>
           )}
           {primary.email && (
-            <Box dir="ltr" component="span">
+            <Box dir="ltr" component="span" sx={styles.wrappingText}>
               {primary.email}
             </Box>
           )}
