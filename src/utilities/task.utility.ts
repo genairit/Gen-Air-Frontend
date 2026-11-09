@@ -35,11 +35,12 @@ import { formatDate } from "./date.utility";
 import { getInitials } from "./text.utility";
 import { isTaskStatus } from "./guards/task.guard";
 import { getFullName } from "./mappers/user.mapper";
+import { getAssignedRoles } from "./user-role.utility";
 import { DATE_FORMAT } from "../constants/date.constants";
 import { TASK_TYPES } from "../constants/task-type.constant";
 import type { ITabItem } from "../interfaces/tab-item.interface";
-import { USER_ROLE_LABELS } from "../constants/user-role.constant";
 import { buildCustomerPath, buildProjectPath } from "./route.utility";
+import { USER_ROLES, USER_ROLE_LABELS } from "../constants/user-role.constant";
 import type { IApiUser, IApiProject, IApiCustomerReference } from "../interfaces/api.interface";
 
 const toDueDate = (task: IApiTask) => (task.dueDate ? new Date(task.dueDate) : null);
@@ -214,6 +215,61 @@ export const toAssigneeOptions = (users: IApiUser[]) => [
   { id: POOL_ASSIGNEE_ID, label: NEW_TASK_COPY.POOL_OPTION },
   ...users.map(user => ({ id: user.id, label: getFullName(user) })),
 ];
+
+export const toProjectTaskAssigneeOptions = (
+  users: IApiUser[],
+  project: IApiProject | null | undefined,
+  currentAssignee?: IApiUser | null,
+) => {
+  const apartmentEngineer = project?.parentProjectId
+    ? project.members?.find(member => member.role === USER_ROLES.ENGINEER)
+    : null;
+  const canAssignEngineer = (user: IApiUser) =>
+    !user.deletedAt && getAssignedRoles(user).includes(USER_ROLES.ENGINEER);
+  const allUsers = users.filter(canAssignEngineer);
+  for (const extra of [apartmentEngineer?.user, currentAssignee]) {
+    if (extra && canAssignEngineer(extra) && !allUsers.some(user => user.id === extra.id)) {
+      allUsers.push(extra);
+    }
+  }
+  const options = toAssigneeOptions(allUsers);
+  const recommendedId =
+    apartmentEngineer && options.some(option => option.id === apartmentEngineer.userId)
+      ? apartmentEngineer.userId
+      : null;
+  if (!recommendedId) return options;
+  const recommended = options.find(option => option.id === recommendedId);
+  const current =
+    currentAssignee && currentAssignee.id !== recommendedId
+      ? options.find(option => option.id === currentAssignee.id)
+      : null;
+  return [
+    ...(recommended
+      ? [{ ...recommended, label: `${recommended.label} · ${NEW_TASK_COPY.APARTMENT_ENGINEER}` }]
+      : []),
+    { id: POOL_ASSIGNEE_ID, label: NEW_TASK_COPY.POOL_OPTION },
+    ...(current
+      ? [{ ...current, label: `${current.label} · ${NEW_TASK_COPY.OTHER_APARTMENT_ENGINEER}` }]
+      : []),
+    ...options.filter(
+      option =>
+        option.id !== recommendedId && option.id !== POOL_ASSIGNEE_ID && option.id !== current?.id,
+    ),
+  ];
+};
+
+export const findTaskAssignee = (
+  users: IApiUser[],
+  project: IApiProject | null | undefined,
+  userId: string | null,
+): IApiUser | null => {
+  if (!userId || userId === POOL_ASSIGNEE_ID) return null;
+  return (
+    users.find(user => user.id === userId) ??
+    project?.members?.find(member => member.userId === userId)?.user ??
+    null
+  );
+};
 
 export const toAssigneeId = (optionId: string | null) => {
   if (optionId === POOL_ASSIGNEE_ID) {

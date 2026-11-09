@@ -38,8 +38,9 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
   const members = (draft ?? apartment.members ?? []).filter(
     member => member.role !== USER_ROLES.ENGINEER,
   );
-  const engineerUserId =
-    apartment.members?.find(member => member.role === USER_ROLES.ENGINEER)?.userId ?? null;
+  const engineerMember =
+    apartment.members?.find(member => member.role === USER_ROLES.ENGINEER) ?? null;
+  const engineerUserId = engineerMember?.userId ?? null;
   const badge = isOwn ? APARTMENT_TEAM_COPY.OWN : APARTMENT_TEAM_COPY.INHERITED;
   const teamChangeProps = isEditing ? { onChange: setDraft } : {};
   const saveTeam = () =>
@@ -68,6 +69,7 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
       <ApartmentLegacyContact apartment={apartment} canRead={canReadCustomer} />
       <ApartmentEngineerPicker
         value={engineerUserId}
+        selectedMember={engineerMember}
         disabled={!canEdit || updateMutation.isPending}
         onChange={userId =>
           updateMutation.mutate({ apartmentId: apartment.id, changes: { engineerUserId: userId } })

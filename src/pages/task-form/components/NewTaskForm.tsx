@@ -1,4 +1,5 @@
 import {
+  findTaskAssignee,
   getTaskFormErrors,
   toCreateTaskPayload,
   countTaskFormErrors,
@@ -58,7 +59,11 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
 
   const errors = isSubmitAttempted ? getTaskFormErrors(values) : {};
   const errorCount = isSubmitAttempted ? countTaskFormErrors(values) : 0;
-  const assignee = (usersQuery.data ?? []).find(user => user.id === values.assigneeOptionId);
+  const assignee = findTaskAssignee(
+    usersQuery.data ?? [],
+    selectedProjectQuery.data,
+    values.assigneeOptionId,
+  );
   const recipient = formatUrgencyRecipient(assignee);
   const saveLabel = values.isUrgent ? NEW_TASK_COPY.SAVE_URGENT : NEW_TASK_COPY.SAVE;
 
@@ -105,6 +110,7 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
         values={values}
         onChange={updateValues}
         onLinkChange={changeLink}
+        project={selectedProjectQuery.data ?? null}
       />
       <TaskContentCard errors={errors} values={values} onChange={updateValues} />
       <TaskUrgencyChoiceCard

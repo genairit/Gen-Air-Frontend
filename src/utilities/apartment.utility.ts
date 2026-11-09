@@ -72,7 +72,7 @@ export const toApartmentPayload = (values: IApartmentFormValues): IApartmentPayl
   customerId: values.customerId ?? "",
   customerFloor: Number(values.floor),
   customerApartment: values.apartmentNumber.trim(),
-  engineerUserId: values.engineerUserId,
+  ...(values.engineerUserId ? { engineerUserId: values.engineerUserId } : {}),
   ...(values.members === null ? {} : { members: toApartmentAssignments(values.members) }),
   ...(values.hasOwnLighting ? { hasOwnLighting: true, ...toLightingPayload(values) } : {}),
 });
@@ -98,7 +98,9 @@ export const countInvalidApartmentFields = (values: IApartmentFormValues) => {
 };
 
 export const toApartmentAssignments = (members: IApiProjectMember[]) =>
-  members.map(({ userId, role }) => ({ userId, role }));
+  members
+    .filter(member => member.role !== USER_ROLES.ENGINEER)
+    .map(({ userId, role }) => ({ userId, role }));
 
 export const getApartmentTeamCandidates = (
   users: IApiUser[],

@@ -1,10 +1,10 @@
 import {
   toAssigneeId,
   canClaimTask,
-  toAssigneeOptions,
   toAssigneeOptionId,
   formatAssigneeLabel,
   getAssigneeInitials,
+  toProjectTaskAssigneeOptions,
 } from "../../../utilities/task.utility";
 
 import {
@@ -20,6 +20,7 @@ import Avatar from "../../../components/Avatar/Avatar";
 import Button from "../../../components/Button/Button";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import type { IApiTask } from "../../../interfaces/task.interface";
+import { useProjectQuery } from "../../../hooks/queries/project.query";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { BUTTON_SIZES } from "../../../components/Button/constants/button.constants";
 import { TASKS_PAGE_COPY, TASK_ASSIGNEES_QUERY } from "../../../constants/task.constant";
@@ -41,7 +42,13 @@ const TaskAssigneeField: FC<ITaskAssigneeFieldProps> = ({
 }) => {
   const styles = useStyles();
   const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
-  const options = toAssigneeOptions(usersQuery.data ?? []);
+  const projectQuery = useProjectQuery(task.projectId);
+  const options = toProjectTaskAssigneeOptions(
+    usersQuery.data ?? [],
+    projectQuery.data,
+    task.assignee,
+  );
+  const selectedLabel = findOptionLabelById(options, toAssigneeOptionId(task.assigneeId));
 
   const assign = (label: string | null) => {
     const optionId = findOptionIdByLabel(options, label);
@@ -55,12 +62,19 @@ const TaskAssigneeField: FC<ITaskAssigneeFieldProps> = ({
 
   if (isManager) {
     return (
-      <Autocomplete
-        onChange={assign}
-        isAutocomplete={false}
-        options={getOptionLabels(options)}
-        value={findOptionLabelById(options, toAssigneeOptionId(task.assigneeId))}
-      />
+      <Box>
+        <Autocomplete
+          onChange={assign}
+          value={selectedLabel}
+          isAutocomplete={false}
+          options={getOptionLabels(options)}
+        />
+        {!selectedLabel && task.assignee && (
+          <Box component="span">
+            {formatAssigneeLabel(task)} · {TASKS_PAGE_COPY.UNAVAILABLE_ASSIGNEE}
+          </Box>
+        )}
+      </Box>
     );
   }
 

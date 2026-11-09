@@ -23,20 +23,23 @@ import { useUsersQuery } from "../../../hooks/queries/user.query";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import { POOL_ASSIGNEE_ID } from "../../../constants/task.constant";
 import { PERMISSIONS } from "../../../constants/permission.constant";
+import type { IApiProject } from "../../../interfaces/api.interface";
 import { hasPermission } from "../../../utilities/permission.utility";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
-import { getAssigneeHint, toAssigneeOptions } from "../../../utilities/task.utility";
 import { NEW_TASK_COPY, TASK_ASSIGNEES_QUERY } from "../../../constants/task.constant";
+import { getAssigneeHint, toProjectTaskAssigneeOptions } from "../../../utilities/task.utility";
 
 interface ITaskAssignmentCardProps {
   errors: TTaskFormErrors;
   values: ITaskFormValues;
+  project: IApiProject | null;
   onChange: (changes: Partial<ITaskFormValues>) => void;
   onLinkChange: (option: ITaskLinkOption | null) => void;
 }
 
 const TaskAssignmentCard: FC<ITaskAssignmentCardProps> = ({
   errors,
+  project,
   values,
   onChange,
   onLinkChange,
@@ -47,7 +50,7 @@ const TaskAssignmentCard: FC<ITaskAssignmentCardProps> = ({
   const canAssign = hasPermission(user, PERMISSIONS.TASKS_ASSIGN);
   const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
 
-  const assigneeOptions = toAssigneeOptions(usersQuery.data ?? []);
+  const assigneeOptions = toProjectTaskAssigneeOptions(usersQuery.data ?? [], project);
   const assigneeHint = errors.assigneeOptionId ?? getAssigneeHint(values.assigneeOptionId);
 
   const changeAssignee = (label: string | null) =>

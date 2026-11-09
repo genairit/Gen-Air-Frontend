@@ -4,6 +4,7 @@ import {
   getTaskLinkName,
   getTaskCustomer,
   toDateInputValue,
+  findTaskAssignee,
   buildTaskLinkPath,
   formatTaskDueFull,
   getTaskFormErrors,
@@ -13,16 +14,17 @@ import {
   countTaskFormErrors,
   formatTransitionAuthor,
   toInitialTaskFormValues,
+  toProjectTaskAssigneeOptions,
 } from "../src/utilities/task.utility";
 
 import moment from "moment";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createTask, project } from "./project-tasks.fixture";
 import { DATE_FORMAT } from "../src/constants/date.constants";
 import { TASK_STATUSES } from "../src/constants/task.constant";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { TASK_TYPES } from "../src/constants/task-type.constant";
+import { createTask, project, engineer } from "./project-tasks.fixture";
 import type { ITaskFormValues } from "../src/interfaces/task.interface";
 import { isApiTask, isApiTaskTransition } from "../src/utilities/guards/task.guard";
 import { EMPTY_TASK_FORM, POOL_ASSIGNEE_ID, TASK_LINK_KINDS } from "../src/constants/task.constant";
@@ -90,6 +92,31 @@ test("initial project context is selected without storing a second customer asso
   assert.equal("linkKind" in initial, false);
   assert.equal(toInitialTaskFormValues(null).projectId, null);
   assert.equal(toInitialTaskFormValues(project).dueDate, "");
+});
+
+test("apartment task options recommend its engineer and resolve urgent recipient beyond the first user page", () => {
+  const apartment = {
+    ...project,
+    parentProjectId: "building-1",
+    members: [{ id: "member-1", role: USER_ROLES.ENGINEER, userId: engineer.id, user: engineer }],
+  };
+  const options = toProjectTaskAssigneeOptions([], apartment);
+  assert.equal(options[0].id, engineer.id);
+  assert.match(options[0].label, /עובד ההנדסה של הדירה/);
+  assert.equal(findTaskAssignee([], apartment, engineer.id)?.id, engineer.id);
+});
+
+test("inactive apartment engineers are not selectable as task assignees", () => {
+  const inactive = { ...engineer, deletedAt: "2026-11-01T00:00:00.000Z" };
+  const apartment = {
+    ...project,
+    parentProjectId: "building-1",
+    members: [{ id: "member-1", role: USER_ROLES.ENGINEER, userId: inactive.id, user: inactive }],
+  };
+  assert.deepEqual(
+    toProjectTaskAssigneeOptions([], apartment).map(option => option.id),
+    [POOL_ASSIGNEE_ID],
+  );
 });
 
 test("undated tasks show an explicit label and never become overdue", () => {
