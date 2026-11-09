@@ -11,9 +11,9 @@ import type {
   IQuotationSection,
 } from "../interfaces/quotation.interface";
 
-import { catalogueLine } from "../utilities/quotation.utility";
 import { quotationService } from "../services/quotation.service";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
+import { catalogueLine, quotationSectionBrand } from "../utilities/quotation.utility";
 
 const replacementItem = async (
   line: IQuotationLine,
@@ -102,7 +102,7 @@ const rebrandSection = async (
   };
 };
 const isLegacyBrandSection = (section: IQuotationSection, brand: string): boolean =>
-  (section.brand === undefined ? brand : section.brand) === brand;
+  quotationSectionBrand(section, brand) === brand;
 export const rebrandQuotationAction = async (
   quotation: IQuotation,
   brand: string,
@@ -119,7 +119,9 @@ export const rebrandQuotationAction = async (
     brand,
     brands: brand ? [brand] : [],
     sections: sections.map(section =>
-      isLegacyBrandSection(section, quotation.brand) ? { ...section, brand: brand || null } : section,
+      isLegacyBrandSection(section, quotation.brand)
+        ? { ...section, brand: brand || null }
+        : section,
     ),
   };
 };

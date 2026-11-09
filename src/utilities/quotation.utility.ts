@@ -109,6 +109,10 @@ export const updateQuotationSection = (
     sections: quotation.sections.map(current => (current.id === section.id ? section : current)),
   };
 };
+export const quotationSectionBrand = (
+  section: IQuotationSection,
+  legacyBrand: string,
+): string | null => ("brand" in section ? section.brand : legacyBrand);
 export const updateQuotationLine = (
   section: IQuotationSection,
   line: IQuotationLine,
