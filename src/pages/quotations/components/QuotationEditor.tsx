@@ -1,7 +1,17 @@
 import {
+  addQuotationBrand,
+  quotationBrandTabs,
+  moveQuotationSection,
+  updateQuotationSection,
+  removeEmptyQuotationBrand,
+} from "../../../utilities/quotation.utility";
+
+import {
   QUOTATION_BRANDS,
+  QUOTATION_SYSTEM,
   QUOTATION_STATUS_LABELS,
   QUOTATION_SYSTEM_OPTIONS,
+  QUOTATION_GENERAL_TAB_ID,
 } from "../../../constants/quotation.constant";
 
 import {
@@ -19,6 +29,7 @@ import QuotationSelect from "./QuotationSelect";
 import QuotationDelete from "./QuotationDelete";
 import Icon from "../../../components/Icon/Icon";
 import Card from "../../../components/Card/Card";
+import Tabs from "../../../components/Tabs/Tabs";
 import QuotationSection from "./QuotationSection";
 import QuotationSummary from "./QuotationSummary";
 import QuotationPayments from "./QuotationPayments";
@@ -32,12 +43,12 @@ import { QUOTATION_STEPS } from "../../../constants/quotation.constant";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
+import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
 import { quotationSaveLabel } from "../../../utilities/quotation-presentation.utility";
 import { quotationOpeningLine } from "../../../utilities/quotation-presentation.utility";
 import type { TQuotationStatus, IQuotation } from "../../../interfaces/quotation.interface";
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
 import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-navigation.hook";
-import { updateQuotationSection, moveQuotationSection } from "../../../utilities/quotation.utility";
 
 interface IQuotationEditorProps {
   editable: boolean;
@@ -52,6 +63,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   canDelete = false,
 }: IQuotationEditorProps) => {
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
+  const [activeTab, setActiveTab] = useState(initial.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
   const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
   const rebrand = useQuotationRebrand({
@@ -78,6 +90,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     updatedAt: quotation.updatedAt,
   });
   const systems = QUOTATION_SYSTEM_OPTIONS;
+  const brandTabs = quotationBrandTabs(quotation, activeTab);
   const openingLine = quotationOpeningLine(quotation);
   const transition = async (status: TQuotationStatus): Promise<void> => {
     const accepted = await editor.transition(status);
@@ -136,18 +149,19 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             selectedName={quotation.projectName}
             onChange={projectId => update({ ...quotation, projectId })}
           />
-          <QuotationSelect
-            label="חברת מיזוג"
-            disabled={disabled}
-            value={quotation.brand}
-            caption="חברת מיזוג (לכל ההצעה)"
-            onChange={event => rebrand.request(event.target.value)}
-          >
-            <option value="">בחרו חברה...</option>
-            {QUOTATION_BRANDS.map(brand => (
-              <option key={brand}>{brand}</option>
-            ))}
-          </QuotationSelect>
+          {quotation.brands.length === 1 && (
+            <QuotationSelect
+              label="חברת מיזוג"
+              disabled={disabled}
+              value={quotation.brand}
+              caption="החלפת החברה בלשונית הקיימת"
+              onChange={event => rebrand.request(event.target.value)}
+            >
+              {QUOTATION_BRANDS.map(brand => (
+                <option key={brand}>{brand}</option>
+              ))}
+            </QuotationSelect>
+          )}
           <QuotationDecimalInput
             min="0"
             max="100"
@@ -240,12 +254,56 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               </p>
             </div>
           </div>
-          {quotation.sections.map((section, index) => (
+          <Tabs
+            mode={TAB_MODES.TABS}
+            items={brandTabs.items}
+            onChange={setActiveTab}
+            variant={TABS_VARIANTS.PILLS}
+            activeId={brandTabs.selectedId}
+            ariaLabel="לשוניות חברות ופריטים כלליים"
+          />
+          {!disabled && (
+            <div className={styles.row}>
+              <QuotationSelect
+                value=""
+                label="הוספת לשונית חברה"
+                onChange={event => {
+                  const brand = event.target.value;
+                  if (!brand || quotation.brands.includes(brand)) {
+                    return;
+                  }
+                  update(addQuotationBrand(quotation, brand));
+                  setActiveTab(brand);
+                }}
+              >
+                <option value="">בחרו חברה להוספה...</option>
+                {QUOTATION_BRANDS.filter(brand => !quotation.brands.includes(brand)).map(brand => (
+                  <option key={brand} value={brand}>
+                    {brand}
+                  </option>
+                ))}
+              </QuotationSelect>
+              {brandTabs.brand &&
+                !quotation.sections.some(section => section.brand === brandTabs.brand) && (
+                  <Button
+                    text="הסר לשונית ריקה"
+                    size={BUTTON_SIZES.COMPACT}
+                    variant={BUTTON_VARIANTS.NEUTRAL}
+                    onClick={() => {
+                      const next = removeEmptyQuotationBrand(quotation, brandTabs.brand ?? "");
+                      update(next);
+                      setActiveTab(next.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
+                    }}
+                  />
+                )}
+            </div>
+          )}
+          {brandTabs.sections.map(({ section, index }) => (
             <QuotationSection
               key={section.id}
               section={section}
               disabled={disabled}
-              brand={quotation.brand}
+              brand={brandTabs.brand ?? ""}
               onChange={next => update(updateQuotationSection(quotation, next))}
               onMove={direction => update(moveQuotationSection(quotation, index, direction))}
               onRemove={() =>
@@ -260,23 +318,33 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             <div className={styles.systemActions}>
               <span>הוספת מערכת / קומה</span>
               <div className={styles.row}>
-                {systems.map(({ value: systemType, label }) => (
-                  <Button
-                    key={systemType}
-                    text={`+ ${label}`}
-                    size={BUTTON_SIZES.COMPACT}
-                    variant={BUTTON_VARIANTS.NEUTRAL}
-                    onClick={() =>
-                      update({
-                        ...quotation,
-                        sections: [
-                          ...quotation.sections,
-                          { id: crypto.randomUUID(), title: "", systemType, items: [] },
-                        ],
-                      })
-                    }
-                  />
-                ))}
+                {systems
+                  .filter(
+                    ({ value }) => brandTabs.brand !== null || value === QUOTATION_SYSTEM.GENERAL,
+                  )
+                  .map(({ value: systemType, label }) => (
+                    <Button
+                      key={systemType}
+                      text={`+ ${label}`}
+                      size={BUTTON_SIZES.COMPACT}
+                      variant={BUTTON_VARIANTS.NEUTRAL}
+                      onClick={() =>
+                        update({
+                          ...quotation,
+                          sections: [
+                            ...quotation.sections,
+                            {
+                              id: crypto.randomUUID(),
+                              title: "",
+                              systemType,
+                              brand: brandTabs.brand,
+                              items: [],
+                            },
+                          ],
+                        })
+                      }
+                    />
+                  ))}
               </div>
             </div>
           )}
