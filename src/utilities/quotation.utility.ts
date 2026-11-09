@@ -3,6 +3,7 @@ import {
   EQUIPMENT_ROLE,
   QUOTATION_TYPES,
   QUOTATION_SYSTEM,
+  QUOTATION_GENERAL_TAB_ID,
 } from "../constants/quotation.constant";
 
 import type {
@@ -149,6 +150,42 @@ export const moveQuotationSection = (
   const sections = [...quotation.sections];
   [sections[index], sections[target]] = [sections[target], sections[index]];
   return { ...quotation, sections };
+};
+
+export const quotationBrandTabs = (quotation: IQuotation, activeId: string) => {
+  const selectedId =
+    activeId === QUOTATION_GENERAL_TAB_ID || quotation.brands.includes(activeId)
+      ? activeId
+      : (quotation.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
+  const brand = selectedId === QUOTATION_GENERAL_TAB_ID ? null : selectedId;
+  return {
+    brand,
+    selectedId,
+    items: [
+      ...quotation.brands.map(value => ({ id: value, label: value })),
+      { id: QUOTATION_GENERAL_TAB_ID, label: "כללי" },
+    ],
+    sections: quotation.sections
+      .map((section, index) => ({ section, index }))
+      .filter(({ section }) => section.brand === brand),
+  };
+};
+
+export const addQuotationBrand = (quotation: IQuotation, brand: string): IQuotation => {
+  if (!brand || quotation.brands.includes(brand)) return quotation;
+  const brands = [...quotation.brands, brand];
+  return { ...quotation, brands, brand: brands[0] };
+};
+
+export const removeEmptyQuotationBrand = (quotation: IQuotation, brand: string): IQuotation => {
+  if (
+    !quotation.brands.includes(brand) ||
+    quotation.sections.some(section => section.brand === brand)
+  ) {
+    return quotation;
+  }
+  const brands = quotation.brands.filter(value => value !== brand);
+  return { ...quotation, brands, brand: brands[0] ?? "" };
 };
 
 export const catalogueControlKind = (item: ICatalogueItem): string | null => {
