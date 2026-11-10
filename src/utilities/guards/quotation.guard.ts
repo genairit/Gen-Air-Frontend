@@ -35,6 +35,7 @@ import type {
   IProjectQuotation,
   IProjectQuotationPage,
   IQuotationCancellation,
+  IQuotationSalesAgent,
   IQuotationProjectChoice,
 } from "../../interfaces/quotation.interface";
 
@@ -154,6 +155,8 @@ const hasQuotationIdentity = (value: { [field: string]: unknown }): boolean =>
   (value.cancelledFromStatus === null || isRestorableQuotationStatus(value.cancelledFromStatus)) &&
   Array.isArray(value.cancellationHistory) &&
   value.cancellationHistory.every(isQuotationCancellation) &&
+  isNullableString(value.salesAgentId) &&
+  isOptionalOf(isNullableString)(value.salesAgentName) &&
   isOptionalOf(isNullableString)(value.customerName) &&
   isOptionalOf(isNullableString)(value.projectName) &&
   isOptionalOf(isQuotationPrimaryProject)(value.primaryProject) &&
@@ -207,6 +210,8 @@ export const isProjectQuotationPage = (value: unknown): value is IProjectQuotati
   isArrayOf(isProjectQuotation)(value.items);
 export const isQuotationProjectChoice = (value: unknown): value is IQuotationProjectChoice =>
   isRecord(value) && hasStringFields(value, ["id", "name"]);
+export const isQuotationSalesAgent = (value: unknown): value is IQuotationSalesAgent =>
+  isRecord(value) && hasStringFields(value, ["id", "firstName", "lastName", "employeeNumber"]);
 
 export const isQuotationStatusCounts = (value: unknown): value is IQuotationStatusCounts => {
   if (!isRecord(value)) {

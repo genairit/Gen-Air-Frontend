@@ -11,6 +11,8 @@ import { QUOTATION_SYSTEM } from "../src/constants/quotation.constant";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { QUOTATION_DETAIL_KEY } from "../src/constants/quotation.constant";
 import { QUOTATION_AUTOSAVE_MS } from "../src/constants/quotation.constant";
+import QuotationInput from "../src/pages/quotations/components/QuotationInput";
+import { QUOTATION_SALES_AGENTS_KEY } from "../src/constants/quotation.constant";
 import QuotationDelete from "../src/pages/quotations/components/QuotationDelete";
 import QuotationButton from "../src/pages/quotations/components/QuotationButton";
 import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
@@ -18,7 +20,11 @@ import QuotationReview from "../src/pages/quotations/components/QuotationReview"
 import QuotationSection from "../src/pages/quotations/components/QuotationSection";
 import QuotationSummary from "../src/pages/quotations/components/QuotationSummary";
 import type { IQuotation, IQuotationLine } from "../src/interfaces/quotation.interface";
+import QuotationDecimalInput from "../src/pages/quotations/components/QuotationDecimalInput";
+import QuotationProjectPicker from "../src/pages/quotations/components/QuotationProjectPicker";
+import QuotationCustomerPicker from "../src/pages/quotations/components/QuotationCustomerPicker";
 import QuotationCataloguePicker from "../src/pages/quotations/components/QuotationCataloguePicker";
+import QuotationSalesAgentPicker from "../src/pages/quotations/components/QuotationSalesAgentPicker";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 Reflect.set(globalThis, "window", new EventTarget());
@@ -1115,6 +1121,7 @@ test("delete confirmation supports cancel, retry and reload while blocking pendi
     await act(async () => {
       state.renderer = create(<QuotationDelete {...props} />);
     });
+
     assert.equal(buttons().length, 1);
     assert.equal(buttons()[0].props.text, "מחיקת ההצעה");
     await act(async () => buttons()[0].props.onClick());
@@ -1142,5 +1149,152 @@ test("delete confirmation supports cancel, retry and reload while blocking pendi
     assert.equal(buttons()[0].props.disabled, true);
   } finally {
     await act(async () => state.renderer?.unmount());
+  }
+});
+
+test("sales-agent picker selects and clears an eligible user", async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  client.setQueryData(QUOTATION_SALES_AGENTS_KEY, [
+    { id: "agent-1", firstName: "Dana", lastName: "Cohen", employeeNumber: "007" },
+  ]);
+  const selected: (string | null)[] = [];
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={client}>
+          <QuotationSalesAgentPicker
+            value={null}
+            disabled={false}
+            onChange={agentId => selected.push(agentId)}
+          />
+        </QueryClientProvider>,
+      );
+    });
+    const picker = () =>
+      state.renderer!.root.findByProps({ "aria-label": "סוכן מכירות (אופציונלי)" });
+    await act(async () => picker().props.onChange({ target: { value: "Dana Cohen · 007" } }));
+    await act(async () => picker().props.onChange({ target: { value: "" } }));
+
+    assert.deepEqual(selected, ["agent-1", null]);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    client.clear();
+  }
+});
+
+test("sales-agent picker keeps an unavailable historical employee name visible", async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  client.setQueryData(QUOTATION_SALES_AGENTS_KEY, []);
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={client}>
+          <QuotationSalesAgentPicker
+            disabled
+            onChange={() => {}}
+            value="former-agent"
+            selectedName="Neta Levi · 008"
+          />
+        </QueryClientProvider>,
+      );
+    });
+    const picker = state.renderer!.root.findByProps({ "aria-label": "סוכן מכירות (אופציונלי)" });
+    assert.equal(picker.props.value, "Neta Levi · 008 · לא זמין");
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    client.clear();
+  }
+});
+
+test("approved quotation assignment and clearing use the agent-only update", async () => {
+  const quotation = { ...quotationFixture(), status: "approved" as const };
+  const customerList = mock.method(customerService, "getByFilter", async () => []);
+  const customer = mock.method(customerService, "getById", async () => ({
+    id: quotation.customerId,
+    name: "Customer",
+  }));
+  const projects = mock.method(quotationService, "projectChoices", async () => []);
+  const save = mock.method(quotationService, "save", async quotation => quotation);
+  const updates = mock.method(quotationService, "updateSalesAgent", async input => ({
+    ...quotation,
+    salesAgentId: input.salesAgentId,
+    version: input.version + 1,
+  }));
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  client.setQueryData(QUOTATION_SALES_AGENTS_KEY, [
+    { id: "agent-1", firstName: "Dana", lastName: "Cohen", employeeNumber: "007" },
+  ]);
+  const router = createMemoryRouter([
+    {
+      path: "/",
+      element: (
+        <QueryClientProvider client={client}>
+          <QuotationEditor editable canApprove initial={quotation} />
+        </QueryClientProvider>
+      ),
+    },
+  ]);
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  try {
+    await act(async () => {
+      state.renderer = create(<RouterProvider router={router} />);
+    });
+    assert.equal(state.renderer!.root.findByType(QuotationCustomerPicker).props.disabled, true);
+    assert.equal(state.renderer!.root.findByType(QuotationProjectPicker).props.disabled, true);
+    assert.equal(
+      state
+        .renderer!.root.findAllByType(QuotationDecimalInput)
+        .every(input => input.props.disabled),
+      true,
+    );
+    assert.equal(
+      state.renderer!.root.findAllByType(QuotationInput).every(input => input.props.disabled),
+      true,
+    );
+    assert.equal(state.renderer!.root.findByType("textarea").props.disabled, true);
+    assert.equal(state.renderer!.root.findByType(QuotationSummary).props.disabled, true);
+    const agentPicker = () =>
+      state.renderer!.root.findByProps({ "aria-label": "סוכן מכירות (אופציונלי)" });
+    assert.equal(agentPicker().props.disabled, false);
+    await act(async () => agentPicker().props.onChange({ target: { value: "Dana Cohen · 007" } }));
+    await act(async () => {
+      await settle(0);
+    });
+    assert.deepEqual(updates.mock.calls[0]?.arguments[0], {
+      id: quotation.id,
+      version: 1,
+      salesAgentId: "agent-1",
+    });
+    assert.equal(agentPicker().props.value, "Dana Cohen · 007");
+    assert.equal(
+      state.renderer!.root.findByType(QuotationSummary).props.quotation.salesAgentId,
+      "agent-1",
+    );
+    await act(async () => agentPicker().props.onChange({ target: { value: "" } }));
+    await act(async () => {
+      await settle(0);
+    });
+    assert.deepEqual(updates.mock.calls[1]?.arguments[0], {
+      id: quotation.id,
+      version: 2,
+      salesAgentId: null,
+    });
+    assert.equal(agentPicker().props.value, "");
+    assert.equal(
+      state.renderer!.root.findByType(QuotationSummary).props.quotation.salesAgentId,
+      null,
+    );
+    assert.equal(save.mock.callCount(), 0);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    client.clear();
+    router.dispose();
+    updates.mock.restore();
+    save.mock.restore();
+    customerList.mock.restore();
+    customer.mock.restore();
+    projects.mock.restore();
   }
 });

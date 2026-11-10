@@ -4,6 +4,7 @@ export const quotationFixture = (): IQuotation => ({
   id: "quote1",
   number: "2610-000001",
   customerId: "customer1",
+  salesAgentId: null,
   projectId: null,
   status: "draft",
   cancelledFromStatus: null,

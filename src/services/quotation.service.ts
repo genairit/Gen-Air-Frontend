@@ -6,6 +6,7 @@ import type {
   IQuotationListQuery,
   IProjectQuotationPage,
   IQuotationApartmentOptions,
+  IQuotationSalesAgent,
 } from "../interfaces/quotation.interface";
 
 import {
@@ -13,6 +14,7 @@ import {
   isQuotationPage,
   isCatalogueItem,
   isCatalogueList,
+  isQuotationSalesAgent,
 } from "../utilities/guards/quotation.guard";
 
 import { API_ENDPOINTS } from "../constants/api.constant";
@@ -32,6 +34,15 @@ export const quotationService = {
     const endpoint = API_ENDPOINTS.QUOTATION_STATUS_COUNTS;
     const response = await httpClient.get<unknown>(endpoint, { params: { search } });
     return ensureResponse(endpoint, response.data, isQuotationStatusCounts);
+  },
+  async salesAgents(): Promise<IQuotationSalesAgent[]> {
+    const endpoint = API_ENDPOINTS.QUOTATION_SALES_AGENTS;
+    const response = await httpClient.get<unknown>(endpoint);
+    const agents = response.data;
+    if (!Array.isArray(agents) || !agents.every(isQuotationSalesAgent)) {
+      throw new Error("רשימת סוכני המכירות אינה תקינה");
+    }
+    return agents;
   },
   async projectChoices(customerId: string, search: string): Promise<IQuotationProjectChoice[]> {
     const endpoint = API_ENDPOINTS.customerProjects(customerId);
@@ -63,13 +74,23 @@ export const quotationService = {
       data: { version: quotation.version },
     });
   },
-  async create(customerId: string): Promise<IQuotation> {
-    const response = await httpClient.post<unknown>(API_ENDPOINTS.QUOTATIONS, { customerId });
+  async create(input: { customerId: string; salesAgentId: string | null }): Promise<IQuotation> {
+    const response = await httpClient.post<unknown>(API_ENDPOINTS.QUOTATIONS, input);
     return ensureResponse(API_ENDPOINTS.QUOTATIONS, response.data, isQuotation);
   },
   async save(quotation: IQuotation): Promise<IQuotation> {
     const endpoint = API_ENDPOINTS.quotationById(quotation.id);
     const response = await httpClient.put<unknown>(endpoint, quotationPayload(quotation));
+    return ensureResponse(endpoint, response.data, isQuotation);
+  },
+  async updateSalesAgent(
+    quotation: Pick<IQuotation, "id" | "version"> & { salesAgentId: string | null },
+  ): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationSalesAgent(quotation.id);
+    const response = await httpClient.patch<unknown>(endpoint, {
+      version: quotation.version,
+      salesAgentId: quotation.salesAgentId,
+    });
     return ensureResponse(endpoint, response.data, isQuotation);
   },
   async transition(quotation: IQuotation, status: TQuotationStatus): Promise<IQuotation> {

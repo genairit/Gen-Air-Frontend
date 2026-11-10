@@ -9,6 +9,7 @@ export const API_PAGE_SIZE = 200;
 export const API_ENDPOINTS = {
   QUOTATIONS: "/quotation",
   QUOTATION_STATUS_COUNTS: "/quotation/status-counts",
+  QUOTATION_SALES_AGENTS: "/quotation/sales-agents",
   CATALOGUE: "/catalogue-item",
   quotationById: (id: string) => `/quotation/${id}`,
   quotationReview: (id: string) => `/quotation/${id}/review`,
@@ -18,6 +19,7 @@ export const API_ENDPOINTS = {
   projectQuotations: (projectId: string) => `/quotation/project/${projectId}`,
   quotationCancel: (id: string) => `/quotation/${id}/cancel`,
   quotationRestore: (id: string) => `/quotation/${id}/restore`,
+  quotationSalesAgent: (id: string) => `/quotation/${id}/sales-agent`,
   catalogueById: (id: string) => `/catalogue-item/${id}`,
   customerProjects: (id: string) => `/customer/${id}/projects`,
   TASKS: "/task",

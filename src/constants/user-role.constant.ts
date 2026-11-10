@@ -4,6 +4,7 @@ export const USER_ROLES = {
   FINANCE: "finance",
   ENGINEER: "engineer",
   INSTALLER: "installer",
+  SALES_AGENT: "sales_agent",
   SECRETARY: "secretary",
   SYSTEM_ADMIN: "system_admin",
   PROJECT_MANAGER: "project_manager",
@@ -20,6 +21,7 @@ export const USER_ROLE_VALUES: UserRoleType[] = [
   USER_ROLES.FINANCE,
   USER_ROLES.INSTALLER,
   USER_ROLES.PURCHASING_EXECUTION_MANAGER,
+  USER_ROLES.SALES_AGENT,
 ];
 
 export const PROJECT_MEMBER_ROLES = [
@@ -35,6 +37,7 @@ export const USER_ROLE_LABELS: Record<UserRoleType, string> = {
   finance: "מחלקת כספים",
   engineer: "עובד הנדסה",
   installer: "מתקין",
+  sales_agent: "סוכן מכירות",
   secretary: "מזכירה",
   system_admin: "הנהלה / מנהל מערכת",
   project_manager: "מנהל פרויקט",
@@ -45,6 +48,7 @@ export const USER_ROLE_PLURAL_LABELS: Record<UserRoleType, string> = {
   finance: "כספים",
   engineer: "הנדסה",
   installer: "מתקינים",
+  sales_agent: "סוכני מכירות",
   secretary: "מזכירות",
   system_admin: "הנהלה",
   project_manager: "מנהלי פרויקטים",
@@ -55,6 +59,7 @@ export const AVATAR_TONE_BY_ROLE: Record<UserRoleType, AvatarToneType> = {
   finance: AVATAR_TONES.AIR,
   engineer: AVATAR_TONES.AIR,
   installer: AVATAR_TONES.AIR,
+  sales_agent: AVATAR_TONES.AIR,
   secretary: AVATAR_TONES.AIR,
   system_admin: AVATAR_TONES.CHARCOAL,
   project_manager: AVATAR_TONES.CHARCOAL,

@@ -26,6 +26,7 @@ import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import QuotationCustomerPicker from "./components/QuotationCustomerPicker";
 import type { TQuotationStatus } from "../../interfaces/quotation.interface";
+import QuotationSalesAgentPicker from "./components/QuotationSalesAgentPicker";
 import { AuthorizationContext } from "../../managers/authorization-context.manager";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -37,6 +38,7 @@ const QuotationsPage: FC = () => {
   const [status, setStatus] = useState<TQuotationStatus | null>(null);
   const [creating, setCreating] = useState(false);
   const [customerId, setCustomerId] = useState("");
+  const [salesAgentId, setSalesAgentId] = useState<string | null>(null);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   const quotations = useInfiniteQuery({
     queryKey: [...QUOTATION_QUERY_KEY, debouncedSearch, status],
@@ -94,11 +96,16 @@ const QuotationsPage: FC = () => {
         {creating && (
           <div className={styles.stack}>
             <QuotationCustomerPicker value={customerId} onChange={setCustomerId} />
+            <QuotationSalesAgentPicker
+              value={salesAgentId}
+              onChange={setSalesAgentId}
+              disabled={create.isPending}
+            />
             <Button
               text="יצירת הצעה"
               disabled={!customerId}
               isLoading={create.isPending}
-              onClick={() => create.mutate(customerId)}
+              onClick={() => create.mutate({ customerId, salesAgentId })}
             />
             {create.isError && (
               <p role="alert" className={styles.error}>
