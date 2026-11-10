@@ -95,6 +95,8 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         badge={<Chip label={formatBuildingBadge(stageCounts?.total ?? 0)} />}
       />
 
+      {canReadTasks && <ProjectTasksCard projectId={project.id} />}
+
       {canReadDrive && <ProjectDriveCard shareWithApartments projectId={project.id} />}
 
       <BuildingInheritedCard building={project} />
@@ -112,8 +114,6 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         buildingId={project.id}
         stageId={toStageFilter(activeTileId)}
       />
-
-      {canReadTasks && <ProjectTasksCard projectId={project.id} />}
 
       <ProjectTeamCard members={project.members ?? []} />
 
