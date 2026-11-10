@@ -23,6 +23,10 @@ const createGridRow = ({ minWidth, gridTemplate }: IGridStyleOptions) => ({
 
 export const useStyles = () =>
   createStyles({
+    toolbar: {
+      zIndex: 2,
+      position: "relative",
+    },
     scroller: ({ maxHeight = "none" }: { maxHeight?: string }) => ({
       maxHeight,
       gap: "12px",
