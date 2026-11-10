@@ -9,16 +9,22 @@ import SmartbaseCardHeader from "../../vendor/smartbase/components/Card/componen
 interface ICardHeaderProps {
   title: string;
   badge?: string;
+  titleId?: string;
   subtitle?: string;
   action?: ReactNode;
   icon?: IconNameType;
+  focusableTitle?: boolean;
   stackActionsOnMobile?: boolean;
+  titleElement?: "p" | "h2" | "h3";
 }
 
 const CardHeader: FC<ICardHeaderProps> = ({
   title,
   icon,
   badge,
+  titleId,
+  titleElement,
+  focusableTitle,
   subtitle,
   action,
   stackActionsOnMobile = false,
@@ -36,8 +42,11 @@ const CardHeader: FC<ICardHeaderProps> = ({
             <SmartbaseCardHeader
               title={title}
               onRemove={null}
+              titleId={titleId}
               subtitle={subtitle}
               action={headerAction}
+              titleElement={titleElement}
+              focusableTitle={focusableTitle}
               titleAccessory={badge && <Chip label={badge} />}
             />
           </Box>

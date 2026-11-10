@@ -1,10 +1,17 @@
 import {
   isRecord,
-  isNumber,
+  isArrayOf,
   isOptionalOf,
   hasStringFields,
+  isNullableNumber,
   isNullableString,
 } from "./primitive.guard";
+
+import {
+  isQuotationProjectRole,
+  isQuotationPrimaryProject,
+  isQuotationApartmentLinkList,
+} from "./quotation-sharing.guard";
 
 import {
   CONTROL_KIND,
@@ -23,11 +30,15 @@ import type {
   TQuotationSystem,
   IQuotationSection,
   IQuotationWarning,
+  IProjectQuotation,
+  IProjectQuotationPage,
   IQuotationProjectChoice,
 } from "../../interfaces/quotation.interface";
 
 import { isPaymentTerms } from "./api.guard";
 import type { IQuotationStatusCounts } from "../../interfaces/quotation.interface";
+
+const isString = (value: unknown): value is string => typeof value === "string";
 
 export const isQuotationStatus = (value: unknown): value is TQuotationStatus =>
   Object.values(QUOTATION_STATUS).some(status => status === value);
@@ -37,7 +48,6 @@ export const isDecimal = (value: unknown): value is string =>
   typeof value === "string" && /^-?\d+(?:\.\d+)?$/.test(value) && Number.isFinite(Number(value));
 const isNonnegativeDecimal = (value: unknown): boolean => isDecimal(value) && Number(value) >= 0;
 const isPositiveDecimal = (value: unknown): boolean => isDecimal(value) && Number(value) > 0;
-const isNullableNumber = (value: unknown): boolean => value === null || isNumber(value);
 const isControlKind = (value: unknown): boolean =>
   value === null || Object.values(CONTROL_KIND).some(kind => kind === value);
 const isEquipmentRole = (value: unknown): boolean =>
@@ -123,7 +133,9 @@ const hasQuotationIdentity = (value: { [field: string]: unknown }): boolean =>
   Number(value.version) > 0 &&
   isNullableString(value.projectId) &&
   isOptionalOf(isNullableString)(value.customerName) &&
-  isOptionalOf(isNullableString)(value.projectName);
+  isOptionalOf(isNullableString)(value.projectName) &&
+  isOptionalOf(isQuotationPrimaryProject)(value.primaryProject) &&
+  isOptionalOf(isQuotationApartmentLinkList)(value.apartmentLinks);
 const hasQuotationFinancials = (value: { [field: string]: unknown }): boolean =>
   isNonnegativeDecimal(value.discountPercent) &&
   isNonnegativeDecimal(value.vatRate) &&
@@ -159,6 +171,18 @@ export const isCatalogueList = (value: unknown): value is ICatalogueItem[] =>
   Array.isArray(value) && value.every(isCatalogueItem);
 export const isQuotationPage = (value: unknown): value is IQuotationPage =>
   isRecord(value) && isQuotationList(value.items) && isNullableString(value.nextCursor);
+export const isProjectQuotation = (value: unknown): value is IProjectQuotation =>
+  isQuotation(value) &&
+  isRecord(value) &&
+  Number.isSafeInteger(value.sharedCount) &&
+  isNullableString(value.sharedFromCode) &&
+  isQuotationProjectRole(value.projectRole) &&
+  isArrayOf(isString)(value.sharedApartmentNumbers);
+export const isProjectQuotationPage = (value: unknown): value is IProjectQuotationPage =>
+  isRecord(value) &&
+  Number.isSafeInteger(value.total) &&
+  isNullableString(value.nextCursor) &&
+  isArrayOf(isProjectQuotation)(value.items);
 export const isQuotationProjectChoice = (value: unknown): value is IQuotationProjectChoice =>
   isRecord(value) && hasStringFields(value, ["id", "name"]);
 

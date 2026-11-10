@@ -4,6 +4,8 @@ import type {
   ICatalogueItem,
   TQuotationStatus,
   IQuotationListQuery,
+  IProjectQuotationPage,
+  IQuotationApartmentOptions,
 } from "../interfaces/quotation.interface";
 
 import {
@@ -16,11 +18,14 @@ import {
 import { API_ENDPOINTS } from "../constants/api.constant";
 import { quotationPayload } from "../utilities/quotation.utility";
 import { httpClient, ensureResponse } from "./http-client.service";
+import { isProjectQuotationPage } from "../utilities/guards/quotation.guard";
 import { isQuotationStatusCounts } from "../utilities/guards/quotation.guard";
 import { isQuotationProjectChoice } from "../utilities/guards/quotation.guard";
 import type { IQuotationStatusCounts } from "../interfaces/quotation.interface";
 import { isRecord, isNullableString } from "../utilities/guards/primitive.guard";
 import type { IQuotationProjectChoice } from "../interfaces/quotation.interface";
+import { QUOTATION_SHARING_LAYOUT } from "../constants/quotation-sharing.constant";
+import { isQuotationApartmentOptions } from "../utilities/guards/quotation-sharing.guard";
 
 export const quotationService = {
   async statusCounts(search: string): Promise<IQuotationStatusCounts> {
@@ -82,6 +87,33 @@ export const quotationService = {
       warningKeys,
     });
     return ensureResponse(endpoint, response.data, isQuotation);
+  },
+  async apartmentOptions(quotationId: string): Promise<IQuotationApartmentOptions> {
+    const endpoint = API_ENDPOINTS.quotationApartmentOptions(quotationId);
+    const response = await httpClient.get<unknown>(endpoint);
+    return ensureResponse(endpoint, response.data, isQuotationApartmentOptions);
+  },
+  async setApartmentLinks(
+    quotationId: string,
+    apartmentIds: string[],
+    expectedApartmentIds: string[],
+  ): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationApartmentLinks(quotationId);
+    const response = await httpClient.put<unknown>(endpoint, {
+      apartmentIds,
+      expectedApartmentIds,
+    });
+    return ensureResponse(endpoint, response.data, isQuotation);
+  },
+  async projectQuotations(
+    projectId: string,
+    batchCursor: string | null,
+  ): Promise<IProjectQuotationPage> {
+    const endpoint = API_ENDPOINTS.projectQuotations(projectId);
+    const response = await httpClient.get<unknown>(endpoint, {
+      params: { batchCursor, batchSize: QUOTATION_SHARING_LAYOUT.PROJECT_PAGE_SIZE },
+    });
+    return ensureResponse(endpoint, response.data, isProjectQuotationPage);
   },
   async catalogue(params: { [parameter: string]: string | number }): Promise<ICatalogueItem[]> {
     const response = await httpClient.get<unknown>(API_ENDPOINTS.CATALOGUE, { params });

@@ -24,6 +24,10 @@ const GLOBAL_STYLES = {
     from: { opacity: 0, transform: "translateY(-4px) scale(0.985)" },
     to: { opacity: 1, transform: "translateY(0) scale(1)" },
   },
+  "@keyframes genair-panel-reveal": {
+    from: { opacity: 0, transform: "translateY(-4px)" },
+    to: { opacity: 1, transform: "translateY(0)" },
+  },
   "@media (prefers-reduced-motion: reduce)": {
     "*": { scrollBehavior: "auto !important" },
   },
