@@ -12,6 +12,11 @@ export interface IProjectPageQuery extends IProjectQuery {
   stageId: string | null;
 }
 
+export interface IProjectStageMovePayload {
+  note?: string;
+  stageId: string;
+}
+
 export interface IProjectMemberAssignment {
   userId: string;
   role: UserRoleType;
@@ -23,6 +28,7 @@ export interface IProjectPayload
   extends Partial<IApiProjectCustomerDetails>, TProjectIntakePayload {
   name: string;
   stageId?: string;
+  stageNote?: string;
   customerId: string;
   notes: string | null;
   projectTypeId: string;

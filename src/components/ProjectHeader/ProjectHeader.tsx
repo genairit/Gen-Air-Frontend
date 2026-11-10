@@ -19,6 +19,7 @@ interface IProjectHeaderProps {
   actions: ReactNode;
   syncCaption: string;
   icon?: IconNameType;
+  stageNote?: ReactNode;
   stageDotColor?: string;
   stageControl?: ReactNode;
 }
@@ -31,6 +32,7 @@ const ProjectHeader: FC<IProjectHeaderProps> = ({
   projectId,
   syncCaption,
   actions,
+  stageNote,
   stageControl,
   stageDotColor = theme.palette.statusBlue,
 }) => {
@@ -58,6 +60,7 @@ const ProjectHeader: FC<IProjectHeaderProps> = ({
         </Box>
       </Box>
       <Box sx={styles.actions}>{actions}</Box>
+      {stageNote && <Box sx={styles.stageNote}>{stageNote}</Box>}
     </Card>
   );
 };

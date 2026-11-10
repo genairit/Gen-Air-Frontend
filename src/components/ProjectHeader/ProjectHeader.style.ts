@@ -47,4 +47,8 @@ export const useStyles = () =>
       display: "flex",
       flexWrap: "wrap",
     },
+    stageNote: {
+      minWidth: 0,
+      flexBasis: "100%",
+    },
   });

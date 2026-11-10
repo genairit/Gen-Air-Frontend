@@ -124,6 +124,7 @@ export const APARTMENT_PAGE_COPY = {
   NOTES_PLACEHOLDER: "לדוגמה: הדייר זמין רק אחר הצהריים, גישה דרך חדר המדרגות המזרחי",
   NOTES_SAVED: "ההערות נשמרו",
   SAVE_NOTES: "שמור הערות",
+  WAITING_REASON_CONTEXT: "יש לפרט למה או למי הדירה ממתינה. הסיבה תוצג בעמוד הדירה ובציר הזמן.",
 } as const;
 
 export const ADD_APARTMENT_COPY = {

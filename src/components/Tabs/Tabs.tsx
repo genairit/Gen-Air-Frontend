@@ -11,8 +11,8 @@ import Dot from "../Dot/Dot";
 import { useStyles } from "./Tabs.style";
 import { TAB_THUMB_STYLE } from "./Tabs.style";
 import { Box, ButtonBase } from "@mui/material";
-import { useId, type FC, type KeyboardEvent } from "react";
 import type { ITabItem } from "../../interfaces/tab-item.interface";
+import { useId, type FC, type Ref, type KeyboardEvent } from "react";
 import { motion, LayoutGroup, useReducedMotion } from "framer-motion";
 import { isTabNavigationKey } from "./utilities/tab-navigation.utility";
 
@@ -23,12 +23,14 @@ interface ITabsProps {
   ariaLabel?: string;
   mode?: TabsModeType;
   isFullWidth?: boolean;
+  ref?: Ref<HTMLDivElement>;
   variant?: TabsVariantType;
   onChange: (id: string) => void;
   formatCount?: (count: number) => string;
 }
 
 const Tabs: FC<ITabsProps> = ({
+  ref,
   items,
   disabled = false,
   ariaLabel,
@@ -71,6 +73,7 @@ const Tabs: FC<ITabsProps> = ({
   return (
     <LayoutGroup id={layoutGroupId}>
       <Box
+        ref={ref}
         aria-label={ariaLabel}
         role={isFilter ? "group" : "tablist"}
         sx={styles.container({ variant, isFullWidth })}

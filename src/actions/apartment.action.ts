@@ -2,6 +2,7 @@ import { queryClient } from "../providers/query-client";
 import { projectService } from "../services/project.service";
 import { QUERY_ROOTS } from "../constants/query-key.constant";
 import { apartmentService } from "../services/apartment.service";
+import type { IStageMove } from "../interfaces/project.interface";
 import { toApartmentPayload } from "../utilities/apartment.utility";
 import type { IApartmentChanges } from "../interfaces/api-request.interface";
 import type { IApartmentFormValues } from "../interfaces/apartment.interface";
@@ -49,16 +50,11 @@ export const updateApartmentAction = async ({
 };
 
 export const moveApartmentsToStageAction = async ({
-  stageId,
   apartmentIds,
-}: {
-  stageId: string;
-  apartmentIds: string[];
-}): Promise<void> => {
+  ...move
+}: IStageMove & { apartmentIds: string[] }): Promise<void> => {
   const context = new AuthorizationContext();
-  await Promise.all(
-    apartmentIds.map(apartmentId => projectService.moveToStage(apartmentId, stageId)),
-  );
+  await Promise.all(apartmentIds.map(apartmentId => projectService.moveToStage(apartmentId, move)));
   context.assertCurrent();
   await invalidateApartmentQueries();
   context.assertCurrent();

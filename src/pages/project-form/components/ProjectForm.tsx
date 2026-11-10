@@ -71,6 +71,7 @@ import { hasPermission } from "../../../utilities/permission.utility";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { countStageNoteErrors } from "../../../utilities/stage-reason.utility";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
 import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
 import { useProjectNameAvailability } from "../../../hooks/queries/project-name.query";
@@ -129,6 +130,12 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const canDelete = isEditMode && hasPermission(sessionUser, PERMISSIONS.PROJECTS_DELETE);
   const originalIntake = project ? toIntakeValues(project) : null;
+  const originalStageId = project?.stageId ?? null;
+  const stageNoteErrorCount = countStageNoteErrors({
+    originalStageId,
+    stageId: values.stageId,
+    stageNote: values.stageNote,
+  });
   const requiredIntake = getRequiredIntakeGroups(values, originalIntake);
   const intakeErrorCount = countIntakeErrors({ values, fieldSet, original: originalIntake });
   const hasSiteDetails = getSiteDetailFields(fieldSet).length > 0;
@@ -152,7 +159,8 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     countCustomerDetailErrors(values.customerDetails, fieldSet) +
     intakeErrorCount +
     Number(heightError !== "") +
-    Number(isNameTaken);
+    Number(isNameTaken) +
+    stageNoteErrorCount;
 
   const openProject = (savedProjectId: string) => navigate(buildProjectPath(savedProjectId));
 
@@ -164,7 +172,14 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       ),
     edit: () =>
       updateMutation.mutate(
-        { projectId: projectId ?? "", values, fieldSet, originalIntake, canHaveApartments },
+        {
+          projectId: projectId ?? "",
+          values,
+          fieldSet,
+          originalIntake,
+          canHaveApartments,
+          originalStageId,
+        },
         { onSuccess: openProject },
       ),
   };
@@ -263,6 +278,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         nameError={nameError}
         onChange={updateValues}
         stages={stagesQuery.data ?? []}
+        originalStageId={originalStageId}
         projectCode={project?.code ?? null}
         isSubmitAttempted={isSubmitAttempted}
         onRetryNameCheck={handleRetryNameCheck}

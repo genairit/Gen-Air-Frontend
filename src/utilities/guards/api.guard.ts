@@ -182,6 +182,8 @@ export const isApiProject = (value: unknown): value is IApiProject => {
   const hasValidCredit = isOptionalOf(isApartmentCredit)(value.apartmentCredit);
   const hasValidOwnership = isOptionalOf(isApartmentOwnership)(value.apartmentOwnership);
   const hasValidOwnTeam = !("hasOwnTeam" in value) || typeof value.hasOwnTeam === "boolean";
+  const hasValidWaitingReason =
+    !("waitingReason" in value) || isNullableString(value.waitingReason);
   const hasValidCustomer =
     isNullableString(value.customerId) && isOptionalOf(isApiCustomer)(value.customer);
 
@@ -196,6 +198,7 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     hasValidOwnTeam &&
     hasValidCredit &&
     hasValidOwnership &&
+    hasValidWaitingReason &&
     hasValidProjectLighting(value)
   );
 };
@@ -225,8 +228,9 @@ export const isApiStageTransition = (value: unknown): value is IApiStageTransiti
   }
 
   const hasFields = hasStringFields(value, ["id", "createdAt", "toStageId"]);
+  const hasValidNote = !("note" in value) || isNullableString(value.note);
 
-  return hasFields && isOptionalOf(isApiUser)(value.changedBy);
+  return hasFields && hasValidNote && isOptionalOf(isApiUser)(value.changedBy);
 };
 
 const isApiDriveItem = (value: unknown): value is IApiDriveItem =>

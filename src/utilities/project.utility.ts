@@ -12,6 +12,7 @@ import type {
 
 import { toOptionalText } from "./text.utility";
 import { BOARD_COPY } from "../constants/board.constant";
+import { toStageNotePayload } from "./stage-reason.utility";
 import { mapProjectMemberRoles } from "./user-role.utility";
 import { USER_ROLES } from "../constants/user-role.constant";
 import { toLightingPayload } from "./project-constraints.utility";
@@ -33,6 +34,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
     return {
       name: "",
       notes: "",
+      stageNote: "",
       hasGeneralLightingCeilingLowering: false,
       generalLightingCeilingLoweringHeight: "",
       typeId: null,
@@ -47,6 +49,7 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
   return {
     name: project.name,
     notes: project.notes ?? "",
+    stageNote: "",
     hasGeneralLightingCeilingLowering: project.hasGeneralLightingCeilingLowering ?? false,
     generalLightingCeilingLoweringHeight:
       project.generalLightingCeilingLoweringHeight?.toString() ?? "",
@@ -76,6 +79,7 @@ export const toProjectPayload = ({
   canHaveApartments,
   fieldSet,
   originalIntake,
+  originalStageId = null,
 }: IProjectSubmission): IProjectPayload | null => {
   if (!values.typeId || !values.customerId) {
     return null;
@@ -93,6 +97,7 @@ export const toProjectPayload = ({
       member => !canHaveApartments || member.role !== USER_ROLES.ENGINEER,
     ),
     ...(values.stageId ? { stageId: values.stageId } : {}),
+    ...toStageNotePayload({ values, originalStageId }),
   };
 };
 

@@ -18,6 +18,7 @@
     "test:shared-document": "node testing/run-shared-document-tests.mjs",
     "test:project-constraints": "node testing/run-project-constraints-tests.mjs",
     "test:user-roles": "node testing/run-user-role-tests.mjs",
+    "test:stage-reason": "node testing/run-stage-reason-tests.mjs",
     "test:quotation-sharing": "node testing/run-quotation-sharing-tests.mjs",
     "test:project-quotations": "node testing/run-project-quotations-tests.mjs"
   },

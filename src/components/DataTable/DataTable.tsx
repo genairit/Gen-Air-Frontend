@@ -43,7 +43,7 @@ const DataTable = <TRow,>({
 
   return (
     <Card gap="16px" padding={padding}>
-      {toolbar}
+      {toolbar && <Box sx={styles.toolbar}>{toolbar}</Box>}
       <Box ref={scrollerRef} sx={scrollerStyles}>
         <Box role="row" sx={headerStyles}>
           {columns.map(column => (
