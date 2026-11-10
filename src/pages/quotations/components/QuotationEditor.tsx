@@ -44,10 +44,13 @@ import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
 import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
+import QuotationApartmentSharingCard from "./sharing/QuotationApartmentSharingCard";
+import { QUOTATION_SHARING_COPY } from "../../../constants/quotation-sharing.constant";
 import { quotationSaveLabel } from "../../../utilities/quotation-presentation.utility";
 import { quotationOpeningLine } from "../../../utilities/quotation-presentation.utility";
 import type { TQuotationStatus, IQuotation } from "../../../interfaces/quotation.interface";
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
+import { useQuotationApartmentSharing } from "../../../hooks/quotation-apartment-sharing.hook";
 import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-navigation.hook";
 
 interface IQuotationEditorProps {
@@ -66,6 +69,11 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const [activeTab, setActiveTab] = useState(initial.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
   const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
+  const sharing = useQuotationApartmentSharing({
+    quotation,
+    canEdit: editable,
+    busy: editor.commandBusy,
+  });
   const rebrand = useQuotationRebrand({
     quotation,
     blocked: editor.commandBusy || !editable,
@@ -89,6 +97,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     dirty: editor.dirty,
     updatedAt: quotation.updatedAt,
   });
+  const contextLockedReason = sharing.hasLinks ? QUOTATION_SHARING_COPY.CONTEXT_LOCKED : null;
   const systems = QUOTATION_SYSTEM_OPTIONS;
   const brandTabs = quotationBrandTabs(quotation, activeTab);
   const openingLine = quotationOpeningLine(quotation);
@@ -136,6 +145,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           <QuotationCustomerPicker
             disabled={disabled}
             value={quotation.customerId}
+            lockedReason={contextLockedReason}
             onChange={customerId => {
               if (customerId) {
                 update({ ...quotation, customerId, projectId: null });
@@ -146,6 +156,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             disabled={disabled}
             value={quotation.projectId}
             customerId={quotation.customerId}
+            lockedReason={contextLockedReason}
             selectedName={quotation.projectName}
             onChange={projectId => update({ ...quotation, projectId })}
           />
@@ -218,6 +229,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         )}
         {disabled && <p className={styles.muted}>ההצעה נעולה לעריכה או שאין הרשאת עדכון.</p>}
       </Card>
+      {sharing.isBuilding && (
+        <QuotationApartmentSharingCard sharing={sharing} canEdit={editable} quotation={quotation} />
+      )}
       {blocker.state === "blocked" && (
         <Card>
           <p>יש שינויים שטרם נשמרו. הניווט ימשיך לאחר שמירה מוצלחת.</p>

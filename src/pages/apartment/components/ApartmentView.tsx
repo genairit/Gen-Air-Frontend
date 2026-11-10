@@ -17,6 +17,7 @@ import ProjectDriveCard from "../../project/components/ProjectDriveCard";
 import ProjectTasksCard from "../../project/components/ProjectTasksCard";
 import ProjectTimelineCard from "../../project/components/ProjectTimelineCard";
 import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
+import ProjectQuotationsCard from "../../project/components/ProjectQuotationsCard";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 
 interface IApartmentViewProps {
@@ -31,6 +32,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
   const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
   const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
+  const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
 
   return (
     <Box sx={styles.page}>
@@ -49,6 +51,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
       <ProjectContacts canEdit={canEdit} projectId={apartment.id} />
 
       <ApartmentCommercialCard apartment={apartment} />
+      {canReadQuotations && <ProjectQuotationsCard projectId={apartment.id} />}
       <ApartmentLightingCard canEdit={canEdit} apartment={apartment} />
       {canReadDrive && <SharedProjectDocumentCard apartmentId={apartment.id} />}
       {canReadDrive && <ProjectDriveCard projectId={apartment.id} />}

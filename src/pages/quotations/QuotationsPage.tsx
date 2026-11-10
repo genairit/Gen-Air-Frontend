@@ -3,7 +3,6 @@ import {
   QUOTATION_COUNTS_KEY,
   QUOTATION_ALL_TAB_ID,
   QUOTATION_STATUS_TABS,
-  QUOTATION_STATUS_LABELS,
 } from "../../constants/quotation.constant";
 
 import type { FC } from "react";
@@ -14,14 +13,13 @@ import Tabs from "../../components/Tabs/Tabs";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Button from "./components/QuotationButton";
+import QuotationRow from "./components/QuotationRow";
 import QuotationInput from "./components/QuotationInput";
 import { TAB_MODES } from "../../constants/tabs.constant";
 import { useSessionUser } from "../../store/session.store";
-import { formatRelativeTime } from "../../utilities/date.utility";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { buildQuotationPath } from "../../utilities/route.utility";
 import { hasPermission } from "../../utilities/permission.utility";
-import { quotationMoney } from "../../utilities/quotation.utility";
 import { quotationService } from "../../services/quotation.service";
 import { useDebouncedValue } from "../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
@@ -153,23 +151,11 @@ const QuotationsPage: FC = () => {
         )}
         {!quotations.isPending && !list.length && <p>לא נמצאו הצעות מחיר</p>}
         {list.map(quotation => (
-          <button
+          <QuotationRow
             key={quotation.id}
-            className={styles.quoteRow}
-            onClick={() => navigate(buildQuotationPath(quotation.id))}
-          >
-            <span className={styles.number}>{quotation.number}</span>
-            <div className={styles.quoteIdentity}>
-              <b>{quotation.customerName ?? "לקוח"}</b>
-              <span className={styles.muted}>{quotation.projectName ?? "לא מקושרת לפרויקט"}</span>
-            </div>
-            <span className={styles.muted}>{quotation.brands.join(" · ") || "כללי"}</span>
-            <span className={styles.badge} data-status={quotation.status}>
-              {QUOTATION_STATUS_LABELS[quotation.status]}
-            </span>
-            <b className={styles.quoteAmount}>{quotationMoney(quotation.totals.total)}</b>
-            <span className={styles.updated}>{formatRelativeTime(quotation.updatedAt)}</span>
-          </button>
+            quotation={quotation}
+            onOpen={() => navigate(buildQuotationPath(quotation.id))}
+          />
         ))}
         {quotations.hasNextPage && (
           <Button

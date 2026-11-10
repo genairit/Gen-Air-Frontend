@@ -121,3 +121,8 @@ export const QUOTATION_BUTTON_HEIGHT = {
 export const QUOTATION_PRIMARY_DISABLED_STYLE = {
   "&.Mui-disabled": { color: "#fff", backgroundColor: "#1f7fdb", opacity: 0.45 },
 } as const;
+export const QUOTATION_ROW_COPY = {
+  CUSTOMER: "לקוח",
+  NO_PROJECT: "לא מקושרת לפרויקט",
+  GENERAL: "כללי",
+} as const;

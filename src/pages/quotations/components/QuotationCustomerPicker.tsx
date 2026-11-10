@@ -12,12 +12,14 @@ import { useCustomersQuery, useCustomerQuery } from "../../../hooks/queries/cust
 interface IQuotationCustomerPickerProps {
   value: string;
   disabled?: boolean;
+  lockedReason?: string | null;
   onChange: (id: string) => void;
 }
 const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
   value,
-  disabled,
   onChange,
+  disabled = false,
+  lockedReason = null,
 }: IQuotationCustomerPickerProps) => {
   const [search, setSearch] = useState("");
   const debounced = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
@@ -25,14 +27,16 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
   const selected = useCustomerQuery(value || null);
   const options = customers.data ?? [];
   const choice = options.find(customer => customer.id === value) ?? selected.data ?? null;
+  const isLocked = lockedReason !== null;
+  const isDisabled = disabled || isLocked;
   return (
     <div className={styles.picker}>
       <QuotationEntityPicker
         label="לקוח *"
         value={choice}
         options={options}
-        disabled={disabled}
         onSearch={setSearch}
+        disabled={isDisabled}
         loading={customers.isPending}
         placeholder="בחירת לקוח או חיפוש..."
         onChange={id => {
@@ -41,7 +45,8 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
           }
         }}
       />
-      {value && !disabled && (
+      {isLocked && <span className={styles.muted}>{lockedReason}</span>}
+      {value && !isDisabled && (
         <Link to={buildCustomerPath(value)} className={styles.customerLink}>
           פתיחת כרטיס הלקוח
         </Link>

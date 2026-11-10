@@ -51,10 +51,15 @@ export const formatApartmentCount = (count: number) => {
   return `${count} דירות`;
 };
 
-export const formatApartmentNumber = (apartment: IApiProject) =>
-  `דירה ${apartment.customerApartment ?? ""}`;
+export const formatApartmentNumberLabel = (apartmentNumber: string | null) =>
+  `דירה ${apartmentNumber ?? ""}`;
 
-export const formatFloor = (apartment: IApiProject) => `קומה ${apartment.customerFloor ?? ""}`;
+export const formatFloorLabel = (floor: number | null) => `קומה ${floor ?? ""}`;
+
+export const formatApartmentNumber = (apartment: IApiProject) =>
+  formatApartmentNumberLabel(apartment.customerApartment);
+
+export const formatFloor = (apartment: IApiProject) => formatFloorLabel(apartment.customerFloor);
 
 export const formatApartmentHeading = (apartment: IApiProject) =>
   `${formatApartmentNumber(apartment)} · ${formatFloor(apartment)}`;

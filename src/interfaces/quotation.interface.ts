@@ -1,3 +1,8 @@
+import type {
+  TQuotationProjectKind,
+  TQuotationProjectRole,
+} from "../constants/quotation-sharing.constant";
+
 import type { TQuotationStatus, TQuotationSystem } from "../constants/quotation.constant";
 
 export type { TQuotationStatus, TQuotationSystem } from "../constants/quotation.constant";
@@ -70,6 +75,8 @@ export interface IQuotation {
   sections: IQuotationSection[];
   warnings: IQuotationWarning[];
   targetPretaxAmount: string | null;
+  apartmentLinks?: IQuotationApartmentLink[];
+  primaryProject?: IQuotationPrimaryProject | null;
   paymentSchedule: {
     percent: string;
     text: string;
@@ -83,6 +90,36 @@ export interface IQuotation {
   };
 }
 
+export interface IQuotationPrimaryProject {
+  id: string;
+  name: string;
+  code: string;
+  kind: TQuotationProjectKind;
+}
+export interface IQuotationApartment {
+  apartmentId: string;
+  floor: number | null;
+  apartmentNumber: string | null;
+  endCustomerName: string | null;
+}
+export interface IQuotationApartmentLink extends IQuotationApartment {
+  available: boolean;
+}
+export interface IQuotationApartmentOptions {
+  apartments: IQuotationApartment[];
+  building: IQuotationPrimaryProject;
+}
+export interface IProjectQuotation extends IQuotation {
+  sharedCount: number;
+  sharedFromCode: string | null;
+  sharedApartmentNumbers: string[];
+  projectRole: TQuotationProjectRole;
+}
+export interface IProjectQuotationPage {
+  total: number;
+  nextCursor: string | null;
+  items: IProjectQuotation[];
+}
 export interface IQuotationPage {
   items: IQuotation[];
   nextCursor: string | null;
