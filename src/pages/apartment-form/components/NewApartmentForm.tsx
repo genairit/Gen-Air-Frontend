@@ -99,7 +99,9 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
       <ApartmentTeamDraftCard
         building={building}
         members={values.members}
+        engineerUserId={values.engineerUserId}
         onChange={members => updateValues({ members })}
+        onEngineerChange={engineerUserId => updateValues({ engineerUserId })}
       />
       <ApartmentLightingDraftCard
         values={values}

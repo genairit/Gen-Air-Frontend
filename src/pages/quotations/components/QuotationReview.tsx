@@ -12,6 +12,7 @@ import { ICON_NAMES } from "../../../constants/icon.constant";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
 import { quotationPaymentLabel } from "../../../utilities/quotation-payment.utility";
 import { quotationReviewSections } from "../../../utilities/quotation-presentation.utility";
+import { quotationCancellationNoun } from "../../../utilities/quotation-cancellation.utility";
 
 interface IQuotationReviewProps {
   editable: boolean;
@@ -26,6 +27,7 @@ const QuotationReview: FC<IQuotationReviewProps> = ({
   onEdit,
 }: IQuotationReviewProps) => {
   const sections = quotationReviewSections(quotation);
+  const documentNoun = quotationCancellationNoun(quotation);
   const terms = quotationPaymentLabel(quotation);
   const schedule = quotation.paymentSchedule
     .map(stage => `${stage.percent}% ${stage.text}`)
@@ -39,7 +41,7 @@ const QuotationReview: FC<IQuotationReviewProps> = ({
           </span>
           <div>
             <h2>סיכום לבדיקה</h2>
-            <p className={styles.muted}>השורות לפי סדר הצעת מחיר, כפי שיופיעו בהצעה</p>
+            <p className={styles.muted}>השורות לפי סדר הצעת מחיר, כפי שיופיעו ב{documentNoun}</p>
           </div>
         </div>
         {editable && (

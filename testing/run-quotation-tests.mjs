@@ -1,4 +1,17 @@
+import {
+  tabsRendererTestPlugin,
+  componentStyleTestPlugin,
+  confirmationPopupRendererTestPlugin,
+} from "./quotation-render.test-plugin.mjs";
+
 import { runBundledTest } from "./test-runner.utility.mjs";
+import { autocompleteRendererPlugin } from "./autocomplete-renderer.plugin.mjs";
+
+await runBundledTest({
+  input: "testing/quotation.service.test.ts",
+  output: "quotation.service.test.mjs",
+  external: ["@tanstack/react-query", "react-router-dom", "axios"],
+});
 
 await runBundledTest({
   input: "testing/quotation.utility.test.ts",
@@ -11,34 +24,20 @@ await runBundledTest({
   external: ["@tanstack/react-query", "react-router-dom"],
 });
 
-await runBundledTest({
-  input: "testing/quotation.components.test.tsx",
-  output: "quotation.components.test.mjs",
-  external: ["@tanstack/react-query", "react-router-dom", "axios", "moment"],
-  plugins: [
-    {
-      name: "tabs-renderer-stub",
-      resolveId: id => (id.endsWith("/components/Tabs/Tabs") ? "\0tabs-renderer-stub" : null),
-      load: id =>
-        id === "\0tabs-renderer-stub"
-          ? {
-              code: `import React from "react";
-          const Tabs = ({items, activeId, onChange, ariaLabel}) =>
-            React.createElement("div", {role: "tablist", "aria-label": ariaLabel},
-              items.map(item => React.createElement("button", {
-                key: item.id, role: "tab", "aria-selected": item.id === activeId,
-                onClick: () => onChange(item.id)
-              }, item.label)));
-          export default Tabs;`,
-              moduleType: "js",
-            }
-          : null,
-    },
-    {
-      name: "component-style-stub",
-      resolveId: id => (id.endsWith(".css") ? `\0style:${id}` : null),
-      load: id =>
-        id.startsWith("\0style:") ? { code: "export default {};", moduleType: "js" } : null,
-    },
-  ],
-});
+for (const suite of ["components", "cancellation"]) {
+  const plugins =
+    suite === "cancellation"
+      ? [
+          autocompleteRendererPlugin,
+          confirmationPopupRendererTestPlugin,
+          tabsRendererTestPlugin,
+          componentStyleTestPlugin,
+        ]
+      : [autocompleteRendererPlugin, tabsRendererTestPlugin, componentStyleTestPlugin];
+  await runBundledTest({
+    input: `testing/quotation.${suite}.test.tsx`,
+    output: `quotation.${suite}.test.mjs`,
+    external: ["@tanstack/react-query", "react-router-dom", "axios", "moment"],
+    plugins,
+  });
+}

@@ -183,6 +183,107 @@ test("read-only users cannot alter drafts or trigger autosave", async () => {
   }
 });
 
+test("sales-agent updates reject read-only and dirty quotations", async () => {
+  const readOnly = state();
+  const dirty = state();
+  const update = mock.method(quotationService, "updateSalesAgent", async quotation => quotation);
+  try {
+    await mount(readOnly, false);
+    await act(async () => {
+      assert.equal(await current(readOnly).updateSalesAgent("agent-1"), false);
+    });
+
+    await mount(dirty);
+    await act(async () => {
+      current(dirty).update({ ...current(dirty).quotation, internalNotes: "unsaved" });
+    });
+    await act(async () => {
+      assert.equal(await current(dirty).updateSalesAgent("agent-1"), false);
+    });
+
+    assert.equal(current(dirty).dirty, true);
+    assert.equal(update.mock.callCount(), 0);
+  } finally {
+    update.mock.restore();
+    await unmount(readOnly);
+    await unmount(dirty);
+  }
+});
+
+test("sales-agent updates serialize commands and reject deleted quotations", async () => {
+  const value = state();
+  const gate = Promise.withResolvers<IQuotation>();
+  const update = mock.method(quotationService, "updateSalesAgent", () => gate.promise);
+  const remove = mock.method(quotationService, "delete", async () => {});
+  const pending = { value: null as Promise<boolean> | null };
+  try {
+    await mount(value, true, true);
+    await act(async () => {
+      pending.value = current(value).updateSalesAgent("agent-1");
+      assert.equal(await current(value).updateSalesAgent("agent-2"), false);
+    });
+    assert.equal(current(value).busy, true);
+    assert.equal(current(value).commandBusy, true);
+    assert.equal(update.mock.callCount(), 1);
+
+    await act(async () => {
+      gate.resolve({
+        ...quotationFixture(),
+        salesAgentId: "agent-1",
+        version: 2,
+      });
+      assert.equal(await pending.value, true);
+    });
+    assert.equal(current(value).quotation.salesAgentId, "agent-1");
+    assert.equal(current(value).busy, false);
+
+    await act(async () => {
+      await current(value).remove();
+    });
+    await act(async () => {
+      assert.equal(await current(value).updateSalesAgent("agent-2"), false);
+    });
+    assert.equal(current(value).deleted, true);
+    assert.equal(update.mock.callCount(), 1);
+  } finally {
+    update.mock.restore();
+    remove.mock.restore();
+    await unmount(value);
+  }
+});
+
+test("sales-agent update failures are reported and can be retried", async () => {
+  const value = state();
+  const update = mock.method(quotationService, "updateSalesAgent", async () => {
+    throw new Error("offline");
+  });
+  try {
+    await mount(value);
+    await act(async () => {
+      assert.equal(await current(value).updateSalesAgent("agent-1"), false);
+    });
+    assert.equal(current(value).error, "הפעולה נכשלה. נסה שוב בעוד רגע.");
+    assert.equal(current(value).busy, false);
+    assert.equal(current(value).commandBusy, false);
+    assert.equal(current(value).quotation.salesAgentId, null);
+
+    update.mock.mockImplementation(async quotation => ({
+      ...quotationFixture(),
+      salesAgentId: quotation.salesAgentId,
+      version: quotation.version + 1,
+    }));
+    await act(async () => {
+      assert.equal(await current(value).updateSalesAgent("agent-1"), true);
+    });
+    assert.equal(current(value).error, null);
+    assert.equal(current(value).quotation.salesAgentId, "agent-1");
+    assert.equal(current(value).quotation.version, 2);
+  } finally {
+    update.mock.restore();
+    await unmount(value);
+  }
+});
+
 test("review, acknowledgement and reload refresh detail and invalidate a fresh cached list", async () => {
   const value = state();
   const base = quotationFixture();

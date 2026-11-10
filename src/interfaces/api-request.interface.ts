@@ -92,6 +92,7 @@ export interface IApartmentPayload {
   customerFloor: number;
   hasOwnLighting?: boolean;
   customerApartment: string;
+  engineerUserId?: string | null;
   members?: IProjectMemberAssignment[];
   hasGeneralLightingCeilingLowering?: boolean;
   generalLightingCeilingLoweringHeight?: number | null;
@@ -101,6 +102,7 @@ export interface IApartmentChanges {
   hasOwnTeam?: boolean;
   notes?: string | null;
   hasOwnLighting?: boolean;
+  engineerUserId?: string | null;
   members?: IProjectMemberAssignment[];
   hasGeneralLightingCeilingLowering?: boolean;
   generalLightingCeilingLoweringHeight?: number | null;

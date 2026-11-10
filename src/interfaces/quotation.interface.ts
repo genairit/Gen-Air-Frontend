@@ -1,6 +1,20 @@
-import type { TQuotationStatus, TQuotationSystem } from "../constants/quotation.constant";
+import type {
+  TQuotationStatus,
+  TQuotationSystem,
+  TQuotationRestorableStatus,
+  TQuotationCancellationKind,
+} from "../constants/quotation.constant";
 
-export type { TQuotationStatus, TQuotationSystem } from "../constants/quotation.constant";
+import type {
+  TQuotationProjectKind,
+  TQuotationProjectRole,
+} from "../constants/quotation-sharing.constant";
+
+export type {
+  TQuotationStatus,
+  TQuotationSystem,
+  TQuotationConfirmation,
+} from "../constants/quotation.constant";
 
 export interface ICatalogueItem {
   id: string;
@@ -17,6 +31,17 @@ export interface ICatalogueItem {
   systemType: string | null;
   capacityBtu: number | null;
   includesThermostat: boolean;
+}
+export interface IQuotationCancellation {
+  reason: string;
+  cancelledAt: string;
+  cancelledById: string;
+  cancelledByName: string;
+  restoredAt: string | null;
+  restoredById: string | null;
+  restoredByName: string | null;
+  kind: TQuotationCancellationKind;
+  fromStatus: TQuotationRestorableStatus;
 }
 export interface IQuotationLine {
   id: string;
@@ -65,24 +90,60 @@ export interface IQuotation {
   projectId: string | null;
   status: TQuotationStatus;
   paymentTermsNote: string;
+  salesAgentId: string | null;
   projectName?: string | null;
   paymentTerms: string | null;
   sections: IQuotationSection[];
   warnings: IQuotationWarning[];
+  salesAgentName?: string | null;
   targetPretaxAmount: string | null;
+  apartmentLinks?: IQuotationApartmentLink[];
+  cancellationHistory: IQuotationCancellation[];
+  primaryProject?: IQuotationPrimaryProject | null;
   paymentSchedule: {
-    percent: string;
     text: string;
+    percent: string;
   }[];
+  cancelledFromStatus: TQuotationRestorableStatus | null;
   totals: {
-    subtotal: string;
-    discount: string;
-    pretax: string;
     vat: string;
     total: string;
+    pretax: string;
+    subtotal: string;
+    discount: string;
   };
 }
 
+export interface IQuotationPrimaryProject {
+  id: string;
+  name: string;
+  code: string;
+  kind: TQuotationProjectKind;
+}
+export interface IQuotationApartment {
+  apartmentId: string;
+  floor: number | null;
+  apartmentNumber: string | null;
+  endCustomerName: string | null;
+}
+export interface IQuotationApartmentLink extends IQuotationApartment {
+  available: boolean;
+}
+export interface IQuotationApartmentOptions {
+  apartments: IQuotationApartment[];
+  building: IQuotationPrimaryProject;
+}
+export interface IProjectQuotation extends IQuotation {
+  sharedCount: number;
+  sharedFromCode: string | null;
+  sharedApartmentNumbers: string[];
+  projectRole: TQuotationProjectRole;
+}
+export interface IProjectQuotationPage {
+  total: number;
+  nextCursor: string | null;
+  items: IProjectQuotation[];
+}
 export interface IQuotationPage {
   items: IQuotation[];
   nextCursor: string | null;
@@ -98,17 +159,31 @@ export interface IQuotationEditorState {
   dirty: boolean;
   deleted: boolean;
   retry: () => void;
-  commandBusy: boolean;
   error: string | null;
+  commandBusy: boolean;
   quotation: IQuotation;
   deleteError: string | null;
+  hasVersionConflict: boolean;
   remove: () => Promise<void>;
-  reload: () => Promise<void>;
+  reload: () => Promise<boolean>;
+  restore: () => Promise<boolean>;
   update: (quotation: IQuotation) => void;
+  cancel: (reason: string) => Promise<boolean>;
   acknowledge: (keys: string[]) => Promise<void>;
   transition: (status: TQuotationStatus) => Promise<boolean>;
+  updateSalesAgent: (salesAgentId: string | null) => Promise<boolean>;
 }
 export interface IQuotationProjectChoice {
+  id: string;
+  name: string;
+}
+export interface IQuotationSalesAgent {
+  id: string;
+  lastName: string;
+  firstName: string;
+  employeeNumber: string;
+}
+export interface IQuotationSalesAgentChoice {
   id: string;
   name: string;
 }
@@ -135,6 +210,7 @@ export interface IQuotationSavePayload extends Pick<
   | "version"
   | "customerId"
   | "projectId"
+  | "salesAgentId"
   | "date"
   | "brand"
   | "brands"
@@ -153,6 +229,7 @@ export interface IQuotationStatusCounts {
   draft: number;
   review: number;
   approved: number;
+  cancelled: number;
 }
 export interface IQuotationCircuit {
   id: string;

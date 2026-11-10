@@ -12,7 +12,7 @@ import { getFullName } from "./mappers/user.mapper";
 import { VALID_FIELD } from "./field-feedback.utility";
 import { DATE_FORMAT } from "../constants/date.constants";
 import { formatDate, normalizeDate } from "./date.utility";
-import { isolateText, toOptionalText } from "./text.utility";
+import { isolateBidiText, toOptionalText } from "./text.utility";
 import { USER_ROLE_LABELS } from "../constants/user-role.constant";
 import type { IApiStageTransition } from "../interfaces/api.interface";
 import type { IValidationResult } from "../interfaces/validation-result.interface";
@@ -95,7 +95,7 @@ const formatWaitingReasonMeta = (transition: IApiStageTransition) => {
   const date = formatDate(normalizeDate(transition.createdAt), DATE_FORMAT.FULL_DATE);
   const actor = formatTransitionActor(transition);
 
-  return `${STAGE_REASON_COPY.BANNER_UPDATED_PREFIX} ${isolateText(date)} · ${isolateText(actor)}`;
+  return `${STAGE_REASON_COPY.BANNER_UPDATED_PREFIX} ${isolateBidiText(date)} · ${isolateBidiText(actor)}`;
 };
 
 export const toWaitingReasonLines = ({ waitingReason, latestTransition }: IWaitingReasonSource) => {
@@ -108,8 +108,8 @@ export const toWaitingReasonLines = ({ waitingReason, latestTransition }: IWaiti
   const isReasonTransition = latestTransition && toTransitionNote(latestTransition) === reason;
 
   if (!isReasonTransition) {
-    return [isolateText(reason)];
+    return [isolateBidiText(reason)];
   }
 
-  return [isolateText(reason), formatWaitingReasonMeta(latestTransition)];
+  return [isolateBidiText(reason), formatWaitingReasonMeta(latestTransition)];
 };

@@ -34,7 +34,7 @@ const CheckBox: FC<ICheckBoxProps> = ({
       disabled={disabled}
       onChange={onChange}
       textColor={textColor}
-      aria-label={ariaLabel}
+      slotProps={{ input: { "aria-label": ariaLabel } }}
     />
   );
 };

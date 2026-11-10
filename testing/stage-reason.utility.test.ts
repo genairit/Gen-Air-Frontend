@@ -16,7 +16,7 @@ import {
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
 import { project } from "./project-tasks.fixture";
-import { isolateText } from "../src/utilities/text.utility";
+import { isolateBidiText } from "../src/utilities/text.utility";
 import { API_ENDPOINTS } from "../src/constants/api.constant";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
@@ -177,14 +177,14 @@ test("banner lines isolate the reason and add meta only from the matching transi
     STAGE_REASON_COPY.BANNER_EMPTY,
   ]);
   assert.deepEqual(toWaitingReasonLines({ waitingReason: REASON, latestTransition: null }), [
-    isolateText(REASON),
+    isolateBidiText(REASON),
   ]);
   assert.deepEqual(
     toWaitingReasonLines({
       waitingReason: REASON,
       latestTransition: createTransition({ note: "סיבה אחרת" }),
     }),
-    [isolateText(REASON)],
+    [isolateBidiText(REASON)],
   );
 
   const [reasonLine, metaLine] = toWaitingReasonLines({

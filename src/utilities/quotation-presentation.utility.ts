@@ -11,7 +11,9 @@ import type {
   IQuotationSection,
   IQuotationCircuit,
   IQuotationPaymentRow,
+  IQuotationSalesAgent,
   IQuotationReviewSection,
+  IQuotationSalesAgentChoice,
 } from "../interfaces/quotation.interface";
 
 import type Decimal from "decimal.js";
@@ -20,6 +22,14 @@ import { isDecimal } from "./guards/quotation.guard";
 import { QUOTATION_DEFAULTS } from "../constants/quotation.constant";
 import { quotationMoney, quotationLineMoney } from "./quotation.utility";
 import type { IQuotationLineGroup } from "../interfaces/quotation.interface";
+
+export const toQuotationSalesAgentChoices = (
+  agents: IQuotationSalesAgent[],
+): IQuotationSalesAgentChoice[] =>
+  agents.map(agent => ({
+    id: agent.id,
+    name: `${agent.firstName} ${agent.lastName} · ${agent.employeeNumber}`,
+  }));
 
 export const quotationSaveLabel = ({
   busy,

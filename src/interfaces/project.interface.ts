@@ -59,6 +59,7 @@ export interface IProjectFormValues extends IProjectIntakeValues, IProjectLighti
 
 export interface IProjectSubmission {
   values: IProjectFormValues;
+  canHaveApartments: boolean;
   originalStageId?: string | null;
   fieldSet: ProjectDetailFieldSetType | null;
   originalIntake: IProjectIntakeValues | null;

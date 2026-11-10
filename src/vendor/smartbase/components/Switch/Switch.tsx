@@ -9,6 +9,7 @@ interface ISwitchProps {
   checked: boolean;
   disabled?: boolean;
   ariaLabel?: string;
+  ariaDescribedBy?: string | null;
   gesture?: IToggleGesture | null;
   onChange: (checked: boolean) => void;
 }
@@ -18,6 +19,7 @@ const Switch: FC<ISwitchProps> = ({
   checked,
   onChange,
   ariaLabel,
+  ariaDescribedBy = null,
   gesture = null,
   disabled = false,
 }) => {
@@ -31,6 +33,7 @@ const Switch: FC<ISwitchProps> = ({
 
   const { progress, isPressed, isDragging } = gesture ?? ownGesture;
 
+  const describedByProps = ariaDescribedBy ? { "aria-describedby": ariaDescribedBy } : {};
   const isWrapperDriven = gesture !== null;
   const gestureProps = isWrapperDriven ? {} : ownGesture.gestureProps;
   const styleOptions = { checked, progress, isPressed, isDragging };
@@ -44,6 +47,7 @@ const Switch: FC<ISwitchProps> = ({
       aria-label={ariaLabel}
       aria-checked={checked}
       sx={styles.track({ ...styleOptions, disabled })}
+      {...describedByProps}
       {...gestureProps}
     >
       <Box sx={styles.thumb(styleOptions)} />

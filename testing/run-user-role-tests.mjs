@@ -17,6 +17,14 @@ await runBundledTest({
     {
       name: "role-test-portal-boundary",
       transform: (code, id) => {
+        if (id.endsWith("/apartment/components/ApartmentEngineerPicker.tsx")) {
+          return {
+            code: code.replace(
+              'from "../../../components/Autocomplete/Autocomplete"',
+              'from "engineer-test-autocomplete"',
+            ),
+          };
+        }
         const isPortalComponent =
           id.endsWith("/GenericPopup/GenericPopup.tsx") ||
           id.endsWith("/TopBar/UserMenuButton.tsx");
@@ -27,8 +35,17 @@ await runBundledTest({
 
         return { code: code.replaceAll('from "@mui/material"', 'from "role-test-material"') };
       },
-      resolveId: source => (source === "role-test-material" ? "\0role-test-material" : null),
+      resolveId: source =>
+        source === "role-test-material" || source === "engineer-test-autocomplete"
+          ? `\0${source}`
+          : null,
       load: id => {
+        if (id === "\0engineer-test-autocomplete") {
+          return {
+            code: 'import { createElement } from "react"; export default function Autocomplete(props) { return createElement("select", props); }',
+            moduleType: "js",
+          };
+        }
         if (id !== "\0role-test-material") {
           return null;
         }

@@ -199,6 +199,37 @@
 .badge[data-status="approved"]::before {
   background: #202326;
 }
+.badge[data-status="cancelled"] {
+  border: 1px solid #737780;
+  background: transparent;
+}
+.badge[data-status="cancelled"]::before {
+  content: "×";
+  width: auto;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  font-size: 15px;
+  line-height: 1;
+}
+.cancellationHistory {
+  margin-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+}
+.cancellationHistory summary {
+  cursor: pointer;
+  width: fit-content;
+  color: #1668bd;
+  font-weight: 600;
+}
+.cancellationHistory summary:focus-visible {
+  outline: 2px solid #1668bd;
+  outline-offset: 3px;
+}
+.cancellationHistory ol {
+  margin-top: 12px;
+}
 .heading {
   font-size: 28px;
   font-weight: 800;

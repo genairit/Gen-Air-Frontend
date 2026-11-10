@@ -1,4 +1,4 @@
-export const BIDI_ISOLATES = {
+export const BIDI_ISOLATE = {
   FIRST_STRONG: "\u2068",
-  POP_DIRECTIONAL: "\u2069",
+  POP: "\u2069",
 } as const;

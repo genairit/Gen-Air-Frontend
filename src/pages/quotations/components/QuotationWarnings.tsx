@@ -18,7 +18,11 @@ const QuotationWarnings: FC<IQuotationWarningsProps> = ({
   const acknowledged = quotation.warnings
     .filter(warning => warning.acknowledged)
     .map(warning => warning.key);
-  const disabled = !canApprove || blocked || quotation.status === QUOTATION_STATUS.APPROVED;
+  const disabled =
+    !canApprove ||
+    blocked ||
+    quotation.status === QUOTATION_STATUS.APPROVED ||
+    quotation.status === QUOTATION_STATUS.CANCELLED;
   const toggle = (key: string, checked: boolean) =>
     onAcknowledge(
       checked ? [...acknowledged, key] : acknowledged.filter(current => current !== key),

@@ -1,3 +1,9 @@
+import {
+  hasPermission,
+  canCancelQuotation,
+  canRestoreQuotation,
+} from "../../utilities/permission.utility";
+
 import type { FC } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -5,7 +11,6 @@ import Button from "../../components/Button/Button";
 import { useSessionUser } from "../../store/session.store";
 import QuotationEditor from "./components/QuotationEditor";
 import { PERMISSIONS } from "../../constants/permission.constant";
-import { hasPermission } from "../../utilities/permission.utility";
 import { quotationService } from "../../services/quotation.service";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { QUOTATION_DETAIL_KEY } from "../../constants/quotation.constant";
@@ -13,6 +18,11 @@ import { QUOTATION_DETAIL_KEY } from "../../constants/quotation.constant";
 const QuotationPage: FC = () => {
   const user = useSessionUser();
   const { quotationId } = useParams();
+  const canCancel = canCancelQuotation(user);
+  const canRestore = canRestoreQuotation(user);
+  const canEditQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_UPDATE);
+  const canDeleteQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_DELETE);
+  const canApproveQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_APPROVE);
   const query = useQuery({
     queryKey: QUOTATION_DETAIL_KEY(quotationId ?? ""),
     queryFn: () => quotationService.get(quotationId ?? ""),
@@ -39,9 +49,11 @@ const QuotationPage: FC = () => {
     <QuotationEditor
       key={query.data.id}
       initial={query.data}
-      editable={hasPermission(user, PERMISSIONS.QUOTATIONS_UPDATE)}
-      canDelete={hasPermission(user, PERMISSIONS.QUOTATIONS_DELETE)}
-      canApprove={hasPermission(user, PERMISSIONS.QUOTATIONS_APPROVE)}
+      canCancel={canCancel}
+      canRestore={canRestore}
+      editable={canEditQuotation}
+      canDelete={canDeleteQuotation}
+      canApprove={canApproveQuotation}
     />
   );
 };
