@@ -1,11 +1,20 @@
 import type {
+  TQuotationStatus,
+  TQuotationSystem,
+  TQuotationRestorableStatus,
+  TQuotationCancellationKind,
+} from "../constants/quotation.constant";
+
+import type {
   TQuotationProjectKind,
   TQuotationProjectRole,
 } from "../constants/quotation-sharing.constant";
 
-import type { TQuotationStatus, TQuotationSystem } from "../constants/quotation.constant";
-
-export type { TQuotationStatus, TQuotationSystem } from "../constants/quotation.constant";
+export type {
+  TQuotationStatus,
+  TQuotationSystem,
+  TQuotationConfirmation,
+} from "../constants/quotation.constant";
 
 export interface ICatalogueItem {
   id: string;
@@ -22,6 +31,17 @@ export interface ICatalogueItem {
   systemType: string | null;
   capacityBtu: number | null;
   includesThermostat: boolean;
+}
+export interface IQuotationCancellation {
+  reason: string;
+  cancelledAt: string;
+  cancelledById: string;
+  cancelledByName: string;
+  restoredAt: string | null;
+  restoredById: string | null;
+  restoredByName: string | null;
+  kind: TQuotationCancellationKind;
+  fromStatus: TQuotationRestorableStatus;
 }
 export interface IQuotationLine {
   id: string;
@@ -76,17 +96,19 @@ export interface IQuotation {
   warnings: IQuotationWarning[];
   targetPretaxAmount: string | null;
   apartmentLinks?: IQuotationApartmentLink[];
+  cancellationHistory: IQuotationCancellation[];
   primaryProject?: IQuotationPrimaryProject | null;
   paymentSchedule: {
-    percent: string;
     text: string;
+    percent: string;
   }[];
+  cancelledFromStatus: TQuotationRestorableStatus | null;
   totals: {
-    subtotal: string;
-    discount: string;
-    pretax: string;
     vat: string;
     total: string;
+    pretax: string;
+    subtotal: string;
+    discount: string;
   };
 }
 
@@ -141,7 +163,9 @@ export interface IQuotationEditorState {
   deleteError: string | null;
   remove: () => Promise<void>;
   reload: () => Promise<void>;
+  restore: () => Promise<boolean>;
   update: (quotation: IQuotation) => void;
+  cancel: (reason: string) => Promise<boolean>;
   acknowledge: (keys: string[]) => Promise<void>;
   transition: (status: TQuotationStatus) => Promise<boolean>;
 }
@@ -190,6 +214,7 @@ export interface IQuotationStatusCounts {
   draft: number;
   review: number;
   approved: number;
+  cancelled: number;
 }
 export interface IQuotationCircuit {
   id: string;

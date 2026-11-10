@@ -2,8 +2,28 @@ import Decimal from "decimal.js";
 import { TIME_UNITS } from "./time.constant";
 import { BUTTON_SIZES, BUTTON_SHAPES } from "../components/Button/constants/button.constants";
 
-export const QUOTATION_STATUS = { DRAFT: "draft", REVIEW: "review", APPROVED: "approved" } as const;
+export const QUOTATION_STATUS = {
+  DRAFT: "draft",
+  REVIEW: "review",
+  APPROVED: "approved",
+  CANCELLED: "cancelled",
+} as const;
+export const QUOTATION_CANCELLATION_KIND = {
+  MANUAL: "manual",
+} as const;
+export const QUOTATION_CONFIRMATION = {
+  CANCEL: "cancel",
+  RESTORE: "restore",
+} as const;
+export const QUOTATION_COMMAND = {
+  TRANSITION: "transition",
+  CANCEL: "cancel",
+  RESTORE: "restore",
+  ACKNOWLEDGE: "acknowledge",
+  RELOAD: "reload",
+} as const;
 export const QUOTATION_ALL_TAB_ID = "all";
+export const MAX_QUOTATION_CANCELLATION_REASON_LENGTH = 1000;
 export const QUOTATION_GENERAL_TAB_ID = "__general__";
 export const QUOTATION_SYSTEM = {
   VRF: "VRF",
@@ -29,11 +49,21 @@ export const CATALOGUE_STATUS = {
   CONFLICT: "conflict",
 } as const;
 export type TQuotationStatus = (typeof QUOTATION_STATUS)[keyof typeof QUOTATION_STATUS];
+export type TQuotationRestorableStatus = Exclude<
+  TQuotationStatus,
+  typeof QUOTATION_STATUS.CANCELLED
+>;
+export type TQuotationCancellationKind =
+  (typeof QUOTATION_CANCELLATION_KIND)[keyof typeof QUOTATION_CANCELLATION_KIND];
+export type TQuotationConfirmation =
+  (typeof QUOTATION_CONFIRMATION)[keyof typeof QUOTATION_CONFIRMATION];
+export type TQuotationCommand = (typeof QUOTATION_COMMAND)[keyof typeof QUOTATION_COMMAND];
 export type TQuotationSystem = (typeof QUOTATION_SYSTEM)[keyof typeof QUOTATION_SYSTEM];
 export const QUOTATION_STATUS_LABELS = {
-  draft: "טיוטה",
-  review: "בבדיקה",
-  approved: "אושרה",
+  [QUOTATION_STATUS.DRAFT]: "טיוטה",
+  [QUOTATION_STATUS.REVIEW]: "בבדיקה",
+  [QUOTATION_STATUS.APPROVED]: "הזמנה",
+  [QUOTATION_STATUS.CANCELLED]: "מבוטלת",
 } as const;
 export const QUOTATION_SYSTEM_LABELS = {
   VRF: "מערכת VRF",
@@ -105,7 +135,7 @@ export const QUOTATION_COUNTS_KEY = [...QUOTATION_QUERY_KEY, "status-counts"] as
 export const QUOTATION_STEPS = [
   { status: QUOTATION_STATUS.DRAFT, label: "טיוטה" },
   { status: QUOTATION_STATUS.REVIEW, label: "בדיקה" },
-  { status: QUOTATION_STATUS.APPROVED, label: "אישור" },
+  { status: QUOTATION_STATUS.APPROVED, label: "הזמנה" },
 ];
 
 export const QUOTATION_DEFAULTS = { CIRCUIT: "A" } as const;

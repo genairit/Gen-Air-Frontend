@@ -1,8 +1,10 @@
 import {
   QUOTATION_STATUS,
+  QUOTATION_COMMAND,
   QUOTATION_QUERY_KEY,
   QUOTATION_DETAIL_KEY,
   QUOTATION_AUTOSAVE_MS,
+  type TQuotationCommand,
 } from "../constants/quotation.constant";
 
 import type {
@@ -47,7 +49,8 @@ export const useQuotationEditor = (
       deleted ||
       !editable ||
       commandPending.current ||
-      quotation.status === QUOTATION_STATUS.APPROVED
+      quotation.status === QUOTATION_STATUS.APPROVED ||
+      quotation.status === QUOTATION_STATUS.CANCELLED
     ) {
       return;
     }
@@ -91,7 +94,10 @@ export const useQuotationEditor = (
     task: persist,
     onError: fail,
   });
-  const command = async (work: () => Promise<IQuotation>): Promise<boolean> => {
+  const command = async (
+    operation: TQuotationCommand,
+    work: () => Promise<IQuotation>,
+  ): Promise<boolean> => {
     if (deleted || commandPending.current || busy) {
       return false;
     }
@@ -105,7 +111,13 @@ export const useQuotationEditor = (
       context.assertCurrent();
       return true;
     } catch (failure) {
-      fail(failure);
+      const error = getApiErrorMessage(failure);
+      logger.error("Quotation command failed", {
+        quotationId: quotation.id,
+        operation,
+        error,
+      });
+      setError(error);
       return false;
     } finally {
       commandPending.current = false;
@@ -149,22 +161,47 @@ export const useQuotationEditor = (
     if (dirty) {
       return false;
     }
-    return command(() => quotationService.transition(quotation, status));
+    return command(QUOTATION_COMMAND.TRANSITION, () =>
+      quotationService.transition(quotation, status),
+    );
+  };
+  const cancel = async (reason: string): Promise<boolean> => {
+    const normalizedReason = reason.trim();
+    if (dirty || !normalizedReason) {
+      return false;
+    }
+
+    return command(QUOTATION_COMMAND.CANCEL, () =>
+      quotationService.cancel({ id: quotation.id, version: version.current }, normalizedReason),
+    );
+  };
+  const restore = async (): Promise<boolean> => {
+    if (dirty) {
+      return false;
+    }
+
+    return command(QUOTATION_COMMAND.RESTORE, () =>
+      quotationService.restore({ id: quotation.id, version: version.current }),
+    );
   };
   const acknowledge = async (keys: string[]): Promise<void> => {
     if (dirty) {
       return;
     }
-    await command(() => quotationService.acknowledge(quotation, keys));
+    await command(QUOTATION_COMMAND.ACKNOWLEDGE, () =>
+      quotationService.acknowledge(quotation, keys),
+    );
   };
   const reload = async (): Promise<void> => {
     setDeleteError(null);
-    await command(() => quotationService.get(quotation.id));
+    await command(QUOTATION_COMMAND.RELOAD, () => quotationService.get(quotation.id));
   };
   return {
     deleted,
     deleteError,
     remove,
+    cancel,
+    restore,
     quotation,
     update,
     busy,
