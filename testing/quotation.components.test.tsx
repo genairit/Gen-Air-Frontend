@@ -2,7 +2,10 @@ import { test, mock } from "node:test";
 import assert from "node:assert/strict";
 import { act, create } from "react-test-renderer";
 import { quotationFixture } from "./quotation.fixture";
+import { setSession } from "../src/store/session.store";
 import { setTimeout as settle } from "node:timers/promises";
+import { USER_ROLES } from "../src/constants/user-role.constant";
+import { PERMISSIONS } from "../src/constants/permission.constant";
 import { customerService } from "../src/services/customer.service";
 import { quotationService } from "../src/services/quotation.service";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
@@ -28,6 +31,26 @@ import QuotationSalesAgentPicker from "../src/pages/quotations/components/Quotat
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 Reflect.set(globalThis, "window", new EventTarget());
+const salesAgentTestUserId = "quotation-agent-test-user";
+const setSalesAgentTestSession = (
+  permissions = [PERMISSIONS.QUOTATIONS_READ, PERMISSIONS.EMPLOYEES_READ],
+) =>
+  setSession({
+    accessToken: "quotation-agent-test-token",
+    user: {
+      id: salesAgentTestUserId,
+      email: "agent-test@example.invalid",
+      phone: "0500000000",
+      firstName: "Agent",
+      lastName: "Test",
+      role: USER_ROLES.SYSTEM_ADMIN,
+      assignedRoles: [USER_ROLES.SYSTEM_ADMIN],
+      employeeNumber: "TEST-1",
+      deletedAt: null,
+      permissions,
+    },
+  });
+const salesAgentTestQueryKey = [...QUOTATION_SALES_AGENTS_KEY, salesAgentTestUserId];
 test("brand and General tabs show only their own catalogue sections", async () => {
   const base = quotationFixture();
   base.brands = ["אלקטרה", "תדיראן"];
@@ -1153,8 +1176,9 @@ test("delete confirmation supports cancel, retry and reload while blocking pendi
 });
 
 test("sales-agent picker selects and clears an eligible user", async () => {
+  setSalesAgentTestSession();
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
-  client.setQueryData(QUOTATION_SALES_AGENTS_KEY, [
+  client.setQueryData(salesAgentTestQueryKey, [
     { id: "agent-1", firstName: "Dana", lastName: "Cohen", employeeNumber: "007" },
   ]);
   const selected: (string | null)[] = [];
@@ -1180,12 +1204,14 @@ test("sales-agent picker selects and clears an eligible user", async () => {
   } finally {
     await act(async () => state.renderer?.unmount());
     client.clear();
+    setSession(null);
   }
 });
 
 test("sales-agent picker keeps an unavailable historical employee name visible", async () => {
+  setSalesAgentTestSession();
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
-  client.setQueryData(QUOTATION_SALES_AGENTS_KEY, []);
+  client.setQueryData(salesAgentTestQueryKey, []);
   const state = { renderer: null as ReturnType<typeof create> | null };
   try {
     await act(async () => {
@@ -1205,10 +1231,42 @@ test("sales-agent picker keeps an unavailable historical employee name visible",
   } finally {
     await act(async () => state.renderer?.unmount());
     client.clear();
+    setSession(null);
+  }
+});
+
+test("sales-agent picker does not query employees without employee read access", async () => {
+  setSalesAgentTestSession([PERMISSIONS.QUOTATIONS_READ]);
+  const salesAgents = mock.method(quotationService, "salesAgents", async () => []);
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={client}>
+          <QuotationSalesAgentPicker
+            disabled={false}
+            onChange={() => {}}
+            value="former-agent"
+            selectedName="Neta Levi · 008"
+          />
+        </QueryClientProvider>,
+      );
+    });
+    const picker = state.renderer!.root.findByProps({ "aria-label": "סוכן מכירות (אופציונלי)" });
+    assert.equal(picker.props.disabled, true);
+    assert.equal(picker.props.value, "Neta Levi · 008");
+    assert.equal(salesAgents.mock.callCount(), 0);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    client.clear();
+    salesAgents.mock.restore();
+    setSession(null);
   }
 });
 
 test("approved quotation assignment and clearing use the agent-only update", async () => {
+  setSalesAgentTestSession();
   const quotation = { ...quotationFixture(), status: "approved" as const };
   const customerList = mock.method(customerService, "getByFilter", async () => []);
   const customer = mock.method(customerService, "getById", async () => ({
@@ -1223,7 +1281,7 @@ test("approved quotation assignment and clearing use the agent-only update", asy
     version: input.version + 1,
   }));
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
-  client.setQueryData(QUOTATION_SALES_AGENTS_KEY, [
+  client.setQueryData(salesAgentTestQueryKey, [
     { id: "agent-1", firstName: "Dana", lastName: "Cohen", employeeNumber: "007" },
   ]);
   const router = createMemoryRouter([
@@ -1296,5 +1354,6 @@ test("approved quotation assignment and clearing use the agent-only update", asy
     customerList.mock.restore();
     customer.mock.restore();
     projects.mock.restore();
+    setSession(null);
   }
 });

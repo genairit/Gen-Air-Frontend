@@ -52,9 +52,9 @@ test("sales-agent service rejects non-array successful responses", async () => {
 
 test("sales-agent service requests the quotation sales-agent endpoint", async () => {
   const originalAdapter = httpClient.defaults.adapter;
-  let requestedEndpoint = "";
+  const captured = { requestedEndpoint: "" };
   httpClient.defaults.adapter = async config => {
-    requestedEndpoint = config.url ?? "";
+    captured.requestedEndpoint = config.url ?? "";
     return {
       config,
       status: 200,
@@ -66,7 +66,7 @@ test("sales-agent service requests the quotation sales-agent endpoint", async ()
 
   try {
     await quotationService.salesAgents();
-    assert.equal(requestedEndpoint, API_ENDPOINTS.QUOTATION_SALES_AGENTS);
+    assert.equal(captured.requestedEndpoint, API_ENDPOINTS.QUOTATION_SALES_AGENTS);
   } finally {
     httpClient.defaults.adapter = originalAdapter;
   }

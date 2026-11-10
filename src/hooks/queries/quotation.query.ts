@@ -14,6 +14,8 @@ import type {
 import { useSessionUser } from "../../store/session.store";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { PERMISSIONS } from "../../constants/permission.constant";
+import { hasPermission } from "../../utilities/permission.utility";
 import { quotationService } from "../../services/quotation.service";
 import { QUOTATION_SHARING_KEYS } from "../../constants/quotation-sharing.constant";
 
@@ -49,8 +51,13 @@ export const useProjectQuotationsQuery = (projectId: string) =>
     queryKey: QUOTATION_SHARING_KEYS.projectQuotations(projectId),
     queryFn: ({ pageParam }) => quotationService.projectQuotations(projectId, pageParam),
   });
-export const useQuotationSalesAgentsQuery = (): UseQueryResult<IQuotationSalesAgent[], Error> =>
-  useQuery({
-    queryKey: QUOTATION_SALES_AGENTS_KEY,
+export const useQuotationSalesAgentsQuery = (): UseQueryResult<IQuotationSalesAgent[], Error> => {
+  const user = useSessionUser();
+  return useQuery({
+    queryKey: [...QUOTATION_SALES_AGENTS_KEY, user?.id ?? null],
     queryFn: quotationService.salesAgents,
+    enabled:
+      hasPermission(user, PERMISSIONS.QUOTATIONS_READ) &&
+      hasPermission(user, PERMISSIONS.EMPLOYEES_READ),
   });
+};

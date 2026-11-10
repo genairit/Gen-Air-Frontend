@@ -4,17 +4,21 @@ import {
   findOptionLabelById,
 } from "../../../utilities/option.utility";
 
-import type { FC } from "react";
-import styles from "../quotation.module.css";
-import Button from "../../../components/Button/Button";
-import Autocomplete from "../../../components/Autocomplete/Autocomplete";
-import { getApiErrorMessage } from "../../../utilities/api-error.utility";
-import { useQuotationSalesAgentsQuery } from "../../../hooks/queries/quotation.query";
-import { toQuotationSalesAgentOptions } from "../../../utilities/quotation-presentation.utility";
 import {
   BUTTON_SIZES,
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
+
+import type { FC } from "react";
+import styles from "../quotation.module.css";
+import Button from "../../../components/Button/Button";
+import { useSessionUser } from "../../../store/session.store";
+import { PERMISSIONS } from "../../../constants/permission.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
+import Autocomplete from "../../../components/Autocomplete/Autocomplete";
+import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { useQuotationSalesAgentsQuery } from "../../../hooks/queries/quotation.query";
+import { toQuotationSalesAgentOptions } from "../../../utilities/quotation-presentation.utility";
 
 interface IQuotationSalesAgentPickerProps {
   disabled: boolean;
@@ -29,6 +33,10 @@ const QuotationSalesAgentPicker: FC<IQuotationSalesAgentPickerProps> = ({
   selectedName,
   onChange,
 }) => {
+  const user = useSessionUser();
+  const canChooseAgent =
+    hasPermission(user, PERMISSIONS.EMPLOYEES_READ) &&
+    hasPermission(user, PERMISSIONS.QUOTATIONS_READ);
   const agentsQuery = useQuotationSalesAgentsQuery();
   const eligibleAgents = toQuotationSalesAgentOptions(agentsQuery.data ?? []);
   const selectedAgentIsAvailable = eligibleAgents.some(agent => String(agent.id) === value);
@@ -46,17 +54,18 @@ const QuotationSalesAgentPicker: FC<IQuotationSalesAgentPickerProps> = ({
   return (
     <div className={styles.picker}>
       <Autocomplete
-        disabled={disabled}
         value={selectedLabel}
         title="סוכן מכירות (אופציונלי)"
         options={getOptionLabels(options)}
+        disabled={disabled || !canChooseAgent}
         onChange={label => onChange(findOptionIdByLabel(options, label))}
       />
-      {agentsQuery.isPending && <span role="status">טוען סוכני מכירות...</span>}
-      {!agentsQuery.isPending && !agentsQuery.isError && !eligibleAgents.length && (
-        <span role="status">לא נמצאו משתמשים מתאימים</span>
-      )}
-      {agentsQuery.isError && (
+      {canChooseAgent && agentsQuery.isPending && <span role="status">טוען סוכני מכירות...</span>}
+      {canChooseAgent &&
+        !agentsQuery.isPending &&
+        !agentsQuery.isError &&
+        !eligibleAgents.length && <span role="status">לא נמצאו משתמשים מתאימים</span>}
+      {canChooseAgent && agentsQuery.isError && (
         <div>
           <span role="alert">{getApiErrorMessage(agentsQuery.error)}</span>
           <Button
