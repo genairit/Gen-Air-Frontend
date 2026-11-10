@@ -16,6 +16,8 @@ export const API_ENDPOINTS = {
   quotationApartmentLinks: (id: string) => `/quotation/${id}/apartment-links`,
   quotationApartmentOptions: (id: string) => `/quotation/${id}/apartment-options`,
   projectQuotations: (projectId: string) => `/quotation/project/${projectId}`,
+  quotationCancel: (id: string) => `/quotation/${id}/cancel`,
+  quotationRestore: (id: string) => `/quotation/${id}/restore`,
   catalogueById: (id: string) => `/catalogue-item/${id}`,
   customerProjects: (id: string) => `/customer/${id}/projects`,
   TASKS: "/task",

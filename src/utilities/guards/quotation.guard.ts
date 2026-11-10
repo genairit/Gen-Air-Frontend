@@ -19,6 +19,8 @@ import {
   QUOTATION_STATUS,
   QUOTATION_SYSTEM,
   CATALOGUE_STATUS,
+  QUOTATION_CANCELLATION_KIND,
+  MAX_QUOTATION_CANCELLATION_REASON_LENGTH,
 } from "../../constants/quotation.constant";
 
 import type {
@@ -32,16 +34,33 @@ import type {
   IQuotationWarning,
   IProjectQuotation,
   IProjectQuotationPage,
+  IQuotationCancellation,
   IQuotationProjectChoice,
 } from "../../interfaces/quotation.interface";
 
 import { isPaymentTerms } from "./api.guard";
 import type { IQuotationStatusCounts } from "../../interfaces/quotation.interface";
+import type { TQuotationRestorableStatus } from "../../constants/quotation.constant";
 
 const isString = (value: unknown): value is string => typeof value === "string";
 
 export const isQuotationStatus = (value: unknown): value is TQuotationStatus =>
   Object.values(QUOTATION_STATUS).some(status => status === value);
+const isRestorableQuotationStatus = (value: unknown): value is TQuotationRestorableStatus =>
+  value === QUOTATION_STATUS.DRAFT ||
+  value === QUOTATION_STATUS.REVIEW ||
+  value === QUOTATION_STATUS.APPROVED;
+const isQuotationCancellation = (value: unknown): value is IQuotationCancellation =>
+  isRecord(value) &&
+  Object.values(QUOTATION_CANCELLATION_KIND).some(kind => kind === value.kind) &&
+  isRestorableQuotationStatus(value.fromStatus) &&
+  hasStringFields(value, ["cancelledAt", "cancelledById", "cancelledByName", "reason"]) &&
+  typeof value.reason === "string" &&
+  value.reason.trim().length > 0 &&
+  value.reason.length <= MAX_QUOTATION_CANCELLATION_REASON_LENGTH &&
+  isNullableString(value.restoredAt) &&
+  isNullableString(value.restoredById) &&
+  isNullableString(value.restoredByName);
 export const isQuotationSystem = (value: unknown): value is TQuotationSystem =>
   Object.values(QUOTATION_SYSTEM).some(system => system === value);
 export const isDecimal = (value: unknown): value is string =>
@@ -132,6 +151,9 @@ const hasQuotationIdentity = (value: { [field: string]: unknown }): boolean =>
   Number.isInteger(value.version) &&
   Number(value.version) > 0 &&
   isNullableString(value.projectId) &&
+  (value.cancelledFromStatus === null || isRestorableQuotationStatus(value.cancelledFromStatus)) &&
+  Array.isArray(value.cancellationHistory) &&
+  value.cancellationHistory.every(isQuotationCancellation) &&
   isOptionalOf(isNullableString)(value.customerName) &&
   isOptionalOf(isNullableString)(value.projectName) &&
   isOptionalOf(isQuotationPrimaryProject)(value.primaryProject) &&
@@ -190,9 +212,10 @@ export const isQuotationStatusCounts = (value: unknown): value is IQuotationStat
   if (!isRecord(value)) {
     return false;
   }
-  const counts = [value.all, value.draft, value.review, value.approved];
+  const counts = [value.all, value.draft, value.review, value.approved, value.cancelled];
   return (
     counts.every(count => typeof count === "number" && Number.isSafeInteger(count) && count >= 0) &&
-    value.all === Number(value.draft) + Number(value.review) + Number(value.approved)
+    value.all ===
+      Number(value.draft) + Number(value.review) + Number(value.approved) + Number(value.cancelled)
   );
 };

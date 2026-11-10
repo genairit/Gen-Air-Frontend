@@ -40,6 +40,8 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
   const isDraft = quotation.status === QUOTATION_STATUS.DRAFT;
   const isReview = quotation.status === QUOTATION_STATUS.REVIEW;
   const isApproved = quotation.status === QUOTATION_STATUS.APPROVED;
+  const isCancelled = quotation.status === QUOTATION_STATUS.CANCELLED;
+  const shouldShowNoWarningsMessage = quotation.warnings.length === 0 && !blocked;
   const progressMaximum = Math.max(quotation.warnings.length, 1);
   const progressValue = quotation.warnings.length ? acknowledged.length : 1;
   const amounts = [
@@ -96,8 +98,8 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
             onAcknowledge={onAcknowledge}
           />
         )}
-        {!quotation.warnings.length && !blocked && <p>אין התראות פתוחות</p>}
-        {canApprove && (
+        {shouldShowNoWarningsMessage && <p>אין התראות פתוחות</p>}
+        {canApprove && !isCancelled && (
           <div className={styles.stack}>
             {isDraft && (
               <Button

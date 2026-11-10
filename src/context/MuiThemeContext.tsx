@@ -3,11 +3,12 @@ import createCache from "@emotion/cache";
 import rtlPlugin from "stylis-plugin-rtl";
 import { theme } from "../constants/theme.constants";
 import { CacheProvider, ThemeProvider } from "@emotion/react";
+import { TEXT_DIRECTIONS } from "../constants/direction.constant";
 import { type IProviderProps } from "../interfaces/provider-props";
 import { CssBaseline, GlobalStyles, createTheme } from "@mui/material";
 
 const MUI_OVERRIDES = createTheme({
-  direction: "rtl",
+  direction: TEXT_DIRECTIONS.RTL,
   typography: {
     fontFamily: theme.font.body,
   },

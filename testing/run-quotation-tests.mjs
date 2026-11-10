@@ -1,6 +1,7 @@
 import {
   tabsRendererTestPlugin,
   componentStyleTestPlugin,
+  confirmationPopupRendererTestPlugin,
 } from "./quotation-render.test-plugin.mjs";
 
 import { runBundledTest } from "./test-runner.utility.mjs";
@@ -16,9 +17,15 @@ await runBundledTest({
   external: ["@tanstack/react-query", "react-router-dom"],
 });
 
-await runBundledTest({
-  input: "testing/quotation.components.test.tsx",
-  output: "quotation.components.test.mjs",
-  external: ["@tanstack/react-query", "react-router-dom", "axios", "moment"],
-  plugins: [tabsRendererTestPlugin, componentStyleTestPlugin],
-});
+for (const suite of ["components", "cancellation"]) {
+  const plugins =
+    suite === "cancellation"
+      ? [confirmationPopupRendererTestPlugin, tabsRendererTestPlugin, componentStyleTestPlugin]
+      : [tabsRendererTestPlugin, componentStyleTestPlugin];
+  await runBundledTest({
+    input: `testing/quotation.${suite}.test.tsx`,
+    output: `quotation.${suite}.test.mjs`,
+    external: ["@tanstack/react-query", "react-router-dom", "axios", "moment"],
+    plugins,
+  });
+}

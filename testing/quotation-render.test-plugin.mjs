@@ -22,3 +22,21 @@ export const componentStyleTestPlugin = {
   resolveId: id => (id.endsWith(".css") ? `\0style:${id}` : null),
   load: id => (id.startsWith("\0style:") ? { code: "export default {};", moduleType: "js" } : null),
 };
+
+export const confirmationPopupRendererTestPlugin = {
+  name: "confirmation-popup-renderer-stub",
+  resolveId: id =>
+    id.endsWith("/components/GenericPopup/GenericPopup")
+      ? "\0confirmation-popup-renderer-stub"
+      : null,
+  load: id =>
+    id === "\0confirmation-popup-renderer-stub"
+      ? {
+          code: `import React from "react";
+          const GenericPopup = ({open, content}) =>
+            open ? React.createElement("section", {role: "dialog"}, content) : null;
+          export default GenericPopup;`,
+          moduleType: "js",
+        }
+      : null,
+};

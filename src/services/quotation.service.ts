@@ -80,6 +80,19 @@ export const quotationService = {
     });
     return ensureResponse(endpoint, response.data, isQuotation);
   },
+  async cancel(quotation: Pick<IQuotation, "id" | "version">, reason: string): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationCancel(quotation.id);
+    const response = await httpClient.post<unknown>(endpoint, {
+      version: quotation.version,
+      reason,
+    });
+    return ensureResponse(endpoint, response.data, isQuotation);
+  },
+  async restore(quotation: Pick<IQuotation, "id" | "version">): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationRestore(quotation.id);
+    const response = await httpClient.post<unknown>(endpoint, { version: quotation.version });
+    return ensureResponse(endpoint, response.data, isQuotation);
+  },
   async acknowledge(quotation: IQuotation, warningKeys: string[]): Promise<IQuotation> {
     const endpoint = API_ENDPOINTS.quotationWarnings(quotation.id);
     const response = await httpClient.post<unknown>(endpoint, {

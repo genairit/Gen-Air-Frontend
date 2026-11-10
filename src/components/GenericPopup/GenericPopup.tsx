@@ -20,6 +20,7 @@ import type { TPopUpIcons } from "./constants/icons.constants";
 import { renderPopupIcon } from "./utilities/renderIcon.utility";
 import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
 import { type FC, type MouseEvent, type ReactNode, useState } from "react";
+import type { TextDirectionType } from "../../constants/direction.constant";
 import { getPopupActionErrorMessage } from "./utilities/action-error.utility";
 import { AuthorizationContext } from "../../managers/authorization-context.manager";
 
@@ -35,13 +36,13 @@ export interface IGenericPopupProps {
   open: boolean;
   title: string;
   header?: ReactNode;
-  dir?: "ltr" | "rtl";
   sx?: SxProps<Theme>;
   guidelines?: string;
   signature?: boolean;
   content?: ReactNode;
   onClose?: () => void;
   align?: TAlignContent;
+  dir?: TextDirectionType;
   closeDisabled?: boolean;
   closeAfterAction?: boolean;
   maxWidth?: "sm" | "md" | "lg";
