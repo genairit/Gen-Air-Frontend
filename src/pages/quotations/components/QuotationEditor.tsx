@@ -54,6 +54,7 @@ import Timeline from "../../../components/Timeline/Timeline";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import QuotationProjectPicker from "./QuotationProjectPicker";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
+import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
 import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
 import { QUOTATION_STEPS } from "../../../constants/quotation.constant";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
@@ -172,6 +173,14 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
       setEditingStatus(null);
     }
   };
+  const changeSalesAgent = async (salesAgentId: string | null): Promise<void> => {
+    if (quotation.status === QUOTATION_STATUS.APPROVED) {
+      await editor.updateSalesAgent(salesAgentId);
+      return;
+    }
+
+    update({ ...quotation, salesAgentId });
+  };
   return (
     <main className={styles.page}>
       <Card>
@@ -246,6 +255,18 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             lockedReason={contextLockedReason}
             selectedName={quotation.projectName}
             onChange={projectId => update({ ...quotation, projectId })}
+          />
+          <QuotationSalesAgentPicker
+            onChange={changeSalesAgent}
+            value={quotation.salesAgentId}
+            selectedName={quotation.salesAgentName}
+            disabled={
+              !editable ||
+              editor.busy ||
+              editor.dirty ||
+              rebrand.busy ||
+              quotation.status === QUOTATION_STATUS.CANCELLED
+            }
           />
           {quotation.brands.length === 1 && (
             <QuotationSelect

@@ -199,6 +199,19 @@ export const useQuotationEditor = (
       quotationService.restore({ id: quotation.id, version: version.current }),
     );
   };
+  const updateSalesAgent = async (salesAgentId: string | null): Promise<boolean> => {
+    if (!editable || dirty) {
+      return false;
+    }
+
+    return command(QUOTATION_COMMAND.SALES_AGENT, () =>
+      quotationService.updateSalesAgent({
+        id: quotation.id,
+        version: version.current,
+        salesAgentId,
+      }),
+    );
+  };
   const acknowledge = async (keys: string[]): Promise<void> => {
     if (dirty) {
       return;
@@ -217,6 +230,7 @@ export const useQuotationEditor = (
     remove,
     cancel,
     restore,
+    updateSalesAgent,
     quotation,
     update,
     busy,

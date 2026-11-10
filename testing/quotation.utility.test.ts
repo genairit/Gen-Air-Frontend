@@ -41,6 +41,8 @@ import type { IQuotation, IQuotationStatusCounts } from "../src/interfaces/quota
 test("quotation response guard rejects malformed snapshots, totals and warning payloads", () => {
   const quotation = quotationFixture();
   assert.ok(isQuotation(quotation));
+  assert.ok(isQuotation({ ...quotation, salesAgentName: "Neta Levi · 008" }));
+  assert.equal(isQuotation({ ...quotation, salesAgentName: { firstName: "Neta" } }), false);
   assert.equal(isQuotation({ ...quotation, totals: { total: "NaN" } }), false);
   assert.equal(
     isQuotation({
@@ -167,6 +169,7 @@ test("save payload preserves repeated lines and omits server-controlled money/st
   quotation.sections = [{ id: "s", title: "קומה", systemType: "VRF", items: [a, b] }];
   const body = quotationPayload({ ...quotation, status: "approved", version: 7 });
   assert.equal(body.version, 7);
+  assert.equal(body.salesAgentId, null);
   assert.equal(body.sections[0].items.length, 2);
   assert.equal("status" in body, false);
   assert.equal("vatRate" in body, false);

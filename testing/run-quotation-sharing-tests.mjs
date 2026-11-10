@@ -4,10 +4,11 @@ import {
 } from "./quotation-render.test-plugin.mjs";
 
 import { runBundledTest } from "./test-runner.utility.mjs";
+import { autocompleteRendererPlugin } from "./autocomplete-renderer.plugin.mjs";
 
 await runBundledTest({
   input: "testing/quotation-sharing.test.tsx",
   output: "quotation-sharing.test.mjs",
   external: ["@tanstack/react-query", "react-router-dom", "axios", "moment"],
-  plugins: [tabsRendererTestPlugin, componentStyleTestPlugin],
+  plugins: [autocompleteRendererPlugin, tabsRendererTestPlugin, componentStyleTestPlugin],
 });

@@ -1,15 +1,23 @@
 import {
   QUOTATION_PROJECTS_KEY,
   QUOTATION_CATALOGUE_KEY,
+  QUOTATION_SALES_AGENTS_KEY,
 } from "../../constants/quotation.constant";
+
+import type {
+  ICatalogueItem,
+  IQuotationSalesAgent,
+  IProjectQuotationPage,
+  IQuotationProjectChoice,
+} from "../../interfaces/quotation.interface";
 
 import { useSessionUser } from "../../store/session.store";
 import type { UseQueryResult } from "@tanstack/react-query";
+import { PERMISSIONS } from "../../constants/permission.constant";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { hasPermission } from "../../utilities/permission.utility";
 import { quotationService } from "../../services/quotation.service";
-import type { IProjectQuotationPage } from "../../interfaces/quotation.interface";
 import { QUOTATION_SHARING_KEYS } from "../../constants/quotation-sharing.constant";
-import type { ICatalogueItem, IQuotationProjectChoice } from "../../interfaces/quotation.interface";
 
 export const useQuotationCatalogueQuery = (
   query: { [parameter: string]: string | number },
@@ -43,3 +51,13 @@ export const useProjectQuotationsQuery = (projectId: string) =>
     queryKey: QUOTATION_SHARING_KEYS.projectQuotations(projectId),
     queryFn: ({ pageParam }) => quotationService.projectQuotations(projectId, pageParam),
   });
+export const useQuotationSalesAgentsQuery = (): UseQueryResult<IQuotationSalesAgent[], Error> => {
+  const user = useSessionUser();
+  return useQuery({
+    queryKey: [...QUOTATION_SALES_AGENTS_KEY, user?.id ?? null],
+    queryFn: quotationService.salesAgents,
+    enabled:
+      hasPermission(user, PERMISSIONS.QUOTATIONS_READ) &&
+      hasPermission(user, PERMISSIONS.EMPLOYEES_READ),
+  });
+};

@@ -65,7 +65,7 @@ const apiUser = overrides => ({
   ...overrides,
 });
 
-test("each app account role has its label, including purchasing and execution", () => {
+test("each app account role has its label, including purchasing and sales", () => {
   assert.deepEqual(USER_ROLE_LABELS, {
     system_admin: "הנהלה / מנהל מערכת",
     engineer: "עובד הנדסה",
@@ -74,8 +74,9 @@ test("each app account role has its label, including purchasing and execution", 
     finance: "מחלקת כספים",
     installer: "מתקין",
     purchasing_execution_manager: "מנהל רכש וביצוע",
+    sales_agent: "סוכן מכירות",
   });
-  assert.equal(USER_ROLE_VALUES.length, 7);
+  assert.equal(USER_ROLE_VALUES.length, 8);
   assert.deepEqual(new Set(USER_ROLE_VALUES), new Set(Object.values(USER_ROLES)));
 });
 

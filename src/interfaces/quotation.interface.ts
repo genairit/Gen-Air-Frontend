@@ -90,10 +90,12 @@ export interface IQuotation {
   projectId: string | null;
   status: TQuotationStatus;
   paymentTermsNote: string;
+  salesAgentId: string | null;
   projectName?: string | null;
   paymentTerms: string | null;
   sections: IQuotationSection[];
   warnings: IQuotationWarning[];
+  salesAgentName?: string | null;
   targetPretaxAmount: string | null;
   apartmentLinks?: IQuotationApartmentLink[];
   cancellationHistory: IQuotationCancellation[];
@@ -157,8 +159,8 @@ export interface IQuotationEditorState {
   dirty: boolean;
   deleted: boolean;
   retry: () => void;
-  commandBusy: boolean;
   error: string | null;
+  commandBusy: boolean;
   quotation: IQuotation;
   deleteError: string | null;
   hasVersionConflict: boolean;
@@ -169,10 +171,17 @@ export interface IQuotationEditorState {
   cancel: (reason: string) => Promise<boolean>;
   acknowledge: (keys: string[]) => Promise<void>;
   transition: (status: TQuotationStatus) => Promise<boolean>;
+  updateSalesAgent: (salesAgentId: string | null) => Promise<boolean>;
 }
 export interface IQuotationProjectChoice {
   id: string;
   name: string;
+}
+export interface IQuotationSalesAgent {
+  id: string;
+  lastName: string;
+  firstName: string;
+  employeeNumber: string;
 }
 export type TQuotationSaveLine = Pick<
   IQuotationLine,
@@ -197,6 +206,7 @@ export interface IQuotationSavePayload extends Pick<
   | "version"
   | "customerId"
   | "projectId"
+  | "salesAgentId"
   | "date"
   | "brand"
   | "brands"

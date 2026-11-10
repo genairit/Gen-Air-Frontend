@@ -19,6 +19,7 @@ export const QUOTATION_COMMAND = {
   TRANSITION: "transition",
   CANCEL: "cancel",
   RESTORE: "restore",
+  SALES_AGENT: "sales-agent",
   ACKNOWLEDGE: "acknowledge",
   RELOAD: "reload",
 } as const;
@@ -132,6 +133,7 @@ export const QUOTATION_BRANDS = [
 export const QUOTATION_DECIMAL = Decimal.clone({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
 
 export const QUOTATION_COUNTS_KEY = [...QUOTATION_QUERY_KEY, "status-counts"] as const;
+export const QUOTATION_SALES_AGENTS_KEY = [...QUOTATION_QUERY_KEY, "sales-agents"] as const;
 export const QUOTATION_STEPS = [
   { status: QUOTATION_STATUS.DRAFT, label: "טיוטה" },
   { status: QUOTATION_STATUS.REVIEW, label: "בדיקה" },
