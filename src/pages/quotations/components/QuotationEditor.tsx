@@ -55,6 +55,7 @@ import { ICON_NAMES } from "../../../constants/icon.constant";
 import QuotationProjectPicker from "./QuotationProjectPicker";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
+import { useQuotationPdf } from "../../../hooks/quotation-pdf.hook";
 import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
 import { QUOTATION_STEPS } from "../../../constants/quotation.constant";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
@@ -72,6 +73,7 @@ import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-
 
 interface IQuotationEditorProps {
   editable: boolean;
+  canExport: boolean;
   initial: IQuotation;
   canApprove: boolean;
   canDelete?: boolean;
@@ -82,6 +84,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   initial,
   editable,
   canApprove,
+  canExport,
   canCancel = false,
   canRestore = false,
   canDelete = false,
@@ -93,6 +96,8 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const [activeTab, setActiveTab] = useState(initial.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
   const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
+  const pdfTitle = quotation.status === QUOTATION_STATUS.APPROVED ? "הזמנה" : "הצעת מחיר";
+  const pdf = useQuotationPdf(quotation.id, `${pdfTitle} ${quotation.number}.pdf`);
   const sharing = useQuotationApartmentSharing({
     quotation,
     canEdit: editable,
@@ -190,6 +195,14 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             <span className={styles.badge} data-status={quotation.status}>
               {QUOTATION_STATUS_LABELS[quotation.status]}
             </span>
+            {canExport && (
+              <Button
+                onClick={pdf.open}
+                disabled={blocked || pdf.busy}
+                variant={BUTTON_VARIANTS.NEUTRAL}
+                text={pdf.busy ? "מכין PDF..." : "ייצוא PDF"}
+              />
+            )}
             <div className={styles.row}>
               {QUOTATION_STEPS.map(step => (
                 <span
@@ -235,6 +248,11 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               <Button text="נסה לשמור שוב" onClick={editor.retry} />
               <Button text="טען גרסה מהשרת" onClick={reloadQuotation} />
             </div>
+          </div>
+        )}
+        {pdf.error && (
+          <div role="alert" className={styles.error}>
+            {pdf.error}
           </div>
         )}
         <div className={styles.metadata}>
@@ -499,6 +517,26 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               onReload={reloadQuotation}
             />
           )
+        }
+      />
+      <GenericPopup
+        maxWidth="lg"
+        onClose={pdf.close}
+        open={pdf.url !== null}
+        dir={TEXT_DIRECTIONS.RTL}
+        title={`${pdfTitle} ${quotation.number}`}
+        buttons={{
+          primary: { text: "הורדת PDF", onClick: pdf.download },
+          secondary: { text: "סגירה", onClick: pdf.close },
+        }}
+        content={
+          pdf.url ? (
+            <iframe
+              title="תצוגה מקדימה של PDF"
+              src={pdf.url}
+              style={{ width: "100%", height: "70vh", border: 0 }}
+            />
+          ) : null
         }
       />
       <GenericPopup

@@ -21,6 +21,9 @@ const QuotationPage: FC = () => {
   const canCancel = canCancelQuotation(user);
   const canRestore = canRestoreQuotation(user);
   const canEditQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_UPDATE);
+  const canExportQuotation =
+    hasPermission(user, PERMISSIONS.QUOTATIONS_EXPORT) &&
+    hasPermission(user, PERMISSIONS.PROJECTS_READ);
   const canDeleteQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_DELETE);
   const canApproveQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_APPROVE);
   const query = useQuery({
@@ -52,6 +55,7 @@ const QuotationPage: FC = () => {
       canCancel={canCancel}
       canRestore={canRestore}
       editable={canEditQuotation}
+      canExport={canExportQuotation}
       canDelete={canDeleteQuotation}
       canApprove={canApproveQuotation}
     />
