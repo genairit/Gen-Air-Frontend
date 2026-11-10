@@ -183,6 +183,10 @@ export interface IQuotationSalesAgent {
   firstName: string;
   employeeNumber: string;
 }
+export interface IQuotationSalesAgentChoice {
+  id: string;
+  name: string;
+}
 export type TQuotationSaveLine = Pick<
   IQuotationLine,
   | "id"
