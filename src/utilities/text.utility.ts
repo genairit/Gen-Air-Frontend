@@ -2,7 +2,7 @@ import { BIDI_ISOLATES } from "../constants/text.constant";
 
 export const formatFileCount = (count: number) => `${count} קבצים`;
 
-export const toOptionalText = (value: string): string | null => value.trim() || null;
+export const toOptionalText = (value?: string | null): string | null => value?.trim() || null;
 
 export const formatVisibleCount = ({ visible, total }: { visible: number; total: number }) =>
   `מציג ${visible} מתוך ${total} עובדים רשומים`;

@@ -8,11 +8,11 @@ import {
   WAITING_FOR_RESPONSE_STAGE_ID,
 } from "../constants/project-stage.constant";
 
-import { isolateText } from "./text.utility";
 import { getFullName } from "./mappers/user.mapper";
 import { VALID_FIELD } from "./field-feedback.utility";
 import { DATE_FORMAT } from "../constants/date.constants";
 import { formatDate, normalizeDate } from "./date.utility";
+import { isolateText, toOptionalText } from "./text.utility";
 import { USER_ROLE_LABELS } from "../constants/user-role.constant";
 import type { IApiStageTransition } from "../interfaces/api.interface";
 import type { IValidationResult } from "../interfaces/validation-result.interface";
@@ -50,10 +50,8 @@ export const toStageReasonValidator = (isRevealed: boolean) => (reason: string) 
   return validateStageReason(reason);
 };
 
-const toOptionalNote = (note?: string | null) => note?.trim() || null;
-
 export const toStageMovePayload = ({ stageId, note }: IStageMove): IProjectStageMovePayload => {
-  const trimmedNote = toOptionalNote(note);
+  const trimmedNote = toOptionalText(note);
 
   if (!trimmedNote) {
     return { stageId };
@@ -69,7 +67,7 @@ export const toStageNotePayload = ({
   values: IProjectFormValues;
   originalStageId: string | null;
 }): Pick<IProjectPayload, "stageNote"> => {
-  const stageNote = toOptionalNote(values.stageNote);
+  const stageNote = toOptionalText(values.stageNote);
   const isStageNoteRequired = requiresStageNote({ stageId: values.stageId, originalStageId });
 
   if (!isStageNoteRequired || !stageNote) {
@@ -83,7 +81,7 @@ export const countStageNoteErrors = (change: IStageChange & { stageNote: string 
   Number(requiresStageNote(change) && !validateStageReason(change.stageNote).isValid);
 
 export const toTransitionNote = (transition: IApiStageTransition) =>
-  toOptionalNote(transition.note);
+  toOptionalText(transition.note);
 
 const formatTransitionActor = (transition: IApiStageTransition) => {
   if (!transition.changedBy) {
@@ -101,7 +99,7 @@ const formatWaitingReasonMeta = (transition: IApiStageTransition) => {
 };
 
 export const toWaitingReasonLines = ({ waitingReason, latestTransition }: IWaitingReasonSource) => {
-  const reason = toOptionalNote(waitingReason);
+  const reason = toOptionalText(waitingReason);
 
   if (!reason) {
     return [STAGE_REASON_COPY.BANNER_EMPTY];

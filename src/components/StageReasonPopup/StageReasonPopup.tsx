@@ -34,6 +34,7 @@ const StageReasonPopup: FC<IStageReasonPopupProps> = ({
   const armCancelClosed = useClosedCallback(open, onCancelClosed);
 
   const trimmedReason = reason.trim();
+  const isConfirmDisabled = !trimmedReason || isSubmitting;
 
   const resetReason = () => {
     setReason("");
@@ -81,7 +82,7 @@ const StageReasonPopup: FC<IStageReasonPopupProps> = ({
         primary: {
           onClick: confirm,
           text: STAGE_REASON_COPY.CONFIRM,
-          isDisabled: !trimmedReason || isSubmitting,
+          isDisabled: isConfirmDisabled,
         },
         secondary: { onClick: cancel, isDisabled: isSubmitting, text: STAGE_REASON_COPY.CANCEL },
       }}
