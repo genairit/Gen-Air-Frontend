@@ -16,8 +16,8 @@ import {
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
 import { project } from "./project-tasks.fixture";
-import { isolateBidiText } from "../src/utilities/text.utility";
 import { API_ENDPOINTS } from "../src/constants/api.constant";
+import { isolateBidiText } from "../src/utilities/text.utility";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { projectService } from "../src/services/project.service";
