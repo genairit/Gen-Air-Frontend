@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { logger } from "../utilities/logger.utility";
 import { quotationService } from "../services/quotation.service";
@@ -32,7 +33,13 @@ export const useQuotationPdf = (quotationId: string, filename: string): IQuotati
       const pdf = await quotationService.exportPdf(quotationId);
       setUrl(URL.createObjectURL(pdf));
     } catch (cause) {
-      logger.error("Quotation PDF export failed", { error: cause });
+      const status = isAxiosError(cause) ? (cause.response?.status ?? null) : null;
+      const errorType = isAxiosError(cause)
+        ? "http"
+        : cause instanceof Error
+          ? cause.name
+          : "unknown";
+      logger.error("Quotation PDF export failed", { status, errorType });
       setError("לא ניתן לייצא את הצעת המחיר. נסו שוב.");
     } finally {
       setBusy(false);
