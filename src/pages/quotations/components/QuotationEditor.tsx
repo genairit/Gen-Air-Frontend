@@ -88,6 +88,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
   const [confirmation, setConfirmation] = useState<TQuotationConfirmation | null>(null);
   const [cancellationReason, setCancellationReason] = useState("");
+  const [latestLoadedAfterConflict, setLatestLoadedAfterConflict] = useState(false);
   const [activeTab, setActiveTab] = useState(initial.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
   const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
@@ -135,6 +136,8 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const confirmationActionLabel = confirmationView?.actionLabel ?? "";
   const confirmationDescription = confirmationView?.description ?? "";
   const showConfirmationError = isConfirmationOpen && editor.error !== null;
+  const requestedActionAvailable =
+    confirmation === QUOTATION_CONFIRMATION.CANCEL ? canCancelQuotation : canRestoreQuotation;
   const confirmationActions: Record<TQuotationConfirmation, () => Promise<boolean>> = {
     [QUOTATION_CONFIRMATION.CANCEL]: () => editor.cancel(cancellationReason),
     [QUOTATION_CONFIRMATION.RESTORE]: editor.restore,
@@ -151,7 +154,17 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
 
     setConfirmation(null);
     setCancellationReason("");
+    setLatestLoadedAfterConflict(false);
     setEditingStatus(null);
+  };
+  const reloadConflict = async (): Promise<void> => {
+    const loaded = await editor.reload();
+    if (loaded) {
+      setLatestLoadedAfterConflict(true);
+    }
+  };
+  const reloadQuotation = async (): Promise<void> => {
+    await editor.reload();
   };
   const transition = async (status: TQuotationStatus): Promise<void> => {
     const accepted = await editor.transition(status);
@@ -184,10 +197,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                 disabled={blocked}
                 variant={BUTTON_VARIANTS.NEUTRAL}
                 text={`ביטול ${cancellationNoun}`}
-                onClick={() => {
-                  setCancellationReason("");
-                  setConfirmation(QUOTATION_CONFIRMATION.CANCEL);
-                }}
+                onClick={() => setConfirmation(QUOTATION_CONFIRMATION.CANCEL)}
               />
             )}
             {canRestoreQuotation && (
@@ -214,7 +224,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             {editor.error}
             <div className={styles.row}>
               <Button text="נסה לשמור שוב" onClick={editor.retry} />
-              <Button text="טען גרסה מהשרת" onClick={editor.reload} />
+              <Button text="טען גרסה מהשרת" onClick={reloadQuotation} />
             </div>
           </div>
         )}
@@ -465,7 +475,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               pending={editor.busy}
               error={editor.deleteError}
               onDelete={editor.remove}
-              onReload={editor.reload}
+              onReload={reloadQuotation}
             />
           )
         }
@@ -482,6 +492,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             text: confirmationActionLabel,
             isDisabled:
               blocked ||
+              !requestedActionAvailable ||
               (confirmation === QUOTATION_CONFIRMATION.CANCEL && !cancellationReason.trim()),
             onClick: confirmQuotationAction,
           },
@@ -494,6 +505,11 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         content={
           <div>
             <p>{confirmationDescription}</p>
+            {latestLoadedAfterConflict && (
+              <p role="status" className={styles.muted}>
+                הגרסה העדכנית נטענה. בדקו את הפרטים לפני אישור מחדש.
+              </p>
+            )}
             {confirmation === QUOTATION_CONFIRMATION.CANCEL && (
               <label className={styles.label}>
                 סיבת ביטול
@@ -510,7 +526,10 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             {showConfirmationError && (
               <div role="alert" className={styles.error}>
                 {editor.error}
-                <Button text="אפשר ניסיון חוזר" onClick={editor.retry} />
+                <Button
+                  text={editor.hasVersionConflict ? "טען גרסה עדכנית" : "אפשר ניסיון חוזר"}
+                  onClick={editor.hasVersionConflict ? reloadConflict : editor.retry}
+                />
               </div>
             )}
           </div>

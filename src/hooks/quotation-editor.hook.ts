@@ -13,9 +13,11 @@ import type {
   IQuotationEditorState,
 } from "../interfaces/quotation.interface";
 
+import { isAxiosError } from "axios";
 import { useRef, useState } from "react";
 import { logger } from "../utilities/logger.utility";
 import { useQueryClient } from "@tanstack/react-query";
+import { HTTP_STATUS } from "../constants/api.constant";
 import { useDelayedAsyncTask } from "./delayed-async-task.hook";
 import { quotationService } from "../services/quotation.service";
 import { getApiErrorMessage } from "../utilities/api-error.utility";
@@ -34,6 +36,7 @@ export const useQuotationEditor = (
   const [busy, setBusy] = useState(false);
   const [commandBusy, setCommandBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasVersionConflict, setHasVersionConflict] = useState(false);
   const generation = useRef(0);
   const version = useRef(initial.version);
   const commandPending = useRef(false);
@@ -58,6 +61,7 @@ export const useQuotationEditor = (
     setQuotation(next);
     setDirty(true);
     setError(null);
+    setHasVersionConflict(false);
   };
   const accept = async (next: IQuotation, context: AuthorizationContext): Promise<void> => {
     context.assertCurrent();
@@ -106,9 +110,13 @@ export const useQuotationEditor = (
     setBusy(true);
     setCommandBusy(true);
     setError(null);
+    if (operation !== QUOTATION_COMMAND.RELOAD) {
+      setHasVersionConflict(false);
+    }
     try {
       await accept(await work(), context);
       context.assertCurrent();
+      setHasVersionConflict(false);
       return true;
     } catch (failure) {
       const error = getApiErrorMessage(failure);
@@ -118,6 +126,13 @@ export const useQuotationEditor = (
         error,
       });
       setError(error);
+      const isCancellationCommand =
+        operation === QUOTATION_COMMAND.CANCEL || operation === QUOTATION_COMMAND.RESTORE;
+      if (isCancellationCommand) {
+        setHasVersionConflict(
+          isAxiosError(failure) && failure.response?.status === HTTP_STATUS.CONFLICT,
+        );
+      }
       return false;
     } finally {
       commandPending.current = false;
@@ -192,9 +207,9 @@ export const useQuotationEditor = (
       quotationService.acknowledge(quotation, keys),
     );
   };
-  const reload = async (): Promise<void> => {
+  const reload = async (): Promise<boolean> => {
     setDeleteError(null);
-    await command(QUOTATION_COMMAND.RELOAD, () => quotationService.get(quotation.id));
+    return command(QUOTATION_COMMAND.RELOAD, () => quotationService.get(quotation.id));
   };
   return {
     deleted,
@@ -208,6 +223,7 @@ export const useQuotationEditor = (
     commandBusy,
     dirty,
     error,
+    hasVersionConflict,
     transition,
     acknowledge,
     reload,

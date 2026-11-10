@@ -294,12 +294,6 @@ for (const { failureName, failure } of [
       response: { status: HTTP_STATUS.FORBIDDEN, data: { message: "permission changed" } },
     }),
   },
-  {
-    failureName: "conflict",
-    failure: Object.assign(new AxiosError("conflict"), {
-      response: { status: HTTP_STATUS.CONFLICT, data: { message: "version changed" } },
-    }),
-  },
 ]) {
   for (const action of [QUOTATION_CONFIRMATION.CANCEL, QUOTATION_CONFIRMATION.RESTORE]) {
     test(`${action} ${failureName} failure retains the confirmation and quotation; explicit retry succeeds`, async () => {
@@ -396,6 +390,102 @@ for (const { failureName, failure } of [
       }
     });
   }
+}
+
+for (const action of [QUOTATION_CONFIRMATION.CANCEL, QUOTATION_CONFIRMATION.RESTORE]) {
+  test(`${action} reloads the latest quotation after a real version conflict before retry`, async () => {
+    const base = { ...quotationFixture(), status: QUOTATION_STATUS.REVIEW };
+    const cancelled = cancelledQuotation(base);
+    const isCancel = action === QUOTATION_CONFIRMATION.CANCEL;
+    const initial = isCancel ? base : cancelled;
+    const latest = { ...initial, version: initial.version + 1 };
+    const next = isCancel
+      ? cancelledQuotation(latest)
+      : {
+          ...base,
+          version: latest.version + 1,
+          cancellationHistory: latest.cancellationHistory.map(record => ({
+            ...record,
+            restoredAt: "2026-11-10T13:00:00.000Z",
+            restoredById: "cancellation-user",
+            restoredByName: "Rina Levy",
+          })),
+        };
+    const conflict = Object.assign(new AxiosError("stale quotation"), {
+      response: { status: HTTP_STATUS.CONFLICT, data: { message: "version changed" } },
+    });
+    const post = mock.method(
+      httpClient,
+      "post",
+      async (_endpoint: string, body: { version: number }) => {
+        if (body.version === initial.version) {
+          throw conflict;
+        }
+        return { data: next };
+      },
+    );
+    const get = mock.method(quotationService, "get", async () => latest);
+    const view = await mountQuotation(initial, authorizedUser([USER_ROLES.SYSTEM_ADMIN]));
+    const actionText = isCancel ? "ביטול הצעה" : "שחזור הצעה";
+    try {
+      await act(async () => view.requiredButton(actionText).click());
+      if (isCancel) {
+        await act(async () => {
+          view
+            .root()
+            .findAllByType("textarea")
+            .find(node => node.props.required)
+            ?.props.onChange({ target: { value: "Project withdrawn" } });
+        });
+      }
+
+      await act(async () => view.popup().props.buttons.primary.onClick());
+      assert.equal(view.popup().props.open, true);
+      assert.deepEqual(view.quotation(), initial);
+      assert.equal(view.popup().props.buttons.primary.isDisabled, true);
+      assert.ok(view.requiredButton("טען גרסה עדכנית"));
+      await act(async () => view.requiredButton("טען גרסה עדכנית").click());
+      assert.equal(get.mock.callCount(), 1);
+      assert.deepEqual(view.quotation(), latest);
+      assert.equal(view.popup().props.open, true);
+      assert.equal(view.popup().props.buttons.primary.isDisabled, false);
+      assert.ok(view.root().findAllByProps({ role: "status" }).length > 0);
+      await act(async () => view.popup().props.onClose());
+      assert.equal(view.popup().props.open, false);
+      await act(async () => view.requiredButton(actionText).click());
+      assert.equal(view.popup().props.open, true);
+      if (isCancel) {
+        assert.equal(
+          view
+            .root()
+            .findAllByType("textarea")
+            .find(node => node.props.required)?.props.value,
+          "Project withdrawn",
+        );
+      }
+
+      await act(async () => view.popup().props.buttons.primary.onClick());
+      assert.equal(post.mock.callCount(), 2);
+      assert.deepEqual(
+        post.mock.calls[0].arguments[1],
+        isCancel
+          ? { version: initial.version, reason: "Project withdrawn" }
+          : { version: initial.version },
+      );
+      assert.deepEqual(
+        post.mock.calls[1].arguments[1],
+        isCancel
+          ? { version: latest.version, reason: "Project withdrawn" }
+          : { version: latest.version },
+      );
+      assert.equal(view.popup().props.open, false);
+      assert.deepEqual(view.quotation(), next);
+    } finally {
+      post.mock.restore();
+      get.mock.restore();
+      await view.dispose();
+    }
+  });
 }
 
 const orderApprover = () => ({

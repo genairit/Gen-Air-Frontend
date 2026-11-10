@@ -161,8 +161,9 @@ export interface IQuotationEditorState {
   error: string | null;
   quotation: IQuotation;
   deleteError: string | null;
+  hasVersionConflict: boolean;
   remove: () => Promise<void>;
-  reload: () => Promise<void>;
+  reload: () => Promise<boolean>;
   restore: () => Promise<boolean>;
   update: (quotation: IQuotation) => void;
   cancel: (reason: string) => Promise<boolean>;
