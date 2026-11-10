@@ -1,24 +1,18 @@
 import {
-  getOptionLabels,
-  findOptionIdByLabel,
-  findOptionLabelById,
-} from "../../../utilities/option.utility";
-
-import {
   BUTTON_SIZES,
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
-import type { FC } from "react";
+import { useState, type FC } from "react";
 import styles from "../quotation.module.css";
 import Button from "../../../components/Button/Button";
+import QuotationEntityPicker from "./QuotationEntityPicker";
 import { useSessionUser } from "../../../store/session.store";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
-import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useQuotationSalesAgentsQuery } from "../../../hooks/queries/quotation.query";
-import { toQuotationSalesAgentOptions } from "../../../utilities/quotation-presentation.utility";
+import { toQuotationSalesAgentChoices } from "../../../utilities/quotation-presentation.utility";
 
 interface IQuotationSalesAgentPickerProps {
   disabled: boolean;
@@ -34,31 +28,40 @@ const QuotationSalesAgentPicker: FC<IQuotationSalesAgentPickerProps> = ({
   onChange,
 }) => {
   const user = useSessionUser();
+  const [search, setSearch] = useState("");
   const canChooseAgent =
     hasPermission(user, PERMISSIONS.EMPLOYEES_READ) &&
     hasPermission(user, PERMISSIONS.QUOTATIONS_READ);
   const agentsQuery = useQuotationSalesAgentsQuery();
-  const eligibleAgents = toQuotationSalesAgentOptions(agentsQuery.data ?? []);
-  const selectedAgentIsAvailable = eligibleAgents.some(agent => String(agent.id) === value);
+  const eligibleAgents = toQuotationSalesAgentChoices(agentsQuery.data ?? []);
+  const selectedAgentIsAvailable = eligibleAgents.some(agent => agent.id === value);
   const selectedAgentLabel = selectedName ?? "סוכן שמור";
   const unavailableAgentLabel = agentsQuery.isSuccess
     ? `${selectedAgentLabel} · לא זמין`
     : selectedAgentLabel;
   const preservedAgentOption =
-    value !== null && !selectedAgentIsAvailable
-      ? [{ id: value, label: unavailableAgentLabel }]
-      : [];
-  const options = [...preservedAgentOption, ...eligibleAgents];
-  const selectedLabel = findOptionLabelById(options, value);
+    value !== null && !selectedAgentIsAvailable ? [{ id: value, name: unavailableAgentLabel }] : [];
+  const choices = [...preservedAgentOption, ...eligibleAgents];
+  const choice = choices.find(agent => agent.id === value) ?? null;
+  const normalizedSearch = search.trim().toLocaleLowerCase();
+  const options = eligibleAgents.filter(agent =>
+    agent.name.toLocaleLowerCase().includes(normalizedSearch),
+  );
+  const pickerDisabled = disabled || !canChooseAgent;
+  const optionsLoading = canChooseAgent && agentsQuery.isPending;
 
   return (
     <div className={styles.picker}>
-      <Autocomplete
-        value={selectedLabel}
-        title="סוכן מכירות (אופציונלי)"
-        options={getOptionLabels(options)}
-        disabled={disabled || !canChooseAgent}
-        onChange={label => onChange(findOptionIdByLabel(options, label))}
+      <QuotationEntityPicker
+        allowClear
+        value={choice}
+        options={options}
+        onChange={onChange}
+        onSearch={setSearch}
+        loading={optionsLoading}
+        disabled={pickerDisabled}
+        label="סוכן מכירות (אופציונלי)"
+        placeholder="ללא סוכן · חיפוש סוכן מכירות..."
       />
       {canChooseAgent && agentsQuery.isPending && <span role="status">טוען סוכני מכירות...</span>}
       {canChooseAgent &&

@@ -1176,6 +1176,7 @@ test("delete confirmation supports cancel, retry and reload while blocking pendi
 });
 
 test("sales-agent picker selects and clears an eligible user", async () => {
+  const { Autocomplete } = await import("@mui/material");
   setSalesAgentTestSession();
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   client.setQueryData(salesAgentTestQueryKey, [
@@ -1195,10 +1196,19 @@ test("sales-agent picker selects and clears an eligible user", async () => {
         </QueryClientProvider>,
       );
     });
-    const picker = () =>
-      state.renderer!.root.findByProps({ "aria-label": "סוכן מכירות (אופציונלי)" });
-    await act(async () => picker().props.onChange({ target: { value: "Dana Cohen · 007" } }));
-    await act(async () => picker().props.onChange({ target: { value: "" } }));
+    const picker = () => state.renderer!.root.findByType(Autocomplete);
+    assert.equal(picker().props.disableClearable, false);
+    assert.deepEqual(picker().props.options, [{ id: "agent-1", name: "Dana Cohen · 007" }]);
+    await act(async () => picker().props.onInputChange(null, "007", "input"));
+    assert.deepEqual(picker().props.options, [{ id: "agent-1", name: "Dana Cohen · 007" }]);
+    await act(async () => picker().props.onInputChange(null, "missing", "input"));
+    assert.deepEqual(picker().props.options, []);
+    await act(async () => picker().props.onInputChange(null, "007", "input"));
+    assert.deepEqual(picker().props.options, [{ id: "agent-1", name: "Dana Cohen · 007" }]);
+    await act(async () =>
+      picker().props.onChange(null, { id: "agent-1", name: "Dana Cohen · 007" }),
+    );
+    await act(async () => picker().props.onChange(null, null));
 
     assert.deepEqual(selected, ["agent-1", null]);
   } finally {
@@ -1209,6 +1219,7 @@ test("sales-agent picker selects and clears an eligible user", async () => {
 });
 
 test("sales-agent picker keeps an unavailable historical employee name visible", async () => {
+  const { Autocomplete } = await import("@mui/material");
   setSalesAgentTestSession();
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } },
@@ -1228,8 +1239,8 @@ test("sales-agent picker keeps an unavailable historical employee name visible",
         </QueryClientProvider>,
       );
     });
-    const picker = state.renderer!.root.findByProps({ "aria-label": "סוכן מכירות (אופציונלי)" });
-    assert.equal(picker.props.value, "Neta Levi · 008 · לא זמין");
+    const picker = state.renderer!.root.findByType(Autocomplete);
+    assert.equal(picker.props.value.name, "Neta Levi · 008 · לא זמין");
   } finally {
     await act(async () => state.renderer?.unmount());
     client.clear();
@@ -1238,6 +1249,7 @@ test("sales-agent picker keeps an unavailable historical employee name visible",
 });
 
 test("sales-agent picker does not query employees without employee read access", async () => {
+  const { Autocomplete } = await import("@mui/material");
   setSalesAgentTestSession([PERMISSIONS.QUOTATIONS_READ]);
   const salesAgents = mock.method(quotationService, "salesAgents", async () => []);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
@@ -1255,9 +1267,9 @@ test("sales-agent picker does not query employees without employee read access",
         </QueryClientProvider>,
       );
     });
-    const picker = state.renderer!.root.findByProps({ "aria-label": "סוכן מכירות (אופציונלי)" });
+    const picker = state.renderer!.root.findByType(Autocomplete);
     assert.equal(picker.props.disabled, true);
-    assert.equal(picker.props.value, "Neta Levi · 008");
+    assert.equal(picker.props.value.name, "Neta Levi · 008");
     assert.equal(salesAgents.mock.callCount(), 0);
   } finally {
     await act(async () => state.renderer?.unmount());
@@ -1268,6 +1280,7 @@ test("sales-agent picker does not query employees without employee read access",
 });
 
 test("approved quotation assignment and clearing use the agent-only update", async () => {
+  const { Autocomplete } = await import("@mui/material");
   setSalesAgentTestSession();
   const quotation = { ...quotationFixture(), status: "approved" as const };
   const customerList = mock.method(customerService, "getByFilter", async () => []);
@@ -1316,9 +1329,11 @@ test("approved quotation assignment and clearing use the agent-only update", asy
     assert.equal(state.renderer!.root.findByType("textarea").props.disabled, true);
     assert.equal(state.renderer!.root.findByType(QuotationSummary).props.disabled, true);
     const agentPicker = () =>
-      state.renderer!.root.findByProps({ "aria-label": "סוכן מכירות (אופציונלי)" });
+      state.renderer!.root.findByType(QuotationSalesAgentPicker).findByType(Autocomplete);
     assert.equal(agentPicker().props.disabled, false);
-    await act(async () => agentPicker().props.onChange({ target: { value: "Dana Cohen · 007" } }));
+    await act(async () =>
+      agentPicker().props.onChange(null, { id: "agent-1", name: "Dana Cohen · 007" }),
+    );
     await act(async () => {
       await settle(0);
     });
@@ -1327,12 +1342,12 @@ test("approved quotation assignment and clearing use the agent-only update", asy
       version: 1,
       salesAgentId: "agent-1",
     });
-    assert.equal(agentPicker().props.value, "Dana Cohen · 007");
+    assert.equal(agentPicker().props.value.name, "Dana Cohen · 007");
     assert.equal(
       state.renderer!.root.findByType(QuotationSummary).props.quotation.salesAgentId,
       "agent-1",
     );
-    await act(async () => agentPicker().props.onChange({ target: { value: "" } }));
+    await act(async () => agentPicker().props.onChange(null, null));
     await act(async () => {
       await settle(0);
     });
@@ -1341,7 +1356,7 @@ test("approved quotation assignment and clearing use the agent-only update", asy
       version: 2,
       salesAgentId: null,
     });
-    assert.equal(agentPicker().props.value, "");
+    assert.equal(agentPicker().props.value, null);
     assert.equal(
       state.renderer!.root.findByType(QuotationSummary).props.quotation.salesAgentId,
       null,
