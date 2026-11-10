@@ -168,11 +168,14 @@ test("employee forms require assigned roles and leave initial active-role choice
 });
 
 test("project team eligibility uses assigned roles rather than the active role", () => {
-  const candidates = getApartmentTeamCandidates([apiUser()], []);
+  const candidates = getApartmentTeamCandidates(
+    [apiUser({ assignedRoles: [USER_ROLES.FINANCE, USER_ROLES.SECRETARY] })],
+    [],
+  );
 
   assert.deepEqual(
     candidates.map(candidate => ({ userId: candidate.user.id, role: candidate.role })),
-    [{ userId: "employee-1", role: USER_ROLES.ENGINEER }],
+    [{ userId: "employee-1", role: USER_ROLES.SECRETARY }],
   );
 });
 

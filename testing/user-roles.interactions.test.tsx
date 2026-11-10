@@ -18,20 +18,24 @@ import { queryClient } from "../src/providers/query-client";
 import { TIME_UNITS } from "../src/constants/time.constant";
 import type { IApiUser } from "../src/interfaces/api.interface";
 import { httpClient } from "../src/services/http-client.service";
+import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
+import InlineError from "../src/components/InlineError/InlineError";
 import RadioButton from "../src/components/RadioButton/RadioButton";
 import { EMPLOYEES_COPY } from "../src/constants/employee.constant";
 import UserMenuButton from "../src/components/TopBar/UserMenuButton";
 import GenericPopup from "../src/components/GenericPopup/GenericPopup";
 import { act, create, type ReactTestInstance } from "react-test-renderer";
-import { QueryClientProvider, notifyManager } from "@tanstack/react-query";
+import { APARTMENT_TEAM_COPY } from "../src/constants/apartment.constant";
 import { switchActiveRoleAction } from "../src/actions/role-switch.action";
 import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { toEmployee, toPerson } from "../src/utilities/mappers/user.mapper";
 import { SESSION_USER_QUERY_KEY } from "../src/constants/permission.constant";
 import { verifySessionUserAction } from "../src/actions/session-refresh.action";
+import { QueryClient, QueryClientProvider, notifyManager } from "@tanstack/react-query";
 import EditEmployeeRolesPopup from "../src/pages/employees/components/EditEmployeeRolesPopup";
 import RoleAssignmentFields from "../src/components/RoleAssignmentFields/RoleAssignmentFields";
+import ApartmentEngineerPicker from "../src/pages/apartment/components/ApartmentEngineerPicker";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 notifyManager.setScheduler(callback => callback());
@@ -58,6 +62,81 @@ const renderComponent = async (element: ReactElement): Promise<ReturnType<typeof
   assert.ok(state.renderer);
   return state.renderer;
 };
+
+test("apartment engineer picker selects and clears the dedicated assignment", async () => {
+  const engineer = {
+    ...user,
+    id: "engineer-1",
+    role: USER_ROLES.ENGINEER,
+    assignedRoles: [USER_ROLES.ENGINEER],
+  };
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  });
+  client.setQueryData(QUERY_KEYS.users({ search: "", role: USER_ROLES.ENGINEER }), [engineer]);
+  const selected: (string | null)[] = [];
+  const renderer = await renderComponent(
+    <QueryClientProvider client={client}>
+      <ApartmentEngineerPicker value={engineer.id} onChange={id => selected.push(id)} />
+    </QueryClientProvider>,
+  );
+  try {
+    const picker = renderer.root.findByType("select");
+    assert.equal(picker.props.options[0], APARTMENT_TEAM_COPY.NO_ENGINEER);
+    assert.ok(picker.props.value.includes("Rina"));
+    await act(async () => picker.props.onChange(picker.props.options[1]));
+    await act(async () => picker.props.onChange(APARTMENT_TEAM_COPY.NO_ENGINEER));
+    assert.deepEqual(selected, [engineer.id, null]);
+  } finally {
+    await act(async () => renderer.unmount());
+    client.clear();
+  }
+});
+
+test("apartment engineer picker keeps the selected member visible and offers retry after a load error", async () => {
+  const engineer = {
+    ...user,
+    id: "engineer-1",
+    role: USER_ROLES.ENGINEER,
+    assignedRoles: [USER_ROLES.ENGINEER],
+  };
+  const previous = userService.getByFilter;
+  let calls = 0;
+  userService.getByFilter = async () => {
+    calls += 1;
+    throw new Error("offline");
+  };
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const renderer = await renderComponent(
+    <QueryClientProvider client={client}>
+      <ApartmentEngineerPicker
+        onChange={noop}
+        value={engineer.id}
+        selectedMember={{
+          id: "member-1",
+          userId: engineer.id,
+          role: USER_ROLES.ENGINEER,
+          user: engineer,
+        }}
+      />
+    </QueryClientProvider>,
+  );
+  try {
+    const picker = renderer.root.findByType("select");
+    assert.ok(picker.props.value.includes("Rina"));
+    assert.equal(renderer.root.findAllByType(InlineError).length, 1);
+    const retry = renderer.root
+      .findAllByType(Button)
+      .find(button => button.props.text === APARTMENT_TEAM_COPY.RETRY);
+    assert.ok(retry);
+    await act(async () => retry.props.onClick());
+    assert.equal(calls, 2);
+  } finally {
+    userService.getByFilter = previous;
+    await act(async () => renderer.unmount());
+    client.clear();
+  }
+});
 
 const deferred = <TValue,>(): {
   promise: Promise<TValue>;
