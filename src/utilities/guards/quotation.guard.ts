@@ -33,9 +33,9 @@ import type {
   IQuotationSection,
   IQuotationWarning,
   IProjectQuotation,
+  IQuotationSalesAgent,
   IProjectQuotationPage,
   IQuotationCancellation,
-  IQuotationSalesAgent,
   IQuotationProjectChoice,
 } from "../../interfaces/quotation.interface";
 

@@ -14,12 +14,12 @@ export const QUOTATION_CANCELLATION_KIND = {
 export const QUOTATION_CONFIRMATION = {
   CANCEL: "cancel",
   RESTORE: "restore",
-  SALES_AGENT: "sales-agent",
 } as const;
 export const QUOTATION_COMMAND = {
   TRANSITION: "transition",
   CANCEL: "cancel",
   RESTORE: "restore",
+  SALES_AGENT: "sales-agent",
   ACKNOWLEDGE: "acknowledge",
   RELOAD: "reload",
 } as const;

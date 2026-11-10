@@ -27,12 +27,13 @@ await runBundledTest({
 for (const suite of ["components", "cancellation"]) {
   const plugins =
     suite === "cancellation"
-      ? [confirmationPopupRendererTestPlugin, tabsRendererTestPlugin, componentStyleTestPlugin]
-      : [
+      ? [
           autocompleteRendererPlugin,
+          confirmationPopupRendererTestPlugin,
           tabsRendererTestPlugin,
           componentStyleTestPlugin,
-        ];
+        ]
+      : [autocompleteRendererPlugin, tabsRendererTestPlugin, componentStyleTestPlugin];
   await runBundledTest({
     input: `testing/quotation.${suite}.test.tsx`,
     output: `quotation.${suite}.test.mjs`,

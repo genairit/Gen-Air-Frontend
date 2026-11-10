@@ -1210,7 +1210,9 @@ test("sales-agent picker selects and clears an eligible user", async () => {
 
 test("sales-agent picker keeps an unavailable historical employee name visible", async () => {
   setSalesAgentTestSession();
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } },
+  });
   client.setQueryData(salesAgentTestQueryKey, []);
   const state = { renderer: null as ReturnType<typeof create> | null };
   try {
