@@ -4,9 +4,9 @@ import type {
   ICatalogueItem,
   TQuotationStatus,
   IQuotationListQuery,
+  IQuotationSalesAgent,
   IProjectQuotationPage,
   IQuotationApartmentOptions,
-  IQuotationSalesAgent,
 } from "../interfaces/quotation.interface";
 
 import {
