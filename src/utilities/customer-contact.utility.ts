@@ -65,17 +65,5 @@ export const getCustomerContactFieldErrors = (draft: ICustomerContactDraft) => {
 export const validateCustomerContactDraft = (draft: ICustomerContactDraft): string[] =>
   Object.values(getCustomerContactFieldErrors(draft)).filter(error => error !== null);
 
-export const formatCustomerContactCount = (contacts: ICustomerContact[]) =>
-  contacts.length === 1 ? "איש קשר אחד" : `${contacts.length} אנשי קשר`;
-
-export const formatCustomerPrimaryContact = (
-  contacts: ICustomerContact[],
-  primaryContactId: string | null,
-) => {
-  const primary = contacts.find(contact => contact.id === primaryContactId);
-  if (!primary) {
-    return CUSTOMER_CONTACT_COPY.EMPTY;
-  }
-
-  return primary.name;
-};
+export const formatCustomerPrimaryContact = (contact: ICustomerContact | null) =>
+  contact?.name ?? CUSTOMER_CONTACT_COPY.EMPTY;

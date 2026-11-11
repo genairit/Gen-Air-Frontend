@@ -70,9 +70,7 @@ const CustomerPrimaryContactCard: FC<ICustomerPrimaryContactCardProps> = ({ cust
       setCreatedContactId(null);
     },
   });
-  const primary =
-    customer.primaryContact ??
-    customer.contacts?.find(contact => contact.id === customer.primaryContactId);
+  const primary = customer.primaryContact;
 
   return (
     <Card gap="18px" padding="24px">

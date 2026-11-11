@@ -5,7 +5,7 @@ import { useStyles } from "./DetailTile.style";
 interface IDetailTileProps {
   label: string;
   value: string;
-  href?: string;
+  href?: string | null;
   isLtr?: boolean;
   badge?: ReactNode;
   note?: string | null;
@@ -30,7 +30,7 @@ const DetailTile: FC<IDetailTileProps> = ({
         {label}
       </Box>
       <Box sx={styles.valueRow}>
-        <Box href={href} sx={styles.value} component={valueComponent}>
+        <Box {...(href ? { href } : {})} sx={styles.value} component={valueComponent}>
           <bdi dir={isLtr ? "ltr" : "rtl"}>{value}</bdi>
         </Box>
         {badge}

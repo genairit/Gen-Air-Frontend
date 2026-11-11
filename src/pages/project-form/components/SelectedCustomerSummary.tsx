@@ -41,7 +41,9 @@ const SelectedCustomerSummary: FC<ISelectedCustomerSummaryProps> = ({
         <Box component="span" sx={styles.caption}>
           <bdi>{formatCustomerTaxId(customer)}</bdi>
         </Box>
-        {canReadContacts && <CustomerContactSummary contacts={customer.contacts ?? []} />}
+        {canReadContacts && (
+          <CustomerContactSummary contacts={customer.primaryContact ? [customer.primaryContact] : []} />
+        )}
       </Box>
       <Box sx={styles.actions}>
         <Box

@@ -81,7 +81,6 @@ export const BUILDING_PAGE_COPY = {
 export const APARTMENT_TABLE_HEADERS = {
   APARTMENT: "דירה",
   END_CUSTOMER: "לקוח קצה",
-  CONTACT: "איש קשר",
   STAGE: "שלב",
 } as const;
 
@@ -101,10 +100,8 @@ export const APARTMENT_PAGE_COPY = {
   PHONE: "טלפון",
   NO_END_CUSTOMER: "לא שויך לקוח קצה לדירה זו",
   PARENT_CUSTOMER_NOTE: "לקוח הפרויקט האב אינו לקוח הקצה של הדירה ואינו עובר אליה.",
-  CONTACT_TITLE: "אנשי קשר וצוות",
-  CONTACT_SUBTITLE: "אנשי הקשר מתוך כרטיס הלקוח · הצוות נקבע לכל דירה בנפרד",
-  CONTACT_NAME: "איש קשר היסטורי בדירה",
-  CONTACT_PHONE: "טלפון נייד",
+  CONTACT_TITLE: "צוות הדירה",
+  CONTACT_SUBTITLE: "המהנדס וחברי הצוות נקבעים לכל דירה בנפרד",
   INHERITED_TITLE: "נתונים מהפרויקט האב",
   INHERITED_SUBTITLE: "סוג הפרויקט והכתובת מתעדכנים עם פרויקט האב",
   PROJECT_TYPE: "סוג פרויקט",

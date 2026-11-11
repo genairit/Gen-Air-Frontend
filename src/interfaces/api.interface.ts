@@ -207,7 +207,6 @@ export interface IApiCustomer {
   priorityId: string | null;
   contactName: string | null;
   prioritySyncAttempts: number;
-  contacts?: ICustomerContact[];
   prioritySyncedAt: string | null;
   primaryContactId?: string | null;
   prioritySyncError: string | null;

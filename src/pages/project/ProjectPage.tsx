@@ -14,7 +14,6 @@ import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { ROUTE_PARAMS, ROUTE_PATHS } from "../../constants/routes.constant";
 import ProjectContacts from "../../components/ProjectContacts/ProjectContacts";
-import CustomerContacts from "../../components/CustomerContacts/CustomerContacts";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import { PROJECT_PAGE_COPY, PROJECT_PAGE_STATUS_COPY } from "../../constants/project-page.constant";
 
@@ -55,9 +54,6 @@ const ProjectPage = () => {
     <Box sx={styles.page}>
       <ProjectView key={project.id} project={project} />
       <ProjectContacts projectId={project.id} canEdit={canEditContacts} />
-      {project.customerId && (
-        <CustomerContacts key={project.customerId} customerId={project.customerId} />
-      )}
     </Box>
   );
 };

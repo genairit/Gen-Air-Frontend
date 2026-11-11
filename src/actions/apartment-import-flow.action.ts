@@ -28,7 +28,6 @@ import { FileDownloadManager } from "../managers/file-download.manager";
 import { QUERY_KEYS, QUERY_ROOTS } from "../constants/query-key.constant";
 import { apartmentImportService } from "../services/apartment-import.service";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
-import { CUSTOMER_CONTACT_QUERY_ROOT } from "../constants/customer-contact.constant";
 
 interface IStartImportOptions extends IApartmentImportStateActions {
   file: File;
@@ -154,10 +153,6 @@ export const refreshImportedApartmentsAction = async (buildingId: string): Promi
     ),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.CUSTOMERS] }, { throwOnError: true }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.CUSTOMER] }, { throwOnError: true }),
-    queryClient.invalidateQueries(
-      { queryKey: [CUSTOMER_CONTACT_QUERY_ROOT] },
-      { throwOnError: true },
-    ),
   ]);
   context.assertCurrent();
 };

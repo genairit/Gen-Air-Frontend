@@ -6,21 +6,16 @@ import Chip from "../../../components/Chip/Chip";
 import Button from "../../../components/Button/Button";
 import ApartmentTeamPicker from "./ApartmentTeamPicker";
 import ApartmentTeamMembers from "./ApartmentTeamMembers";
-import ApartmentLegacyContact from "./ApartmentLegacyContact";
-import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import ApartmentEngineerPicker from "./ApartmentEngineerPicker";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import { USER_ROLES } from "../../../constants/user-role.constant";
-import { PERMISSIONS } from "../../../constants/permission.constant";
-import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { toApartmentAssignments } from "../../../utilities/apartment.utility";
 import type { IApiProject, IApiProjectMember } from "../../../interfaces/api.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { useUpdateApartmentMutation } from "../../../hooks/mutations/apartment.mutation";
-import CustomerContactPreview from "../../../components/CustomerContacts/CustomerContactPreview";
 import { APARTMENT_PAGE_COPY, APARTMENT_TEAM_COPY } from "../../../constants/apartment.constant";
 
 interface IApartmentContactCardProps {
@@ -29,8 +24,6 @@ interface IApartmentContactCardProps {
 }
 const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEdit }) => {
   const styles = usePageStyles();
-  const user = useSessionUser();
-  const canReadCustomer = hasPermission(user, PERMISSIONS.CUSTOMERS_READ);
   const [draft, setDraft] = useState<IApiProjectMember[] | null>(null);
   const updateMutation = useUpdateApartmentMutation();
   const isEditing = draft !== null;
@@ -63,10 +56,6 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
         title={APARTMENT_PAGE_COPY.CONTACT_TITLE}
         subtitle={APARTMENT_PAGE_COPY.CONTACT_SUBTITLE}
       />
-      {apartment.customerId && (
-        <CustomerContactPreview key={apartment.customerId} customerId={apartment.customerId} />
-      )}
-      <ApartmentLegacyContact apartment={apartment} canRead={canReadCustomer} />
       <ApartmentEngineerPicker
         value={engineerUserId}
         selectedMember={engineerMember}
