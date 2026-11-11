@@ -35,6 +35,7 @@ export interface IProjectPayload
   members: IProjectMemberAssignment[];
   hasGeneralLightingCeilingLowering?: boolean;
   generalLightingCeilingLoweringHeight?: number | null;
+  contacts?: { contactId: string; role: string | null; isPrimary: boolean }[];
 }
 
 export interface IUserQuery {

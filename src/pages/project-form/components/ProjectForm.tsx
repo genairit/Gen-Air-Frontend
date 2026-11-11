@@ -75,11 +75,13 @@ import { countStageNoteErrors } from "../../../utilities/stage-reason.utility";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
 import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
 import { useProjectNameAvailability } from "../../../hooks/queries/project-name.query";
+import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
 import { readProjectDraft, clearProjectDraft } from "../../../utilities/project-draft.utility";
 import { useProjectStagesQuery, useProjectTypesQuery } from "../../../hooks/queries/project.query";
+import DirectoryContactPicker from "../../../components/DirectoryContactPicker/DirectoryContactPicker";
 
 interface IProjectFormProps {
   mode: ProjectFormModeType;
@@ -108,6 +110,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   };
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
+  const [selectedContacts, setSelectedContacts] = useState<ICustomerContact[]>([]);
 
   useProjectDraft(draftUserId, values);
 
@@ -167,7 +170,17 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const submitByMode: Record<ProjectFormModeType, () => void> = {
     new: () =>
       createMutation.mutate(
-        { values, fieldSet, originalIntake, canHaveApartments },
+        {
+          values,
+          fieldSet,
+          originalIntake,
+          canHaveApartments,
+          contacts: selectedContacts.map((contact, index) => ({
+            contactId: contact.id,
+            role: null,
+            isPrimary: index === 0,
+          })),
+        },
         { onSuccess: openProject },
       ),
     edit: () =>
@@ -304,6 +317,16 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         onChange={handleCustomerChange}
         isSubmitAttempted={isSubmitAttempted}
       />
+      {!isEditMode && (
+        <DirectoryContactPicker
+          multiple
+          disabled={isSaving}
+          title="אנשי קשר לפרויקט"
+          selected={selectedContacts}
+          onChange={setSelectedContacts}
+          subtitle="חפש ובחר אנשי קשר קיימים. הראשון שנבחר יהיה איש הקשר הראשי."
+        />
+      )}
       {fieldSet && hasSiteDetails && (
         <ProjectSiteDetailsCard
           fieldSet={fieldSet}
