@@ -102,61 +102,67 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
 
   return (
     <Box sx={styles.page}>
-      <CustomerFieldsCard
-        errors={errors}
-        values={values}
-        onChange={updateValues}
-        icon={ICON_NAMES.CUSTOMER}
-        disabled={mutation.isPending}
-        fields={CUSTOMER_IDENTITY_FIELDS}
-        title={CUSTOMER_FORM_COPY.IDENTITY}
-        subtitle={CUSTOMER_FORM_COPY.IDENTITY_SUBTITLE}
-      >
-        <Autocomplete
-          isRequired
-          onChange={changeType}
-          isAutocomplete={false}
-          disabled={mutation.isPending}
-          title={CUSTOMER_FORM_COPY.TYPE}
-          options={getOptionLabels(CUSTOMER_TYPE_OPTIONS)}
-          value={findOptionLabelById(CUSTOMER_TYPE_OPTIONS, values.customerType)}
-        />
-      </CustomerFieldsCard>
-      <DirectoryContactPicker
-        title="בחר איש קשר קיים"
-        selected={selectedContact}
-        disabled={mutation.isPending}
-        subtitle="אפשר לבחור איש קשר מהמדריך, להזין חדש או להשאיר ריק."
-        onChange={contacts => {
-          setSelectedContact(contacts);
-          if (contacts.length) {
-            updateValues({ contactName: "", phone: "", email: "" });
-          }
-        }}
-      />
-      {!selectedContact.length && (
+      <Box sx={styles.grid({ minColumnWidth: 520 })}>
         <CustomerFieldsCard
           errors={errors}
           values={values}
           onChange={updateValues}
-          icon={ICON_NAMES.CONTACTS}
+          icon={ICON_NAMES.CUSTOMER}
           disabled={mutation.isPending}
-          fields={CUSTOMER_CONTACT_FIELDS}
-          title={CUSTOMER_FORM_COPY.CONTACT}
-          subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
-        />
-      )}
-      <Card>
-        <Autocomplete
-          isAutocomplete={false}
-          value={paymentTermsLabel}
-          disabled={mutation.isPending}
-          onChange={changePaymentTerms}
-          title="תנאי תשלום כברירת מחדל"
-          options={CUSTOMER_PAYMENT_DEFAULT_LABELS}
-        />
-      </Card>
-      <CustomerSaveSummaryCard creatorName={creatorName} />
+          fields={CUSTOMER_IDENTITY_FIELDS}
+          title={CUSTOMER_FORM_COPY.IDENTITY}
+          subtitle={CUSTOMER_FORM_COPY.IDENTITY_SUBTITLE}
+        >
+          <Autocomplete
+            isRequired
+            onChange={changeType}
+            isAutocomplete={false}
+            disabled={mutation.isPending}
+            title={CUSTOMER_FORM_COPY.TYPE}
+            options={getOptionLabels(CUSTOMER_TYPE_OPTIONS)}
+            value={findOptionLabelById(CUSTOMER_TYPE_OPTIONS, values.customerType)}
+          />
+        </CustomerFieldsCard>
+        <Box sx={styles.stack({})}>
+          <DirectoryContactPicker
+            title="בחר איש קשר קיים"
+            selected={selectedContact}
+            disabled={mutation.isPending}
+            subtitle="אפשר לבחור איש קשר מהמדריך, להזין חדש או להשאיר ריק."
+            onChange={contacts => {
+              setSelectedContact(contacts);
+              if (contacts.length) {
+                updateValues({ contactName: "", phone: "", email: "" });
+              }
+            }}
+          />
+          {!selectedContact.length && (
+            <CustomerFieldsCard
+              errors={errors}
+              values={values}
+              onChange={updateValues}
+              icon={ICON_NAMES.CONTACTS}
+              disabled={mutation.isPending}
+              fields={CUSTOMER_CONTACT_FIELDS}
+              title={CUSTOMER_FORM_COPY.CONTACT}
+              subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
+            />
+          )}
+        </Box>
+      </Box>
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <Card>
+          <Autocomplete
+            isAutocomplete={false}
+            value={paymentTermsLabel}
+            disabled={mutation.isPending}
+            onChange={changePaymentTerms}
+            title="תנאי תשלום כברירת מחדל"
+            options={CUSTOMER_PAYMENT_DEFAULT_LABELS}
+          />
+        </Card>
+        <CustomerSaveSummaryCard creatorName={creatorName} />
+      </Box>
       {errorCount > 0 && <InlineError message={formatFieldErrorCount(errorCount)} />}
       {mutation.isError && <InlineError message={getApiErrorMessage(mutation.error)} />}
       <Box sx={styles.endRow}>

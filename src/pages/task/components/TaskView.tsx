@@ -107,21 +107,23 @@ const TaskView: FC<ITaskViewProps> = ({
           <QuotationEmailDialog taskId={task.id} onClose={() => setEmailOpen(false)} />
         </Suspense>
       )}
-      <TaskUrgencyCard
-        task={task}
-        isManager={canChangeUrgency}
-        onRequestChange={requestUrgencyChange}
-      />
       {mutationError && <InlineError message={getApiErrorMessage(mutationError)} />}
-      <TaskDetailsCard
-        task={task}
-        canEdit={canEdit}
-        canClaim={canClaim}
-        onUpdate={updateTask}
-        canAssign={canAssign}
-        isSaving={updateMutation.isPending}
-        onClaim={() => claimMutation.mutate(task.id)}
-      />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <TaskDetailsCard
+          task={task}
+          canEdit={canEdit}
+          canClaim={canClaim}
+          onUpdate={updateTask}
+          canAssign={canAssign}
+          isSaving={updateMutation.isPending}
+          onClaim={() => claimMutation.mutate(task.id)}
+        />
+        <TaskUrgencyCard
+          task={task}
+          isManager={canChangeUrgency}
+          onRequestChange={requestUrgencyChange}
+        />
+      </Box>
       <TaskHistoryCard taskId={task.id} />
       <UrgencyConfirmPopup
         confirmation={confirmation}

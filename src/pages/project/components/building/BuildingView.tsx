@@ -101,7 +101,17 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
 
       {canReadDrive && <ProjectDriveCard shareWithApartments projectId={project.id} />}
 
-      <BuildingInheritedCard building={project} />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <BuildingInheritedCard building={project} />
+        {fieldSet && (
+          <ProjectCustomerCard
+            project={project}
+            fieldSet={fieldSet}
+            onEdit={canEdit ? openEditForm : null}
+            typeName={project.projectType?.name ?? ""}
+          />
+        )}
+      </Box>
 
       {canReadQuotations && <ProjectQuotationsCard projectId={project.id} />}
 
@@ -120,15 +130,6 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
       />
 
       <ProjectTeamCard members={project.members ?? []} />
-
-      {fieldSet && (
-        <ProjectCustomerCard
-          project={project}
-          fieldSet={fieldSet}
-          onEdit={canEdit ? openEditForm : null}
-          typeName={project.projectType?.name ?? ""}
-        />
-      )}
 
       <ProjectTimelineCard projectId={project.id} />
     </Box>

@@ -50,9 +50,11 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
 
       <ProjectContacts canEdit={canEdit} projectId={apartment.id} />
 
-      <ApartmentCommercialCard apartment={apartment} />
       {canReadQuotations && <ProjectQuotationsCard projectId={apartment.id} />}
-      <ApartmentLightingCard canEdit={canEdit} apartment={apartment} />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <ApartmentCommercialCard apartment={apartment} />
+        <ApartmentLightingCard canEdit={canEdit} apartment={apartment} />
+      </Box>
       {canReadDrive && <SharedProjectDocumentCard apartmentId={apartment.id} />}
       {canReadDrive && <ProjectDriveCard projectId={apartment.id} />}
 
