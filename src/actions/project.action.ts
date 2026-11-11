@@ -29,7 +29,10 @@ const requirePayload = (submission: IProjectSubmission) => {
 
 export const createProjectAction = async (submission: IProjectSubmission): Promise<string> => {
   const context = new AuthorizationContext();
-  const project = await projectService.create(requirePayload(submission));
+  const project = await projectService.create({
+    ...requirePayload(submission),
+    contacts: submission.contacts ?? [],
+  });
   context.assertCurrent();
 
   await invalidateProjectQueries();

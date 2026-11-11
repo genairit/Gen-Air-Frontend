@@ -40,6 +40,7 @@ export type ICustomerCreateRequest = Omit<
   ICreateCustomerPayload,
   "contactName" | "phone" | "email"
 > & {
+  primaryContactId?: string | null;
   contactName: string | null;
   phone: string | null;
   email: string | null;

@@ -8,7 +8,6 @@ import { useSessionUser } from "../../store/session.store";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import { ROUTE_PATHS } from "../../constants/routes.constant";
 import EmptyState from "../../components/EmptyState/EmptyState";
-import CustomerSearchStep from "./components/CustomerSearchStep";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { getFullName } from "../../utilities/mappers/user.mapper";
 import { buildCustomerPath } from "../../utilities/route.utility";
@@ -22,7 +21,6 @@ const NewCustomerPage = () => {
   const styles = usePageStyles();
   const navigate = useNavigate();
   const user = useSessionUser();
-  const [isCreating, setIsCreating] = useState(false);
   const [createdCustomerId, setCreatedCustomerId] = useState<string | null>(null);
   const returnChannel = new URLSearchParams(window.location.search).get("returnChannel");
   const finish = (customerId: string) => {
@@ -38,16 +36,13 @@ const NewCustomerPage = () => {
         />
       );
     }
-    if (isCreating) {
-      return (
-        <NewCustomerForm
-          creatorName={creatorName}
-          onCreated={setCreatedCustomerId}
-          onCancel={() => setIsCreating(false)}
-        />
-      );
-    }
-    return <CustomerSearchStep onSelect={finish} onCreate={() => setIsCreating(true)} />;
+    return (
+      <NewCustomerForm
+        creatorName={creatorName}
+        onCreated={setCreatedCustomerId}
+        onCancel={() => navigate(ROUTE_PATHS.CUSTOMERS)}
+      />
+    );
   };
 
   if (!user || !hasPermission(user, PERMISSIONS.CUSTOMERS_CREATE)) {

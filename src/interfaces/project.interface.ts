@@ -63,6 +63,7 @@ export interface IProjectSubmission {
   originalStageId?: string | null;
   fieldSet: ProjectDetailFieldSetType | null;
   originalIntake: IProjectIntakeValues | null;
+  contacts?: { contactId: string; role: string | null; isPrimary: boolean }[];
 }
 
 export interface IBoardColumn {
