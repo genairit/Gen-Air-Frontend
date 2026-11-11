@@ -10,13 +10,14 @@ import { useState } from "react";
 import styles from "./quotation.module.css";
 import Card from "../../components/Card/Card";
 import Tabs from "../../components/Tabs/Tabs";
-import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Button from "./components/QuotationButton";
 import QuotationRow from "./components/QuotationRow";
 import QuotationInput from "./components/QuotationInput";
 import { TAB_MODES } from "../../constants/tabs.constant";
 import { useSessionUser } from "../../store/session.store";
+import { useNavigate, useLocation } from "react-router-dom";
+import QuotationCloneForm from "./components/QuotationCloneForm";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { buildQuotationPath } from "../../utilities/route.utility";
 import { hasPermission } from "../../utilities/permission.utility";
@@ -33,6 +34,8 @@ import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-q
 const QuotationsPage: FC = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(useLocation().search);
+  const cloneFrom = searchParams.get("cloneFrom");
   const user = useSessionUser();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<TQuotationStatus | null>(null);
@@ -61,6 +64,10 @@ const QuotationsPage: FC = () => {
     },
   });
   const canCreate = hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE);
+  const canClone =
+    canCreate &&
+    hasPermission(user, PERMISSIONS.QUOTATIONS_READ) &&
+    hasPermission(user, PERMISSIONS.PROJECTS_READ);
   const list = quotations.data?.pages.flatMap(page => page.items) ?? [];
   const tabs = QUOTATION_STATUS_TABS;
   const filterTabs = tabs.map(tab => ({
@@ -85,7 +92,7 @@ const QuotationsPage: FC = () => {
               להיות כמה הצעות.
             </p>
           </div>
-          {canCreate && (
+          {canCreate && !cloneFrom && (
             <Button
               text="+ הצעה חדשה"
               ariaLabel="הצעה חדשה"
@@ -93,7 +100,18 @@ const QuotationsPage: FC = () => {
             />
           )}
         </div>
-        {creating && (
+        {canClone && cloneFrom && (
+          <QuotationCloneForm
+            sourceId={cloneFrom}
+            onCancel={() => navigate(buildQuotationPath(cloneFrom))}
+          />
+        )}
+        {cloneFrom && !canClone && (
+          <p role="alert" className={styles.error}>
+            אין הרשאה לשכפל הצעת מחיר.
+          </p>
+        )}
+        {creating && !cloneFrom && (
           <div className={styles.stack}>
             <QuotationCustomerPicker value={customerId} onChange={setCustomerId} />
             <QuotationSalesAgentPicker

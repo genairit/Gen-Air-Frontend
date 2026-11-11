@@ -87,6 +87,20 @@ export const quotationService = {
     const response = await httpClient.post<unknown>(API_ENDPOINTS.QUOTATIONS, input);
     return ensureResponse(API_ENDPOINTS.QUOTATIONS, response.data, isQuotation);
   },
+  async clone(input: {
+    sourceId: string;
+    sourceVersion: number;
+    targetBrand: string;
+    mappings: { sourceLineId: string; targetCatalogueItemId: string }[];
+  }): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationClone(input.sourceId);
+    const response = await httpClient.post<unknown>(endpoint, {
+      sourceVersion: input.sourceVersion,
+      targetBrand: input.targetBrand,
+      mappings: input.mappings,
+    });
+    return ensureResponse(endpoint, response.data, isQuotation);
+  },
   async save(quotation: IQuotation): Promise<IQuotation> {
     const endpoint = API_ENDPOINTS.quotationById(quotation.id);
     const response = await httpClient.put<unknown>(endpoint, quotationPayload(quotation));

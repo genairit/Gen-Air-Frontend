@@ -21,6 +21,9 @@ const QuotationPage: FC = () => {
   const canCancel = canCancelQuotation(user);
   const canRestore = canRestoreQuotation(user);
   const canEditQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_UPDATE);
+  const canCloneQuotation =
+    hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE) &&
+    hasPermission(user, PERMISSIONS.PROJECTS_READ);
   const canExportQuotation =
     hasPermission(user, PERMISSIONS.QUOTATIONS_EXPORT) &&
     hasPermission(user, PERMISSIONS.PROJECTS_READ);
@@ -55,6 +58,7 @@ const QuotationPage: FC = () => {
       canCancel={canCancel}
       canRestore={canRestore}
       editable={canEditQuotation}
+      canClone={canCloneQuotation}
       canExport={canExportQuotation}
       canDelete={canDeleteQuotation}
       canApprove={canApproveQuotation}
