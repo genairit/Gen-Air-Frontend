@@ -303,20 +303,22 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         selectedTypeId={values.typeId}
         options={projectTypes.map(toProjectTypeOption)}
       />
-      <ProjectAddressCard
-        address={values.address}
-        onChange={handleAddressChange}
-        showMissingError={showAddressError}
-        requiresCity={isCityRequired(fieldSet)}
-      />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <ProjectAddressCard
+          address={values.address}
+          onChange={handleAddressChange}
+          showMissingError={showAddressError}
+          requiresCity={isCityRequired(fieldSet)}
+        />
+        <ProjectCustomerPickerCard
+          customerId={values.customerId}
+          onChange={handleCustomerChange}
+          isSubmitAttempted={isSubmitAttempted}
+        />
+      </Box>
       {isSubmitAttempted && formErrorCount > 0 && (
         <InlineError message={formatFieldErrorCount(formErrorCount)} />
       )}
-      <ProjectCustomerPickerCard
-        customerId={values.customerId}
-        onChange={handleCustomerChange}
-        isSubmitAttempted={isSubmitAttempted}
-      />
       {!isEditMode && (
         <DirectoryContactPicker
           multiple

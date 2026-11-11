@@ -115,14 +115,16 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
 
   return (
     <Box sx={styles.page}>
-      <TaskAssignmentCard
-        errors={errors}
-        values={values}
-        onChange={updateValues}
-        onLinkChange={changeLink}
-        project={selectedProjectQuery.data ?? null}
-      />
-      <TaskContentCard errors={errors} values={values} onChange={updateValues} />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <TaskAssignmentCard
+          errors={errors}
+          values={values}
+          onChange={updateValues}
+          onLinkChange={changeLink}
+          project={selectedProjectQuery.data ?? null}
+        />
+        <TaskContentCard errors={errors} values={values} onChange={updateValues} />
+      </Box>
       <TaskUrgencyChoiceCard
         recipient={recipient}
         detailLine={linkName}

@@ -78,37 +78,40 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
         </Box>
       </Box>
 
-      <ApartmentFieldsCard
-        values={values}
-        minColumnWidth={240}
-        icon={ICON_NAMES.HOME}
-        onChange={updateValues}
-        fields={APARTMENT_UNIT_FIELDS}
-        title={ADD_APARTMENT_COPY.UNIT_TITLE}
-        isSubmitAttempted={isSubmitAttempted}
-      />
-
-      <ProjectCustomerPickerCard
-        isApartment
-        customerId={values.customerId}
-        isSubmitAttempted={isSubmitAttempted}
-        title={ADD_APARTMENT_COPY.PEOPLE_TITLE}
-        subtitle={ADD_APARTMENT_COPY.PEOPLE_SUBTITLE}
-        onChange={customerId => updateValues({ customerId })}
-      />
-      <ApartmentTeamDraftCard
-        building={building}
-        members={values.members}
-        engineerUserId={values.engineerUserId}
-        onChange={members => updateValues({ members })}
-        onEngineerChange={engineerUserId => updateValues({ engineerUserId })}
-      />
-      <ApartmentLightingDraftCard
-        values={values}
-        building={building}
-        onChange={updateValues}
-        isSubmitAttempted={isSubmitAttempted}
-      />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <ApartmentFieldsCard
+          values={values}
+          minColumnWidth={240}
+          icon={ICON_NAMES.HOME}
+          onChange={updateValues}
+          fields={APARTMENT_UNIT_FIELDS}
+          title={ADD_APARTMENT_COPY.UNIT_TITLE}
+          isSubmitAttempted={isSubmitAttempted}
+        />
+        <ProjectCustomerPickerCard
+          isApartment
+          customerId={values.customerId}
+          isSubmitAttempted={isSubmitAttempted}
+          title={ADD_APARTMENT_COPY.PEOPLE_TITLE}
+          subtitle={ADD_APARTMENT_COPY.PEOPLE_SUBTITLE}
+          onChange={customerId => updateValues({ customerId })}
+        />
+      </Box>
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <ApartmentTeamDraftCard
+          building={building}
+          members={values.members}
+          engineerUserId={values.engineerUserId}
+          onChange={members => updateValues({ members })}
+          onEngineerChange={engineerUserId => updateValues({ engineerUserId })}
+        />
+        <ApartmentLightingDraftCard
+          values={values}
+          building={building}
+          onChange={updateValues}
+          isSubmitAttempted={isSubmitAttempted}
+        />
+      </Box>
       <InheritedPreviewCard building={building} />
 
       {showFieldErrors && (

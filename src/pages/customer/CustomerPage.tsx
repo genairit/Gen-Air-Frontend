@@ -56,10 +56,14 @@ const CustomerPage = () => {
   return (
     <Box sx={styles.page}>
       <CustomerHeaderCard customer={customer} />
-      <CustomerSyncCard customer={customer} />
-      <CustomerDetailsCard customer={customer} />
-      <CustomerPrimaryContactCard customer={customer} />
-      <CustomerPaymentDefault customer={customer} key={`customer-payment:${customer.id}`} />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <CustomerDetailsCard customer={customer} />
+        <CustomerPrimaryContactCard customer={customer} />
+      </Box>
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <CustomerSyncCard customer={customer} />
+        <CustomerPaymentDefault customer={customer} key={`customer-payment:${customer.id}`} />
+      </Box>
       {hasPermission(user, PERMISSIONS.PROJECTS_READ) && (
         <Box
           component="section"
