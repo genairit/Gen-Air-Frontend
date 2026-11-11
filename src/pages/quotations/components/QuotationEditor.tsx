@@ -189,47 +189,51 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   return (
     <main className={styles.page}>
       <Card>
-        <div className={styles.between}>
-          <div className={styles.row}>
-            <h1 className={styles.heading}>{quotation.number}</h1>
-            <span className={styles.badge} data-status={quotation.status}>
-              {QUOTATION_STATUS_LABELS[quotation.status]}
-            </span>
-            {canExport && (
-              <Button
-                onClick={pdf.open}
-                disabled={blocked || pdf.busy}
-                variant={BUTTON_VARIANTS.NEUTRAL}
-                text={pdf.busy ? "מכין PDF..." : "ייצוא PDF"}
-              />
-            )}
-            <div className={styles.row}>
-              {QUOTATION_STEPS.map(step => (
-                <span
-                  key={step.status}
-                  className={styles.step}
-                  data-active={quotation.status === step.status}
-                >
-                  {step.label}
-                </span>
-              ))}
+        <div className={styles.quotationHeader}>
+          <div className={styles.quotationHeaderTop}>
+            <div className={styles.quotationIdentity}>
+              <h1 className={styles.heading}>{quotation.number}</h1>
+              <span className={styles.badge} data-status={quotation.status}>
+                {QUOTATION_STATUS_LABELS[quotation.status]}
+              </span>
             </div>
-            {canCancelQuotation && (
-              <Button
-                disabled={blocked}
-                variant={BUTTON_VARIANTS.NEUTRAL}
-                text={`ביטול ${cancellationNoun}`}
-                onClick={() => setConfirmation(QUOTATION_CONFIRMATION.CANCEL)}
-              />
-            )}
-            {canRestoreQuotation && (
-              <Button
-                disabled={blocked}
-                variant={BUTTON_VARIANTS.NEUTRAL}
-                text={`שחזור ${cancellationNoun}`}
-                onClick={() => setConfirmation(QUOTATION_CONFIRMATION.RESTORE)}
-              />
-            )}
+            <div className={styles.quotationActions}>
+              {canExport && (
+                <Button
+                  onClick={pdf.download}
+                  disabled={blocked || pdf.busy}
+                  variant={BUTTON_VARIANTS.NEUTRAL}
+                  text={pdf.busy ? "מכין PDF..." : "ייצוא PDF"}
+                />
+              )}
+              {canCancelQuotation && (
+                <Button
+                  disabled={blocked}
+                  variant={BUTTON_VARIANTS.NEUTRAL}
+                  text={`ביטול ${cancellationNoun}`}
+                  onClick={() => setConfirmation(QUOTATION_CONFIRMATION.CANCEL)}
+                />
+              )}
+              {canRestoreQuotation && (
+                <Button
+                  disabled={blocked}
+                  variant={BUTTON_VARIANTS.NEUTRAL}
+                  text={`שחזור ${cancellationNoun}`}
+                  onClick={() => setConfirmation(QUOTATION_CONFIRMATION.RESTORE)}
+                />
+              )}
+            </div>
+          </div>
+          <div className={styles.quotationStatusSteps}>
+            {QUOTATION_STEPS.map(step => (
+              <span
+                key={step.status}
+                className={styles.step}
+                data-active={quotation.status === step.status}
+              >
+                {step.label}
+              </span>
+            ))}
           </div>
           <span aria-live="polite" className={styles.muted}>
             {statusText}
@@ -517,26 +521,6 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               onReload={reloadQuotation}
             />
           )
-        }
-      />
-      <GenericPopup
-        maxWidth="lg"
-        onClose={pdf.close}
-        open={pdf.url !== null}
-        dir={TEXT_DIRECTIONS.RTL}
-        title={`${pdfTitle} ${quotation.number}`}
-        buttons={{
-          primary: { text: "הורדת PDF", onClick: pdf.download },
-          secondary: { text: "סגירה", onClick: pdf.close },
-        }}
-        content={
-          pdf.url ? (
-            <iframe
-              title="תצוגה מקדימה של PDF"
-              src={pdf.url}
-              style={{ width: "100%", height: "70vh", border: 0 }}
-            />
-          ) : null
         }
       />
       <GenericPopup
