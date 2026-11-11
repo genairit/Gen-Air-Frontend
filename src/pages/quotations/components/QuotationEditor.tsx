@@ -38,6 +38,7 @@ import { useState } from "react";
 import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
+import { useNavigate } from "react-router-dom";
 import QuotationReview from "./QuotationReview";
 import QuotationSelect from "./QuotationSelect";
 import QuotationDelete from "./QuotationDelete";
@@ -54,6 +55,7 @@ import Timeline from "../../../components/Timeline/Timeline";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import QuotationProjectPicker from "./QuotationProjectPicker";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
+import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
 import { useQuotationPdf } from "../../../hooks/quotation-pdf.hook";
 import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
@@ -74,6 +76,7 @@ import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-
 interface IQuotationEditorProps {
   editable: boolean;
   canExport: boolean;
+  canClone?: boolean;
   initial: IQuotation;
   canApprove: boolean;
   canDelete?: boolean;
@@ -88,7 +91,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   canCancel = false,
   canRestore = false,
   canDelete = false,
+  canClone = false,
 }: IQuotationEditorProps) => {
+  const navigate = useNavigate();
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
   const [confirmation, setConfirmation] = useState<TQuotationConfirmation | null>(null);
   const [cancellationReason, setCancellationReason] = useState("");
@@ -198,6 +203,16 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               </span>
             </div>
             <div className={styles.quotationActions}>
+              {canClone &&
+                quotation.brands.length === 1 &&
+                quotation.sections.some(section => section.brand === quotation.brands[0]) && (
+                  <Button
+                    disabled={blocked}
+                    text="צור העתק לחברה אחרת"
+                    variant={BUTTON_VARIANTS.NEUTRAL}
+                    onClick={() => navigate(`${ROUTE_PATHS.QUOTATIONS}?cloneFrom=${quotation.id}`)}
+                  />
+                )}
               {canExport && (
                 <Button
                   onClick={pdf.download}
