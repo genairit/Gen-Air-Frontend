@@ -130,7 +130,7 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
         {links.map(link => (
           <Box key={link.contactId} sx={styles.stack({ gap: "8px" })}>
             <Box sx={styles.spacedRow}>
-              <Box component="b">
+              <Box component="b" sx={styles.wrappingText}>
                 {link.contact.name} {link.isPrimary ? "· איש קשר ראשי של הפרויקט" : ""}
               </Box>
               {link.contact.phone && (
@@ -140,7 +140,7 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
               )}
             </Box>
             {link.contact.email && (
-              <Box dir="ltr" component="span">
+              <Box dir="ltr" component="span" sx={styles.wrappingText}>
                 {link.contact.email}
               </Box>
             )}
@@ -198,7 +198,7 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
           )}
           {available.map(contact => (
             <Box key={contact.id} sx={styles.spacedRow}>
-              <Box>
+              <Box sx={styles.wrappingText}>
                 {contact.name} · {contact.phone ?? contact.email ?? ""}
               </Box>
               <Button
