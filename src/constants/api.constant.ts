@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
   MY_TASK_COUNTS: "/task/my-tasks/counts",
   TASK_COUNTS: "/task/counts",
   taskById: (taskId: string) => `/task/${taskId}`,
+  projectProtectedTasks: (projectId: string) => `/task/project/${projectId}/protected`,
   taskStatus: (taskId: string) => `/task/${taskId}/status`,
   taskUrgency: (taskId: string) => `/task/${taskId}/urgency`,
   taskClaim: (taskId: string) => `/task/${taskId}/claim`,

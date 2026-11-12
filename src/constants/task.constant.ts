@@ -1,6 +1,7 @@
 import { theme } from "./theme.constants";
 import { ICON_NAMES } from "./icon.constant";
 import { USER_ROLES } from "./user-role.constant";
+import { TASK_TYPES } from "./task-type.constant";
 import type { ITaskFormValues } from "../interfaces/task.interface";
 import { CHIP_VARIANTS, type ChipVariantType } from "./chip.constant";
 import type { IUserQuery } from "../interfaces/api-request.interface";
@@ -66,8 +67,10 @@ export const POOL_ASSIGNEE_ID = "__pool";
 export const TASK_SCROLL_ROOT_MARGIN = "200px";
 
 export const NEW_TASK_PROJECT_PARAM = "projectId";
+export const NEW_TASK_TYPE_PARAM = "taskType";
 
 export const EMPTY_TASK_FORM: ITaskFormValues = {
+  taskType: TASK_TYPES.GENERAL,
   title: "",
   dueDate: "",
   isUrgent: false,
@@ -79,6 +82,7 @@ export const EMPTY_TASK_FORM: ITaskFormValues = {
 export const TASKS_PAGE_COPY = {
   EYEBROW: "המשימות שהוקצו לי",
   TITLE: "המשימות שלי",
+  NEW_TASK: "+ משימה",
   DESCRIPTION:
     "המשימות שהוקצו לך, בכל הפרויקטים והלקוחות. כאן אפשר לעקוב אחר דחיפות, תאריכי יעד וסטטוס.",
   ALL: "הכל",
@@ -131,12 +135,17 @@ export const TASK_PAGE_COPY = {
 export const NEW_TASK_COPY = {
   EYEBROW: "משימות",
   TITLE: "משימה חדשה",
-  DESCRIPTION: "הוספת משימה כללית לפרויקט והקצאת אחראי או מאגר פתוח.",
+  DESCRIPTION: "הוספת משימה לפרויקט או לדירה כשנדרשת עבודה.",
   DENIED_TITLE: "אין הרשאה להקצאת משימות",
   DENIED_DESCRIPTION: "לחשבון שלך אין הרשאה ליצור משימות.",
   BACK_TO_TASKS: "חזרה למשימות",
   ASSIGNMENT_TITLE: "שיוך",
   ASSIGNMENT_SUBTITLE: "פרויקט ואחראי · פרטי הלקוח מוצגים כמידע בלבד",
+  TASK_TYPE: "סוג משימה",
+  EXISTING_TYPE: "כבר קיימת משימה מסוג זה בפרויקט או בדירה שנבחרו.",
+  PROTECTED_LOOKUP_FAILED: "לא הצלחנו לבדוק אם כבר קיימת משימה מסוג זה. נסה שוב.",
+  CHECKING_EXISTING: "בודק משימות קיימות...",
+  OPEN_EXISTING: "פתח את המשימה הקיימת",
   INFO_ONLY: "מידע בלבד",
   PROJECT_CUSTOMER: "לקוח הפרויקט:",
   PROJECT_CUSTOMER_NOTE: "לא נשמר כשיוך נוסף למשימה",
@@ -184,9 +193,14 @@ export const URGENCY_CONFIRM_COPY = {
 
 export const PROJECT_TASKS_COPY = {
   TITLE: "משימות הפרויקט",
-  NEW_TASK: "+ משימה חדשה",
+  NEW_TASK: "+ משימה",
+  ADD_QUOTATION: "משימת הצעת מחיר",
+  ADD_PLANNING: "משימת תכנון",
+  ADD_GENERAL: "משימה כללית",
+  OPEN_EXISTING: "פתח משימה קיימת",
+  EXISTING_UNAVAILABLE: "משימה קיימת אינה זמינה",
   MANAGERS_ONLY: "מנהלים בלבד",
-  EMPTY: "עדיין אין משימות בפרויקט הזה",
+  EMPTY: "אין משימות עדיין",
 } as const;
 
 export const TASK_PROJECT_PICKER_COPY = {

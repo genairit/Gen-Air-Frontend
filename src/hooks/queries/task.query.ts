@@ -18,6 +18,13 @@ export const useTasksQuery = (query: ITaskQuery) =>
     queryFn: ({ pageParam }) => taskService.getByFilter(query, pageParam),
   });
 
+export const useProjectProtectedTasksQuery = (projectId: string | null) =>
+  useQuery({
+    enabled: projectId !== null,
+    queryKey: QUERY_KEYS.projectProtectedTasks(projectId ?? ""),
+    queryFn: () => taskService.getProtectedForProject(projectId ?? ""),
+  });
+
 export const useTaskCountsQuery = (query: ITaskQuery) =>
   useQuery({
     queryKey: QUERY_KEYS.taskCounts(query),

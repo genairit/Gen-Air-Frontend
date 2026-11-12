@@ -6,6 +6,7 @@ export const TASK_TYPES = {
   GENERAL: "general",
 } as const;
 export type TaskType = (typeof TASK_TYPES)[keyof typeof TASK_TYPES];
+export type ProtectedTaskType = typeof TASK_TYPES.QUOTATION | typeof TASK_TYPES.PLANNING;
 export const TASK_TYPE_VALUES = Object.values(TASK_TYPES);
 export const TASK_TYPE_LABELS: Record<TaskType, string> = {
   quotation: "הצעת מחיר",
@@ -19,6 +20,6 @@ export const TASK_TYPE_CHIP_VARIANTS = {
 } as const;
 export const PROJECT_TASK_COPY = {
   TYPE: "סוג משימה",
-  GENERAL_HELP: "משימות הצעת מחיר ותכנון נוצרות אוטומטית עם הפרויקט. כאן אפשר להוסיף משימה כללית.",
+  GENERAL_HELP: "מוסיפים משימה רק כשנדרשת עבודה בפרויקט או בדירה.",
   PROTECTED_HELP: "משימת פרויקט קבועה — לעבודה נוספת מחזירים את אותה משימה לבעבודה.",
 } as const;

@@ -37,7 +37,6 @@ import { isTaskStatus } from "./guards/task.guard";
 import { getFullName } from "./mappers/user.mapper";
 import { getAssignedRoles } from "./user-role.utility";
 import { DATE_FORMAT } from "../constants/date.constants";
-import { TASK_TYPES } from "../constants/task-type.constant";
 import type { ITabItem } from "../interfaces/tab-item.interface";
 import { buildCustomerPath, buildProjectPath } from "./route.utility";
 import { USER_ROLES, USER_ROLE_LABELS } from "../constants/user-role.constant";
@@ -335,7 +334,7 @@ export const toCreateTaskPayload = (values: ITaskFormValues): ICreateTaskPayload
   }
 
   return {
-    taskType: TASK_TYPES.GENERAL,
+    taskType: values.taskType,
     projectId: values.projectId,
     dueDate: values.dueDate || null,
     title: values.title.trim(),
