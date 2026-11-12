@@ -68,6 +68,7 @@ const ProjectBoqPage = () => {
   const update = async (lineId: string, edit: IBoqLineEdit) => {
     const updated = await projectBoqService.updateLine(projectId, lineId, edit);
     queryClient.setQueryData(key, updated);
+    setPreview(null);
   };
   const run = async (action: () => Promise<void>) => {
     setBusy(true);
@@ -89,6 +90,7 @@ const ProjectBoqPage = () => {
       if (!preview || !current) return;
       const updated = await projectBoqService.generate(projectId, preview, current.revision);
       queryClient.setQueryData(key, updated);
+      setPreview(null);
       setPreview(null);
     });
   const addMaterial = () =>
@@ -151,7 +153,7 @@ const ProjectBoqPage = () => {
         </Card>
         <Card>
           <Typography sx={{ fontWeight: 700 }}>בקשות והזמנות</Typography>
-          <Typography>עדיין לא במעקב</Typography>
+          <Typography>לא זמין עדיין</Typography>
           <Typography variant="caption">
             כמות מבוקשת, מוזמנת ויתרה יהיו זמינות עם יומן הרכש.
           </Typography>
