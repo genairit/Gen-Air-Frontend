@@ -56,16 +56,19 @@ const BoqLineEditor = ({ line, revision, onSave, canManage }: IProps) => {
     <Box
       sx={{
         display: "grid",
-        gridTemplateColumns: "minmax(180px,2fr) repeat(3,minmax(100px,1fr)) minmax(140px,1fr) auto",
+        gridTemplateColumns: {
+          xs: "repeat(2,minmax(0,1fr))",
+          md: "minmax(180px,2fr) repeat(3,minmax(100px,1fr)) minmax(140px,1fr) minmax(130px,1fr) auto",
+        },
         gap: 1.5,
         alignItems: "end",
         py: 1.5,
         borderBottom: "1px solid",
         borderColor: "divider",
-        minWidth: 740,
+        minWidth: { xs: 0, md: 900 },
       }}
     >
-      <Box>
+      <Box sx={{ gridColumn: { xs: "1 / -1", md: "auto" } }}>
         <Typography sx={{ fontWeight: 700 }}>{line.materialName}</Typography>
         <Typography variant="caption">
           {line.materialCode} · {line.materialSpecification ?? "ללא מפרט"} ·{" "}
@@ -107,6 +110,10 @@ const BoqLineEditor = ({ line, revision, onSave, canManage }: IProps) => {
         disabled={!canManage}
         type={FIELD_TYPES.TEXT}
       />
+      <Box sx={{ gridColumn: { xs: "1 / -1", md: "auto" } }}>
+        <Typography variant="caption">מבוקש / מוזמן / יתרה</Typography>
+        <Typography>לא זמין עדיין</Typography>
+      </Box>
       {canManage && (
         <Button
           text="שמור"
