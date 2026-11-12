@@ -20,7 +20,8 @@
     "test:user-roles": "node testing/run-user-role-tests.mjs",
     "test:stage-reason": "node testing/run-stage-reason-tests.mjs",
     "test:quotation-sharing": "node testing/run-quotation-sharing-tests.mjs",
-    "test:project-quotations": "node testing/run-project-quotations-tests.mjs"
+    "test:project-quotations": "node testing/run-project-quotations-tests.mjs",
+    "test:project-boq": "node testing/run-project-boq-tests.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

@@ -18,10 +18,12 @@ import CustomersPage from "./pages/customers/CustomersPage";
 import QuotationPage from "./pages/quotations/QuotationPage";
 import { PERMISSIONS } from "./constants/permission.constant";
 import QuotationsPage from "./pages/quotations/QuotationsPage";
+import ProjectBoqPage from "./pages/project-boq/ProjectBoqPage";
 import ProjectFormPage from "./pages/project-form/ProjectFormPage";
 import NewCustomerPage from "./pages/customer-form/NewCustomerPage";
 import NewApartmentPage from "./pages/apartment-form/NewApartmentPage";
 import { PROJECT_FORM_MODES } from "./constants/project-form.constant";
+import ProjectBoqIndexPage from "./pages/project-boq/ProjectBoqIndexPage";
 
 export const routes: RouteObject[] = [
   { path: ROUTE_PATHS.LOGIN, element: <LoginPage /> },
@@ -52,6 +54,22 @@ export const routes: RouteObject[] = [
             element: (
               <RequireFeature permission={PERMISSIONS.PROJECTS_READ}>
                 <BoardPage />
+              </RequireFeature>
+            ),
+          },
+          {
+            path: ROUTE_PATHS.PROJECT_BOQS,
+            element: (
+              <RequireFeature permission={PERMISSIONS.PROJECT_BOQ_READ}>
+                <ProjectBoqIndexPage />
+              </RequireFeature>
+            ),
+          },
+          {
+            path: ROUTE_PATHS.PROJECT_BOQ,
+            element: (
+              <RequireFeature permission={PERMISSIONS.PROJECT_BOQ_READ}>
+                <ProjectBoqPage />
               </RequireFeature>
             ),
           },
