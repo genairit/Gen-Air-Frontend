@@ -35,12 +35,12 @@ const ProjectBoqPage = () => {
   const boq = useQuery({
     queryKey: key,
     queryFn: () => projectBoqService.get(projectId),
-    enabled: Boolean(projectId),
+    enabled: projectId.length > 0,
   });
   const sources = useQuery({
     queryKey: ["project-boq-sources", projectId],
     queryFn: () => projectBoqService.sources(projectId),
-    enabled: Boolean(projectId),
+    enabled: projectId.length > 0,
   });
   const [sourceId, setSourceId] = useState("");
   const [preview, setPreview] = useState<IBoqPreview | null>(null);
