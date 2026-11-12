@@ -91,7 +91,6 @@ const ProjectBoqPage = () => {
       const updated = await projectBoqService.generate(projectId, preview, current.revision);
       queryClient.setQueryData(key, updated);
       setPreview(null);
-      setPreview(null);
     });
   const addMaterial = () =>
     run(async () => {
@@ -111,6 +110,7 @@ const ProjectBoqPage = () => {
         notes,
       });
       queryClient.setQueryData(key, updated);
+      setPreview(null);
       setSelectedMaterial("");
       setQuantity("");
       setCost("");
