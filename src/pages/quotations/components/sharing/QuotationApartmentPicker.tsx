@@ -67,7 +67,7 @@ const QuotationApartmentPicker: FC<IQuotationApartmentPickerProps> = ({ sharing 
                 onChange={() => sharing.toggleApartment(apartment.apartmentId)}
                 text={
                   <Box component="span" sx={styles.rowText}>
-                    <bdi>{formatApartmentChoice(apartment)}</bdi>
+                    <Box component="bdi">{formatApartmentChoice(apartment)}</Box>
                     <Box component="span" sx={styles.endCustomer}>
                       {formatEndCustomerName(apartment)}
                     </Box>

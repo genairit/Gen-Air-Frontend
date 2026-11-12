@@ -19,7 +19,9 @@ const CustomerMobileRow: FC<ICustomerMobileRowProps> = ({ customer, onOpen }) =>
     </Box>
     <Box component="span" sx={CUSTOMER_COLUMN_STYLES.caption}>
       {formatCustomerPrimaryContact(customer.primaryContact ?? null)}
-      <bdi dir="ltr">{customer.primaryContact?.phone ?? customer.primaryContact?.email}</bdi>
+      <Box dir="ltr" component="bdi">
+        {customer.primaryContact?.phone ?? customer.primaryContact?.email}
+      </Box>
     </Box>
     <Box sx={CUSTOMER_COLUMN_STYLES.syncRow}>
       <CustomerSyncChip status={customer.prioritySyncStatus} />

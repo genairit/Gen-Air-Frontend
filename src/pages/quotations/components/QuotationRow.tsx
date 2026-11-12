@@ -1,5 +1,6 @@
 import type { FC, ReactNode } from "react";
 import styles from "../quotation.module.css";
+import { Box, ButtonBase } from "@mui/material";
 import { formatRelativeTime } from "../../../utilities/date.utility";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
@@ -15,22 +16,30 @@ const QuotationRow: FC<IQuotationRowProps> = ({ quotation, onOpen, details = nul
   const brands = quotation.brands.join(" · ") || QUOTATION_ROW_COPY.GENERAL;
 
   return (
-    <button type="button" onClick={onOpen} className={styles.quoteRow}>
-      <bdi className={styles.number}>{quotation.number}</bdi>
-      <div className={styles.quoteIdentity}>
-        <b>{quotation.customerName ?? QUOTATION_ROW_COPY.CUSTOMER}</b>
-        <span className={styles.muted}>
+    <ButtonBase onClick={onOpen} sx={{ display: "grid" }} className={styles.quoteRow}>
+      <Box component="bdi" className={styles.number}>
+        {quotation.number}
+      </Box>
+      <Box component="div" className={styles.quoteIdentity}>
+        <Box component="b">{quotation.customerName ?? QUOTATION_ROW_COPY.CUSTOMER}</Box>
+        <Box component="span" className={styles.muted}>
           {quotation.projectName ?? QUOTATION_ROW_COPY.NO_PROJECT}
-        </span>
+        </Box>
         {details}
-      </div>
-      <span className={styles.muted}>{brands}</span>
-      <span className={styles.badge} data-status={quotation.status}>
+      </Box>
+      <Box component="span" className={styles.muted}>
+        {brands}
+      </Box>
+      <Box component="span" className={styles.badge} data-status={quotation.status}>
         {QUOTATION_STATUS_LABELS[quotation.status]}
-      </span>
-      <b className={styles.quoteAmount}>{quotationMoney(quotation.totals.total)}</b>
-      <span className={styles.updated}>{formatRelativeTime(quotation.updatedAt)}</span>
-    </button>
+      </Box>
+      <Box component="b" className={styles.quoteAmount}>
+        {quotationMoney(quotation.totals.total)}
+      </Box>
+      <Box component="span" className={styles.updated}>
+        {formatRelativeTime(quotation.updatedAt)}
+      </Box>
+    </ButtonBase>
   );
 };
 

@@ -9,6 +9,7 @@ import { useState } from "react";
 import { isAxiosError } from "axios";
 import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
+import { Box, MenuItem } from "@mui/material";
 import QuotationInput from "./QuotationInput";
 import { useNavigate } from "react-router-dom";
 import QuotationSelect from "./QuotationSelect";
@@ -64,15 +65,15 @@ const CloneLinePicker: FC<{
   const shownChoices =
     selected && !choices.some(item => item.id === selected.id) ? [selected, ...choices] : choices;
   return (
-    <div className={styles.cloneLine}>
-      <div>
-        <strong>{line.item.sku}</strong> · {line.item.description}
-        <p className={styles.muted}>
+    <Box component="div" className={styles.cloneLine}>
+      <Box component="div">
+        <Box component="strong">{line.item.sku}</Box> · {line.item.description}
+        <Box component="p" className={styles.muted}>
           כמות {line.item.quantity} ·{" "}
           {line.item.capacityBtu ? `${line.item.capacityBtu} BTU · ` : ""}
           {line.sourceBrand}
-        </p>
-      </div>
+        </Box>
+      </Box>
       <QuotationInput
         type="search"
         value={search}
@@ -87,32 +88,38 @@ const CloneLinePicker: FC<{
           onChange(shownChoices.find(item => item.id === event.target.value) ?? null)
         }
       >
-        <option value="">בחר חלופה לאחר בדיקה</option>
+        <MenuItem value="">בחר חלופה לאחר בדיקה</MenuItem>
         {shownChoices.map(item => (
-          <option key={item.id} value={item.id}>
+          <MenuItem key={item.id} value={item.id}>
             {item.sku} · {item.description} · ₪{item.price}
             {item.capacityBtu ? ` · ${item.capacityBtu} BTU` : ""}
-          </option>
+          </MenuItem>
         ))}
       </QuotationSelect>
       {!selected && choices[0] && (
-        <div className={styles.row}>
-          <span>
+        <Box component="div" className={styles.row}>
+          <Box component="span">
             הצעה לבדיקה: {choices[0].sku} · {choices[0].description} · ₪{choices[0].price}
-          </span>
+          </Box>
           <Button text="אשר חלופה מוצעת" onClick={() => onChange(choices[0])} />
-        </div>
+        </Box>
       )}
-      {candidates.isPending && <span role="status">מחפש חלופות...</span>}
+      {candidates.isPending && (
+        <Box role="status" component="span">
+          מחפש חלופות...
+        </Box>
+      )}
       {candidates.isError && (
-        <p role="alert" className={styles.error}>
+        <Box role="alert" component="p" className={styles.error}>
           {getApiErrorMessage(candidates.error)}
-        </p>
+        </Box>
       )}
       {candidates.isSuccess && !choices.length && (
-        <p className={styles.error}>לא נמצאה חלופה תואמת. חפש מק״ט אחר או בחר חברה אחרת.</p>
+        <Box component="p" className={styles.error}>
+          לא נמצאה חלופה תואמת. חפש מק״ט אחר או בחר חברה אחרת.
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 
@@ -167,12 +174,17 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
       navigate(buildQuotationPath(quotation.id));
     },
   });
-  if (source.isPending) return <p role="status">טוען הצעת מקור...</p>;
+  if (source.isPending)
+    return (
+      <Box component="p" role="status">
+        טוען הצעת מקור...
+      </Box>
+    );
   if (source.isError)
     return (
-      <div role="alert" className={styles.error}>
-        <p>{getApiErrorMessage(source.error)}</p>
-        <div className={styles.row}>
+      <Box role="alert" component="div" className={styles.error}>
+        <Box component="p">{getApiErrorMessage(source.error)}</Box>
+        <Box component="div" className={styles.row}>
           <Button
             text="נסה שוב"
             onClick={async () => {
@@ -180,23 +192,23 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
             }}
           />
           <Button text="חזרה להצעות מחיר" onClick={() => navigate(ROUTE_PATHS.QUOTATIONS)} />
-        </div>
-      </div>
+        </Box>
+      </Box>
     );
   if (source.data.brands.length !== 1)
     return (
-      <div role="alert" className={styles.error}>
-        <p>אפשר לשכפל רק הצעה עם חברת מיזוג אחת.</p>
+      <Box role="alert" component="div" className={styles.error}>
+        <Box component="p">אפשר לשכפל רק הצעה עם חברת מיזוג אחת.</Box>
         <Button onClick={onCancel} text="חזרה להצעת המקור" />
-      </div>
+      </Box>
     );
   return (
-    <div className={styles.stack}>
-      <h2>יצירת העתק לחברת מיזוג אחרת · {source.data.number}</h2>
-      <p className={styles.muted}>
+    <Box component="div" className={styles.stack}>
+      <Box component="h2">יצירת העתק לחברת מיזוג אחרת · {source.data.number}</Box>
+      <Box component="p" className={styles.muted}>
         הלקוח, הפרויקט, סוכן המכירות ותנאי התשלום יועתקו. {generalCount} פריטים כלליים יישמרו.
         התאריך וההנחה יתאפסו בהצעה החדשה.
-      </p>
+      </Box>
       <QuotationSelect
         value={targetBrand}
         label="חברת מיזוג חדשה"
@@ -205,21 +217,25 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
           setSelected({});
         }}
       >
-        <option value="">בחר חברה</option>
+        <MenuItem value="">בחר חברה</MenuItem>
         {QUOTATION_BRANDS.filter(brand => brand !== source.data.brands[0]).map(brand => (
-          <option key={brand} value={brand}>
+          <MenuItem key={brand} value={brand}>
             {brand}
-          </option>
+          </MenuItem>
         ))}
       </QuotationSelect>
-      {sourceItems.some(result => result.isPending) && <p role="status">בודק פריטי מקור...</p>}
+      {sourceItems.some(result => result.isPending) && (
+        <Box component="p" role="status">
+          בודק פריטי מקור...
+        </Box>
+      )}
       {sourceItems.some(result => result.isError && isRetiredItem(result.error)) && (
-        <p className={styles.muted}>
+        <Box component="p" className={styles.muted}>
           חלק מפריטי המקור כבר אינם זמינים בקטלוג. יש לבחור להם חלופה חדשה.
-        </p>
+        </Box>
       )}
       {failedLookups.length > 0 && (
-        <div role="alert" className={styles.error}>
+        <Box role="alert" component="div" className={styles.error}>
           לא ניתן לבדוק את פריטי המקור כעת.
           <Button
             text="נסה שוב"
@@ -227,12 +243,14 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
               await Promise.all(failedLookups.map(result => result.refetch()));
             }}
           />
-        </div>
+        </Box>
       )}
       {targetBrand && ready && (
         <>
-          <p>בדוק ובחר חלופה לכל פריט של {source.data.brands[0]}. הבחירה לא משנה את הצעת המקור.</p>
-          <div className={styles.cloneGrid}>
+          <Box component="p">
+            בדוק ובחר חלופה לכל פריט של {source.data.brands[0]}. הבחירה לא משנה את הצעת המקור.
+          </Box>
+          <Box component="div" className={styles.cloneGrid}>
             {lines.map(line => (
               <CloneLinePicker
                 line={line}
@@ -249,11 +267,13 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
                 }
               />
             ))}
-          </div>
-          <p>{lines.filter(line => !selected[line.item.id]).length} שורות ממתינות לבחירת חלופה</p>
+          </Box>
+          <Box component="p">
+            {lines.filter(line => !selected[line.item.id]).length} שורות ממתינות לבחירת חלופה
+          </Box>
         </>
       )}
-      <div className={styles.row}>
+      <Box component="div" className={styles.row}>
         <Button
           text="צור הצעה חדשה"
           isLoading={clone.isPending}
@@ -273,13 +293,13 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
           }
         />
         <Button onClick={onCancel} text="חזרה להצעת המקור" disabled={clone.isPending} />
-      </div>
+      </Box>
       {clone.isError && (
-        <p role="alert" className={styles.error}>
+        <Box role="alert" component="p" className={styles.error}>
           {getApiErrorMessage(clone.error)}
-        </p>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

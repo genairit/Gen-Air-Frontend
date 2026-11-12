@@ -54,6 +54,7 @@ import QuotationDecimalInput from "./QuotationDecimalInput";
 import Timeline from "../../../components/Timeline/Timeline";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import QuotationProjectPicker from "./QuotationProjectPicker";
+import TextField from "../../../components/TextField/TextField";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
@@ -69,6 +70,8 @@ import QuotationApartmentSharingCard from "./sharing/QuotationApartmentSharingCa
 import { QUOTATION_SHARING_COPY } from "../../../constants/quotation-sharing.constant";
 import { quotationSaveLabel } from "../../../utilities/quotation-presentation.utility";
 import { quotationOpeningLine } from "../../../utilities/quotation-presentation.utility";
+import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
+import { Box, MenuItem, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
 import { useQuotationApartmentSharing } from "../../../hooks/quotation-apartment-sharing.hook";
 import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-navigation.hook";
@@ -192,17 +195,19 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     update({ ...quotation, salesAgentId });
   };
   return (
-    <main className={styles.page}>
+    <Box component="main" className={styles.page}>
       <Card>
-        <div className={styles.quotationHeader}>
-          <div className={styles.quotationHeaderTop}>
-            <div className={styles.quotationIdentity}>
-              <h1 className={styles.heading}>{quotation.number}</h1>
-              <span className={styles.badge} data-status={quotation.status}>
+        <Box component="div" className={styles.quotationHeader}>
+          <Box component="div" className={styles.quotationHeaderTop}>
+            <Box component="div" className={styles.quotationIdentity}>
+              <Box component="h1" className={styles.heading}>
+                {quotation.number}
+              </Box>
+              <Box component="span" className={styles.badge} data-status={quotation.status}>
                 {QUOTATION_STATUS_LABELS[quotation.status]}
-              </span>
-            </div>
-            <div className={styles.quotationActions}>
+              </Box>
+            </Box>
+            <Box component="div" className={styles.quotationActions}>
               {canClone &&
                 quotation.brands.length === 1 &&
                 quotation.sections.some(section => section.brand === quotation.brands[0]) && (
@@ -237,44 +242,49 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                   onClick={() => setConfirmation(QUOTATION_CONFIRMATION.RESTORE)}
                 />
               )}
-            </div>
-          </div>
-          <div className={styles.quotationStatusSteps}>
+            </Box>
+          </Box>
+          <Box component="div" className={styles.quotationStatusSteps}>
             {QUOTATION_STEPS.map(step => (
-              <span
+              <Box
+                component="span"
                 key={step.status}
                 className={styles.step}
                 data-active={quotation.status === step.status}
               >
                 {step.label}
-              </span>
+              </Box>
             ))}
-          </div>
-          <span aria-live="polite" className={styles.muted}>
+          </Box>
+          <Box component="span" aria-live="polite" className={styles.muted}>
             {statusText}
-          </span>
-        </div>
+          </Box>
+        </Box>
         {cancellationEntries.length > 0 && (
-          <details className={styles.cancellationHistory}>
-            <summary>היסטוריית ביטול ושחזור ({cancellationEntries.length})</summary>
-            <Timeline entries={cancellationEntries} />
-          </details>
+          <Accordion elevation={0} disableGutters className={styles.cancellationHistory}>
+            <AccordionSummary>
+              היסטוריית ביטול ושחזור ({cancellationEntries.length})
+            </AccordionSummary>
+            <AccordionDetails>
+              <Timeline entries={cancellationEntries} />
+            </AccordionDetails>
+          </Accordion>
         )}
         {editor.error && (
-          <div role="alert" className={styles.error}>
+          <Box role="alert" component="div" className={styles.error}>
             {editor.error}
-            <div className={styles.row}>
+            <Box component="div" className={styles.row}>
               <Button text="נסה לשמור שוב" onClick={editor.retry} />
               <Button text="טען גרסה מהשרת" onClick={reloadQuotation} />
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
         {pdf.error && (
-          <div role="alert" className={styles.error}>
+          <Box role="alert" component="div" className={styles.error}>
             {pdf.error}
-          </div>
+          </Box>
         )}
-        <div className={styles.metadata}>
+        <Box component="div" className={styles.metadata}>
           <QuotationCustomerPicker
             disabled={disabled}
             value={quotation.customerId}
@@ -314,7 +324,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               onChange={event => rebrand.request(event.target.value)}
             >
               {QUOTATION_BRANDS.map(brand => (
-                <option key={brand}>{brand}</option>
+                <MenuItem key={brand} value={brand}>
+                  {brand}
+                </MenuItem>
               ))}
             </QuotationSelect>
           )}
@@ -335,33 +347,35 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             value={quotation.date}
             onChange={event => update({ ...quotation, date: event.target.value })}
           />
-        </div>
-        <label className={styles.label}>
-          הערות פנימיות (לא יופיעו ללקוח)
-          <textarea
-            maxLength={5000}
-            disabled={disabled}
-            value={quotation.internalNotes}
-            className={`${styles.input} ${styles.text}`}
-            onChange={event => update({ ...quotation, internalNotes: event.target.value })}
-          />
-        </label>
+        </Box>
+        <TextField
+          multiline
+          minRows={3}
+          maxLength={5000}
+          disabled={disabled}
+          type={FIELD_TYPES.TEXT}
+          value={quotation.internalNotes}
+          title="הערות פנימיות (לא יופיעו ללקוח)"
+          onChange={internalNotes => update({ ...quotation, internalNotes })}
+        />
         {openingLine && (
-          <div className={styles.openingLine}>
-            <span className={styles.muted}>שורת פתיחה בהצעה:</span>
-            <span>{openingLine}</span>
-          </div>
+          <Box component="div" className={styles.openingLine}>
+            <Box component="span" className={styles.muted}>
+              שורת פתיחה בהצעה:
+            </Box>
+            <Box component="span">{openingLine}</Box>
+          </Box>
         )}
         {rebrand.error && (
-          <p role="alert" className={styles.error}>
+          <Box role="alert" component="p" className={styles.error}>
             {rebrand.error}
-          </p>
+          </Box>
         )}
         {rebrand.pendingBrand !== null && (
-          <div className={styles.error}>
+          <Box component="div" className={styles.error}>
             להחליף חברה ולבחור פריטי קטלוג תואמים? המיקומים והכמויות יישמרו. אם חסר פריט תואם, ההצעה
             לא תשתנה.
-            <div className={styles.row}>
+            <Box component="div" className={styles.row}>
               <Button
                 isLoading={rebrand.busy}
                 onClick={rebrand.confirm}
@@ -369,13 +383,13 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                 disabled={rebrand.busy || editor.busy || editor.dirty}
               />
               <Button text="ביטול" disabled={rebrand.busy} onClick={rebrand.cancel} />
-            </div>
-          </div>
+            </Box>
+          </Box>
         )}
         {disabled && (
-          <p className={styles.muted}>
+          <Box component="p" className={styles.muted}>
             {cancellationNoun === "הזמנה" ? "ההזמנה" : "ההצעה"} נעולה לעריכה או שאין הרשאת עדכון.
-          </p>
+          </Box>
         )}
       </Card>
       {sharing.isBuilding && (
@@ -383,7 +397,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
       )}
       {blocker.state === "blocked" && (
         <Card>
-          <p>יש שינויים שטרם נשמרו. הניווט ימשיך לאחר שמירה מוצלחת.</p>
+          <Box component="p">יש שינויים שטרם נשמרו. הניווט ימשיך לאחר שמירה מוצלחת.</Box>
           <Button text="הישאר בהצעה" onClick={() => blocker.reset()} />
           <Button text="עזוב בלי לשמור שינויים" onClick={() => blocker.proceed()} />
         </Card>
@@ -406,17 +420,17 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
       {isEditorVisible && <QuotationDiagnostics quotation={quotation} />}
       {isEditorVisible && (
         <Card>
-          <div className={styles.cardTitle}>
-            <span aria-hidden="true" className={styles.cardIcon}>
+          <Box component="div" className={styles.cardTitle}>
+            <Box component="span" aria-hidden="true" className={styles.cardIcon}>
               <Icon name={ICON_NAMES.QUOTE} />
-            </span>
-            <div>
-              <h2>מערכות ושורות</h2>
-              <p className={styles.muted}>
+            </Box>
+            <Box component="div">
+              <Box component="h2">מערכות ושורות</Box>
+              <Box component="p" className={styles.muted}>
                 כל שורה נבחרת מהמחירון. מחיר, תיאור ויחידה נשמרים בשורה ולא משתנים עם המחירון
-              </p>
-            </div>
-          </div>
+              </Box>
+            </Box>
+          </Box>
           <Tabs
             mode={TAB_MODES.TABS}
             items={brandTabs.items}
@@ -426,7 +440,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             ariaLabel="לשוניות חברות ופריטים כלליים"
           />
           {!disabled && (
-            <div className={styles.row}>
+            <Box component="div" className={styles.row}>
               <QuotationSelect
                 value=""
                 label="הוספת לשונית חברה"
@@ -439,11 +453,11 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                   setActiveTab(brand);
                 }}
               >
-                <option value="">בחרו חברה להוספה...</option>
+                <MenuItem value="">בחרו חברה להוספה...</MenuItem>
                 {QUOTATION_BRANDS.filter(brand => !quotation.brands.includes(brand)).map(brand => (
-                  <option key={brand} value={brand}>
+                  <MenuItem key={brand} value={brand}>
                     {brand}
-                  </option>
+                  </MenuItem>
                 ))}
               </QuotationSelect>
               {brandTabs.brand &&
@@ -459,7 +473,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                     }}
                   />
                 )}
-            </div>
+            </Box>
           )}
           {brandTabs.sections.map(({ section, index }) => (
             <QuotationSection
@@ -478,9 +492,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             />
           ))}
           {!disabled && (
-            <div className={styles.systemActions}>
-              <span>הוספת מערכת / קומה</span>
-              <div className={styles.row}>
+            <Box component="div" className={styles.systemActions}>
+              <Box component="span">הוספת מערכת / קומה</Box>
+              <Box component="div" className={styles.row}>
                 {systems
                   .filter(
                     ({ value }) => brandTabs.brand !== null || value === QUOTATION_SYSTEM.GENERAL,
@@ -508,8 +522,8 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                       }
                     />
                   ))}
-              </div>
-            </div>
+              </Box>
+            </Box>
           )}
         </Card>
       )}
@@ -561,39 +575,39 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           },
         }}
         content={
-          <div>
-            <p>{confirmationDescription}</p>
+          <Box component="div">
+            <Box component="p">{confirmationDescription}</Box>
             {latestLoadedAfterConflict && (
-              <p role="status" className={styles.muted}>
+              <Box component="p" role="status" className={styles.muted}>
                 הגרסה העדכנית נטענה. בדקו את הפרטים לפני אישור מחדש.
-              </p>
+              </Box>
             )}
             {confirmation === QUOTATION_CONFIRMATION.CANCEL && (
-              <label className={styles.label}>
-                סיבת ביטול
-                <textarea
-                  required
-                  maxLength={MAX_QUOTATION_CANCELLATION_REASON_LENGTH}
-                  value={cancellationReason}
-                  disabled={editor.commandBusy}
-                  className={`${styles.input} ${styles.text}`}
-                  onChange={event => setCancellationReason(event.target.value)}
-                />
-              </label>
+              <TextField
+                multiline
+                minRows={3}
+                isRequired
+                type={FIELD_TYPES.TEXT}
+                value={cancellationReason}
+                disabled={editor.commandBusy}
+                title="סיבת ביטול"
+                maxLength={MAX_QUOTATION_CANCELLATION_REASON_LENGTH}
+                onChange={setCancellationReason}
+              />
             )}
             {showConfirmationError && (
-              <div role="alert" className={styles.error}>
+              <Box component="div" role="alert" className={styles.error}>
                 {editor.error}
                 <Button
                   text={editor.hasVersionConflict ? "טען גרסה עדכנית" : "אפשר ניסיון חוזר"}
                   onClick={editor.hasVersionConflict ? reloadConflict : editor.retry}
                 />
-              </div>
+              </Box>
             )}
-          </div>
+          </Box>
         }
       />
-    </main>
+    </Box>
   );
 };
 export default QuotationEditor;

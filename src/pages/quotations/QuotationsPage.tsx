@@ -7,6 +7,7 @@ import {
 
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import styles from "./quotation.module.css";
 import Card from "../../components/Card/Card";
 import Tabs from "../../components/Tabs/Tabs";
@@ -81,17 +82,21 @@ const QuotationsPage: FC = () => {
   };
 
   return (
-    <main className={styles.page}>
-      <section className={styles.listHeading}>
-        <span className={styles.breadcrumb}>הצעות מחיר · נשמרות בשרת</span>
-        <div className={styles.between}>
-          <div>
-            <h1 className={styles.listTitle}>הצעות מחיר</h1>
-            <p className={styles.muted}>
+    <Box component="main" className={styles.page}>
+      <Box component="section" className={styles.listHeading}>
+        <Box component="span" className={styles.breadcrumb}>
+          הצעות מחיר · נשמרות בשרת
+        </Box>
+        <Box component="div" className={styles.between}>
+          <Box component="div">
+            <Box component="h1" className={styles.listTitle}>
+              הצעות מחיר
+            </Box>
+            <Box component="p" className={styles.muted}>
               הצעה נפתחת מלקוח, עם או בלי פרויקט, וניתן לקשר אותה לפרויקט בהמשך. לפרויקט יכולות
               להיות כמה הצעות.
-            </p>
-          </div>
+            </Box>
+          </Box>
           {canCreate && !cloneFrom && (
             <Button
               text="+ הצעה חדשה"
@@ -99,7 +104,7 @@ const QuotationsPage: FC = () => {
               onClick={() => setCreating(!creating)}
             />
           )}
-        </div>
+        </Box>
         {canClone && cloneFrom && (
           <QuotationCloneForm
             sourceId={cloneFrom}
@@ -107,12 +112,12 @@ const QuotationsPage: FC = () => {
           />
         )}
         {cloneFrom && !canClone && (
-          <p role="alert" className={styles.error}>
+          <Box role="alert" component="p" className={styles.error}>
             אין הרשאה לשכפל הצעת מחיר.
-          </p>
+          </Box>
         )}
         {creating && !cloneFrom && (
-          <div className={styles.stack}>
+          <Box component="div" className={styles.stack}>
             <QuotationCustomerPicker value={customerId} onChange={setCustomerId} />
             <QuotationSalesAgentPicker
               value={salesAgentId}
@@ -126,15 +131,15 @@ const QuotationsPage: FC = () => {
               onClick={() => create.mutate({ customerId, salesAgentId })}
             />
             {create.isError && (
-              <p role="alert" className={styles.error}>
+              <Box role="alert" component="p" className={styles.error}>
                 {getApiErrorMessage(create.error)}
-              </p>
+              </Box>
             )}
-          </div>
+          </Box>
         )}
-      </section>
+      </Box>
       <Card>
-        <div className={styles.listToolbar}>
+        <Box component="div" className={styles.listToolbar}>
           <QuotationInput
             type="search"
             value={search}
@@ -150,9 +155,9 @@ const QuotationsPage: FC = () => {
             ariaLabel="סינון הצעות מחיר"
             activeId={status ?? QUOTATION_ALL_TAB_ID}
           />
-        </div>
+        </Box>
         {counts.isError && (
-          <div role="alert" className={styles.error}>
+          <Box role="alert" component="div" className={styles.error}>
             {getApiErrorMessage(counts.error)}
             <Button
               text="נסה שוב"
@@ -160,11 +165,15 @@ const QuotationsPage: FC = () => {
                 await counts.refetch();
               }}
             />
-          </div>
+          </Box>
         )}
-        {quotations.isPending && <p role="status">טוען הצעות מחיר...</p>}
+        {quotations.isPending && (
+          <Box component="p" role="status">
+            טוען הצעות מחיר...
+          </Box>
+        )}
         {quotations.isError && (
-          <div role="alert" className={styles.error}>
+          <Box role="alert" component="div" className={styles.error}>
             {getApiErrorMessage(quotations.error)}
             <Button
               text="נסה שוב"
@@ -172,9 +181,9 @@ const QuotationsPage: FC = () => {
                 await quotations.refetch();
               }}
             />
-          </div>
+          </Box>
         )}
-        {!quotations.isPending && !list.length && <p>לא נמצאו הצעות מחיר</p>}
+        {!quotations.isPending && !list.length && <Box component="p">לא נמצאו הצעות מחיר</Box>}
         {list.map(quotation => (
           <QuotationRow
             key={quotation.id}
@@ -192,7 +201,7 @@ const QuotationsPage: FC = () => {
           />
         )}
       </Card>
-    </main>
+    </Box>
   );
 };
 export default QuotationsPage;

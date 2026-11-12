@@ -70,13 +70,13 @@ const FoundationsSection = () => {
             ))}
           </Box>
           <Box sx={styles.monoTokens}>
-            <span>card 24px</span>
-            <span>·</span>
-            <span>panel 20px</span>
-            <span>·</span>
-            <span>pill 999px</span>
-            <span>·</span>
-            <span>target 48–56px</span>
+            <Box component="span">card 24px</Box>
+            <Box component="span">·</Box>
+            <Box component="span">panel 20px</Box>
+            <Box component="span">·</Box>
+            <Box component="span">pill 999px</Box>
+            <Box component="span">·</Box>
+            <Box component="span">target 48–56px</Box>
           </Box>
         </Card>
       </Box>

@@ -18,9 +18,11 @@ const NoticeBanner: FC<INoticeBannerProps> = ({ title, lines, actions }) => {
         text={
           <Box sx={styles.content}>
             <Box sx={styles.text}>
-              <b>{title}</b>
+              <Box component="b">{title}</Box>
               {lines.map(line => (
-                <span key={line}>{line}</span>
+                <Box component="span" key={line}>
+                  {line}
+                </Box>
               ))}
             </Box>
             {actions && <Box sx={styles.actions}>{actions}</Box>}

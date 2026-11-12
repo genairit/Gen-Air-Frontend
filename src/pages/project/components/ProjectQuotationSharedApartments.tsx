@@ -33,7 +33,7 @@ const ProjectQuotationSharedApartments: FC<IProjectQuotationSharedApartmentsProp
         label={formatSharedCount(quotation.sharedCount)}
       />
       <Box component="span" sx={styles.caption}>
-        <bdi>{formatApartmentPreview(quotation.sharedApartmentNumbers)}</bdi>
+        <Box component="bdi">{formatApartmentPreview(quotation.sharedApartmentNumbers)}</Box>
       </Box>
     </>
   );

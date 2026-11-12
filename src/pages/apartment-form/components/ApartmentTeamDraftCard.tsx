@@ -46,7 +46,7 @@ const ApartmentTeamDraftCard: FC<IApartmentTeamDraftCardProps> = ({
       <ApartmentEngineerPicker value={engineerUserId} onChange={onEngineerChange} />
       <Box sx={styles.spacedRow}>
         <Box sx={styles.row({})}>
-          <b>{APARTMENT_TEAM_COPY.OTHER_TEAM}</b>
+          <Box component="b">{APARTMENT_TEAM_COPY.OTHER_TEAM}</Box>
           <Chip label={badge} />
         </Box>
         <Button text={toggleLabel} onClick={toggleTeam} variant={BUTTON_VARIANTS.NEUTRAL} />

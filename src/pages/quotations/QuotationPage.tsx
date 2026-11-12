@@ -5,6 +5,7 @@ import {
 } from "../../utilities/permission.utility";
 
 import type { FC } from "react";
+import { Box } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Button from "../../components/Button/Button";
@@ -36,11 +37,15 @@ const QuotationPage: FC = () => {
     refetchOnWindowFocus: false,
   });
   if (query.isPending) {
-    return <p role="status">טוען הצעת מחיר...</p>;
+    return (
+      <Box component="p" role="status">
+        טוען הצעת מחיר...
+      </Box>
+    );
   }
   if (query.isError) {
     return (
-      <div role="alert">
+      <Box role="alert" component="div">
         {getApiErrorMessage(query.error)}
         <Button
           text="נסה שוב"
@@ -48,7 +53,7 @@ const QuotationPage: FC = () => {
             await query.refetch();
           }}
         />
-      </div>
+      </Box>
     );
   }
   return (

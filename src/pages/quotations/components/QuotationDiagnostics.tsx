@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import { Box } from "@mui/material";
 import styles from "../quotation.module.css";
 import Icon from "../../../components/Icon/Icon";
 import Card from "../../../components/Card/Card";
@@ -16,38 +17,38 @@ const QuotationDiagnostics: FC<IQuotationDiagnosticsProps> = ({ quotation }) => 
   }
   return (
     <Card>
-      <div className={styles.cardTitle}>
-        <span aria-hidden="true" className={styles.cardIcon}>
+      <Box component="div" className={styles.cardTitle}>
+        <Box component="span" aria-hidden="true" className={styles.cardIcon}>
           <Icon name={ICON_NAMES.PROGRESS} />
-        </span>
-        <div>
-          <h2>מעגלים ודיאגנוסטיקה</h2>
-          <p className={styles.muted}>
+        </Box>
+        <Box component="div">
+          <Box component="h2">מעגלים ודיאגנוסטיקה</Box>
+          <Box component="p" className={styles.muted}>
             סה״כ BTU פנים מול מעבה · ההתראות המחייבות מופיעות בבדיקה ואישור
-          </p>
-        </div>
-      </div>
-      <div className={styles.row}>
+          </Box>
+        </Box>
+      </Box>
+      <Box component="div" className={styles.row}>
         {circuits.map(circuit => (
-          <div key={circuit.id} className={styles.circuit}>
-            <b>
+          <Box component="div" key={circuit.id} className={styles.circuit}>
+            <Box component="b">
               מעגל {circuit.key} · יחס {circuit.ratio ?? "—"}
-            </b>
-            <span>
+            </Box>
+            <Box component="span">
               פנים{" "}
-              <span dir="ltr" className={styles.btuPair}>
+              <Box dir="ltr" component="span" className={styles.btuPair}>
                 {circuit.indoor} BTU
-              </span>
-            </span>
-            <span>
+              </Box>
+            </Box>
+            <Box component="span">
               מעבה{" "}
-              <span dir="ltr" className={styles.btuPair}>
+              <Box dir="ltr" component="span" className={styles.btuPair}>
                 {circuit.outdoor} BTU
-              </span>
-            </span>
-          </div>
+              </Box>
+            </Box>
+          </Box>
         ))}
-      </div>
+      </Box>
     </Card>
   );
 };

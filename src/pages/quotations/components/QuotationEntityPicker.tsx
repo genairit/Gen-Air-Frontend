@@ -1,6 +1,6 @@
 import { useState, type FC } from "react";
-import { Autocomplete } from "@mui/material";
 import styles from "../quotation.module.css";
+import { Box, Autocomplete } from "@mui/material";
 import QuotationEntityInput from "./QuotationEntityInput";
 import { QUOTATION_INPUT_REASON } from "../../../constants/quotation.constant";
 
@@ -37,8 +37,10 @@ const QuotationEntityPicker: FC<IQuotationEntityPickerProps> = ({
     onSearch("");
   };
   return (
-    <div className={styles.entityPicker}>
-      <span className={styles.labelText}>{label}</span>
+    <Box component="div" className={styles.entityPicker}>
+      <Box component="span" className={styles.labelText}>
+        {label}
+      </Box>
       <Autocomplete
         openOnFocus
         value={value}
@@ -75,7 +77,7 @@ const QuotationEntityPicker: FC<IQuotationEntityPickerProps> = ({
           }
         }}
       />
-    </div>
+    </Box>
   );
 };
 export default QuotationEntityPicker;

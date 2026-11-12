@@ -9,6 +9,7 @@ import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationSelect from "./QuotationSelect";
+import { Box, ButtonBase, MenuItem } from "@mui/material";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
@@ -76,19 +77,19 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
     setSearch("");
   };
   return (
-    <div className={styles.addTray}>
-      <div className={styles.addFields}>
+    <Box component="div" className={styles.addTray}>
+      <Box component="div" className={styles.addFields}>
         <QuotationSelect
           value={role}
           caption="יחידה"
           label="סוג פריט"
           onChange={event => changeRole(event.target.value)}
         >
-          <option value="">כל הפריטים המתאימים</option>
+          <MenuItem value="">כל הפריטים המתאימים</MenuItem>
           {QUOTATION_ROLE_OPTIONS.map(option => (
-            <option key={option.value} value={option.value}>
+            <MenuItem key={option.value} value={option.value}>
               {option.label}
-            </option>
+            </MenuItem>
           ))}
         </QuotationSelect>
         {isEquipment && (
@@ -101,9 +102,11 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
               setShowMatches(true);
             }}
           >
-            <option value="">כל הסוגים</option>
+            <MenuItem value="">כל הסוגים</MenuItem>
             {typeOptions.map(type => (
-              <option key={type}>{type}</option>
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
             ))}
           </QuotationSelect>
         )}
@@ -145,11 +148,13 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
             onChange={event => setCircuit(event.target.value)}
           >
             {QUOTATION_CIRCUITS.map(value => (
-              <option key={value}>{value}</option>
+              <MenuItem key={value} value={value}>
+                {value}
+              </MenuItem>
             ))}
           </QuotationSelect>
         )}
-      </div>
+      </Box>
       <QuotationInput
         type="search"
         value={search}
@@ -161,9 +166,13 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
           setShowMatches(true);
         }}
       />
-      {catalogue.isFetching && <p role="status">מחפש פריטים מתאימים...</p>}
+      {catalogue.isFetching && (
+        <Box component="p" role="status">
+          מחפש פריטים מתאימים...
+        </Box>
+      )}
       {catalogue.isError && (
-        <div role="alert" className={styles.error}>
+        <Box role="alert" component="div" className={styles.error}>
           {getApiErrorMessage(catalogue.error)}
           <Button
             text="נסה שוב"
@@ -171,27 +180,36 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
               await catalogue.refetch();
             }}
           />
-        </div>
+        </Box>
       )}
       {showMatches && catalogue.data && (
-        <div className={styles.results}>
-          {!catalogue.data.length && <p role="status">לא נמצא פריט קטלוג מתאים. לא נוספה שורה.</p>}
+        <Box component="div" className={styles.results}>
+          {!catalogue.data.length && (
+            <Box component="p" role="status">
+              לא נמצא פריט קטלוג מתאים. לא נוספה שורה.
+            </Box>
+          )}
           {catalogue.data.map(item => (
-            <button key={item.id} className={styles.result} onClick={() => select(item)}>
-              <b>{item.sku}</b> · {item.description}
-              <div className={styles.muted}>
+            <ButtonBase
+              key={item.id}
+              className={styles.result}
+              sx={{ display: "block" }}
+              onClick={() => select(item)}
+            >
+              <Box component="b">{item.sku}</Box> · {item.description}
+              <Box component="div" className={styles.muted}>
                 {item.capacityBtu !== null && (
-                  <span dir="ltr" className={styles.btuPair}>
+                  <Box dir="ltr" component="span" className={styles.btuPair}>
                     {item.capacityBtu.toLocaleString("he-IL")} BTU
-                  </span>
+                  </Box>
                 )}{" "}
                 · {quotationMoney(item.price)}
-              </div>
-            </button>
+              </Box>
+            </ButtonBase>
           ))}
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 export default QuotationCataloguePicker;

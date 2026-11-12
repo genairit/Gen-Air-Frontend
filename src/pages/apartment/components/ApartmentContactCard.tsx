@@ -66,7 +66,7 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
       />
       <Box sx={styles.spacedRow}>
         <Box sx={styles.row({})}>
-          <b>{APARTMENT_TEAM_COPY.OTHER_TEAM}</b>
+          <Box component="b">{APARTMENT_TEAM_COPY.OTHER_TEAM}</Box>
           <Chip label={badge} />
         </Box>
         {canEdit && (

@@ -439,7 +439,7 @@ test("contact summaries preserve callable phone links and email-only fallbacks",
   const phone = "03-1234567";
   const html = renderToStaticMarkup(<CustomerContactSummary contacts={[{ ...contact, phone }]} />);
   assert.match(html, /href="tel:\+97231234567"/);
-  assert.match(html, /<bdi>03-1234567<\/bdi>/);
+  assert.match(html, /<bdi\b[^>]*>03-1234567<\/bdi>/);
   const emailOnly = renderToStaticMarkup(
     <CustomerContactSummary contacts={[{ ...contact, email: "person@example.com" }]} />,
   );
@@ -481,7 +481,11 @@ test("linked apartment customer wins over historical values and missing associat
     <ApartmentEndCustomerCard
       apartment={{
         ...apartment,
-        customer: { id: "linked", name: "לקוח מקושר", primaryContact: { ...contact, phone: "039999999" } },
+        customer: {
+          id: "linked",
+          name: "לקוח מקושר",
+          primaryContact: { ...contact, phone: "039999999" },
+        },
       }}
       building={legacyProject}
     />,

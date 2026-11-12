@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import type { DatePickerValue } from "../../DatePicker";
 import { PickerDay, type PickerDayProps } from "@mui/x-date-pickers";
 import { DAY_CELL_CLASS } from "../../constants/date-picker.constant";
@@ -19,7 +20,8 @@ const DayBubble = <IsRange extends boolean = false>({
   const rangePosition = getRangePosition(day, calendarValue);
 
   return (
-    <span
+    <Box
+      component="span"
       data-range={isRange}
       className={DAY_CELL_CLASS}
       data-selected={isSelected}
@@ -34,7 +36,7 @@ const DayBubble = <IsRange extends boolean = false>({
         disabled={disabled}
         disableHighlightToday
       />
-    </span>
+    </Box>
   );
 };
 

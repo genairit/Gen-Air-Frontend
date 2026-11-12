@@ -36,7 +36,7 @@ const NoticeCard: FC<INoticeCardProps> = ({
   const displayedIcon = icon ?? renderedDefaultIcon;
 
   return (
-    <div style={styles.noticeCard}>
+    <Box style={styles.noticeCard}>
       <Typography component="div" sx={styles.textContent}>
         {text}
       </Typography>
@@ -46,7 +46,7 @@ const NoticeCard: FC<INoticeCardProps> = ({
           {displayedIcon}
         </Box>
       )}
-    </div>
+    </Box>
   );
 };
 
