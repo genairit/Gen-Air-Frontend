@@ -7,6 +7,7 @@ import type { FC, ReactNode } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationSelect from "./QuotationSelect";
+import { Box, MenuItem, IconButton } from "@mui/material";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import QuotationAccessoryLine from "./QuotationAccessoryLine";
 import { EQUIPMENT_ROLE } from "../../../constants/quotation.constant";
@@ -58,10 +59,10 @@ const QuotationLine: FC<IQuotationLineProps> = ({
     );
   }
   return (
-    <div className={styles.line} data-role={line.equipmentRole}>
-      <div className={styles.lineDescription}>
-        <div className={styles.lineIdentity}>
-          <span>{line.sku}</span>
+    <Box component="div" className={styles.line} data-role={line.equipmentRole}>
+      <Box component="div" className={styles.lineDescription}>
+        <Box component="div" className={styles.lineIdentity}>
+          <Box component="span">{line.sku}</Box>
           <QuotationInput
             maxLength={1000}
             label="תיאור בהצעה"
@@ -69,20 +70,26 @@ const QuotationLine: FC<IQuotationLineProps> = ({
             value={line.description}
             onChange={event => onChange({ ...line, description: event.target.value })}
           />
-        </div>
-        <div className={styles.lineDetails}>
+        </Box>
+        <Box component="div" className={styles.lineDetails}>
           {line.capacityBtu !== null && (
-            <span dir="ltr" className={styles.btuPair}>
+            <Box dir="ltr" component="span" className={styles.btuPair}>
               {line.capacityBtu.toLocaleString("he-IL")} BTU
-            </span>
+            </Box>
           )}
-          {line.includesRemote && <span className={styles.muted}>כולל שלט במחיר היחידה</span>}
+          {line.includesRemote && (
+            <Box component="span" className={styles.muted}>
+              כולל שלט במחיר היחידה
+            </Box>
+          )}
           {line.includesThermostat && (
-            <span className={styles.muted}>כולל טרמוסטט במחיר היחידה</span>
+            <Box component="span" className={styles.muted}>
+              כולל טרמוסטט במחיר היחידה
+            </Box>
           )}
-        </div>
-      </div>
-      <div className={styles.lineLocation}>
+        </Box>
+      </Box>
+      <Box component="div" className={styles.lineLocation}>
         <QuotationInput
           label="מיקום"
           maxLength={200}
@@ -100,12 +107,14 @@ const QuotationLine: FC<IQuotationLineProps> = ({
             onChange={event => onChange({ ...line, circuit: event.target.value })}
           >
             {QUOTATION_CIRCUITS.map(circuit => (
-              <option key={circuit}>{circuit}</option>
+              <MenuItem key={circuit} value={circuit}>
+                {circuit}
+              </MenuItem>
             ))}
           </QuotationSelect>
         )}
-      </div>
-      <div className={styles.lineQuantity}>
+      </Box>
+      <Box component="div" className={styles.lineQuantity}>
         <QuotationDecimalInput
           min="0.0001"
           type="number"
@@ -116,9 +125,11 @@ const QuotationLine: FC<IQuotationLineProps> = ({
           label={`כמות (${line.unit})`}
           onChange={event => onChange({ ...line, quantity: event.target.value })}
         />
-        <span className={styles.numericCaption}>כמות</span>
-      </div>
-      <div className={styles.linePrice}>
+        <Box component="span" className={styles.numericCaption}>
+          כמות
+        </Box>
+      </Box>
+      <Box component="div" className={styles.linePrice}>
         <QuotationDecimalInput
           min="0"
           type="number"
@@ -128,18 +139,22 @@ const QuotationLine: FC<IQuotationLineProps> = ({
           value={line.quotedPrice}
           onChange={event => onChange({ ...line, quotedPrice: event.target.value })}
         />
-        <span className={styles.numericCaption}>מחיר ליחידה (בהצעה)</span>
-      </div>
-      <b className={styles.lineTotal}>{amount}</b>
+        <Box component="span" className={styles.numericCaption}>
+          מחיר ליחידה (בהצעה)
+        </Box>
+      </Box>
+      <Box component="b" className={styles.lineTotal}>
+        {amount}
+      </Box>
       {!disabled && (
-        <button
+        <IconButton
           title="הסר שורה"
           onClick={onRemove}
           aria-label="הסר שורה"
           className={styles.removeLine}
         >
           ×
-        </button>
+        </IconButton>
       )}
       {isControl && (
         <QuotationSelect
@@ -152,16 +167,20 @@ const QuotationLine: FC<IQuotationLineProps> = ({
             )
           }
         >
-          <option value="">פריט נפרד</option>
+          <MenuItem value="">פריט נפרד</MenuItem>
           {parents.map(parent => (
-            <option key={parent.id} value={parent.id}>
+            <MenuItem key={parent.id} value={parent.id}>
               {parent.location || parent.sku}
-            </option>
+            </MenuItem>
           ))}
         </QuotationSelect>
       )}
-      {children && <div className={styles.lineControls}>{children}</div>}
-    </div>
+      {children && (
+        <Box component="div" className={styles.lineControls}>
+          {children}
+        </Box>
+      )}
+    </Box>
   );
 };
 export default QuotationLine;

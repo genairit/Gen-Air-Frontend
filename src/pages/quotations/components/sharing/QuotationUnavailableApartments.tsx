@@ -22,7 +22,7 @@ const QuotationUnavailableApartments: FC<IQuotationUnavailableApartmentsProps> =
       </Box>
       {links.map(link => (
         <Box key={link.apartmentId} sx={styles.unavailableRow}>
-          <bdi>{formatApartmentChoice(link)}</bdi>
+          <Box component="bdi">{formatApartmentChoice(link)}</Box>
           <Chip
             icon={ICON_NAMES.INFO}
             variant={CHIP_VARIANTS.PLAIN}

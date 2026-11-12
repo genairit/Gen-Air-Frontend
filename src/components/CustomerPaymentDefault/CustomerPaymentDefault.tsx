@@ -8,6 +8,7 @@ import {
 import type { FC } from "react";
 import Card from "../Card/Card";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import Button from "../Button/Button";
 import InlineError from "../InlineError/InlineError";
 import Autocomplete from "../Autocomplete/Autocomplete";
@@ -42,8 +43,8 @@ const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({
   };
   return (
     <Card>
-      <h2>תנאי תשלום כברירת מחדל</h2>
-      <p>יועתקו להצעות מחיר חדשות בלבד. הערות לתשלום נשמרות בהצעה עצמה.</p>
+      <Box component="h2">תנאי תשלום כברירת מחדל</Box>
+      <Box component="p">יועתקו להצעות מחיר חדשות בלבד. הערות לתשלום נשמרות בהצעה עצמה.</Box>
       <Autocomplete
         value={label}
         options={options}
@@ -60,7 +61,11 @@ const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({
         />
       )}{" "}
       {update.isError && <InlineError message={getApiErrorMessage(update.error)} />}
-      {update.isSuccess && <p role="status">ברירת המחדל נשמרה</p>}
+      {update.isSuccess && (
+        <Box component="p" role="status">
+          ברירת המחדל נשמרה
+        </Box>
+      )}
     </Card>
   );
 };

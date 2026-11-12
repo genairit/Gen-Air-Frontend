@@ -14,8 +14,8 @@ import ButtonContent from "./ButtonContent";
 import { mergeSx } from "../../utilities/sx.utility";
 import { lazy, Suspense, type FC, type MouseEvent } from "react";
 import type { IconNameType } from "../../constants/icon.constant";
-import { CircularProgress, type SxProps, type Theme } from "@mui/material";
 import SmartbaseButton from "../../vendor/smartbase/components/Button/Button";
+import { Box, CircularProgress, type SxProps, type Theme } from "@mui/material";
 
 const LoadingAnimation = lazy(() => import("../LoadingAnimation/LoadingAnimation"));
 
@@ -60,12 +60,14 @@ const Button: FC<IButtonProps> = ({
     >
       {isLoading ? (
         <>
-          <span style={styles.text}>{text}</span>
-          <div style={styles.loadingAnimation}>
+          <Box component="span" style={styles.text}>
+            {text}
+          </Box>
+          <Box component="div" style={styles.loadingAnimation}>
             <Suspense fallback={<CircularProgress size={20} color="inherit" />}>
               <LoadingAnimation />
             </Suspense>
-          </div>
+          </Box>
         </>
       ) : (
         <ButtonContent

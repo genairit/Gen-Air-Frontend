@@ -15,7 +15,7 @@ import { getHelperText } from "../../utilities/textfield.utility";
 import type { IconNameType } from "../../constants/icon.constant";
 import { validateInput } from "../../utilities/validation.utility";
 import { type ChangeEvent, type FC, useEffect, type ReactNode } from "react";
-import { type TextFieldProps, TextField as MuiTextField } from "@mui/material";
+import { Box, type TextFieldProps, TextField as MuiTextField } from "@mui/material";
 import { type IValidationResult } from "../../interfaces/validation-result.interface";
 
 export type TTextfieldProps = Omit<TextFieldProps, "onChange" | "title"> & {
@@ -108,7 +108,7 @@ const TextField: FC<TTextfieldProps> = ({
   };
 
   return (
-    <div style={styles.fieldContainer}>
+    <Box component="div" style={styles.fieldContainer}>
       {title && (
         <FieldLabel
           title={title}
@@ -133,7 +133,7 @@ const TextField: FC<TTextfieldProps> = ({
         helperText={helperText.text}
         sx={{ ...rest.sx, ...styles.textField }}
       />
-    </div>
+    </Box>
   );
 };
 

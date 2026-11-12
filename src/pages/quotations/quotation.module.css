@@ -250,14 +250,19 @@
   margin-top: 12px;
   border-top: 1px solid #e2e8f0;
   padding-top: 12px;
+  background: transparent;
+  box-shadow: none;
 }
-.cancellationHistory summary {
+.cancellationHistory::before {
+  display: none;
+}
+.cancellationHistory :global(.MuiAccordionSummary-root) {
   cursor: pointer;
   width: fit-content;
   color: #1668bd;
   font-weight: 600;
 }
-.cancellationHistory summary:focus-visible {
+.cancellationHistory :global(.MuiAccordionSummary-root):focus-visible {
   outline: 2px solid #1668bd;
   outline-offset: 3px;
 }
@@ -652,10 +657,8 @@
   line-height: 1.6;
   font-size: 12px;
 }
-.warning input {
-  margin-top: 6px;
-  width: 16px;
-  height: 16px;
+.warning :global(.MuiCheckbox-root) {
+  padding: 0;
   flex-shrink: 0;
 }
 .sectionTitle {
@@ -961,11 +964,20 @@
   height: 52px;
 }
 .select {
-  appearance: none;
   padding-inline-end: 38px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%236E7178' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: left 18px center;
+}
+.select :global(.MuiSelect-select) {
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  padding: 0 !important;
+}
+.select :global(.MuiSelect-icon) {
+  left: 14px;
+  right: auto;
+  color: #6e7178;
 }
 .searchControl {
   display: flex;
@@ -1013,33 +1025,13 @@
   color: #6e7178;
   text-align: center;
 }
-.input[type="number"] {
+.input input[type="number"] {
   appearance: textfield;
 }
-.input::-webkit-inner-spin-button,
-.input::-webkit-outer-spin-button {
+.input input::-webkit-inner-spin-button,
+.input input::-webkit-outer-spin-button {
   appearance: none;
   margin: 0;
-}
-.reviewProgress {
-  width: 100%;
-  height: 6px;
-  border: 0;
-  border-radius: 999px;
-  appearance: none;
-  background: #dcdce2;
-}
-.reviewProgress::-webkit-progress-bar {
-  background: #dcdce2;
-  border-radius: 999px;
-}
-.reviewProgress::-webkit-progress-value {
-  background: #1f7fdb;
-  border-radius: 999px;
-}
-.reviewProgress::-moz-progress-bar {
-  background: #1f7fdb;
-  border-radius: 999px;
 }
 .step:not(:last-child)::after {
   content: "";

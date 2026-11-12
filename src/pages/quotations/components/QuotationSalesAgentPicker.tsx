@@ -3,6 +3,7 @@ import {
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
+import { Box } from "@mui/material";
 import { useState, type FC } from "react";
 import styles from "../quotation.module.css";
 import Button from "../../../components/Button/Button";
@@ -51,7 +52,7 @@ const QuotationSalesAgentPicker: FC<IQuotationSalesAgentPickerProps> = ({
   const optionsLoading = canChooseAgent && agentsQuery.isPending;
 
   return (
-    <div className={styles.picker}>
+    <Box component="div" className={styles.picker}>
       <QuotationEntityPicker
         allowClear
         value={choice}
@@ -63,14 +64,24 @@ const QuotationSalesAgentPicker: FC<IQuotationSalesAgentPickerProps> = ({
         label="סוכן מכירות (אופציונלי)"
         placeholder="ללא סוכן · חיפוש סוכן מכירות..."
       />
-      {canChooseAgent && agentsQuery.isPending && <span role="status">טוען סוכני מכירות...</span>}
+      {canChooseAgent && agentsQuery.isPending && (
+        <Box role="status" component="span">
+          טוען סוכני מכירות...
+        </Box>
+      )}
       {canChooseAgent &&
         !agentsQuery.isPending &&
         !agentsQuery.isError &&
-        !eligibleAgents.length && <span role="status">לא נמצאו משתמשים מתאימים</span>}
+        !eligibleAgents.length && (
+          <Box role="status" component="span">
+            לא נמצאו משתמשים מתאימים
+          </Box>
+        )}
       {canChooseAgent && agentsQuery.isError && (
-        <div>
-          <span role="alert">{getApiErrorMessage(agentsQuery.error)}</span>
+        <Box component="div">
+          <Box role="alert" component="span">
+            {getApiErrorMessage(agentsQuery.error)}
+          </Box>
           <Button
             text="נסה שוב"
             size={BUTTON_SIZES.COMPACT}
@@ -79,9 +90,9 @@ const QuotationSalesAgentPicker: FC<IQuotationSalesAgentPickerProps> = ({
               await agentsQuery.refetch();
             }}
           />
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

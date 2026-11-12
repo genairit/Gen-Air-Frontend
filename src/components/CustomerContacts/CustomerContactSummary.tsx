@@ -21,7 +21,7 @@ const CustomerContactSummary: FC<ICustomerContactSummaryProps> = ({ contacts }) 
       <Box sx={styles.chips}>
         {contacts.map(contact => (
           <Box component="span" key={contact.id} sx={styles.chip}>
-            <b>{contact.name}</b>
+            <Box component="b">{contact.name}</Box>
             {contact.role && (
               <Box component="span" sx={styles.caption}>
                 {contact.role}
@@ -29,10 +29,10 @@ const CustomerContactSummary: FC<ICustomerContactSummaryProps> = ({ contacts }) 
             )}
             {contact.phone ? (
               <Box component="a" sx={styles.summaryLink} href={toTelephoneHref(contact.phone)}>
-                <bdi>{contact.phone}</bdi>
+                <Box component="bdi">{contact.phone}</Box>
               </Box>
             ) : (
-              <bdi>{contact.email}</bdi>
+              <Box component="bdi">{contact.email}</Box>
             )}
           </Box>
         ))}

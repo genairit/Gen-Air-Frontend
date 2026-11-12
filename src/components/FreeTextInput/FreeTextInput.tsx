@@ -24,9 +24,9 @@ import {
   type TFreeTextSuggestionNavigationKeyType,
 } from "../../constants/free-text.constants";
 
-import { Box, Typography } from "@mui/material";
 import { useStyles } from "./FreeTextInput.style";
 import FreeTextChip from "./components/FreeTextChip";
+import { Box, InputBase, Typography } from "@mui/material";
 import FreeTextSuggestions from "./components/FreeTextSuggestions";
 import { useDebouncedFreeText } from "./hooks/use-debounced-free-text.hook";
 import type { IFreeTextInputProps } from "../../interfaces/free-text.interface";
@@ -287,19 +287,21 @@ const FreeTextInput: FC<IFreeTextInputProps> = ({
       <Box sx={styles.fieldWrap}>
         <Box sx={styles.field} onMouseDown={handleFieldMouseDown}>
           {renderModel.leadingWords.map(renderChip)}
-          <input
-            dir="rtl"
+          <InputBase
             value={draft}
-            ref={inputRef}
+            inputRef={inputRef}
             disabled={readonly}
-            onBlur={handleBlur}
             key="free-text-entry"
-            onKeyDown={handleKeyDown}
-            onChange={handleDraftChange}
-            style={renderModel.inputStyle}
-            size={Math.max(draft.length, 1)}
-            onFocus={() => setIsFocused(true)}
+            sx={renderModel.inputStyle}
             placeholder={renderModel.activePlaceholder}
+            inputProps={{
+              dir: "rtl",
+              onBlur: handleBlur,
+              onKeyDown: handleKeyDown,
+              onChange: handleDraftChange,
+              size: Math.max(draft.length, 1),
+              onFocus: () => setIsFocused(true),
+            }}
           />
 
           {renderModel.trailingWords.map((word, index) =>

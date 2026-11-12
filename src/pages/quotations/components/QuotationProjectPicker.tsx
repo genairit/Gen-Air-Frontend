@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import styles from "../quotation.module.css";
 import QuotationEntityPicker from "./QuotationEntityPicker";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
@@ -39,7 +40,7 @@ const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
   const isDisabled = disabled || lockedReason !== null;
   const caption = lockedReason ?? "לפרויקט יכולות להיות כמה הצעות.";
   return (
-    <div className={styles.picker}>
+    <Box component="div" className={styles.picker}>
       <QuotationEntityPicker
         allowClear
         value={choice}
@@ -54,9 +55,15 @@ const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
           onChange(id);
         }}
       />
-      <span className={styles.muted}>{caption}</span>
-      {projects.isError && <span role="alert">{getApiErrorMessage(projects.error)}</span>}
-    </div>
+      <Box component="span" className={styles.muted}>
+        {caption}
+      </Box>
+      {projects.isError && (
+        <Box role="alert" component="span">
+          {getApiErrorMessage(projects.error)}
+        </Box>
+      )}
+    </Box>
   );
 };
 export default QuotationProjectPicker;

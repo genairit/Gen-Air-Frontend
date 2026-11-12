@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import styles from "../quotation.module.css";
 import QuotationEntityPicker from "./QuotationEntityPicker";
@@ -30,7 +31,7 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
   const isLocked = lockedReason !== null;
   const isDisabled = disabled || isLocked;
   return (
-    <div className={styles.picker}>
+    <Box component="div" className={styles.picker}>
       <QuotationEntityPicker
         label="לקוח *"
         value={choice}
@@ -45,14 +46,22 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
           }
         }}
       />
-      {isLocked && <span className={styles.muted}>{lockedReason}</span>}
+      {isLocked && (
+        <Box component="span" className={styles.muted}>
+          {lockedReason}
+        </Box>
+      )}
       {value && !isDisabled && (
         <Link to={buildCustomerPath(value)} className={styles.customerLink}>
           פתיחת כרטיס הלקוח
         </Link>
       )}
-      {customers.isError && <span role="alert">{getApiErrorMessage(customers.error)}</span>}
-    </div>
+      {customers.isError && (
+        <Box role="alert" component="span">
+          {getApiErrorMessage(customers.error)}
+        </Box>
+      )}
+    </Box>
   );
 };
 export default QuotationCustomerPicker;

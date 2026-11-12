@@ -16,7 +16,7 @@ const TaskProjectCustomerNote: FC<ITaskProjectCustomerNoteProps> = ({ customerNa
     <Box sx={styles.context}>
       <Chip variant={CHIP_VARIANTS.INSET} label={NEW_TASK_COPY.INFO_ONLY} />
       <Box component="span">
-        {NEW_TASK_COPY.PROJECT_CUSTOMER} <b>{customerName}</b> ·{" "}
+        {NEW_TASK_COPY.PROJECT_CUSTOMER} <Box component="b">{customerName}</Box> ·{" "}
         {NEW_TASK_COPY.PROJECT_CUSTOMER_NOTE}
       </Box>
     </Box>

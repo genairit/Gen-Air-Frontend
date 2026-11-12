@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import styles from "../quotation.module.css";
-import type { AutocompleteRenderInputParams } from "@mui/material";
+import { Box, InputBase, type AutocompleteRenderInputParams } from "@mui/material";
 
 interface IQuotationEntityInputProps {
   label: string;
@@ -21,13 +21,12 @@ const QuotationEntityInput: FC<IQuotationEntityInputProps> = ({
     ...htmlInput,
     placeholder,
     "aria-label": label,
-    className: styles.entityInput,
   };
   return (
-    <div ref={anchorRef} className={styles.entityControl}>
-      <input {...inputProps} />
+    <Box ref={anchorRef} className={styles.entityControl}>
+      <InputBase inputProps={inputProps} className={styles.entityInput} />
       {endAdornment}
-    </div>
+    </Box>
   );
 };
 export default QuotationEntityInput;

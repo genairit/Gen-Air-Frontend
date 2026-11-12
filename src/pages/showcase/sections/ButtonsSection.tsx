@@ -48,16 +48,16 @@ const ButtonsSection = () => {
 
         <Box sx={styles.row({ gap: "24px" })}>
           <Box component="span" sx={styles.caption}>
-            <b>ראשי</b> — כחול, פעולה אחת בולטת לכל מסך
+            <Box component="b">ראשי</Box> — כחול, פעולה אחת בולטת לכל מסך
           </Box>
           <Box component="span" sx={styles.caption}>
-            <b>משני</b> — Air Blue
+            <Box component="b">משני</Box> — Air Blue
           </Box>
           <Box component="span" sx={styles.caption}>
-            <b>ניטרלי</b> — לבן עם גבול עדין
+            <Box component="b">ניטרלי</Box> — לבן עם גבול עדין
           </Box>
           <Box component="span" sx={styles.caption}>
-            <b>לחוץ</b> — גוון כחול וגבול ברור
+            <Box component="b">לחוץ</Box> — גוון כחול וגבול ברור
           </Box>
         </Box>
       </Card>

@@ -93,7 +93,6 @@ const Tabs: FC<ITabsProps> = ({
               type="button"
               key={item.id}
               sx={tabStyles}
-              component="button"
               data-tab-option=""
               disabled={disabled}
               tabIndex={tabIndex}

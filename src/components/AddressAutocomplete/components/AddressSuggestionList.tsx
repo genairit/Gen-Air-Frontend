@@ -91,8 +91,8 @@ const AddressSuggestionList: FC<IAddressSuggestionListProps> = ({
     <Box id={listId} role="listbox" component="ul" sx={styles.suggestions}>
       {CONTENT_BY_STATE[state]()}
       <Box component="li" role="presentation" sx={styles.listFooter}>
-        <span>{PROJECT_ADDRESS_COPY.LIST_FOOTER}</span>
-        <span>{PROJECT_ADDRESS_COPY.SOURCE}</span>
+        <Box component="span">{PROJECT_ADDRESS_COPY.LIST_FOOTER}</Box>
+        <Box component="span">{PROJECT_ADDRESS_COPY.SOURCE}</Box>
       </Box>
     </Box>
   );

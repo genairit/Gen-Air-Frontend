@@ -39,10 +39,12 @@ const SelectedCustomerSummary: FC<ISelectedCustomerSummaryProps> = ({
           <CustomerSyncChip status={customer.prioritySyncStatus} />
         </Box>
         <Box component="span" sx={styles.caption}>
-          <bdi>{formatCustomerTaxId(customer)}</bdi>
+          <Box component="bdi">{formatCustomerTaxId(customer)}</Box>
         </Box>
         {canReadContacts && (
-          <CustomerContactSummary contacts={customer.primaryContact ? [customer.primaryContact] : []} />
+          <CustomerContactSummary
+            contacts={customer.primaryContact ? [customer.primaryContact] : []}
+          />
         )}
       </Box>
       <Box sx={styles.actions}>

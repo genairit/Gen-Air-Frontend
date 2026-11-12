@@ -28,7 +28,7 @@ const CustomerPickerOption: FC<ICustomerPickerOptionProps> = ({ customer, onPick
           {customer.name}
         </Box>
         <Box component="span" sx={styles.caption}>
-          <bdi>{formatCustomerTaxId(customer)}</bdi>
+          <Box component="bdi">{formatCustomerTaxId(customer)}</Box>
           {customer.primaryContact && ` · ${customer.primaryContact.name}`}
         </Box>
       </Box>

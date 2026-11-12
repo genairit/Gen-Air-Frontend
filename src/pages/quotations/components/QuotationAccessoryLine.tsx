@@ -1,6 +1,7 @@
 import type { FC, Ref } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
+import { Box, IconButton } from "@mui/material";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { EQUIPMENT_ROLE } from "../../../constants/quotation.constant";
 import { quotationLineMoney } from "../../../utilities/quotation.utility";
@@ -27,12 +28,14 @@ const QuotationAccessoryLine: FC<IQuotationAccessoryLineProps> = ({
   const hint = pipe ? "סה״כ מטרים למערכת" : "פריט מתוך המחירון";
   const amount = quotationLineMoney(line);
   return (
-    <div data-role={line.equipmentRole} className={styles.accessoryLine}>
-      <div className={styles.accessoryTitle}>
-        <b>{title}</b>
-        <span className={styles.muted}>{hint}</span>
-      </div>
-      <div className={styles.accessoryDescription}>
+    <Box component="div" data-role={line.equipmentRole} className={styles.accessoryLine}>
+      <Box component="div" className={styles.accessoryTitle}>
+        <Box component="b">{title}</Box>
+        <Box component="span" className={styles.muted}>
+          {hint}
+        </Box>
+      </Box>
+      <Box component="div" className={styles.accessoryDescription}>
         <QuotationInput
           caption="פריט"
           maxLength={1000}
@@ -41,9 +44,11 @@ const QuotationAccessoryLine: FC<IQuotationAccessoryLineProps> = ({
           value={line.description}
           onChange={event => onChange({ ...line, description: event.target.value })}
         />
-        <span className={styles.lineIdentity}>{line.sku}</span>
-      </div>
-      <div className={styles.lineQuantity}>
+        <Box component="span" className={styles.lineIdentity}>
+          {line.sku}
+        </Box>
+      </Box>
+      <Box component="div" className={styles.lineQuantity}>
         <QuotationDecimalInput
           min="0.0001"
           type="number"
@@ -55,8 +60,8 @@ const QuotationAccessoryLine: FC<IQuotationAccessoryLineProps> = ({
           label={`כמות (${line.unit})`}
           onChange={event => onChange({ ...line, quantity: event.target.value })}
         />
-      </div>
-      <div className={styles.linePrice}>
+      </Box>
+      <Box component="div" className={styles.linePrice}>
         <QuotationDecimalInput
           min="0"
           type="number"
@@ -67,19 +72,21 @@ const QuotationAccessoryLine: FC<IQuotationAccessoryLineProps> = ({
           value={line.quotedPrice}
           onChange={event => onChange({ ...line, quotedPrice: event.target.value })}
         />
-      </div>
-      <b className={styles.lineTotal}>{amount}</b>
+      </Box>
+      <Box component="b" className={styles.lineTotal}>
+        {amount}
+      </Box>
       {!disabled && (
-        <button
+        <IconButton
           title="הסר שורה"
           onClick={onRemove}
           aria-label="הסר שורה"
           className={styles.removeLine}
         >
           ×
-        </button>
+        </IconButton>
       )}
-    </div>
+    </Box>
   );
 };
 export default QuotationAccessoryLine;

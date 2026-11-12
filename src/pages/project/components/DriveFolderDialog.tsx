@@ -4,8 +4,8 @@ import { useStyles } from "./DriveFileManager.style";
 import Button from "../../../components/Button/Button";
 import InlineError from "../../../components/InlineError/InlineError";
 import { useProjectDriveQuery } from "../../../hooks/queries/project.query";
-import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import type { IDriveFolderLocation } from "../../../interfaces/drive-file.interface";
+import { Box, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { DRIVE_FILE_COPY, ROOT_DRIVE_LOCATION } from "../../../constants/drive-file.constant";
 
@@ -53,7 +53,7 @@ const DriveFolderDialog: FC<IDriveFolderDialogProps> = ({
     >
       <DialogTitle>{title}</DialogTitle>
       <DialogContent>
-        {description && <p>{description}</p>}
+        {description && <Box component="p">{description}</Box>}
         <DriveFolderPicker
           path={path}
           onChange={setPath}
