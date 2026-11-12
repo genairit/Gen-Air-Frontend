@@ -107,6 +107,7 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
       <CustomerFieldsCard
         errors={errors}
         values={values}
+        minColumnWidth={320}
         onChange={updateValues}
         icon={ICON_NAMES.CUSTOMER}
         disabled={mutation.isPending}
@@ -141,6 +142,7 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
           <CustomerFieldsCard
             errors={errors}
             values={values}
+            minColumnWidth={210}
             onChange={updateValues}
             icon={ICON_NAMES.CONTACTS}
             disabled={mutation.isPending}

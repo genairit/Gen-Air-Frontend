@@ -20,6 +20,7 @@ interface ICustomerFieldsCardProps {
   disabled: boolean;
   icon: IconNameType;
   children?: ReactNode;
+  minColumnWidth?: number;
   errors: TCustomerFormErrors;
   fields: ICustomerFormField[];
   values: ICreateCustomerPayload;
@@ -36,13 +37,14 @@ const CustomerFieldsCard: FC<ICustomerFieldsCardProps> = ({
   disabled,
   children,
   onChange,
+  minColumnWidth = 250,
 }) => {
   const styles = usePageStyles();
 
   return (
     <Card gap="18px">
       <CardHeader icon={icon} title={title} subtitle={subtitle} />
-      <Box sx={styles.grid({ minColumnWidth: 250, gap: "20px" })}>
+      <Box sx={styles.grid({ minColumnWidth, gap: "20px" })}>
         {children}
         {fields.map(field => (
           <TextField

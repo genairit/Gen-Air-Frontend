@@ -18,7 +18,7 @@ export const useStyles = () =>
       display: "grid",
       alignItems: "start",
       gridTemplateColumns: "minmax(0, 1fr)",
-      "@media (min-width: 1250px)": {
+      "@media (min-width: 1400px)": {
         gridTemplateColumns: "minmax(300px, 1fr) minmax(0, 2fr)",
       },
     },
