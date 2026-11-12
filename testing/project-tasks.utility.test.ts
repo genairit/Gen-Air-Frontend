@@ -27,8 +27,12 @@ import { USER_ROLES } from "../src/constants/user-role.constant";
 import { TASK_TYPES } from "../src/constants/task-type.constant";
 import { createTask, project, engineer } from "./project-tasks.fixture";
 import type { ITaskFormValues } from "../src/interfaces/task.interface";
-import { isApiTask, isApiTaskTransition } from "../src/utilities/guards/task.guard";
 import { EMPTY_TASK_FORM, POOL_ASSIGNEE_ID, TASK_LINK_KINDS } from "../src/constants/task.constant";
+import {
+  isApiTask,
+  isApiTaskTransition,
+  isProtectedTaskSlot,
+} from "../src/utilities/guards/task.guard";
 
 const formValues: ITaskFormValues = {
   ...EMPTY_TASK_FORM,
@@ -38,7 +42,7 @@ const formValues: ITaskFormValues = {
   assigneeOptionId: POOL_ASSIGNEE_ID,
 };
 
-test("manual task payload selects only the project and General type, ignoring stale hidden choices", () => {
+test("task payload keeps the deliberately selected type and project, ignoring stale customer choices", () => {
   const staleDraft = {
     ...formValues,
     customerId: "old-customer",
@@ -47,7 +51,7 @@ test("manual task payload selects only the project and General type, ignoring st
   };
   assert.deepEqual(toCreateTaskPayload(staleDraft), {
     projectId: project.id,
-    taskType: TASK_TYPES.GENERAL,
+    taskType: TASK_TYPES.QUOTATION,
     title: "טיפול בפרויקט",
     description: "תיאור העבודה",
     assigneeId: null,
@@ -61,6 +65,21 @@ test("a customer-only or missing-project draft cannot create a new task", () => 
   assert.equal(toCreateTaskPayload(missingProject), null);
   assert.equal(getTaskFormErrors(missingProject).projectId, "בחר פרויקט");
   assert.equal(countTaskFormErrors(missingProject), 1);
+});
+
+test("protected task lookup accepts exact occupied slots and rejects General", () => {
+  assert.equal(
+    isProtectedTaskSlot({ id: "task-1", taskType: TASK_TYPES.QUOTATION, available: true }),
+    true,
+  );
+  assert.equal(
+    isProtectedTaskSlot({ id: "task-2", taskType: TASK_TYPES.PLANNING, available: false }),
+    true,
+  );
+  assert.equal(
+    isProtectedTaskSlot({ id: "task-3", taskType: TASK_TYPES.GENERAL, available: true }),
+    false,
+  );
 });
 
 test("blank due date is optional but required content and assignment choice stay validated", () => {

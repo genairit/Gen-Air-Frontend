@@ -68,7 +68,7 @@ const TaskAssignmentCard: FC<ITaskAssignmentCardProps> = ({
         subtitle={NEW_TASK_COPY.ASSIGNMENT_SUBTITLE}
       />
       <TaskLinkField values={values} errors={errors} onChange={onLinkChange} />
-      <TaskTypeField />
+      <TaskTypeField value={values.taskType} onChange={taskType => onChange({ taskType })} />
       <Box sx={pageStyles.stack({ gap: "6px" })}>
         <Autocomplete
           isRequired

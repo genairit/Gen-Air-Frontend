@@ -33,29 +33,38 @@ import { useProjectQuery } from "../../../hooks/queries/project.query";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useCreateTaskMutation } from "../../../hooks/mutations/task.mutation";
+import { useProjectProtectedTasksQuery } from "../../../hooks/queries/task.query";
+import { TASK_TYPES, type TaskType } from "../../../constants/task-type.constant";
 import { NEW_TASK_COPY, TASK_ASSIGNEES_QUERY } from "../../../constants/task.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import UrgencyConfirmPopup from "../../../components/UrgencyConfirmPopup/UrgencyConfirmPopup";
 
 interface INewTaskFormProps {
+  initialTaskType: TaskType;
   initialProjectId: string | null;
 }
 
-const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
+const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId, initialTaskType }) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
   const taskFormStyles = useTaskFormStyles();
   const [values, setValues] = useState<ITaskFormValues>(() => ({
     ...toInitialTaskFormValues(null),
     projectId: initialProjectId,
+    taskType: initialTaskType,
   }));
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
   const usersQuery = useUsersQuery(TASK_ASSIGNEES_QUERY);
   const createMutation = useCreateTaskMutation();
   const selectedProjectQuery = useProjectQuery(values.projectId);
+  const isProtected = values.taskType !== TASK_TYPES.GENERAL;
+  const slotProjectId = isProtected && selectedProjectQuery.isSuccess ? values.projectId : null;
+  const slotsQuery = useProjectProtectedTasksQuery(slotProjectId);
+  const existingSlot = slotsQuery.data?.find(slot => slot.taskType === values.taskType) ?? null;
+  const slotLookupUnavailable = isProtected && (slotsQuery.isPending || slotsQuery.isError);
   const linkName = selectedProjectQuery.data?.name ?? "";
-  const isProjectUnavailable = Boolean(values.projectId) && !selectedProjectQuery.isSuccess;
+  const isProjectUnavailable = values.projectId !== null && !selectedProjectQuery.isSuccess;
   const cancelPath = initialProjectId ? buildProjectPath(initialProjectId) : ROUTE_PATHS.BOARD;
 
   const errors = isSubmitAttempted ? getTaskFormErrors(values) : {};
@@ -87,20 +96,32 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
   const createTask = () => {
     const payload = toCreateTaskPayload(values);
 
-    if (!payload) {
+    if (!payload || existingSlot || slotLookupUnavailable) {
       return;
     }
 
     createMutation.mutate(
       { payload, isUrgent: values.isUrgent },
-      { onSuccess: taskId => navigate(buildTaskPath(taskId)) },
+      {
+        onSuccess: taskId => navigate(buildTaskPath(taskId)),
+        onError: async () => {
+          if (isProtected) {
+            await slotsQuery.refetch();
+          }
+        },
+      },
     );
   };
 
   const handleSubmit = () => {
     setIsSubmitAttempted(true);
 
-    if (countTaskFormErrors(values) > 0 || isProjectUnavailable) {
+    if (
+      countTaskFormErrors(values) > 0 ||
+      isProjectUnavailable ||
+      existingSlot ||
+      slotLookupUnavailable
+    ) {
       return;
     }
 
@@ -133,14 +154,32 @@ const NewTaskForm: FC<INewTaskFormProps> = ({ initialProjectId }) => {
         onChange={isUrgent => updateValues({ isUrgent })}
       />
       {errorCount > 0 && <InlineError message={formatFieldErrorCount(errorCount)} />}
+      {existingSlot && (
+        <Box sx={styles.stack({ gap: "8px" })}>
+          <InlineError message={NEW_TASK_COPY.EXISTING_TYPE} />
+          {existingSlot.available && (
+            <Button
+              variant={BUTTON_VARIANTS.NEUTRAL}
+              text={NEW_TASK_COPY.OPEN_EXISTING}
+              onClick={() => navigate(buildTaskPath(existingSlot.id))}
+            />
+          )}
+        </Box>
+      )}
+      {isProtected && slotsQuery.isPending && (
+        <Box sx={styles.caption}>{NEW_TASK_COPY.CHECKING_EXISTING}</Box>
+      )}
+      {isProtected && slotsQuery.isError && (
+        <InlineError message={NEW_TASK_COPY.PROTECTED_LOOKUP_FAILED} />
+      )}
       {createMutation.isError && <InlineError message={getApiErrorMessage(createMutation.error)} />}
       <Box sx={taskFormStyles.footerActions}>
         <Button
           text={saveLabel}
           icon={ICON_NAMES.SAVE}
           onClick={handleSubmit}
-          disabled={isProjectUnavailable}
           isLoading={createMutation.isPending}
+          disabled={isProjectUnavailable || existingSlot !== null || slotLookupUnavailable}
         />
         <Button
           text={NEW_TASK_COPY.CANCEL}

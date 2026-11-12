@@ -11,11 +11,12 @@ import type {
   ITaskCounts,
   IApiTaskProject,
   IApiTaskTransition,
+  IProtectedTaskSlot,
 } from "../../interfaces/task.interface";
 
 import { isApiUser, isUserRole } from "./api.guard";
-import { TASK_TYPE_VALUES, type TaskType } from "../../constants/task-type.constant";
 import { TASK_STATUS_VALUES, type TaskStatusType } from "../../constants/task.constant";
+import { TASK_TYPES, TASK_TYPE_VALUES, type TaskType } from "../../constants/task-type.constant";
 import type { IApiProjectReference, IApiCustomerReference } from "../../interfaces/api.interface";
 
 const TASK_TEXT_FIELDS = ["id", "title", "createdById", "createdAt", "updatedAt"];
@@ -33,6 +34,12 @@ const TASK_NULLABLE_TEXT_FIELDS = [
 
 export const isTaskType = (value: unknown): value is TaskType =>
   TASK_TYPE_VALUES.some(type => type === value);
+
+export const isProtectedTaskSlot = (value: unknown): value is IProtectedTaskSlot =>
+  isRecord(value) &&
+  typeof value.id === "string" &&
+  typeof value.available === "boolean" &&
+  (value.taskType === TASK_TYPES.QUOTATION || value.taskType === TASK_TYPES.PLANNING);
 
 export const isTaskStatus = (value: unknown): value is TaskStatusType =>
   TASK_STATUS_VALUES.some(status => status === value);
