@@ -14,7 +14,7 @@ import { safeAssign } from "../../utilities/object.utility";
 import { getHelperText } from "../../utilities/textfield.utility";
 import type { IconNameType } from "../../constants/icon.constant";
 import { validateInput } from "../../utilities/validation.utility";
-import { type ChangeEvent, type FC, useEffect, type ReactNode } from "react";
+import { type ChangeEvent, type FC, useEffect, useId, type ReactNode } from "react";
 import { Box, type TextFieldProps, TextField as MuiTextField } from "@mui/material";
 import { type IValidationResult } from "../../interfaces/validation-result.interface";
 
@@ -62,6 +62,7 @@ const TextField: FC<TTextfieldProps> = ({
   showCharCounter = false,
   ...rest
 }) => {
+  const inputId = useId();
   if (!ALLOWED_FIELD_TYPES.includes(type)) {
     throw new Error(`Invalid field type: ${type}`);
   }
@@ -115,6 +116,7 @@ const TextField: FC<TTextfieldProps> = ({
           hint={titleHint}
           action={titleAction}
           isRequired={isRequired}
+          htmlFor={rest.id ?? inputId}
           hasError={Boolean(errorText)}
         />
       )}
@@ -128,6 +130,7 @@ const TextField: FC<TTextfieldProps> = ({
         variant="outlined"
         disabled={disabled}
         multiline={multiline}
+        id={rest.id ?? inputId}
         onChange={handleChange}
         placeholder={placeholder}
         helperText={helperText.text}
