@@ -108,22 +108,20 @@ const TaskView: FC<ITaskViewProps> = ({
         </Suspense>
       )}
       {mutationError && <InlineError message={getApiErrorMessage(mutationError)} />}
-      <Box sx={styles.grid({ minColumnWidth: 500 })}>
-        <TaskDetailsCard
-          task={task}
-          canEdit={canEdit}
-          canClaim={canClaim}
-          onUpdate={updateTask}
-          canAssign={canAssign}
-          isSaving={updateMutation.isPending}
-          onClaim={() => claimMutation.mutate(task.id)}
-        />
-        <TaskUrgencyCard
-          task={task}
-          isManager={canChangeUrgency}
-          onRequestChange={requestUrgencyChange}
-        />
-      </Box>
+      <TaskUrgencyCard
+        task={task}
+        isManager={canChangeUrgency}
+        onRequestChange={requestUrgencyChange}
+      />
+      <TaskDetailsCard
+        task={task}
+        canEdit={canEdit}
+        canClaim={canClaim}
+        onUpdate={updateTask}
+        canAssign={canAssign}
+        isSaving={updateMutation.isPending}
+        onClaim={() => claimMutation.mutate(task.id)}
+      />
       <TaskHistoryCard taskId={task.id} />
       <UrgencyConfirmPopup
         confirmation={confirmation}

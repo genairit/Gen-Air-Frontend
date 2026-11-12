@@ -29,6 +29,7 @@ import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import Card from "../../../components/Card/Card";
 import { usePageStyles } from "../../page.style";
+import { useStyles } from "./NewCustomerForm.style";
 import CustomerFieldsCard from "./CustomerFieldsCard";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
@@ -52,6 +53,7 @@ interface INewCustomerFormProps {
 
 const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, onCancel }) => {
   const styles = usePageStyles();
+  const formStyles = useStyles();
   const [values, setValues] = useState<ICreateCustomerPayload>(EMPTY_CUSTOMER_FORM);
   const [selectedContact, setSelectedContact] = useState<ICustomerContact[]>([]);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
@@ -101,56 +103,56 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
   };
 
   return (
-    <Box sx={styles.page}>
-      <Box sx={styles.grid({ minColumnWidth: 520 })}>
-        <CustomerFieldsCard
-          errors={errors}
-          values={values}
-          onChange={updateValues}
-          icon={ICON_NAMES.CUSTOMER}
+    <Box sx={{ ...styles.page, ...formStyles.form }}>
+      <CustomerFieldsCard
+        errors={errors}
+        values={values}
+        minColumnWidth={320}
+        onChange={updateValues}
+        icon={ICON_NAMES.CUSTOMER}
+        disabled={mutation.isPending}
+        fields={CUSTOMER_IDENTITY_FIELDS}
+        title={CUSTOMER_FORM_COPY.IDENTITY}
+        subtitle={CUSTOMER_FORM_COPY.IDENTITY_SUBTITLE}
+      >
+        <Autocomplete
+          isRequired
+          onChange={changeType}
+          isAutocomplete={false}
           disabled={mutation.isPending}
-          fields={CUSTOMER_IDENTITY_FIELDS}
-          title={CUSTOMER_FORM_COPY.IDENTITY}
-          subtitle={CUSTOMER_FORM_COPY.IDENTITY_SUBTITLE}
-        >
-          <Autocomplete
-            isRequired
-            onChange={changeType}
-            isAutocomplete={false}
+          title={CUSTOMER_FORM_COPY.TYPE}
+          options={getOptionLabels(CUSTOMER_TYPE_OPTIONS)}
+          value={findOptionLabelById(CUSTOMER_TYPE_OPTIONS, values.customerType)}
+        />
+      </CustomerFieldsCard>
+      <Box sx={formStyles.contactRow}>
+        <DirectoryContactPicker
+          title="בחר איש קשר קיים"
+          selected={selectedContact}
+          disabled={mutation.isPending}
+          subtitle="אפשר לבחור איש קשר מהמדריך, להזין חדש או להשאיר ריק."
+          onChange={contacts => {
+            setSelectedContact(contacts);
+            if (contacts.length) {
+              updateValues({ contactName: "", phone: "", email: "" });
+            }
+          }}
+        />
+        {!selectedContact.length && (
+          <CustomerFieldsCard
+            errors={errors}
+            values={values}
+            minColumnWidth={210}
+            onChange={updateValues}
+            icon={ICON_NAMES.CONTACTS}
             disabled={mutation.isPending}
-            title={CUSTOMER_FORM_COPY.TYPE}
-            options={getOptionLabels(CUSTOMER_TYPE_OPTIONS)}
-            value={findOptionLabelById(CUSTOMER_TYPE_OPTIONS, values.customerType)}
+            fields={CUSTOMER_CONTACT_FIELDS}
+            title={CUSTOMER_FORM_COPY.CONTACT}
+            subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
           />
-        </CustomerFieldsCard>
-        <Box sx={styles.stack({})}>
-          <DirectoryContactPicker
-            title="בחר איש קשר קיים"
-            selected={selectedContact}
-            disabled={mutation.isPending}
-            subtitle="אפשר לבחור איש קשר מהמדריך, להזין חדש או להשאיר ריק."
-            onChange={contacts => {
-              setSelectedContact(contacts);
-              if (contacts.length) {
-                updateValues({ contactName: "", phone: "", email: "" });
-              }
-            }}
-          />
-          {!selectedContact.length && (
-            <CustomerFieldsCard
-              errors={errors}
-              values={values}
-              onChange={updateValues}
-              icon={ICON_NAMES.CONTACTS}
-              disabled={mutation.isPending}
-              fields={CUSTOMER_CONTACT_FIELDS}
-              title={CUSTOMER_FORM_COPY.CONTACT}
-              subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
-            />
-          )}
-        </Box>
+        )}
       </Box>
-      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+      <Box sx={formStyles.summaryRow}>
         <Card>
           <Autocomplete
             isAutocomplete={false}

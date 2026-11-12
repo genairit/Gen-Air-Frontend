@@ -260,6 +260,35 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   };
 
   const showAddressError = isSubmitAttempted && requiredIntake.address;
+  const siteDetailsCard = fieldSet && hasSiteDetails && (
+    <ProjectSiteDetailsCard
+      fieldSet={fieldSet}
+      typeName={selectedTypeName}
+      values={values.customerDetails}
+      isSubmitAttempted={isSubmitAttempted}
+      onChange={handleCustomerDetailChange}
+      notice={
+        typeSwitch && (
+          <TypeSwitchBanner
+            typeName={selectedTypeName}
+            summary={typeSwitch.summary}
+            onUndo={handleUndoTypeSwitch}
+            onDismiss={() => setTypeSwitch(null)}
+          />
+        )
+      }
+    />
+  );
+  const contactPicker = !isEditMode && (
+    <DirectoryContactPicker
+      multiple
+      disabled={isSaving}
+      title="אנשי קשר לפרויקט"
+      selected={selectedContacts}
+      onChange={setSelectedContacts}
+      subtitle="חפש ובחר אנשי קשר קיימים. הראשון שנבחר יהיה איש הקשר הראשי."
+    />
+  );
 
   return (
     <Box sx={styles.page}>
@@ -319,34 +348,16 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       {isSubmitAttempted && formErrorCount > 0 && (
         <InlineError message={formatFieldErrorCount(formErrorCount)} />
       )}
-      {!isEditMode && (
-        <DirectoryContactPicker
-          multiple
-          disabled={isSaving}
-          title="אנשי קשר לפרויקט"
-          selected={selectedContacts}
-          onChange={setSelectedContacts}
-          subtitle="חפש ובחר אנשי קשר קיימים. הראשון שנבחר יהיה איש הקשר הראשי."
-        />
-      )}
-      {fieldSet && hasSiteDetails && (
-        <ProjectSiteDetailsCard
-          fieldSet={fieldSet}
-          typeName={selectedTypeName}
-          values={values.customerDetails}
-          isSubmitAttempted={isSubmitAttempted}
-          onChange={handleCustomerDetailChange}
-          notice={
-            typeSwitch && (
-              <TypeSwitchBanner
-                typeName={selectedTypeName}
-                summary={typeSwitch.summary}
-                onUndo={handleUndoTypeSwitch}
-                onDismiss={() => setTypeSwitch(null)}
-              />
-            )
-          }
-        />
+      {contactPicker && siteDetailsCard ? (
+        <Box sx={styles.grid({ minColumnWidth: 560 })}>
+          {contactPicker}
+          {siteDetailsCard}
+        </Box>
+      ) : (
+        <>
+          {contactPicker}
+          {siteDetailsCard}
+        </>
       )}
       {canHaveApartments && (
         <ProjectNotesCard notes={values.notes} onChange={notes => updateValues({ notes })} />
