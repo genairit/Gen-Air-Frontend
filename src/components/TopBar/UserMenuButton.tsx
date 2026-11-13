@@ -1,3 +1,9 @@
+import {
+  USER_ROLE_LABELS,
+  type UserRoleType,
+  ASSIGNABLE_USER_ROLE_VALUES,
+} from "../../constants/user-role.constant";
+
 import { useState } from "react";
 import type { FC, MouseEvent } from "react";
 import { Check } from "@mui/icons-material";
@@ -8,7 +14,6 @@ import PersonSummary from "../PersonSummary/PersonSummary";
 import { Box, ButtonBase, Menu, MenuItem } from "@mui/material";
 import type { IPerson } from "../../interfaces/person.interface";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
-import { USER_ROLE_LABELS, type UserRoleType } from "../../constants/user-role.constant";
 
 interface IUserMenuButtonProps {
   user: IPerson;
@@ -27,19 +32,22 @@ const UserMenuButton: FC<IUserMenuButtonProps> = ({
   const [anchorElement, setAnchorElement] = useState<HTMLElement | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const hasMultipleRoles = assignedRoles.length > 1;
+  const assignableRoles = assignedRoles.filter(role => ASSIGNABLE_USER_ROLE_VALUES.includes(role));
+  const canSwitchRole =
+    assignableRoles.length > 1 ||
+    (assignableRoles.length > 0 && !assignableRoles.includes(activeRole));
   const isMenuOpen = anchorElement !== null;
 
-  const isTriggerDisabled = !hasMultipleRoles;
-  const popupType = hasMultipleRoles ? "menu" : false;
-  const roleOptions = assignedRoles.map(role => ({
+  const isTriggerDisabled = !canSwitchRole;
+  const popupType = canSwitchRole ? "menu" : false;
+  const roleOptions = assignableRoles.map(role => ({
     role,
     isChecked: activeRole === role,
     label: USER_ROLE_LABELS[role],
   }));
 
   const openMenu = (event: MouseEvent<HTMLButtonElement>): void => {
-    if (!hasMultipleRoles) {
+    if (!canSwitchRole) {
       return;
     }
 
@@ -79,13 +87,13 @@ const UserMenuButton: FC<IUserMenuButtonProps> = ({
         disabled={isTriggerDisabled}
       >
         <PersonSummary person={user} avatarSize={40} />
-        {hasMultipleRoles && (
+        {canSwitchRole && (
           <Box component="span" sx={styles.chevron}>
             ▾
           </Box>
         )}
       </ButtonBase>
-      {hasMultipleRoles && (
+      {canSwitchRole && (
         <Menu
           open={isMenuOpen}
           onClose={closeMenu}

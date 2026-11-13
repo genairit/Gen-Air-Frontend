@@ -1,12 +1,21 @@
+import {
+  USER_ROLES,
+  USER_ROLE_PLURAL_LABELS,
+  ASSIGNABLE_USER_ROLE_VALUES,
+} from "./user-role.constant";
+
 import { PASSWORD_RULES } from "./password.constant";
 import type { IEmployeeFilter, IEmployeeFormValues } from "../interfaces/employee.interface";
-import { USER_ROLES, USER_ROLE_VALUES, USER_ROLE_PLURAL_LABELS } from "./user-role.constant";
 
 export const ALL_EMPLOYEES_FILTER_ID = "all";
 
 export const EMPLOYEE_FILTERS: IEmployeeFilter[] = [
   { id: ALL_EMPLOYEES_FILTER_ID, label: "הכל", role: null },
-  ...USER_ROLE_VALUES.map(role => ({ id: role, role, label: USER_ROLE_PLURAL_LABELS[role] })),
+  ...ASSIGNABLE_USER_ROLE_VALUES.map(role => ({
+    id: role,
+    role,
+    label: USER_ROLE_PLURAL_LABELS[role],
+  })),
 ];
 
 export const EMPLOYEE_PAGE_SIZE = 5;

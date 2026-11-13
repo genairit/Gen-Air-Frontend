@@ -32,7 +32,13 @@ const roles = await import("../src/constants/user-role.constant.ts");
 const { hasPermission } = await import("../src/utilities/permission.utility.ts");
 const { EMPLOYEE_FILTERS } = await import("../src/constants/employee.constant.ts");
 
-const { USER_ROLES, USER_ROLE_VALUES, USER_ROLE_LABELS, PROJECT_MEMBER_ROLES } = roles;
+const {
+  USER_ROLES,
+  USER_ROLE_VALUES,
+  USER_ROLE_LABELS,
+  PROJECT_MEMBER_ROLES,
+  ASSIGNABLE_USER_ROLE_VALUES,
+} = roles;
 const { canSubmitEmployeeForm, toUserPayload } =
   await import("../src/utilities/employee.utility.ts");
 const { getApartmentTeamCandidates } = await import("../src/utilities/apartment.utility.ts");
@@ -65,7 +71,7 @@ const apiUser = overrides => ({
   ...overrides,
 });
 
-test("each app account role has its label, including purchasing and sales", () => {
+test("legacy sales-role records have a label but the role is not assignable", () => {
   assert.deepEqual(USER_ROLE_LABELS, {
     system_admin: "הנהלה / מנהל מערכת",
     engineer: "עובד הנדסה",
@@ -74,10 +80,11 @@ test("each app account role has its label, including purchasing and sales", () =
     finance: "מחלקת כספים",
     installer: "מתקין",
     purchasing_execution_manager: "מנהל רכש וביצוע",
-    sales_agent: "סוכן מכירות",
+    sales_agent: "תפקיד ישן: סוכן מכירות",
   });
   assert.equal(USER_ROLE_VALUES.length, 8);
   assert.deepEqual(new Set(USER_ROLE_VALUES), new Set(Object.values(USER_ROLES)));
+  assert.equal(ASSIGNABLE_USER_ROLE_VALUES.includes(USER_ROLES.SALES_AGENT), false);
 });
 
 test("projects are staffed only by engineer, secretary, project manager and installer", () => {
@@ -108,10 +115,10 @@ test("a grant permits only its specific feature action", () => {
   assert.equal(hasPermission(null, "tasks.create"), false);
 });
 
-test("the employees page filters by every app role", () => {
+test("the employees page filters by assignable roles", () => {
   assert.deepEqual(
     EMPLOYEE_FILTERS.map(filter => filter.role),
-    [null, ...USER_ROLE_VALUES],
+    [null, ...ASSIGNABLE_USER_ROLE_VALUES],
   );
 });
 

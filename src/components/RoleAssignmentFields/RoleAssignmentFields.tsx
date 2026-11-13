@@ -1,7 +1,7 @@
 import {
-  USER_ROLE_VALUES,
   USER_ROLE_LABELS,
   type UserRoleType,
+  ASSIGNABLE_USER_ROLE_VALUES,
 } from "../../constants/user-role.constant";
 
 import { Box } from "@mui/material";
@@ -25,8 +25,9 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
 }) => {
   const styles = useStyles();
   const helperId = useId();
-  const hasNoRoles = assignedRoles.length === 0;
-  const roleOptions = USER_ROLE_VALUES.map(role => ({
+  const selectableRoles = assignedRoles.filter(role => ASSIGNABLE_USER_ROLE_VALUES.includes(role));
+  const hasNoRoles = selectableRoles.length === 0;
+  const roleOptions = ASSIGNABLE_USER_ROLE_VALUES.map(role => ({
     role,
     label: USER_ROLE_LABELS[role],
     isAssigned: assignedRoles.includes(role),
@@ -34,8 +35,8 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
 
   const updateRoleSelection = (role: UserRoleType, isSelected: boolean): void => {
     const updatedRoles = isSelected
-      ? [...assignedRoles, role]
-      : assignedRoles.filter(assignedRole => assignedRole !== role);
+      ? [...selectableRoles, role]
+      : selectableRoles.filter(assignedRole => assignedRole !== role);
     onAssignedRolesChange(updatedRoles);
   };
 
