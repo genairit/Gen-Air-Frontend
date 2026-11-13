@@ -38,8 +38,8 @@ const DriveTrashDialog: FC<IDriveTrashDialogProps> = ({
       <DialogTitle>{DRIVE_FILE_COPY.DELETE_TITLE}</DialogTitle>
       <DialogContent>
         <Box sx={styles.stack}>
-          <b>{fileName}</b>
-          <span>{DRIVE_FILE_COPY.DELETE_DESCRIPTION}</span>
+          <Box component="b">{fileName}</Box>
+          <Box component="span">{DRIVE_FILE_COPY.DELETE_DESCRIPTION}</Box>
           {hasError && <InlineError message={DRIVE_FILE_COPY.ACTION_ERROR} />}
         </Box>
       </DialogContent>

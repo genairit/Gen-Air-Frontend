@@ -7,10 +7,18 @@ interface ISwitchProps {
   value: boolean;
   ariaLabel?: string;
   disabled?: boolean;
+  describedBy?: string | null;
   onChange: (value: boolean) => void;
 }
 
-const Switch: FC<ISwitchProps> = ({ label, value, onChange, ariaLabel, disabled = false }) => {
+const Switch: FC<ISwitchProps> = ({
+  label,
+  value,
+  onChange,
+  ariaLabel,
+  describedBy = null,
+  disabled = false,
+}) => {
   const id = useId();
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: "12px", minHeight: 48, fontSize: 15 }}>
@@ -19,6 +27,7 @@ const Switch: FC<ISwitchProps> = ({ label, value, onChange, ariaLabel, disabled 
         checked={value}
         disabled={disabled}
         onChange={onChange}
+        ariaDescribedBy={describedBy}
         ariaLabel={ariaLabel ?? label}
       />
       <Box

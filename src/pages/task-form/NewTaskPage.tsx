@@ -9,6 +9,8 @@ import EmptyState from "../../components/EmptyState/EmptyState";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
+import { NEW_TASK_TYPE_PARAM } from "../../constants/task.constant";
+import { TASK_TYPES, TASK_TYPE_VALUES } from "../../constants/task-type.constant";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import { NEW_TASK_COPY, NEW_TASK_PROJECT_PARAM } from "../../constants/task.constant";
 
@@ -18,6 +20,8 @@ const NewTaskPage = () => {
   const sessionUser = useSessionUser();
   const [searchParams] = useSearchParams();
   const projectId = searchParams.get(NEW_TASK_PROJECT_PARAM);
+  const requestedType = searchParams.get(NEW_TASK_TYPE_PARAM);
+  const taskType = TASK_TYPE_VALUES.find(type => type === requestedType) ?? TASK_TYPES.GENERAL;
 
   if (!hasPermission(sessionUser, PERMISSIONS.TASKS_CREATE)) {
     return (
@@ -49,7 +53,11 @@ const NewTaskPage = () => {
           {NEW_TASK_COPY.DESCRIPTION}
         </Box>
       </Box>
-      <NewTaskForm key={projectId ?? "new"} initialProjectId={projectId} />
+      <NewTaskForm
+        initialTaskType={taskType}
+        initialProjectId={projectId}
+        key={`${projectId ?? "new"}-${taskType}`}
+      />
     </Box>
   );
 };

@@ -12,6 +12,11 @@ export interface IProjectPageQuery extends IProjectQuery {
   stageId: string | null;
 }
 
+export interface IProjectStageMovePayload {
+  note?: string;
+  stageId: string;
+}
+
 export interface IProjectMemberAssignment {
   userId: string;
   role: UserRoleType;
@@ -23,11 +28,14 @@ export interface IProjectPayload
   extends Partial<IApiProjectCustomerDetails>, TProjectIntakePayload {
   name: string;
   stageId?: string;
+  stageNote?: string;
   customerId: string;
+  notes: string | null;
   projectTypeId: string;
   members: IProjectMemberAssignment[];
   hasGeneralLightingCeilingLowering?: boolean;
   generalLightingCeilingLoweringHeight?: number | null;
+  contacts?: { contactId: string; role: string | null; isPrimary: boolean }[];
 }
 
 export interface IUserQuery {
@@ -83,12 +91,20 @@ export interface IApartmentQuery {
 export interface IApartmentPayload {
   customerId: string;
   customerFloor: number;
+  hasOwnLighting?: boolean;
   customerApartment: string;
+  engineerUserId?: string | null;
   members?: IProjectMemberAssignment[];
+  hasGeneralLightingCeilingLowering?: boolean;
+  generalLightingCeilingLoweringHeight?: number | null;
 }
 
 export interface IApartmentChanges {
   hasOwnTeam?: boolean;
   notes?: string | null;
+  hasOwnLighting?: boolean;
+  engineerUserId?: string | null;
   members?: IProjectMemberAssignment[];
+  hasGeneralLightingCeilingLowering?: boolean;
+  generalLightingCeilingLoweringHeight?: number | null;
 }

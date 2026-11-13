@@ -43,6 +43,22 @@ export const useStyles = () =>
       alignItems: "center",
       justifyContent: "space-between",
     },
+    note: {
+      gap: "4px",
+      display: "flex",
+      borderRadius: "12px",
+      padding: "10px 12px",
+      flexDirection: "column",
+      boxShadow: theme.glass.edge,
+      backgroundColor: theme.palette.iceWhite,
+    },
+    noteLabel: MUTED_CAPTION,
+    noteText: {
+      fontSize: 14,
+      whiteSpace: "pre-line",
+      overflowWrap: "anywhere",
+      color: theme.palette.charcoal,
+    },
     date: MONOSPACE_CAPTION,
     author: MUTED_CAPTION,
   });

@@ -8,7 +8,7 @@ import {
 import { useStyles } from "./Card.style";
 import { mergeSx } from "../../utilities/sx.utility";
 import type { FC, MouseEvent, ReactNode } from "react";
-import { Box, type SxProps, type Theme } from "@mui/material";
+import { ButtonBase, type SxProps, type Theme } from "@mui/material";
 import SmartbaseCard from "../../vendor/smartbase/components/Card/Card";
 
 interface ICardProps {
@@ -61,9 +61,8 @@ const Card: FC<ICardProps> = ({
       {...cardClickProps}
     >
       {isClickable && (
-        <Box
+        <ButtonBase
           type="button"
-          component="button"
           aria-label={ariaLabel}
           sx={styles.actionButton}
           aria-pressed={ariaPressed}

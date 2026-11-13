@@ -13,10 +13,12 @@ export const useStyles = () =>
     },
     text: {
       gap: "4px",
+      minWidth: 0,
       fontSize: 15,
       lineHeight: 1.5,
       display: "flex",
       flexDirection: "column",
+      overflowWrap: "anywhere",
     },
     actions: {
       gap: "10px",

@@ -41,13 +41,6 @@ export const useStyles = () =>
       },
       "&:focus-visible": { outline: `2px solid ${palette.primary}`, outlineOffset: 3 },
     },
-    input: {
-      margin: 0,
-      width: 1,
-      height: 1,
-      opacity: 0,
-      position: "absolute",
-    },
     indicator: ({ size }: Pick<IIndicatorStyleOptions, "size">) => ({
       ...CENTERED_FLEX,
       flexShrink: 0,

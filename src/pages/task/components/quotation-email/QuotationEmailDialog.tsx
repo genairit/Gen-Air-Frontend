@@ -5,6 +5,7 @@ import {
 } from "../../../../constants/quotation-execution-email.constant";
 
 import { useState } from "react";
+import { Box } from "@mui/material";
 import Card from "../../../../components/Card/Card";
 import styles from "./QuotationEmailDialog.module.css";
 import Button from "../../../../components/Button/Button";
@@ -158,10 +159,10 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
         },
       }}
       content={
-        <div className={styles.content}>
-          <p className={styles.stepHint}>
+        <Box component="div" className={styles.content}>
+          <Box component="p" className={styles.stepHint}>
             שלב {step} מתוך 2 · שליחת המייל היא בחירה נפרדת מהשלמת המשימה.
-          </p>
+          </Box>
           {contextQuery.isPending && <LoadingState label="טוען פרטי משימה" />}
           {contextQuery.isError && <InlineError message={getApiErrorMessage(contextQuery.error)} />}
           {context && !context.apartmentNumber && (
@@ -196,18 +197,20 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
                     {context.contacts.length === 0 && (
                       <InlineError message="לא נמצאו אנשי קשר עם כתובת מייל אצל הלקוח." />
                     )}
-                    <div className={styles.contactList}>
+                    <Box component="div" className={styles.contactList}>
                       {context.contacts.map(contact => (
-                        <div className={styles.contactRow} key={contact.id}>
+                        <Box component="div" className={styles.contactRow} key={contact.id}>
                           <CheckBox
                             value={recipientIds.includes(contact.id)}
                             onChange={() => toggleRecipient(contact.id)}
                             ariaLabel={`${contact.name} · ${contact.email}`}
                             text={
-                              <span className={styles.contactLabel}>
-                                <span>{contact.name}</span>
-                                <bdi dir="ltr">{contact.email}</bdi>
-                              </span>
+                              <Box component="span" className={styles.contactLabel}>
+                                <Box component="span">{contact.name}</Box>
+                                <Box component="bdi" dir="ltr">
+                                  {contact.email}
+                                </Box>
+                              </Box>
                             }
                           />
                           {recipientIds.includes(contact.id) && (
@@ -221,9 +224,9 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
                               }
                             />
                           )}
-                        </div>
+                        </Box>
                       ))}
-                    </div>
+                    </Box>
                     <TextField
                       maxLength={80}
                       value={version}
@@ -236,7 +239,7 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
                 )}
                 {step === 2 && (
                   <>
-                    <div className={styles.folderHeading}>
+                    <Box component="div" className={styles.folderHeading}>
                       <FieldLabel title="בחרו קבצים מתיקיית הפרויקט" />
                       <Button
                         text="חזרה לאנשי קשר"
@@ -244,10 +247,10 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
                         onClick={() => setStep(1)}
                         disabled={locked}
                       />
-                    </div>
-                    <p className={styles.folderPath}>
+                    </Box>
+                    <Box component="p" className={styles.folderPath}>
                       {folderPath.map(folder => folder.name).join(" / ")}
-                    </p>
+                    </Box>
                     {folderPath.length > 1 && (
                       <Button
                         text="חזרה לתיקייה הקודמת"
@@ -259,9 +262,9 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
                     {folderQuery.isError && (
                       <InlineError message={getApiErrorMessage(folderQuery.error)} />
                     )}
-                    <div className={styles.fileList}>
+                    <Box component="div" className={styles.fileList}>
                       {folderQuery.data?.folders.map(folder => (
-                        <div className={styles.fileChoice} key={folder.id}>
+                        <Box component="div" className={styles.fileChoice} key={folder.id}>
                           <Button
                             text={folder.name}
                             icon={ICON_NAMES.FOLDER}
@@ -271,13 +274,13 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
                               setFolderPath(path => [...path, { id: folder.id, name: folder.name }])
                             }
                           />
-                        </div>
+                        </Box>
                       ))}
                       {folderQuery.data?.files.map(file => {
                         const selected = plan?.id === file.id || zip?.id === file.id;
                         const fileLabel = `${/\.zip$/i.test(file.name) ? "ZIP" : "תוכנית"}: ${file.name}`;
                         return (
-                          <div className={styles.fileChoice} key={file.id}>
+                          <Box component="div" className={styles.fileChoice} key={file.id}>
                             <Button
                               text={`${fileLabel}${selected ? " ✓" : ""}`}
                               icon={ICON_NAMES.DOCUMENT}
@@ -285,40 +288,42 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
                               variant={selected ? BUTTON_VARIANTS.PRESSED : BUTTON_VARIANTS.NEUTRAL}
                               onClick={() => chooseFile(file)}
                             />
-                          </div>
+                          </Box>
                         );
                       })}
-                    </div>
-                    <p className={styles.fileSummary}>
+                    </Box>
+                    <Box component="p" className={styles.fileSummary}>
                       תוכנית: {plan?.name ?? "טרם נבחרה"} · ZIP: {zip?.name ?? "טרם נבחר"}
-                    </p>
+                    </Box>
                     {plan && zip && plan.id !== zip.id && (
                       <Card ariaLabel="תצוגה מקדימה של המייל" padding="20px">
-                        <div className={styles.preview}>
+                        <Box component="div" className={styles.preview}>
                           <FieldLabel title="תצוגה מקדימה" />
-                          <p className={styles.previewHeading}>
+                          <Box component="p" className={styles.previewHeading}>
                             אל:{" "}
-                            <bdi dir="ltr">
+                            <Box component="bdi" dir="ltr">
                               {selectedContacts.map(contact => contact.email).join(", ")}
-                            </bdi>
-                          </p>
+                            </Box>
+                          </Box>
                           {previewQuery.isPending && <LoadingState label="טוען תצוגה מקדימה" />}
                           {previewQuery.isError && (
                             <InlineError message={getApiErrorMessage(previewQuery.error)} />
                           )}
                           {previewQuery.data && (
                             <>
-                              <p className={styles.previewHeading}>
+                              <Box component="p" className={styles.previewHeading}>
                                 נושא: {previewQuery.data.subject}
-                              </p>
-                              <p className={styles.previewBody}>{previewQuery.data.body}</p>
-                              <div className={styles.signature}>
+                              </Box>
+                              <Box component="p" className={styles.previewBody}>
+                                {previewQuery.data.body}
+                              </Box>
+                              <Box component="div" className={styles.signature}>
                                 <BrandLogo width="180px" alt="GenAir" />
-                                <strong>{previewQuery.data.senderName}</strong>
-                              </div>
+                                <Box component="strong">{previewQuery.data.senderName}</Box>
+                              </Box>
                             </>
                           )}
-                        </div>
+                        </Box>
                       </Card>
                     )}
                   </>
@@ -327,7 +332,7 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
             )}
           </AnimatePresence>
           {sendMutation.isError && <InlineError message={getApiErrorMessage(sendMutation.error)} />}
-        </div>
+        </Box>
       }
     />
   );

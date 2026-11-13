@@ -1,4 +1,5 @@
 import { type FC } from "react";
+import { Box } from "@mui/material";
 import { splitByMatch } from "../../../../utilities/text-match.utility";
 import { type IMatchedTextProps } from "../../../../interfaces/autocomplete.interface";
 
@@ -12,7 +13,7 @@ const MatchedText: FC<IMatchedTextProps> = ({ text, query, isHighlighted }) => {
   return (
     <>
       {textMatch.before}
-      <mark>{textMatch.match}</mark>
+      <Box component="mark">{textMatch.match}</Box>
       {textMatch.after}
     </>
   );

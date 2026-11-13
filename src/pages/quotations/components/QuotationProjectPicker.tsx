@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import styles from "../quotation.module.css";
 import QuotationEntityPicker from "./QuotationEntityPicker";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
@@ -12,6 +13,7 @@ interface IQuotationProjectPickerProps {
   disabled: boolean;
   customerId: string;
   value: string | null;
+  lockedReason?: string | null;
   selectedName?: string | null;
   onChange: (id: string | null) => void;
 }
@@ -21,6 +23,7 @@ const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
   value,
   disabled,
   onChange,
+  lockedReason = null,
 }: IQuotationProjectPickerProps) => {
   const [search, setSearch] = useState("");
   const [selection, setSelection] = useState<IQuotationProjectChoice | null>(null);
@@ -34,14 +37,16 @@ const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
     initialProjects.data?.find(project => project.id === value) ??
     selectedChoice ??
     (value ? { id: value, name: selectedName || "הפרויקט המקושר" } : null);
+  const isDisabled = disabled || lockedReason !== null;
+  const caption = lockedReason ?? "לפרויקט יכולות להיות כמה הצעות.";
   return (
-    <div className={styles.picker}>
+    <Box component="div" className={styles.picker}>
       <QuotationEntityPicker
         allowClear
         value={choice}
         options={options}
-        disabled={disabled}
         onSearch={setSearch}
+        disabled={isDisabled}
         label="פרויקט (אופציונלי)"
         loading={projects.isPending}
         placeholder="ללא פרויקט · חיפוש פרויקט..."
@@ -50,9 +55,15 @@ const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
           onChange(id);
         }}
       />
-      <span className={styles.muted}>לפרויקט יכולות להיות כמה הצעות.</span>
-      {projects.isError && <span role="alert">{getApiErrorMessage(projects.error)}</span>}
-    </div>
+      <Box component="span" className={styles.muted}>
+        {caption}
+      </Box>
+      {projects.isError && (
+        <Box role="alert" component="span">
+          {getApiErrorMessage(projects.error)}
+        </Box>
+      )}
+    </Box>
   );
 };
 export default QuotationProjectPicker;

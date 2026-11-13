@@ -18,10 +18,12 @@ import type {
 import { getFullName } from "./user.mapper";
 import { formatFileSize } from "../file.utility";
 import { theme } from "../../constants/theme.constants";
+import { toTransitionNote } from "../stage-reason.utility";
 import { formatApartmentCount } from "../apartment.utility";
 import { DATE_FORMAT } from "../../constants/date.constants";
 import { getInitials, formatErpSyncCaption } from "../text.utility";
 import { USER_ROLE_LABELS } from "../../constants/user-role.constant";
+import { STAGE_REASON_COPY } from "../../constants/project-stage.constant";
 import { ICON_NAMES, type IconNameType } from "../../constants/icon.constant";
 import type { IProjectListItem } from "../../interfaces/project-list.interface";
 import { formatDate, formatRelativeTime, normalizeDate } from "../date.utility";
@@ -102,8 +104,9 @@ export const toTimelineEntry = (
 ): ITimelineEntry => ({
   id: transition.id,
   isHighlighted: index === 0,
+  note: toTransitionNote(transition),
   author: formatTransitionAuthor(transition),
-  label: transition.toStage?.name ?? "",
+  label: transition.toStage?.name ?? STAGE_REASON_COPY.ARCHIVED_STAGE,
   date: formatDate(normalizeDate(transition.createdAt), DATE_FORMAT.FULL_DATE),
   dotColor: transition.toStage?.color ?? theme.palette.statusGray,
 });

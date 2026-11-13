@@ -129,11 +129,15 @@ test("an intentionally empty apartment team sends an explicit empty array", () =
   assert.equal("members" in utility.toApartmentPayload({ ...FORM, members: null }), false);
 });
 
-test("own-team payload sends assignments only, without relation ids or employee objects", () => {
+test("apartment engineer uses its own field and leaves other team inheritance intact", () => {
+  const payload = utility.toApartmentPayload({ ...FORM, engineerUserId: USER.id });
+  assert.equal(payload.engineerUserId, USER.id);
+  assert.equal("members" in payload, false);
+});
+
+test("own-team payload excludes engineers from non-engineering assignments", () => {
   const snapshot = structuredClone(MEMBER);
-  assert.deepEqual(utility.toApartmentPayload({ ...FORM, members: [MEMBER] }).members, [
-    { userId: USER.id, role: "engineer" },
-  ]);
+  assert.deepEqual(utility.toApartmentPayload({ ...FORM, members: [MEMBER] }).members, []);
   assert.deepEqual(MEMBER, snapshot);
 });
 
@@ -246,7 +250,7 @@ test("team candidates exclude inactive employees and roles which cannot join a p
   );
   assert.deepEqual(
     candidates.map(candidate => candidate.user.id),
-    ["engineer-1", "installer"],
+    ["installer"],
   );
 });
 
@@ -267,7 +271,7 @@ test("each team role stays unique until its existing member is removed", () => {
   );
   assert.deepEqual(
     utility.getApartmentTeamCandidates(users, []).map(candidate => candidate.user.id),
-    ["engineer-1", "engineer-2", "manager"],
+    ["manager"],
   );
 });
 

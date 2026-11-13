@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import { Link } from "react-router-dom";
 import styles from "../quotation.module.css";
 import QuotationEntityPicker from "./QuotationEntityPicker";
@@ -12,12 +13,14 @@ import { useCustomersQuery, useCustomerQuery } from "../../../hooks/queries/cust
 interface IQuotationCustomerPickerProps {
   value: string;
   disabled?: boolean;
+  lockedReason?: string | null;
   onChange: (id: string) => void;
 }
 const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
   value,
-  disabled,
   onChange,
+  disabled = false,
+  lockedReason = null,
 }: IQuotationCustomerPickerProps) => {
   const [search, setSearch] = useState("");
   const debounced = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
@@ -25,14 +28,16 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
   const selected = useCustomerQuery(value || null);
   const options = customers.data ?? [];
   const choice = options.find(customer => customer.id === value) ?? selected.data ?? null;
+  const isLocked = lockedReason !== null;
+  const isDisabled = disabled || isLocked;
   return (
-    <div className={styles.picker}>
+    <Box component="div" className={styles.picker}>
       <QuotationEntityPicker
         label="לקוח *"
         value={choice}
         options={options}
-        disabled={disabled}
         onSearch={setSearch}
+        disabled={isDisabled}
         loading={customers.isPending}
         placeholder="בחירת לקוח או חיפוש..."
         onChange={id => {
@@ -41,13 +46,22 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
           }
         }}
       />
-      {value && !disabled && (
+      {isLocked && (
+        <Box component="span" className={styles.muted}>
+          {lockedReason}
+        </Box>
+      )}
+      {value && !isDisabled && (
         <Link to={buildCustomerPath(value)} className={styles.customerLink}>
           פתיחת כרטיס הלקוח
         </Link>
       )}
-      {customers.isError && <span role="alert">{getApiErrorMessage(customers.error)}</span>}
-    </div>
+      {customers.isError && (
+        <Box role="alert" component="span">
+          {getApiErrorMessage(customers.error)}
+        </Box>
+      )}
+    </Box>
   );
 };
 export default QuotationCustomerPicker;

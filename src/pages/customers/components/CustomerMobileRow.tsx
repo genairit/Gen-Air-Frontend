@@ -18,8 +18,10 @@ const CustomerMobileRow: FC<ICustomerMobileRowProps> = ({ customer, onOpen }) =>
       {customer.name}
     </Box>
     <Box component="span" sx={CUSTOMER_COLUMN_STYLES.caption}>
-      {`${formatCustomerPrimaryContact(customer.contacts ?? [])} · `}
-      <bdi dir="ltr">{customer.contacts?.[0]?.phone ?? customer.contacts?.[0]?.email}</bdi>
+      {formatCustomerPrimaryContact(customer.primaryContact ?? null)}
+      <Box dir="ltr" component="bdi">
+        {customer.primaryContact?.phone ?? customer.primaryContact?.email}
+      </Box>
     </Box>
     <Box sx={CUSTOMER_COLUMN_STYLES.syncRow}>
       <CustomerSyncChip status={customer.prioritySyncStatus} />

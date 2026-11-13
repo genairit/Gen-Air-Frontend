@@ -51,9 +51,9 @@ import {
 } from "../../constants/project-detail-field-set.constant";
 
 import { isPermission } from "./permission.guard";
-import { isCustomerContactList } from "../customer-contact.utility";
 import { hasValidProjectLighting } from "../project-constraints.utility";
 import { SHARED_DOCUMENT_STATUS } from "../../constants/shared-document.constant";
+import { isCustomerContact } from "../customer-contact.utility";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
 import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial.utility";
 
@@ -182,6 +182,8 @@ export const isApiProject = (value: unknown): value is IApiProject => {
   const hasValidCredit = isOptionalOf(isApartmentCredit)(value.apartmentCredit);
   const hasValidOwnership = isOptionalOf(isApartmentOwnership)(value.apartmentOwnership);
   const hasValidOwnTeam = !("hasOwnTeam" in value) || typeof value.hasOwnTeam === "boolean";
+  const hasValidWaitingReason =
+    !("waitingReason" in value) || isNullableString(value.waitingReason);
   const hasValidCustomer =
     isNullableString(value.customerId) && isOptionalOf(isApiCustomer)(value.customer);
 
@@ -196,6 +198,7 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     hasValidOwnTeam &&
     hasValidCredit &&
     hasValidOwnership &&
+    hasValidWaitingReason &&
     hasValidProjectLighting(value)
   );
 };
@@ -225,8 +228,9 @@ export const isApiStageTransition = (value: unknown): value is IApiStageTransiti
   }
 
   const hasFields = hasStringFields(value, ["id", "createdAt", "toStageId"]);
+  const hasValidNote = !("note" in value) || isNullableString(value.note);
 
-  return hasFields && isOptionalOf(isApiUser)(value.changedBy);
+  return hasFields && hasValidNote && isOptionalOf(isApiUser)(value.changedBy);
 };
 
 const isApiDriveItem = (value: unknown): value is IApiDriveItem =>
@@ -304,18 +308,12 @@ export const isApiPlaceAddress = (value: unknown): value is IApiPlaceAddress => 
 export const isPrioritySyncStatus = (value?: unknown): value is PrioritySyncStatusType =>
   PRIORITY_SYNC_STATUS_VALUES.some(status => status === value);
 
-const CUSTOMER_REQUIRED_TEXT_FIELDS = [
-  "id",
-  "name",
-  "phone",
-  "email",
-  "taxId",
-  "address",
-  "createdAt",
-  "contactName",
-] as const;
+const CUSTOMER_REQUIRED_TEXT_FIELDS = ["id", "name", "taxId", "address", "createdAt"] as const;
 
 const CUSTOMER_NULLABLE_TEXT_FIELDS = [
+  "phone",
+  "email",
+  "contactName",
   "priorityId",
   "prioritySyncedAt",
   "prioritySyncError",
@@ -336,7 +334,7 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
   const hasValidCreator = isOptionalOf(isApiUser)(value.createdBy);
   const hasPaymentDefault =
     !("paymentTerms" in value) || value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
-  const hasValidContacts = isOptionalOf(isCustomerContactList)(value.contacts);
+  const hasValidPrimary = isOptionalOf(isCustomerContact)(value.primaryContact);
 
   return (
     hasIdentity &&
@@ -346,7 +344,7 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     hasSyncDetails &&
     hasValidCreator &&
     hasPaymentDefault &&
-    hasValidContacts
+    hasValidPrimary
   );
 };
 

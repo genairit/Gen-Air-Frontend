@@ -9,6 +9,7 @@ interface IProgressBarProps {
   value: number;
   title?: string;
   caption?: string;
+  ariaLabel?: string;
   size?: ControlSizeType;
 }
 
@@ -16,6 +17,7 @@ const ProgressBar: FC<IProgressBarProps> = ({
   value,
   title,
   caption,
+  ariaLabel,
   size = CONTROL_SIZES.MEDIUM,
 }) => {
   const styles = useStyles();
@@ -38,8 +40,8 @@ const ProgressBar: FC<IProgressBarProps> = ({
         total={100}
         value={percentage}
         showFraction={false}
-        ariaLabel={title ?? "התקדמות"}
         ariaValueText={`${percentage}%`}
+        ariaLabel={ariaLabel ?? title ?? "התקדמות"}
         size={size === CONTROL_SIZES.SMALL ? "sm" : "md"}
       />
     </Box>

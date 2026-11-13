@@ -11,7 +11,9 @@ import { Fragment, type ReactNode, type FC } from "react";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
 import { quotationPaymentLabel } from "../../../utilities/quotation-payment.utility";
+import { Box, Table, TableBody, TableCell, TableHead, TableRow } from "@mui/material";
 import { quotationReviewSections } from "../../../utilities/quotation-presentation.utility";
+import { quotationCancellationNoun } from "../../../utilities/quotation-cancellation.utility";
 
 interface IQuotationReviewProps {
   editable: boolean;
@@ -26,22 +28,25 @@ const QuotationReview: FC<IQuotationReviewProps> = ({
   onEdit,
 }: IQuotationReviewProps) => {
   const sections = quotationReviewSections(quotation);
+  const documentNoun = quotationCancellationNoun(quotation);
   const terms = quotationPaymentLabel(quotation);
   const schedule = quotation.paymentSchedule
     .map(stage => `${stage.percent}% ${stage.text}`)
     .join(" · ");
   return (
     <Card>
-      <div className={styles.between}>
-        <div className={styles.cardTitle}>
-          <span aria-hidden="true" className={styles.cardIcon}>
+      <Box component="div" className={styles.between}>
+        <Box component="div" className={styles.cardTitle}>
+          <Box component="span" aria-hidden="true" className={styles.cardIcon}>
             <Icon name={ICON_NAMES.QUOTE} />
-          </span>
-          <div>
-            <h2>סיכום לבדיקה</h2>
-            <p className={styles.muted}>השורות לפי סדר הצעת מחיר, כפי שיופיעו בהצעה</p>
-          </div>
-        </div>
+          </Box>
+          <Box component="div">
+            <Box component="h2">סיכום לבדיקה</Box>
+            <Box component="p" className={styles.muted}>
+              השורות לפי סדר הצעת מחיר, כפי שיופיעו ב{documentNoun}
+            </Box>
+          </Box>
+        </Box>
         {editable && (
           <Button
             text="עריכה"
@@ -50,48 +55,48 @@ const QuotationReview: FC<IQuotationReviewProps> = ({
             variant={BUTTON_VARIANTS.NEUTRAL}
           />
         )}
-      </div>
+      </Box>
       {warnings}
-      <div className={styles.viewTable}>
-        <table>
-          <thead>
-            <tr>
-              <th>מיקום</th>
-              <th>מק״ט</th>
-              <th>תיאור</th>
-              <th>BTU</th>
-              <th>כמות</th>
-              <th>מחיר</th>
-              <th>סה״כ</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Box component="div" className={styles.viewTable}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>מיקום</TableCell>
+              <TableCell>מק״ט</TableCell>
+              <TableCell>תיאור</TableCell>
+              <TableCell>BTU</TableCell>
+              <TableCell>כמות</TableCell>
+              <TableCell>מחיר</TableCell>
+              <TableCell>סה״כ</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {sections.map(section => (
               <Fragment key={section.id}>
-                <tr className={styles.reviewSection}>
-                  <th colSpan={7} scope="colgroup">
+                <TableRow className={styles.reviewSection}>
+                  <TableCell colSpan={7} component="th" scope="colgroup">
                     {section.title}
-                  </th>
-                </tr>
+                  </TableCell>
+                </TableRow>
                 {section.items.map(line => (
-                  <tr key={line.id}>
-                    <td>{line.location}</td>
-                    <td className={styles.skuCell}>{line.sku}</td>
-                    <td>{line.description}</td>
-                    <td>{line.capacityBtu}</td>
-                    <td>{line.quantityLabel}</td>
-                    <td>{line.priceLabel}</td>
-                    <td>{line.amount}</td>
-                  </tr>
+                  <TableRow key={line.id}>
+                    <TableCell>{line.location}</TableCell>
+                    <TableCell className={styles.skuCell}>{line.sku}</TableCell>
+                    <TableCell>{line.description}</TableCell>
+                    <TableCell>{line.capacityBtu}</TableCell>
+                    <TableCell>{line.quantityLabel}</TableCell>
+                    <TableCell>{line.priceLabel}</TableCell>
+                    <TableCell>{line.amount}</TableCell>
+                  </TableRow>
                 ))}
               </Fragment>
             ))}
-          </tbody>
-        </table>
-      </div>
-      <p>תנאי תשלום: {terms}</p>
-      <p>{schedule}</p>
-      <p>{quotation.paymentTermsNote}</p>
+          </TableBody>
+        </Table>
+      </Box>
+      <Box component="p">תנאי תשלום: {terms}</Box>
+      <Box component="p">{schedule}</Box>
+      <Box component="p">{quotation.paymentTermsNote}</Box>
     </Card>
   );
 };

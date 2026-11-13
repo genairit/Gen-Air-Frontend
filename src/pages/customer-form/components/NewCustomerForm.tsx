@@ -27,15 +27,13 @@ import {
 
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Card from "../../../components/Card/Card";
 import { usePageStyles } from "../../page.style";
+import { useStyles } from "./NewCustomerForm.style";
 import CustomerFieldsCard from "./CustomerFieldsCard";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import CustomerSaveSummaryCard from "./CustomerSaveSummaryCard";
-import { ROUTE_PATHS } from "../../../constants/routes.constant";
-import { buildCustomerPath } from "../../../utilities/route.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { isDetailFieldSet } from "../../../utilities/guards/api.guard";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
@@ -43,16 +41,21 @@ import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { ICreateCustomerPayload } from "../../../interfaces/customer.interface";
 import { useCreateCustomerMutation } from "../../../hooks/mutations/customer.mutation";
+import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import DirectoryContactPicker from "../../../components/DirectoryContactPicker/DirectoryContactPicker";
 
 interface INewCustomerFormProps {
   creatorName: string;
+  onCancel: () => void;
+  onCreated: (customerId: string) => void;
 }
 
-const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
+const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, onCancel }) => {
   const styles = usePageStyles();
-  const navigate = useNavigate();
+  const formStyles = useStyles();
   const [values, setValues] = useState<ICreateCustomerPayload>(EMPTY_CUSTOMER_FORM);
+  const [selectedContact, setSelectedContact] = useState<ICustomerContact[]>([]);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const mutation = useCreateCustomerMutation();
 
@@ -88,16 +91,23 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
       return;
     }
 
-    mutation.mutate(normalizeCustomerForm(values), {
-      onSuccess: id => navigate(buildCustomerPath(id)),
-    });
+    mutation.mutate(
+      {
+        ...normalizeCustomerForm(values),
+        primaryContactId: selectedContact[0]?.id ?? null,
+      },
+      {
+        onSuccess: onCreated,
+      },
+    );
   };
 
   return (
-    <Box sx={styles.page}>
+    <Box sx={{ ...styles.page, ...formStyles.form }}>
       <CustomerFieldsCard
         errors={errors}
         values={values}
+        minColumnWidth={320}
         onChange={updateValues}
         icon={ICON_NAMES.CUSTOMER}
         disabled={mutation.isPending}
@@ -115,35 +125,54 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName }) => {
           value={findOptionLabelById(CUSTOMER_TYPE_OPTIONS, values.customerType)}
         />
       </CustomerFieldsCard>
-      <CustomerFieldsCard
-        errors={errors}
-        values={values}
-        onChange={updateValues}
-        icon={ICON_NAMES.CONTACTS}
-        disabled={mutation.isPending}
-        fields={CUSTOMER_CONTACT_FIELDS}
-        title={CUSTOMER_FORM_COPY.CONTACT}
-        subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
-      />
-      <Card>
-        <Autocomplete
-          isAutocomplete={false}
-          value={paymentTermsLabel}
+      <Box sx={formStyles.contactRow}>
+        <DirectoryContactPicker
+          title="בחר איש קשר קיים"
+          selected={selectedContact}
           disabled={mutation.isPending}
-          onChange={changePaymentTerms}
-          title="תנאי תשלום כברירת מחדל"
-          options={CUSTOMER_PAYMENT_DEFAULT_LABELS}
+          subtitle="אפשר לבחור איש קשר מהמדריך, להזין חדש או להשאיר ריק."
+          onChange={contacts => {
+            setSelectedContact(contacts);
+            if (contacts.length) {
+              updateValues({ contactName: "", phone: "", email: "" });
+            }
+          }}
         />
-      </Card>
-      <CustomerSaveSummaryCard creatorName={creatorName} />
+        {!selectedContact.length && (
+          <CustomerFieldsCard
+            errors={errors}
+            values={values}
+            minColumnWidth={210}
+            onChange={updateValues}
+            icon={ICON_NAMES.CONTACTS}
+            disabled={mutation.isPending}
+            fields={CUSTOMER_CONTACT_FIELDS}
+            title={CUSTOMER_FORM_COPY.CONTACT}
+            subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
+          />
+        )}
+      </Box>
+      <Box sx={formStyles.summaryRow}>
+        <Card>
+          <Autocomplete
+            isAutocomplete={false}
+            value={paymentTermsLabel}
+            disabled={mutation.isPending}
+            onChange={changePaymentTerms}
+            title="תנאי תשלום כברירת מחדל"
+            options={CUSTOMER_PAYMENT_DEFAULT_LABELS}
+          />
+        </Card>
+        <CustomerSaveSummaryCard creatorName={creatorName} />
+      </Box>
       {errorCount > 0 && <InlineError message={formatFieldErrorCount(errorCount)} />}
       {mutation.isError && <InlineError message={getApiErrorMessage(mutation.error)} />}
       <Box sx={styles.endRow}>
         <Button
+          onClick={onCancel}
           disabled={mutation.isPending}
           text={CUSTOMER_FORM_COPY.CANCEL}
           variant={BUTTON_VARIANTS.NEUTRAL}
-          onClick={() => navigate(ROUTE_PATHS.CUSTOMERS)}
         />
         <Button
           onClick={save}

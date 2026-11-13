@@ -10,6 +10,7 @@ import type { IApiProject } from "../../../interfaces/api.interface";
 import { APARTMENT_PAGE_COPY } from "../../../constants/apartment.constant";
 import { formatParentCustomerNote } from "../../../utilities/apartment.utility";
 import { formatCustomerDetailValue } from "../../../utilities/customer-details.utility";
+import { toTelephoneHref } from "../../../utilities/phone.utility";
 
 interface IApartmentEndCustomerCardProps {
   building: IApiProject;
@@ -22,7 +23,7 @@ const ApartmentEndCustomerCard: FC<IApartmentEndCustomerCardProps> = ({ apartmen
     ? apartment.customer?.name
     : apartment.customerName?.trim();
   const customerPhone = apartment.customerId
-    ? apartment.customer?.phone
+    ? apartment.customer?.primaryContact?.phone
     : apartment.customerPhone?.trim();
   const hasEndCustomer = Boolean(customerName || customerPhone);
 
@@ -40,6 +41,7 @@ const ApartmentEndCustomerCard: FC<IApartmentEndCustomerCardProps> = ({ apartmen
             isLtr
             label={APARTMENT_PAGE_COPY.PHONE}
             value={formatCustomerDetailValue(customerPhone ?? null)}
+            href={customerPhone ? toTelephoneHref(customerPhone) : null}
           />
         </Box>
       )}

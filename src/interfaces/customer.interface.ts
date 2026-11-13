@@ -36,6 +36,16 @@ export interface ICreateCustomerPayload {
   customerType: ProjectDetailFieldSetType;
 }
 
+export type ICustomerCreateRequest = Omit<
+  ICreateCustomerPayload,
+  "contactName" | "phone" | "email"
+> & {
+  primaryContactId?: string | null;
+  contactName: string | null;
+  phone: string | null;
+  email: string | null;
+};
+
 export type CustomerFormFieldType = Exclude<
   keyof ICreateCustomerPayload,
   "customerType" | "paymentTerms"

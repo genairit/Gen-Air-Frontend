@@ -107,6 +107,3 @@ export const getCustomerPickerLabel = (search: string) => {
 
   return CUSTOMER_PICKER_COPY.RECENT;
 };
-
-export const formatCustomerContactLine = (customer: IApiCustomer) =>
-  [customer.contactName, customer.phone, customer.email].join(" · ");

@@ -10,8 +10,11 @@ import type {
   IProjectSubmission,
 } from "../interfaces/project.interface";
 
+import { toOptionalText } from "./text.utility";
 import { BOARD_COPY } from "../constants/board.constant";
+import { toStageNotePayload } from "./stage-reason.utility";
 import { mapProjectMemberRoles } from "./user-role.utility";
+import { USER_ROLES } from "../constants/user-role.constant";
 import { toLightingPayload } from "./project-constraints.utility";
 import type { IProjectPayload } from "../interfaces/api-request.interface";
 import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
@@ -30,6 +33,8 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
   if (!project) {
     return {
       name: "",
+      notes: "",
+      stageNote: "",
       hasGeneralLightingCeilingLowering: false,
       generalLightingCeilingLoweringHeight: "",
       typeId: null,
@@ -43,6 +48,8 @@ export const toProjectFormValues = (project: IApiProject | null): IProjectFormVa
 
   return {
     name: project.name,
+    notes: project.notes ?? "",
+    stageNote: "",
     hasGeneralLightingCeilingLowering: project.hasGeneralLightingCeilingLowering ?? false,
     generalLightingCeilingLoweringHeight:
       project.generalLightingCeilingLoweringHeight?.toString() ?? "",
@@ -69,8 +76,10 @@ export const countMissingCustomer = (values: IProjectFormValues) => (values.cust
 
 export const toProjectPayload = ({
   values,
+  canHaveApartments,
   fieldSet,
   originalIntake,
+  originalStageId = null,
 }: IProjectSubmission): IProjectPayload | null => {
   if (!values.typeId || !values.customerId) {
     return null;
@@ -81,10 +90,14 @@ export const toProjectPayload = ({
     ...toIntakePayload(values, originalIntake),
     ...toLightingPayload(values),
     name: values.name.trim(),
+    notes: toOptionalText(values.notes),
     projectTypeId: values.typeId,
     customerId: values.customerId,
-    members: toMemberAssignments(values.assignees),
+    members: toMemberAssignments(values.assignees).filter(
+      member => !canHaveApartments || member.role !== USER_ROLES.ENGINEER,
+    ),
     ...(values.stageId ? { stageId: values.stageId } : {}),
+    ...toStageNotePayload({ values, originalStageId }),
   };
 };
 

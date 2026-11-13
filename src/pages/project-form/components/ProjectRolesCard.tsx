@@ -5,6 +5,7 @@ import {
 } from "../../../utilities/option.utility";
 
 import {
+  USER_ROLES,
   PROJECT_MEMBER_ROLES,
   type ProjectMemberRoleType,
 } from "../../../constants/user-role.constant";
@@ -29,12 +30,21 @@ import { toRolePerson, toUserOptions } from "../../../utilities/mappers/user.map
 
 interface IProjectRolesCardProps {
   users: IApiUser[];
+  isBuilding: boolean;
   assignees: TRoleAssignees;
   onAssigneeChange: (role: ProjectMemberRoleType, userId: string | null) => void;
 }
 
-const ProjectRolesCard: FC<IProjectRolesCardProps> = ({ users, assignees, onAssigneeChange }) => {
+const ProjectRolesCard: FC<IProjectRolesCardProps> = ({
+  users,
+  assignees,
+  onAssigneeChange,
+  isBuilding,
+}) => {
   const styles = usePageStyles();
+  const availableRoles = PROJECT_MEMBER_ROLES.filter(
+    role => !isBuilding || role !== USER_ROLES.ENGINEER,
+  );
 
   return (
     <Card gap="22px" padding="28px">
@@ -42,12 +52,10 @@ const ProjectRolesCard: FC<IProjectRolesCardProps> = ({ users, assignees, onAssi
         icon={ICON_NAMES.CONTACTS}
         title={PROJECT_FORM_COPY.ROLES_TITLE}
         subtitle={PROJECT_FORM_COPY.ROLES_SUBTITLE}
-        action={
-          <Chip size={CHIP_SIZES.MEDIUM} label={formatRolesBadge(PROJECT_MEMBER_ROLES.length)} />
-        }
+        action={<Chip size={CHIP_SIZES.MEDIUM} label={formatRolesBadge(availableRoles.length)} />}
       />
       <Box sx={styles.grid({ minColumnWidth: 220, gap: "20px" })}>
-        {PROJECT_MEMBER_ROLES.map(role => {
+        {availableRoles.map(role => {
           const roleOptions = toUserOptions(getUsersAssignedToRole(users, role));
 
           return (

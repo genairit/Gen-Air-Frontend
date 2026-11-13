@@ -68,6 +68,11 @@ export const usePageStyles = () =>
       alignItems: "center",
       justifyContent: "space-between",
     },
+    wrappingText: {
+      minWidth: 0,
+      maxWidth: "100%",
+      overflowWrap: "anywhere",
+    },
     stack: ({ gap = "24px" }: { gap?: string }) => ({
       gap,
       display: "flex",

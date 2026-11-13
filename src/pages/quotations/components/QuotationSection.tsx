@@ -9,6 +9,7 @@ import Button from "./QuotationButton";
 import QuotationLine from "./QuotationLine";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
+import { Box, IconButton } from "@mui/material";
 import QuotationLinkedControl from "./QuotationLinkedControl";
 import QuotationCataloguePicker from "./QuotationCataloguePicker";
 import { quotationMoney } from "../../../utilities/quotation.utility";
@@ -37,10 +38,13 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
   const groups = quotationLineGroups(section);
   const amount = quotationMoney(quotationSectionAmount(section));
   const [confirm, setConfirm] = useState(false);
+  const [addedLineId, setAddedLineId] = useState<string | null>(null);
   return (
-    <section className={styles.systemSection}>
-      <div className={styles.sectionHeader}>
-        <span className={styles.systemBadge}>{QUOTATION_SYSTEM_LABELS[section.systemType]}</span>
+    <Box component="section" className={styles.systemSection}>
+      <Box component="div" className={styles.sectionHeader}>
+        <Box component="span" className={styles.systemBadge}>
+          {QUOTATION_SYSTEM_LABELS[section.systemType]}
+        </Box>
         <QuotationInput
           maxLength={200}
           disabled={disabled}
@@ -49,20 +53,25 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
           placeholder="כותרת מערכת / קומה"
           onChange={event => onChange({ ...section, title: event.target.value })}
         />
-        <b>{amount}</b>
+        <Box component="b">{amount}</Box>
         {!disabled && (
-          <div className={styles.sectionButtons}>
-            <button
-              type="button"
+          <Box component="div" className={styles.sectionButtons}>
+            <IconButton
+              sx={{ p: 0 }}
               title="הזז למעלה"
               aria-label="הזז למעלה"
               onClick={() => onMove(-1)}
             >
               ↑
-            </button>
-            <button type="button" title="הזז למטה" aria-label="הזז למטה" onClick={() => onMove(1)}>
+            </IconButton>
+            <IconButton
+              sx={{ p: 0 }}
+              title="הזז למטה"
+              aria-label="הזז למטה"
+              onClick={() => onMove(1)}
+            >
               ↓
-            </button>
+            </IconButton>
             <Button
               text="מחק מקטע"
               ariaLabel="מחיקת מערכת"
@@ -70,25 +79,31 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
               onClick={() => setConfirm(true)}
               variant={BUTTON_VARIANTS.NEUTRAL}
             />
-          </div>
+          </Box>
         )}
-      </div>
+      </Box>
       {confirm && (
-        <div className={styles.error}>
+        <Box component="div" className={styles.error}>
           למחוק את המערכת וכל השורות שלה?
-          <div className={styles.row}>
+          <Box component="div" className={styles.row}>
             <Button text="אישור מחיקה" onClick={onRemove} />
             <Button text="ביטול" onClick={() => setConfirm(false)} />
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
-      {!section.items.length && <p className={styles.muted}>אין עדיין פריטים במערכת</p>}
+      {!section.items.length && (
+        <Box component="p" className={styles.muted}>
+          אין עדיין פריטים במערכת
+        </Box>
+      )}
       {groups.map(({ line, controls }) => (
         <QuotationLine
           line={line}
           key={line.id}
           disabled={disabled}
           items={section.items}
+          focusQuantity={line.id === addedLineId}
+          onQuantityFocused={() => setAddedLineId(null)}
           onChange={next => onChange(updateQuotationLine(section, next))}
           onRemove={() => onChange(removeQuotationLine(section, line.id))}
         >
@@ -108,10 +123,13 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
         <QuotationCataloguePicker
           brand={brand}
           section={section}
-          onSelect={line => onChange({ ...section, items: [...section.items, line] })}
+          onSelect={line => {
+            setAddedLineId(line.id);
+            onChange({ ...section, items: [...section.items, line] });
+          }}
         />
       )}
-    </section>
+    </Box>
   );
 };
 export default QuotationSection;

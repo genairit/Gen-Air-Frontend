@@ -1,6 +1,6 @@
 import type { FC } from "react";
-import { Box } from "@mui/material";
 import DropZone from "../../DropZone/DropZone";
+import { Box, ButtonBase } from "@mui/material";
 import { useStyles } from "../ApartmentImport.style";
 import { DROP_ZONE_APPEARANCE } from "../../../constants/drop-zone.constant";
 import { APARTMENT_IMPORT } from "../../../constants/apartment-import.constant";
@@ -39,9 +39,9 @@ const ImportSelection: FC<IImportSelectionProps> = ({
         title="גרור לכאן את קובץ האקסל או לחץ לבחירה"
         description="‎.xlsx · הקובץ יועלה ויעובד מיד · גיליון ״דירות״ · עד 5 MB"
       />
-      <Box type="button" sx={styles.link} component="button" onClick={onDownloadTemplate}>
+      <ButtonBase type="button" sx={styles.link} onClick={onDownloadTemplate}>
         הורד תבנית אקסל
-      </Box>
+      </ButtonBase>
       <Box sx={styles.muted}>
         יש להשתמש בגיליון ״דירות״ ובכותרות התבנית הרשמית, ללא שינוי הסדר. אין שלב תצוגה מקדימה. מספר
         מזהה לקוח (ח״פ / ת״ז) נדרש בכל שורה. ללקוח חדש נדרשים גם סוג לקוח וכתובת לקוח, לצד שם, טלפון

@@ -32,10 +32,10 @@ export const CUSTOMER_COLUMNS: IDataTableColumn<IApiCustomer>[] = [
     render: customer => (
       <Box sx={CUSTOMER_COLUMN_STYLES.cell}>
         <Box component="span" sx={CUSTOMER_COLUMN_STYLES.contactName}>
-          {formatCustomerPrimaryContact(customer.contacts ?? [])}
+          {formatCustomerPrimaryContact(customer.primaryContact ?? null)}
         </Box>
         <Box dir="ltr" component="span" sx={CUSTOMER_COLUMN_STYLES.caption}>
-          {customer.contacts?.[0]?.phone ?? customer.contacts?.[0]?.email}
+          {customer.primaryContact?.phone ?? customer.primaryContact?.email ?? ""}
         </Box>
       </Box>
     ),

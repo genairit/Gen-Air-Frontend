@@ -28,6 +28,7 @@ import Button from "./QuotationButton";
 import { useState, type FC } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
+import { Box, ButtonBase } from "@mui/material";
 import Icon from "../../../components/Icon/Icon";
 import Card from "../../../components/Card/Card";
 import QuotationDecimalInput from "./QuotationDecimalInput";
@@ -66,20 +67,25 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
   };
   return (
     <Card>
-      <div className={styles.cardTitle}>
-        <span aria-hidden="true" className={styles.cardIcon}>
+      <Box component="div" className={styles.cardTitle}>
+        <Box component="span" aria-hidden="true" className={styles.cardIcon}>
           <Icon name={ICON_NAMES.PAYMENT} />
-        </span>
-        <div>
-          <h2>תנאי תשלום</h2>
-          <p className={styles.muted}>
+        </Box>
+        <Box component="div">
+          <Box component="h2">תנאי תשלום</Box>
+          <Box component="p" className={styles.muted}>
             ברירת המחדל הועתקה מהלקוח. אפשר לבחור תנאים קבועים או לפרט שלבי תשלום להצעה זו בלבד
-          </p>
-        </div>
-      </div>
-      <div role="radiogroup" aria-label="תנאי תשלום" className={styles.paymentChips}>
+          </Box>
+        </Box>
+      </Box>
+      <Box
+        component="div"
+        role="radiogroup"
+        aria-label="תנאי תשלום"
+        className={styles.paymentChips}
+      >
         {PAYMENT_TERMS_VALUES.map(value => (
-          <button
+          <ButtonBase
             key={value}
             role="radio"
             type="button"
@@ -88,9 +94,9 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
             aria-checked={!schedule.length && quotation.paymentTerms === value}
           >
             {PAYMENT_TERMS_LABELS[value].title}
-          </button>
+          </ButtonBase>
         ))}
-        <button
+        <ButtonBase
           role="radio"
           type="button"
           disabled={disabled}
@@ -101,25 +107,25 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
           }}
         >
           {PAYMENT_STAGES_LABEL}
-        </button>
-      </div>
+        </ButtonBase>
+      </Box>
       {hasConflict && (
-        <p role="alert" className={styles.error}>
+        <Box role="alert" component="p" className={styles.error}>
           נבחרו גם תנאי תשלום קבועים וגם שלבים. בחרו {PAYMENT_STAGES_LABEL}, או בחרו תנאי תשלום
           קבועים והסירו את השלבים.
-        </p>
+        </Box>
       )}
       {pendingTerms !== null && (
-        <div className={styles.error}>
+        <Box component="div" className={styles.error}>
           בחירת תנאי תשלום קבועים תמחק את שלבי התשלום שהוזנו בהצעה זו.
-          <div className={styles.row}>
+          <Box component="div" className={styles.row}>
             <Button disabled={disabled} onClick={confirmFixedTerm} text="מחק שלבים ובחר תנאים" />
             <Button text="ביטול" onClick={() => setPendingTerms(null)} />
-          </div>
-        </div>
+          </Box>
+        </Box>
       )}
       {rows.map((stage, index) => (
-        <div key={index} className={styles.paymentStage}>
+        <Box key={index} component="div" className={styles.paymentStage}>
           <QuotationDecimalInput
             min="0"
             max="100"
@@ -155,7 +161,9 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
               )
             }
           />
-          <span className={styles.stageAmount}>{stage.amount}</span>
+          <Box component="span" className={styles.stageAmount}>
+            {stage.amount}
+          </Box>
           {!disabled && (
             <Button
               text="×"
@@ -173,10 +181,12 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
               }
             />
           )}
-        </div>
+        </Box>
       ))}
-      <div className={styles.row}>
-        <span className={styles.muted}>סה״כ {scheduleTotal}%</span>
+      <Box component="div" className={styles.row}>
+        <Box component="span" className={styles.muted}>
+          סה״כ {scheduleTotal}%
+        </Box>
         {!disabled && (
           <Button
             text="+ שלב תשלום"
@@ -193,16 +203,16 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
             }
           />
         )}
-      </div>
+      </Box>
       {schedule.length > 0 && hasIncompleteStages && (
-        <p role="status" className={styles.muted}>
+        <Box component="p" role="status" className={styles.muted}>
           כדי לאשר את ההצעה, תארו כל שלב והשלימו את האחוזים ל־100%.
-        </p>
+        </Box>
       )}
       {!schedule.length && quotation.paymentTerms === null && (
-        <p role="status" className={styles.muted}>
+        <Box component="p" role="status" className={styles.muted}>
           בחרו תנאי תשלום או הוסיפו שלב תשלום.
-        </p>
+        </Box>
       )}
       <QuotationInput
         maxLength={1000}
