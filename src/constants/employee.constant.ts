@@ -1,10 +1,11 @@
-import { PASSWORD_RULES } from "./password.constant";
-import type { IEmployeeFilter, IEmployeeFormValues } from "../interfaces/employee.interface";
 import {
   USER_ROLES,
-  ASSIGNABLE_USER_ROLE_VALUES,
   USER_ROLE_PLURAL_LABELS,
+  ASSIGNABLE_USER_ROLE_VALUES,
 } from "./user-role.constant";
+
+import { PASSWORD_RULES } from "./password.constant";
+import type { IEmployeeFilter, IEmployeeFormValues } from "../interfaces/employee.interface";
 
 export const ALL_EMPLOYEES_FILTER_ID = "all";
 
