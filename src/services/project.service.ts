@@ -4,8 +4,10 @@ import type {
   IProjectPageQuery,
 } from "../interfaces/api-request.interface";
 
+import type { IStageMove } from "../interfaces/project.interface";
 import { httpClient, ensureResponse } from "./http-client.service";
 import { PROJECT_BOARD_PAGE_SIZE } from "../constants/board.constant";
+import { toStageMovePayload } from "../utilities/stage-reason.utility";
 import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
 import { isApiProject, isCursorPageOf, isProjectStageCounts } from "../utilities/guards/api.guard";
 
@@ -66,9 +68,9 @@ class ProjectService {
     return ensureResponse(endpoint, response.data, isApiProject);
   }
 
-  async moveToStage(projectId: string, stageId: string) {
+  async moveToStage(projectId: string, move: IStageMove) {
     const endpoint = API_ENDPOINTS.projectStage(projectId);
-    const response = await httpClient.patch<unknown>(endpoint, { stageId });
+    const response = await httpClient.patch<unknown>(endpoint, toStageMovePayload(move));
 
     return ensureResponse(endpoint, response.data, isApiProject);
   }

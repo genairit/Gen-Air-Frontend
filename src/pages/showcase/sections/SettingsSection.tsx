@@ -3,13 +3,10 @@ import Card from "../../../components/Card/Card";
 import Chip from "../../../components/Chip/Chip";
 import ShowcaseSection from "../ShowcaseSection";
 import { useShowcaseStyles } from "../showcase.style";
-import Button from "../../../components/Button/Button";
-import { noop } from "../../../utilities/function.utility";
 import { CHIP_VARIANTS } from "../../../constants/chip.constant";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import { DEMO_STATUS_STAGES } from "../../../constants/demo-data.constant";
 import StageListItem from "../../../components/StageListItem/StageListItem";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 
 const SettingsSection = () => {
   const styles = useShowcaseStyles();
@@ -19,8 +16,8 @@ const SettingsSection = () => {
       <Box sx={styles.grid({ minColumnWidth: 360 })}>
         <Card gap="16px">
           <CardHeader
-            title="ניהול שלבי סטטוס פרויקט"
-            subtitle="הגדרה, סידור ועדכון שלבי מחזור החיים"
+            title="סטטוסי פרויקט קבועים"
+            subtitle="שמות הסטטוסים וסדרם קבועים"
             action={<Chip label="4 שלבים" variant={CHIP_VARIANTS.INSET} />}
           />
           {DEMO_STATUS_STAGES.map((stage, index) => (
@@ -32,12 +29,6 @@ const SettingsSection = () => {
               description={stage.description}
             />
           ))}
-          <Button
-            onClick={noop}
-            sx={styles.fullWidth}
-            text="+ הוסף שלב סטטוס"
-            variant={BUTTON_VARIANTS.DASHED}
-          />
         </Card>
       </Box>
     </ShowcaseSection>

@@ -5,6 +5,7 @@ import { usePageStyles } from "../../page.style";
 import ApartmentNotesCard from "./ApartmentNotesCard";
 import ApartmentHeaderCard from "./ApartmentHeaderCard";
 import ApartmentContactCard from "./ApartmentContactCard";
+import ApartmentLightingCard from "./ApartmentLightingCard";
 import ApartmentInheritedCard from "./ApartmentInheritedCard";
 import { useSessionUser } from "../../../store/session.store";
 import ApartmentCommercialCard from "./ApartmentCommercialCard";
@@ -13,7 +14,10 @@ import SharedProjectDocumentCard from "./SharedProjectDocumentCard";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import ProjectDriveCard from "../../project/components/ProjectDriveCard";
+import ProjectTasksCard from "../../project/components/ProjectTasksCard";
 import ProjectTimelineCard from "../../project/components/ProjectTimelineCard";
+import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
+import ProjectQuotationsCard from "../../project/components/ProjectQuotationsCard";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 
 interface IApartmentViewProps {
@@ -26,11 +30,15 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
   const styles = usePageStyles();
   const sessionUser = useSessionUser();
   const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
+  const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
+  const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
 
   return (
     <Box sx={styles.page}>
       <ApartmentHeaderCard stages={stages} building={building} apartment={apartment} />
+
+      {canReadTasks && <ProjectTasksCard projectId={apartment.id} />}
 
       <Box sx={styles.grid({ minColumnWidth: 380 })}>
         <Box sx={styles.stack({})}>
@@ -40,7 +48,13 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
         <ApartmentInheritedCard apartment={apartment} />
       </Box>
 
-      <ApartmentCommercialCard apartment={apartment} />
+      <ProjectContacts canEdit={canEdit} projectId={apartment.id} />
+
+      {canReadQuotations && <ProjectQuotationsCard projectId={apartment.id} />}
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <ApartmentCommercialCard apartment={apartment} />
+        <ApartmentLightingCard canEdit={canEdit} apartment={apartment} />
+      </Box>
       {canReadDrive && <SharedProjectDocumentCard apartmentId={apartment.id} />}
       {canReadDrive && <ProjectDriveCard projectId={apartment.id} />}
 

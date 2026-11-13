@@ -28,7 +28,7 @@ const CustomerDetailsCard: FC<ICustomerDetailsCardProps> = ({ customer }) => {
             key={config.field}
             label={config.label}
             isLtr={config.isLtr}
-            value={customer[config.field]}
+            value={customer[config.field] ?? "—"}
           />
         ))}
       </Box>

@@ -41,21 +41,29 @@ export interface IProjectIntakeValues {
   address: IVerifiedAddress | null;
 }
 
-export interface IProjectFormValues extends IProjectIntakeValues {
+export interface IProjectLightingFormValues {
+  hasGeneralLightingCeilingLowering: boolean;
+  generalLightingCeilingLoweringHeight: string;
+}
+
+export interface IProjectFormValues extends IProjectIntakeValues, IProjectLightingFormValues {
   name: string;
+  notes: string;
+  stageNote: string;
   typeId: string | null;
   stageId: string | null;
   customerId: string | null;
   assignees: TRoleAssignees;
   customerDetails: TCustomerDetailValues;
-  hasGeneralLightingCeilingLowering: boolean;
-  generalLightingCeilingLoweringHeight: string;
 }
 
 export interface IProjectSubmission {
   values: IProjectFormValues;
+  canHaveApartments: boolean;
+  originalStageId?: string | null;
   fieldSet: ProjectDetailFieldSetType | null;
   originalIntake: IProjectIntakeValues | null;
+  contacts?: { contactId: string; role: string | null; isPrimary: boolean }[];
 }
 
 export interface IBoardColumn {
@@ -79,7 +87,13 @@ export interface ITimelineEntry {
   author: string;
   dotColor: string;
   badge?: ReactNode;
+  note?: string | null;
   isHighlighted?: boolean;
+}
+
+export interface IStageMove {
+  stageId: string;
+  note?: string | null;
 }
 
 export interface IProjectFolder {

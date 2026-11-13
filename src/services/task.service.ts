@@ -9,11 +9,22 @@ import { isArrayOf } from "../utilities/guards/primitive.guard";
 import type { TaskStatusType } from "../constants/task.constant";
 import { httpClient, ensureResponse } from "./http-client.service";
 import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
-import { isApiTask, isTaskCounts, isApiTaskTransition } from "../utilities/guards/task.guard";
+import {
+  isApiTask,
+  isTaskCounts,
+  isApiTaskTransition,
+  isProtectedTaskSlot,
+} from "../utilities/guards/task.guard";
 
 const toSearchParam = (search?: string) => search?.trim() || null;
 
 class TaskService {
+  async getProtectedForProject(projectId: string) {
+    const endpoint = API_ENDPOINTS.projectProtectedTasks(projectId);
+    const response = await httpClient.get<unknown>(endpoint);
+    return ensureResponse(endpoint, response.data, isArrayOf(isProtectedTaskSlot));
+  }
+
   async getByFilter(query: ITaskQuery, batchCursor: string | null) {
     return this.getPage(API_ENDPOINTS.TASKS, query, batchCursor);
   }

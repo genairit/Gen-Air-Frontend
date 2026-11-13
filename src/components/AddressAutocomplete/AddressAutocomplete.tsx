@@ -14,7 +14,7 @@ import {
 } from "../../constants/project-address.constant";
 
 import Icon from "../Icon/Icon";
-import { Box } from "@mui/material";
+import { Box, InputBase } from "@mui/material";
 import FieldLabel from "../FieldLabel/FieldLabel";
 import { useStyles } from "./AddressAutocomplete.style";
 import { theme } from "../../constants/theme.constants";
@@ -136,23 +136,24 @@ const AddressAutocomplete: FC<IAddressAutocompleteProps> = ({
       <FieldLabel isRequired title={title} />
       <Box sx={styles.field(status)}>
         <Icon name={ICON_NAMES.LOCATION} color={theme.palette.primary} />
-        <Box
+        <InputBase
           value={input}
-          ref={inputRef}
-          role="combobox"
-          component="input"
           sx={styles.input}
-          aria-label={title}
-          autoComplete="off"
-          aria-controls={listId}
-          aria-autocomplete="list"
-          onKeyDown={handleKeyDown}
-          aria-expanded={isSuggestionsOpen}
+          inputRef={inputRef}
           onBlur={() => setIsFocused(false)}
           onFocus={() => setIsFocused(true)}
           placeholder={PROJECT_ADDRESS_COPY.PLACEHOLDER}
           onChange={event => handleInputChange(event.target.value)}
-          aria-activedescendant={isSuggestionsOpen ? getOptionId(activeIndex) : ""}
+          inputProps={{
+            role: "combobox",
+            "aria-label": title,
+            autoComplete: "off",
+            "aria-controls": listId,
+            "aria-autocomplete": "list",
+            "aria-expanded": isSuggestionsOpen,
+            "aria-activedescendant": isSuggestionsOpen ? getOptionId(activeIndex) : "",
+            onKeyDown: handleKeyDown,
+          }}
         />
         <AddressStatusAdornment
           status={status}

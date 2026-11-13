@@ -4,6 +4,12 @@ import {
   APARTMENT_PAGE_COPY,
 } from "../constants/apartment.constant";
 
+import {
+  USER_ROLES,
+  USER_ROLE_LABELS,
+  PROJECT_MEMBER_ROLES,
+} from "../constants/user-role.constant";
+
 import type {
   IApartmentPosition,
   IApartmentFormValues,
@@ -12,11 +18,15 @@ import type {
 
 import { getFullName } from "./mappers/user.mapper";
 import { getAssignedRoles } from "./user-role.utility";
+import { STAGE_REASON_COPY } from "../constants/project-stage.constant";
 import { APARTMENT_UNIT_FIELDS } from "../constants/apartment.constant";
+import { APARTMENT_LIGHTING_COPY } from "../constants/apartment.constant";
 import type { IApartmentPayload } from "../interfaces/api-request.interface";
 import type { IApiProjectMember, IApiUser } from "../interfaces/api.interface";
 import type { IApiProject, IApiProjectStage } from "../interfaces/api.interface";
-import { USER_ROLE_LABELS, PROJECT_MEMBER_ROLES } from "../constants/user-role.constant";
+import type { IProjectLightingFormValues } from "../interfaces/project.interface";
+import { PROJECT_CONSTRAINT_COPY } from "../constants/project-constraints.constant";
+import { getLightingHeightError, toLightingPayload } from "./project-constraints.utility";
 
 export type ProjectKindType = "building" | "apartment" | "standalone";
 
@@ -42,10 +52,15 @@ export const formatApartmentCount = (count: number) => {
   return `${count} דירות`;
 };
 
-export const formatApartmentNumber = (apartment: IApiProject) =>
-  `דירה ${apartment.customerApartment ?? ""}`;
+export const formatApartmentNumberLabel = (apartmentNumber: string | null) =>
+  `דירה ${apartmentNumber ?? ""}`;
 
-export const formatFloor = (apartment: IApiProject) => `קומה ${apartment.customerFloor ?? ""}`;
+export const formatFloorLabel = (floor: number | null) => `קומה ${floor ?? ""}`;
+
+export const formatApartmentNumber = (apartment: IApiProject) =>
+  formatApartmentNumberLabel(apartment.customerApartment);
+
+export const formatFloor = (apartment: IApiProject) => formatFloorLabel(apartment.customerFloor);
 
 export const formatApartmentHeading = (apartment: IApiProject) =>
   `${formatApartmentNumber(apartment)} · ${formatFloor(apartment)}`;
@@ -59,25 +74,39 @@ export const formatVisibleApartments = ({ visible, total }: { visible: number; t
 export const formatApartmentPosition = (position: IApartmentPosition, buildingName: string) =>
   `דירה ${position.position} מתוך ${position.total} בבניין ${buildingName}`;
 
-export const toOptionalText = (value: string) => value.trim() || null;
-
 export const toApartmentPayload = (values: IApartmentFormValues): IApartmentPayload => ({
   customerId: values.customerId ?? "",
   customerFloor: Number(values.floor),
   customerApartment: values.apartmentNumber.trim(),
+  ...(values.engineerUserId ? { engineerUserId: values.engineerUserId } : {}),
   ...(values.members === null ? {} : { members: toApartmentAssignments(values.members) }),
+  ...(values.hasOwnLighting ? { hasOwnLighting: true, ...toLightingPayload(values) } : {}),
 });
+
+export const toApartmentLightingValues = (project: IApiProject): IProjectLightingFormValues => ({
+  hasGeneralLightingCeilingLowering: project.hasGeneralLightingCeilingLowering ?? false,
+  generalLightingCeilingLoweringHeight:
+    project.generalLightingCeilingLoweringHeight?.toString() ?? "",
+});
+
+export const formatApartmentLighting = (values: IProjectLightingFormValues): string =>
+  values.hasGeneralLightingCeilingLowering
+    ? `${values.generalLightingCeilingLoweringHeight} ${PROJECT_CONSTRAINT_COPY.HEIGHT_UNIT}`
+    : APARTMENT_LIGHTING_COPY.DISABLED;
 
 export const countInvalidApartmentFields = (values: IApartmentFormValues) => {
   const unitErrors = APARTMENT_FORM_FIELDS.filter(
     config => !config.validate(values[config.field]).isValid,
   ).length;
   const customerErrors = Number(!values.customerId);
-  return unitErrors + customerErrors;
+  const lightingErrors = Number(values.hasOwnLighting && Boolean(getLightingHeightError(values)));
+  return unitErrors + customerErrors + lightingErrors;
 };
 
 export const toApartmentAssignments = (members: IApiProjectMember[]) =>
-  members.map(({ userId, role }) => ({ userId, role }));
+  members
+    .filter(member => member.role !== USER_ROLES.ENGINEER)
+    .map(({ userId, role }) => ({ userId, role }));
 
 export const getApartmentTeamCandidates = (
   users: IApiUser[],
@@ -92,6 +121,7 @@ export const getApartmentTeamCandidates = (
 
     const assignedRoles = getAssignedRoles(user);
     const availableRoles = PROJECT_MEMBER_ROLES.filter(role => {
+      if (role === USER_ROLES.ENGINEER) return false;
       const hasAssignedRole = assignedRoles.includes(role);
       const roleHasMember = members.some(member => member.role === role);
 
@@ -149,6 +179,12 @@ export const findStage = (stages: IApiProjectStage[], stageId: string) =>
 
 export const formatSelectedApartments = (count: number) =>
   `${count} ${BUILDING_PAGE_COPY.SELECTED}`;
+
+export const formatBulkWaitingReasonTitle = (count: number) =>
+  `העברת ${count} דירות לשלב ״${STAGE_REASON_COPY.STAGE_NAME}״`;
+
+export const formatBulkWaitingReasonContext = (count: number) =>
+  `הסיבה תישמר עבור כל ${count} הדירות שנבחרו ותוצג בציר הזמן של כל דירה.`;
 
 export const formatInheritedNotesSummary = (notes: string | null) => {
   if (hasTamaNote(notes)) {

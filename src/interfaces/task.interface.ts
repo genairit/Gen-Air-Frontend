@@ -1,8 +1,7 @@
 import type { QueryKey } from "@tanstack/react-query";
-import type { TaskType } from "../constants/task-type.constant";
 import type { TaskStatusType } from "../constants/task.constant";
-import type { TASK_TYPES } from "../constants/task-type.constant";
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { TaskType, ProtectedTaskType } from "../constants/task-type.constant";
 import type { IApiUser, IApiProjectReference, IApiCustomerReference } from "./api.interface";
 
 export interface IProjectParentCustomerSource {
@@ -41,6 +40,12 @@ export interface IApiTask {
   customer?: IApiCustomerReference | null;
 }
 
+export interface IProtectedTaskSlot {
+  id: string;
+  available: boolean;
+  taskType: ProtectedTaskType;
+}
+
 export interface ITaskQuery {
   search?: string;
   projectId?: string | null;
@@ -62,10 +67,10 @@ export interface ITaskCounts {
 export interface ICreateTaskPayload {
   title: string;
   projectId: string;
+  taskType: TaskType;
   description: string;
   dueDate: string | null;
   assigneeId: string | null;
-  taskType: typeof TASK_TYPES.GENERAL;
 }
 
 export type TUpdateTaskPayload = Partial<Omit<ICreateTaskPayload, "taskType">>;
@@ -79,6 +84,7 @@ export interface ITaskFormValues {
   title: string;
   dueDate: string;
   isUrgent: boolean;
+  taskType: TaskType;
   description: string;
   projectId: string | null;
   assigneeOptionId: string | null;

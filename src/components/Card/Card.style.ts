@@ -47,6 +47,9 @@ export const useStyles = () =>
           outlineOffset: 2,
         }),
       },
+      "&:has([role='combobox'][aria-expanded='true'])": {
+        zIndex: 2,
+      },
       ...(isClickable ? CARD_MOTION : {}),
     }),
     actionButton: {

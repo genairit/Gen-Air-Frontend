@@ -41,6 +41,7 @@ export const QUERY_KEYS = {
     query.unassigned ?? null,
   ],
   task: (taskId: string) => [QUERY_ROOTS.TASK, taskId],
+  projectProtectedTasks: (projectId: string) => [QUERY_ROOTS.TASKS, "protected", projectId],
   taskTransitions: (taskId: string) => [QUERY_ROOTS.TASK_TRANSITIONS, taskId],
   PROJECT_TYPES: ["project-types"],
   PROJECT_STAGES: ["project-stages"],

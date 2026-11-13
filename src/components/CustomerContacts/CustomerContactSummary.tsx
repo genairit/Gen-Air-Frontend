@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import { useStyles } from "./CustomerContacts.style";
+import { toTelephoneHref } from "../../utilities/phone.utility";
 import { CUSTOMER_CONTACT_COPY } from "../../constants/customer-contact.constant";
 import type { ICustomerContact } from "../../interfaces/customer-contact.interface";
 
@@ -20,18 +21,18 @@ const CustomerContactSummary: FC<ICustomerContactSummaryProps> = ({ contacts }) 
       <Box sx={styles.chips}>
         {contacts.map(contact => (
           <Box component="span" key={contact.id} sx={styles.chip}>
-            <b>{contact.name}</b>
+            <Box component="b">{contact.name}</Box>
             {contact.role && (
               <Box component="span" sx={styles.caption}>
                 {contact.role}
               </Box>
             )}
             {contact.phone ? (
-              <Box component="a" sx={styles.summaryLink} href={`tel:${contact.phone}`}>
-                <bdi>{contact.phone}</bdi>
+              <Box component="a" sx={styles.summaryLink} href={toTelephoneHref(contact.phone)}>
+                <Box component="bdi">{contact.phone}</Box>
               </Box>
             ) : (
-              <bdi>{contact.email}</bdi>
+              <Box component="bdi">{contact.email}</Box>
             )}
           </Box>
         ))}

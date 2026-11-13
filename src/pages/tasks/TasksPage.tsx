@@ -1,17 +1,22 @@
 import { Box } from "@mui/material";
 import { usePageStyles } from "../page.style";
 import Icon from "../../components/Icon/Icon";
+import { useNavigate } from "react-router-dom";
 import TasksTable from "./components/TasksTable";
+import Button from "../../components/Button/Button";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import { useSessionUser } from "../../store/session.store";
 import { TASKS_PAGE_COPY } from "../../constants/task.constant";
+import { buildNewTaskPath } from "../../utilities/route.utility";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
 
 const TasksPage = () => {
   const styles = usePageStyles();
+  const navigate = useNavigate();
   const sessionUser = useSessionUser();
   const canClaim = hasPermission(sessionUser, PERMISSIONS.TASKS_CLAIM);
+  const canCreate = hasPermission(sessionUser, PERMISSIONS.TASKS_CREATE);
 
   return (
     <Box sx={styles.page}>
@@ -28,6 +33,12 @@ const TasksPage = () => {
             {TASKS_PAGE_COPY.DESCRIPTION}
           </Box>
         </Box>
+        {canCreate && (
+          <Button
+            text={TASKS_PAGE_COPY.NEW_TASK}
+            onClick={() => navigate(buildNewTaskPath(null))}
+          />
+        )}
       </Box>
       <TasksTable canClaim={canClaim} />
     </Box>

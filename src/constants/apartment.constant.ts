@@ -15,7 +15,11 @@ export const APARTMENT_SCROLL_ROOT_MARGIN = "200px";
 export const EMPTY_APARTMENT_FORM: IApartmentFormValues = {
   floor: "",
   customerId: null,
+  engineerUserId: null,
   members: null,
+  hasOwnLighting: false,
+  hasGeneralLightingCeilingLowering: false,
+  generalLightingCeilingLoweringHeight: "",
   apartmentNumber: "",
 };
 
@@ -77,7 +81,6 @@ export const BUILDING_PAGE_COPY = {
 export const APARTMENT_TABLE_HEADERS = {
   APARTMENT: "דירה",
   END_CUSTOMER: "לקוח קצה",
-  CONTACT: "איש קשר",
   STAGE: "שלב",
 } as const;
 
@@ -97,10 +100,8 @@ export const APARTMENT_PAGE_COPY = {
   PHONE: "טלפון",
   NO_END_CUSTOMER: "לא שויך לקוח קצה לדירה זו",
   PARENT_CUSTOMER_NOTE: "לקוח הפרויקט האב אינו לקוח הקצה של הדירה ואינו עובר אליה.",
-  CONTACT_TITLE: "אנשי קשר וצוות",
-  CONTACT_SUBTITLE: "אנשי הקשר מתוך כרטיס הלקוח · הצוות נקבע לכל דירה בנפרד",
-  CONTACT_NAME: "איש קשר היסטורי בדירה",
-  CONTACT_PHONE: "טלפון נייד",
+  CONTACT_TITLE: "צוות הדירה",
+  CONTACT_SUBTITLE: "המהנדס וחברי הצוות נקבעים לכל דירה בנפרד",
   INHERITED_TITLE: "נתונים מהפרויקט האב",
   INHERITED_SUBTITLE: "סוג הפרויקט והכתובת מתעדכנים עם פרויקט האב",
   PROJECT_TYPE: "סוג פרויקט",
@@ -120,6 +121,7 @@ export const APARTMENT_PAGE_COPY = {
   NOTES_PLACEHOLDER: "לדוגמה: הדייר זמין רק אחר הצהריים, גישה דרך חדר המדרגות המזרחי",
   NOTES_SAVED: "ההערות נשמרו",
   SAVE_NOTES: "שמור הערות",
+  WAITING_REASON_CONTEXT: "יש לפרט למה או למי הדירה ממתינה. הסיבה תוצג בעמוד הדירה ובציר הזמן.",
 } as const;
 
 export const ADD_APARTMENT_COPY = {
@@ -146,11 +148,14 @@ export const ADD_APARTMENT_COPY = {
 
 export const APARTMENT_TEAM_COPY = {
   TITLE: "צוות הדירה",
-  DESCRIPTION: "כברירת מחדל הצוות של הבניין. אפשר להרכיב לדירה צוות משלה",
+  DESCRIPTION: "עובד ההנדסה נקבע לדירה. שאר הצוות עובר מהבניין עד לשינוי בדירה.",
+  ENGINEER: "עובד הנדסה בדירה",
+  NO_ENGINEER: "ללא עובד הנדסה",
+  OTHER_TEAM: "שאר צוות הדירה",
   INHERITED: "עובר מהבניין",
   OWN: "שונה בדירה זו",
   OVERRIDE: "שנה לדירה זו",
-  RESET: "חזור לצוות הבניין",
+  RESET: "חזור לשאר צוות הבניין",
   ADD: "הוסף חבר צוות…",
   REMOVE: "הסר חבר צוות",
   EMPTY: "לדירה אין צוות. הוסף חבר צוות או חזור לצוות הבניין.",
@@ -160,4 +165,15 @@ export const APARTMENT_TEAM_COPY = {
   SAVE: "שמור צוות",
   NEW_CUSTOMER: "+ לקוח חדש",
   INVALID_CUSTOMER: "בחר לקוח לדירה לפני השמירה",
+} as const;
+
+export const APARTMENT_LIGHTING_COPY = {
+  TITLE: "הנמכה כללית לתאורה",
+  SUBTITLE: "הגובה עובר מהבניין כל עוד לא שונה בדירה",
+  FORM_SUBTITLE: "הדירה כוללת הנמכת תקרה כללית לצורכי תאורה",
+  OVERRIDE: "שנה לדירה זו",
+  RESET: "חזור לערך הבניין",
+  SAVE: "שמור הנמכה",
+  DISABLED: "אין הנמכה כללית",
+  VALUE_LABEL: "הנמכה בדירה",
 } as const;

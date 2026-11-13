@@ -5,11 +5,11 @@ import {
 
 import { isAxiosError } from "axios";
 import { isRecord } from "./guards/primitive.guard";
-import type { IProjectFormValues } from "../interfaces/project.interface";
+import type { IProjectLightingFormValues } from "../interfaces/project.interface";
 import type { IValidationResult } from "../interfaces/validation-result.interface";
 import type { IProjectNameCheckState } from "../interfaces/project-constraints.interface";
 
-export const getLightingHeightError = (values: IProjectFormValues): string => {
+export const getLightingHeightError = (values: IProjectLightingFormValues): string => {
   if (!values.hasGeneralLightingCeilingLowering) {
     return "";
   }
@@ -24,7 +24,7 @@ export const getLightingHeightError = (values: IProjectFormValues): string => {
   return hasValidFormat && isFiniteHeight ? "" : PROJECT_CONSTRAINT_COPY.HEIGHT_INVALID;
 };
 
-export const toLightingPayload = (values: IProjectFormValues) => {
+export const toLightingPayload = (values: IProjectLightingFormValues) => {
   const isValidHeight = getLightingHeightError(values) === "";
   const shouldPersistHeight = values.hasGeneralLightingCeilingLowering && isValidHeight;
 

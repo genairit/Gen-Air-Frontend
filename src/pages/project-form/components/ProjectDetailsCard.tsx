@@ -29,8 +29,10 @@ import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import type { IApiProjectStage } from "../../../interfaces/api.interface";
+import { requiresStageNote } from "../../../utilities/stage-reason.utility";
 import { CHIP_SIZES, CHIP_VARIANTS } from "../../../constants/chip.constant";
 import type { IProjectFormValues } from "../../../interfaces/project.interface";
+import StageReasonField from "../../../components/StageReasonPopup/StageReasonField";
 import { validateConstraintField } from "../../../utilities/project-constraints.utility";
 import { PROJECT_CONSTRAINT_COPY } from "../../../constants/project-constraints.constant";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
@@ -45,6 +47,7 @@ interface IProjectDetailsCardProps {
   values: IProjectFormValues;
   stages: IApiProjectStage[];
   onRetryNameCheck: () => void;
+  originalStageId: string | null;
   onChange: (changes: Partial<IProjectFormValues>) => void;
 }
 
@@ -57,6 +60,7 @@ const ProjectDetailsCard: FC<IProjectDetailsCardProps> = ({
   nameError,
   namePending,
   nameCheckFailed,
+  originalStageId,
   isSubmitAttempted,
   onRetryNameCheck,
 }) => {
@@ -70,6 +74,7 @@ const ProjectDetailsCard: FC<IProjectDetailsCardProps> = ({
     ? PROJECT_CONSTRAINT_COPY.NAME_CHECKING
     : PROJECT_CONSTRAINT_COPY.NAME_HINT;
   const stageLabel = findOptionLabelById(stageOptions, values.stageId);
+  const isStageNoteVisible = requiresStageNote({ stageId: values.stageId, originalStageId });
 
   const modeBadge = isEditMode ? (
     <Chip size={CHIP_SIZES.MEDIUM} label={stageLabel ?? ""} dotColor={theme.palette.primary} />
@@ -126,6 +131,15 @@ const ProjectDetailsCard: FC<IProjectDetailsCardProps> = ({
             options={getOptionLabels(stageOptions)}
             onChange={label => onChange({ stageId: findOptionIdByLabel(stageOptions, label) })}
           />
+        )}
+        {isStageNoteVisible && (
+          <Box sx={styles.spanTwoColumns}>
+            <StageReasonField
+              value={values.stageNote}
+              isErrorRevealed={isSubmitAttempted}
+              onChange={stageNote => onChange({ stageNote })}
+            />
+          </Box>
         )}
       </Box>
     </Card>

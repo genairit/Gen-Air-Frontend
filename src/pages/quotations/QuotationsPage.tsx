@@ -3,42 +3,46 @@ import {
   QUOTATION_COUNTS_KEY,
   QUOTATION_ALL_TAB_ID,
   QUOTATION_STATUS_TABS,
-  QUOTATION_STATUS_LABELS,
 } from "../../constants/quotation.constant";
 
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import styles from "./quotation.module.css";
 import Card from "../../components/Card/Card";
 import Tabs from "../../components/Tabs/Tabs";
-import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Button from "./components/QuotationButton";
+import QuotationRow from "./components/QuotationRow";
 import QuotationInput from "./components/QuotationInput";
 import { TAB_MODES } from "../../constants/tabs.constant";
 import { useSessionUser } from "../../store/session.store";
-import { formatRelativeTime } from "../../utilities/date.utility";
+import { useNavigate, useLocation } from "react-router-dom";
+import QuotationCloneForm from "./components/QuotationCloneForm";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { buildQuotationPath } from "../../utilities/route.utility";
 import { hasPermission } from "../../utilities/permission.utility";
-import { quotationMoney } from "../../utilities/quotation.utility";
 import { quotationService } from "../../services/quotation.service";
 import { useDebouncedValue } from "../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import QuotationCustomerPicker from "./components/QuotationCustomerPicker";
 import type { TQuotationStatus } from "../../interfaces/quotation.interface";
+import QuotationSalesAgentPicker from "./components/QuotationSalesAgentPicker";
 import { AuthorizationContext } from "../../managers/authorization-context.manager";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const QuotationsPage: FC = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(useLocation().search);
+  const cloneFrom = searchParams.get("cloneFrom");
   const user = useSessionUser();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<TQuotationStatus | null>(null);
   const [creating, setCreating] = useState(false);
   const [customerId, setCustomerId] = useState("");
+  const [salesAgentId, setSalesAgentId] = useState<string | null>(null);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   const quotations = useInfiniteQuery({
     queryKey: [...QUOTATION_QUERY_KEY, debouncedSearch, status],
@@ -61,6 +65,10 @@ const QuotationsPage: FC = () => {
     },
   });
   const canCreate = hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE);
+  const canClone =
+    canCreate &&
+    hasPermission(user, PERMISSIONS.QUOTATIONS_READ) &&
+    hasPermission(user, PERMISSIONS.PROJECTS_READ);
   const list = quotations.data?.pages.flatMap(page => page.items) ?? [];
   const tabs = QUOTATION_STATUS_TABS;
   const filterTabs = tabs.map(tab => ({
@@ -74,44 +82,64 @@ const QuotationsPage: FC = () => {
   };
 
   return (
-    <main className={styles.page}>
-      <section className={styles.listHeading}>
-        <span className={styles.breadcrumb}>הצעות מחיר · נשמרות בשרת</span>
-        <div className={styles.between}>
-          <div>
-            <h1 className={styles.listTitle}>הצעות מחיר</h1>
-            <p className={styles.muted}>
+    <Box component="main" className={styles.page}>
+      <Box component="section" className={styles.listHeading}>
+        <Box component="span" className={styles.breadcrumb}>
+          הצעות מחיר · נשמרות בשרת
+        </Box>
+        <Box component="div" className={styles.between}>
+          <Box component="div">
+            <Box component="h1" className={styles.listTitle}>
+              הצעות מחיר
+            </Box>
+            <Box component="p" className={styles.muted}>
               הצעה נפתחת מלקוח, עם או בלי פרויקט, וניתן לקשר אותה לפרויקט בהמשך. לפרויקט יכולות
               להיות כמה הצעות.
-            </p>
-          </div>
-          {canCreate && (
+            </Box>
+          </Box>
+          {canCreate && !cloneFrom && (
             <Button
               text="+ הצעה חדשה"
               ariaLabel="הצעה חדשה"
               onClick={() => setCreating(!creating)}
             />
           )}
-        </div>
-        {creating && (
-          <div className={styles.stack}>
+        </Box>
+        {canClone && cloneFrom && (
+          <QuotationCloneForm
+            sourceId={cloneFrom}
+            onCancel={() => navigate(buildQuotationPath(cloneFrom))}
+          />
+        )}
+        {cloneFrom && !canClone && (
+          <Box role="alert" component="p" className={styles.error}>
+            אין הרשאה לשכפל הצעת מחיר.
+          </Box>
+        )}
+        {creating && !cloneFrom && (
+          <Box component="div" className={styles.stack}>
             <QuotationCustomerPicker value={customerId} onChange={setCustomerId} />
+            <QuotationSalesAgentPicker
+              value={salesAgentId}
+              onChange={setSalesAgentId}
+              disabled={create.isPending}
+            />
             <Button
               text="יצירת הצעה"
               disabled={!customerId}
               isLoading={create.isPending}
-              onClick={() => create.mutate(customerId)}
+              onClick={() => create.mutate({ customerId, salesAgentId })}
             />
             {create.isError && (
-              <p role="alert" className={styles.error}>
+              <Box role="alert" component="p" className={styles.error}>
                 {getApiErrorMessage(create.error)}
-              </p>
+              </Box>
             )}
-          </div>
+          </Box>
         )}
-      </section>
+      </Box>
       <Card>
-        <div className={styles.listToolbar}>
+        <Box component="div" className={styles.listToolbar}>
           <QuotationInput
             type="search"
             value={search}
@@ -127,9 +155,9 @@ const QuotationsPage: FC = () => {
             ariaLabel="סינון הצעות מחיר"
             activeId={status ?? QUOTATION_ALL_TAB_ID}
           />
-        </div>
+        </Box>
         {counts.isError && (
-          <div role="alert" className={styles.error}>
+          <Box role="alert" component="div" className={styles.error}>
             {getApiErrorMessage(counts.error)}
             <Button
               text="נסה שוב"
@@ -137,11 +165,15 @@ const QuotationsPage: FC = () => {
                 await counts.refetch();
               }}
             />
-          </div>
+          </Box>
         )}
-        {quotations.isPending && <p role="status">טוען הצעות מחיר...</p>}
+        {quotations.isPending && (
+          <Box component="p" role="status">
+            טוען הצעות מחיר...
+          </Box>
+        )}
         {quotations.isError && (
-          <div role="alert" className={styles.error}>
+          <Box role="alert" component="div" className={styles.error}>
             {getApiErrorMessage(quotations.error)}
             <Button
               text="נסה שוב"
@@ -149,27 +181,15 @@ const QuotationsPage: FC = () => {
                 await quotations.refetch();
               }}
             />
-          </div>
+          </Box>
         )}
-        {!quotations.isPending && !list.length && <p>לא נמצאו הצעות מחיר</p>}
+        {!quotations.isPending && !list.length && <Box component="p">לא נמצאו הצעות מחיר</Box>}
         {list.map(quotation => (
-          <button
+          <QuotationRow
             key={quotation.id}
-            className={styles.quoteRow}
-            onClick={() => navigate(buildQuotationPath(quotation.id))}
-          >
-            <span className={styles.number}>{quotation.number}</span>
-            <div className={styles.quoteIdentity}>
-              <b>{quotation.customerName ?? "לקוח"}</b>
-              <span className={styles.muted}>{quotation.projectName ?? "לא מקושרת לפרויקט"}</span>
-            </div>
-            <span className={styles.muted}>{quotation.brand || "טרם נבחרה חברה"}</span>
-            <span className={styles.badge} data-status={quotation.status}>
-              {QUOTATION_STATUS_LABELS[quotation.status]}
-            </span>
-            <b className={styles.quoteAmount}>{quotationMoney(quotation.totals.total)}</b>
-            <span className={styles.updated}>{formatRelativeTime(quotation.updatedAt)}</span>
-          </button>
+            quotation={quotation}
+            onOpen={() => navigate(buildQuotationPath(quotation.id))}
+          />
         ))}
         {quotations.hasNextPage && (
           <Button
@@ -181,7 +201,7 @@ const QuotationsPage: FC = () => {
           />
         )}
       </Card>
-    </main>
+    </Box>
   );
 };
 export default QuotationsPage;

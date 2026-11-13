@@ -1,6 +1,6 @@
 import type { FC } from "react";
-import { useMediaQuery } from "@mui/material";
 import { useStyles } from "./ProgressBar.style";
+import { Box, useMediaQuery } from "@mui/material";
 import { getProgress, getProgressStepLabel } from "../../utilities/progress.utility";
 import { PROGRESS_BAR_SIZES, type ProgressBarSizeType } from "./constants/progress-bar.constant";
 
@@ -27,7 +27,7 @@ const ProgressBar: FC<IProgressBarProps> = ({
   const stepLabel = getProgressStepLabel(progress);
 
   return (
-    <div
+    <Box
       aria-valuemin={0}
       role="progressbar"
       style={styles.root(size)}
@@ -37,14 +37,14 @@ const ProgressBar: FC<IProgressBarProps> = ({
       aria-label={ariaLabel ?? stepLabel}
     >
       {showFraction && (
-        <span style={styles.fraction(size)}>
+        <Box component="span" style={styles.fraction(size)}>
           {progress.step}/{progress.total}
-        </span>
+        </Box>
       )}
-      <div style={styles.track(size)}>
-        <div style={styles.fill(progress.percentage, reducedMotion)} />
-      </div>
-    </div>
+      <Box style={styles.track(size)}>
+        <Box style={styles.fill(progress.percentage, reducedMotion)} />
+      </Box>
+    </Box>
   );
 };
 

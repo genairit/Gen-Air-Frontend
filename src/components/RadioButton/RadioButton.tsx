@@ -1,7 +1,7 @@
 import type { FC } from "react";
-import { Box } from "@mui/material";
 import RadioIndicator from "./RadioIndicator";
 import { useStyles } from "./RadioButton.style";
+import { FormControlLabel, Radio } from "@mui/material";
 
 interface IRadioButtonProps {
   name?: string;
@@ -13,35 +13,23 @@ interface IRadioButtonProps {
 
 const RadioButton: FC<IRadioButtonProps> = ({ name, value, label, checked, onSelect }) => {
   const styles = useStyles();
-  const isGrouped = Boolean(name);
-  const containerProps = isGrouped
-    ? { component: "label" as const }
-    : {
-        type: "button" as const,
-        component: "button" as const,
-        role: "radio",
-        "aria-checked": checked,
-        onClick: onSelect,
-      };
 
   return (
-    <Box sx={styles.container} {...containerProps}>
-      {isGrouped && (
-        <Box
+    <FormControlLabel
+      label={label}
+      sx={{ ...styles.container, margin: 0 }}
+      control={
+        <Radio
           name={name}
-          type="radio"
           value={value}
-          component="input"
           checked={checked}
-          sx={styles.input}
           onChange={onSelect}
+          icon={<RadioIndicator checked={false} />}
+          checkedIcon={<RadioIndicator checked />}
+          sx={{ padding: 0 }}
         />
-      )}
-      <Box aria-hidden>
-        <RadioIndicator checked={checked} />
-      </Box>
-      {label}
-    </Box>
+      }
+    />
   );
 };
 

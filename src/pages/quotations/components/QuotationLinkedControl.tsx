@@ -7,6 +7,7 @@ import type { FC } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationSelect from "./QuotationSelect";
+import { MenuItem, Box, Checkbox } from "@mui/material";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { CONTROL_KIND } from "../../../constants/quotation.constant";
 import { quotationLineMoney } from "../../../utilities/quotation.utility";
@@ -33,17 +34,11 @@ const QuotationLinkedControl: FC<IQuotationLinkedControlProps> = ({
   const parents = quotationControlParents(items, line);
 
   return (
-    <div className={styles.linkedControl}>
-      <label className={styles.linkedToggle}>
-        <input
-          checked
-          type="checkbox"
-          disabled={disabled}
-          onChange={onRemove}
-          aria-label={`הסר ${kind}`}
-        />
+    <Box className={styles.linkedControl}>
+      <Box component="label" className={styles.linkedToggle}>
+        <Checkbox checked disabled={disabled} onChange={onRemove} aria-label={`הסר ${kind}`} />
         {kind}
-      </label>
+      </Box>
       <QuotationInput
         maxLength={1000}
         disabled={disabled}
@@ -60,9 +55,9 @@ const QuotationLinkedControl: FC<IQuotationLinkedControlProps> = ({
         value={line.quotedPrice}
         onChange={event => onChange({ ...line, quotedPrice: event.target.value })}
       />
-      <span className={styles.muted}>
+      <Box component="span" className={styles.muted}>
         {quantity} {line.unit} · {amount}
-      </span>
+      </Box>
       <QuotationSelect
         disabled={disabled}
         label="בקר עבור יחידה"
@@ -73,14 +68,14 @@ const QuotationLinkedControl: FC<IQuotationLinkedControlProps> = ({
           )
         }
       >
-        <option value="">פריט נפרד</option>
+        <MenuItem value="">פריט נפרד</MenuItem>
         {parents.map(parent => (
-          <option key={parent.id} value={parent.id}>
+          <MenuItem key={parent.id} value={parent.id}>
             {parent.location || parent.sku}
-          </option>
+          </MenuItem>
         ))}
       </QuotationSelect>
-    </div>
+    </Box>
   );
 };
 export default QuotationLinkedControl;

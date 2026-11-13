@@ -4,6 +4,9 @@ export const isRecord = (value: unknown): value is Record<string, unknown> =>
 export const isNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
+export const isNullableNumber = (value: unknown): value is number | null =>
+  value === null || isNumber(value);
+
 export const isNullableString = (value: unknown): value is string | null =>
   value === null || typeof value === "string";
 

@@ -32,6 +32,7 @@ export const useStyles = () =>
       textDecoration: "none",
       fontSize: 15,
       fontWeight: 600,
+      whiteSpace: "pre-wrap",
       overflowWrap: "anywhere",
     },
     note: {

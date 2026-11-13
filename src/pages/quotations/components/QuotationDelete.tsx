@@ -1,3 +1,4 @@
+import { Box } from "@mui/material";
 import Button from "./QuotationButton";
 import { useState, type FC } from "react";
 import styles from "../quotation.module.css";
@@ -28,8 +29,8 @@ const QuotationDelete: FC<IQuotationDeleteProps> = ({
     <Card gap="10px" padding="16px 20px">
       {confirming ? (
         <>
-          <span>למחוק את {number}? אי אפשר לשחזר דרך האפליקציה.</span>
-          <div className={styles.row}>
+          <Box component="span">למחוק את {number}? אי אפשר לשחזר דרך האפליקציה.</Box>
+          <Box component="div" className={styles.row}>
             <Button
               onClick={onDelete}
               disabled={disabled}
@@ -45,7 +46,7 @@ const QuotationDelete: FC<IQuotationDeleteProps> = ({
               onClick={() => setConfirming(false)}
               sx={QUOTATION_DELETE_STYLES.confirmation}
             />
-          </div>
+          </Box>
         </>
       ) : (
         <Button
@@ -57,7 +58,7 @@ const QuotationDelete: FC<IQuotationDeleteProps> = ({
         />
       )}
       {error && (
-        <div role="alert" className={styles.error}>
+        <Box role="alert" component="div" className={styles.error}>
           {error}
           <Button
             onClick={onReload}
@@ -66,7 +67,7 @@ const QuotationDelete: FC<IQuotationDeleteProps> = ({
             variant={BUTTON_VARIANTS.NEUTRAL}
             sx={QUOTATION_DELETE_STYLES.confirmation}
           />
-        </div>
+        </Box>
       )}
     </Card>
   );

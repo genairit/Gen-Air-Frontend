@@ -1,11 +1,14 @@
+import { Box } from "@mui/material";
 import Button from "./QuotationButton";
 import type { FC, ReactNode } from "react";
 import styles from "../quotation.module.css";
 import Card from "../../../components/Card/Card";
 import QuotationWarnings from "./QuotationWarnings";
 import QuotationDecimalInput from "./QuotationDecimalInput";
+import ProgressBar from "../../../components/ProgressBar/ProgressBar";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
+import { CONTROL_SIZES } from "../../../constants/selection-control.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { quotationDecimalInput } from "../../../utilities/quotation-presentation.utility";
 import type { IQuotation, TQuotationStatus } from "../../../interfaces/quotation.interface";
@@ -40,6 +43,8 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
   const isDraft = quotation.status === QUOTATION_STATUS.DRAFT;
   const isReview = quotation.status === QUOTATION_STATUS.REVIEW;
   const isApproved = quotation.status === QUOTATION_STATUS.APPROVED;
+  const isCancelled = quotation.status === QUOTATION_STATUS.CANCELLED;
+  const shouldShowNoWarningsMessage = quotation.warnings.length === 0 && !blocked;
   const progressMaximum = Math.max(quotation.warnings.length, 1);
   const progressValue = quotation.warnings.length ? acknowledged.length : 1;
   const amounts = [
@@ -49,18 +54,20 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
     { label: `מע״מ ${quotationDecimalInput(quotation.vatRate)}%`, value: totals.vat },
   ];
   return (
-    <div className={styles.summary}>
+    <Box component="div" className={styles.summary}>
       <Card>
         {amounts.map(amount => (
-          <div key={amount.label} className={styles.between}>
-            <span>{amount.label}</span>
-            <b>{quotationMoney(amount.value)}</b>
-          </div>
+          <Box component="div" key={amount.label} className={styles.between}>
+            <Box component="span">{amount.label}</Box>
+            <Box component="b">{quotationMoney(amount.value)}</Box>
+          </Box>
         ))}
-        <div className={styles.between}>
-          <b>סה״כ כולל מע״מ</b>
-          <span className={styles.total}>{quotationMoney(totals.total)}</span>
-        </div>
+        <Box component="div" className={styles.between}>
+          <Box component="b">סה״כ כולל מע״מ</Box>
+          <Box component="span" className={styles.total}>
+            {quotationMoney(totals.total)}
+          </Box>
+        </Box>
         <QuotationDecimalInput
           min="0"
           step="0.01"
@@ -72,22 +79,27 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
             onChange({ ...quotation, targetPretaxAmount: event.target.value || null })
           }
         />
-        <span className={styles.muted}>
+        <Box component="span" className={styles.muted}>
           סכום היעד גובר על אחוז ההנחה. הסכומים מתעדכנים לאחר שמירה בשרת.
-        </span>
+        </Box>
       </Card>
       <Card>
-        <h2 className={styles.heading}>בדיקה ואישור</h2>
-        <progress
-          max={progressMaximum}
-          value={progressValue}
-          aria-label="התקדמות בדיקת הצעה"
-          className={styles.reviewProgress}
+        <Box component="h2" className={styles.heading}>
+          בדיקה ואישור
+        </Box>
+        <ProgressBar
+          size={CONTROL_SIZES.SMALL}
+          ariaLabel="התקדמות בדיקת הצעה"
+          value={(progressValue / progressMaximum) * 100}
         />
-        <p className={styles.muted}>
+        <Box component="p" className={styles.muted}>
           {openWarnings.length} התראות חובה פתוחות מתוך {quotation.warnings.length}
-        </p>
-        {blocked && <p role="status">יש להמתין לשמירה מוצלחת לפני בדיקה ואישור.</p>}
+        </Box>
+        {blocked && (
+          <Box component="p" role="status">
+            יש להמתין לשמירה מוצלחת לפני בדיקה ואישור.
+          </Box>
+        )}
         {showWarnings && (
           <QuotationWarnings
             blocked={blocked}
@@ -96,9 +108,9 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
             onAcknowledge={onAcknowledge}
           />
         )}
-        {!quotation.warnings.length && !blocked && <p>אין התראות פתוחות</p>}
-        {canApprove && (
-          <div className={styles.stack}>
+        {shouldShowNoWarningsMessage && <Box component="p">אין התראות פתוחות</Box>}
+        {canApprove && !isCancelled && (
+          <Box component="div" className={styles.stack}>
             {isDraft && (
               <Button
                 disabled={blocked}
@@ -128,11 +140,15 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
                 onClick={() => onTransition(QUOTATION_STATUS.DRAFT)}
               />
             )}
-          </div>
+          </Box>
         )}
       </Card>
-      {deleteAction && <div className={styles.deleteAction}>{deleteAction}</div>}
-    </div>
+      {deleteAction && (
+        <Box component="div" className={styles.deleteAction}>
+          {deleteAction}
+        </Box>
+      )}
+    </Box>
   );
 };
 export default QuotationSummary;

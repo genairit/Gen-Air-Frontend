@@ -33,22 +33,23 @@ const StandaloneProjectView: FC<IStandaloneProjectViewProps> = ({ project }) => 
     <Box sx={styles.page}>
       <ProjectPageHeader project={project} />
 
-      {canReadDrive && <ProjectDriveCard projectId={project.id} />}
-
       {canReadTasks && <ProjectTasksCard projectId={project.id} />}
+
+      {canReadDrive && <ProjectDriveCard projectId={project.id} />}
 
       <ProjectTeamCard members={project.members ?? []} />
 
-      <ProjectIntakeCard project={project} onEdit={canEdit ? openEditForm : null} />
-
-      {fieldSet && (
-        <ProjectCustomerCard
-          project={project}
-          fieldSet={fieldSet}
-          onEdit={canEdit ? openEditForm : null}
-          typeName={project.projectType?.name ?? ""}
-        />
-      )}
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <ProjectIntakeCard project={project} onEdit={canEdit ? openEditForm : null} />
+        {fieldSet && (
+          <ProjectCustomerCard
+            project={project}
+            fieldSet={fieldSet}
+            onEdit={canEdit ? openEditForm : null}
+            typeName={project.projectType?.name ?? ""}
+          />
+        )}
+      </Box>
 
       <ProjectTimelineCard projectId={project.id} />
     </Box>

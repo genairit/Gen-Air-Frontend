@@ -1,8 +1,12 @@
-import type { FC } from "react";
+import { useId, type FC } from "react";
+import type { ReactNode } from "react";
 import styles from "../quotation.module.css";
-import type { SelectHTMLAttributes, ReactNode } from "react";
+import { Box, Select, type SelectProps } from "@mui/material";
 
-interface IQuotationSelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+interface IQuotationSelectProps extends Pick<
+  SelectProps<string>,
+  "disabled" | "onChange" | "value"
+> {
   label: string;
   caption?: string;
   children: ReactNode;
@@ -13,14 +17,24 @@ const QuotationSelect: FC<IQuotationSelectProps> = ({
   children,
   ...props
 }: IQuotationSelectProps) => {
+  const labelId = useId();
   const text = caption ?? label;
   return (
-    <label className={styles.label}>
-      <span className={styles.labelText}>{text}</span>
-      <select aria-label={label} className={styles.select} {...props}>
+    <Box className={styles.label}>
+      <Box id={labelId} component="span" className={styles.labelText}>
+        {text}
+      </Box>
+      <Select
+        {...props}
+        displayEmpty
+        disableUnderline
+        variant="standard"
+        className={styles.select}
+        inputProps={{ "aria-label": label, ...(caption ? { "aria-describedby": labelId } : {}) }}
+      >
         {children}
-      </select>
-    </label>
+      </Select>
+    </Box>
   );
 };
 export default QuotationSelect;

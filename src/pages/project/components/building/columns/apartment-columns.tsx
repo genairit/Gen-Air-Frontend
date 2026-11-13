@@ -1,7 +1,6 @@
 import ApartmentStageChip from "../ApartmentStageChip";
 import ApartmentUnitCell from "./cells/ApartmentUnitCell";
 import ApartmentSelectCell from "./cells/ApartmentSelectCell";
-import ApartmentContactCell from "./cells/ApartmentContactCell";
 import CheckBox from "../../../../../components/CheckBox/CheckBox";
 import ApartmentEndCustomerCell from "./cells/ApartmentEndCustomerCell";
 import { APARTMENT_TABLE_HEADERS } from "../../../../../constants/apartment.constant";
@@ -48,12 +47,6 @@ const buildDetailColumns = (stages: IApiProjectStage[]): IDataTableColumn<IApiPr
     track: "minmax(160px, 1.3fr)",
     header: APARTMENT_TABLE_HEADERS.END_CUSTOMER,
     render: apartment => <ApartmentEndCustomerCell apartment={apartment} />,
-  },
-  {
-    id: "contact",
-    track: "minmax(160px, 1.3fr)",
-    header: APARTMENT_TABLE_HEADERS.CONTACT,
-    render: apartment => <ApartmentContactCell apartment={apartment} />,
   },
   {
     id: "stage",

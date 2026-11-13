@@ -1,7 +1,7 @@
 import { he } from "date-fns/locale";
-import { createTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useStyles } from "./DatePicker.style";
+import { Box, createTheme } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import DayBubble from "./components/DayBubble/DayBubble";
 import { ChevronLeft, ChevronRight } from "@mui/icons-material";
@@ -83,7 +83,7 @@ const DatePicker = <IsRange extends boolean>({
   }, [value, internalValue, onChange]);
 
   return (
-    <span style={styles.container({ disabled })}>
+    <Box component="span" style={styles.container({ disabled })}>
       <ThemeProvider theme={calendarTheme}>
         <LocalizationProvider
           adapterLocale={he}
@@ -115,7 +115,7 @@ const DatePicker = <IsRange extends boolean>({
           />
         </LocalizationProvider>
       </ThemeProvider>
-    </span>
+    </Box>
   );
 };
 

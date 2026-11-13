@@ -51,6 +51,7 @@ import ProjectTypeCard from "./ProjectTypeCard";
 import { usePageStyles } from "../../page.style";
 import Chip from "../../../components/Chip/Chip";
 import ProjectRolesCard from "./ProjectRolesCard";
+import ProjectNotesCard from "./ProjectNotesCard";
 import TypeSwitchBanner from "./TypeSwitchBanner";
 import ProjectAddressCard from "./ProjectAddressCard";
 import ProjectDetailsCard from "./ProjectDetailsCard";
@@ -70,14 +71,17 @@ import { hasPermission } from "../../../utilities/permission.utility";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { countStageNoteErrors } from "../../../utilities/stage-reason.utility";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
 import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
 import { useProjectNameAvailability } from "../../../hooks/queries/project-name.query";
+import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
 import { readProjectDraft, clearProjectDraft } from "../../../utilities/project-draft.utility";
 import { useProjectStagesQuery, useProjectTypesQuery } from "../../../hooks/queries/project.query";
+import DirectoryContactPicker from "../../../components/DirectoryContactPicker/DirectoryContactPicker";
 
 interface IProjectFormProps {
   mode: ProjectFormModeType;
@@ -106,6 +110,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   };
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
+  const [selectedContacts, setSelectedContacts] = useState<ICustomerContact[]>([]);
 
   useProjectDraft(draftUserId, values);
 
@@ -120,10 +125,20 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const projectTypes = typesQuery.data ?? [];
   const fieldSet = findDetailFieldSet(projectTypes, values.typeId);
   const selectedTypeName = projectTypes.find(type => type.id === values.typeId)?.name ?? "";
+  const canHaveApartments =
+    projectTypes.find(type => type.id === values.typeId)?.canHaveApartments ??
+    (values.typeId === project?.projectTypeId ? project.projectType?.canHaveApartments : false) ??
+    false;
   const mutationError = createMutation.error ?? updateMutation.error ?? deleteMutation.error;
   const isSaving = createMutation.isPending || updateMutation.isPending;
   const canDelete = isEditMode && hasPermission(sessionUser, PERMISSIONS.PROJECTS_DELETE);
   const originalIntake = project ? toIntakeValues(project) : null;
+  const originalStageId = project?.stageId ?? null;
+  const stageNoteErrorCount = countStageNoteErrors({
+    originalStageId,
+    stageId: values.stageId,
+    stageNote: values.stageNote,
+  });
   const requiredIntake = getRequiredIntakeGroups(values, originalIntake);
   const intakeErrorCount = countIntakeErrors({ values, fieldSet, original: originalIntake });
   const hasSiteDetails = getSiteDetailFields(fieldSet).length > 0;
@@ -147,16 +162,37 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     countCustomerDetailErrors(values.customerDetails, fieldSet) +
     intakeErrorCount +
     Number(heightError !== "") +
-    Number(isNameTaken);
+    Number(isNameTaken) +
+    stageNoteErrorCount;
 
   const openProject = (savedProjectId: string) => navigate(buildProjectPath(savedProjectId));
 
   const submitByMode: Record<ProjectFormModeType, () => void> = {
     new: () =>
-      createMutation.mutate({ values, fieldSet, originalIntake }, { onSuccess: openProject }),
+      createMutation.mutate(
+        {
+          values,
+          fieldSet,
+          originalIntake,
+          canHaveApartments,
+          contacts: selectedContacts.map((contact, index) => ({
+            contactId: contact.id,
+            role: null,
+            isPrimary: index === 0,
+          })),
+        },
+        { onSuccess: openProject },
+      ),
     edit: () =>
       updateMutation.mutate(
-        { projectId: projectId ?? "", values, fieldSet, originalIntake },
+        {
+          projectId: projectId ?? "",
+          values,
+          fieldSet,
+          originalIntake,
+          canHaveApartments,
+          originalStageId,
+        },
         { onSuccess: openProject },
       ),
   };
@@ -224,6 +260,35 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   };
 
   const showAddressError = isSubmitAttempted && requiredIntake.address;
+  const siteDetailsCard = fieldSet && hasSiteDetails && (
+    <ProjectSiteDetailsCard
+      fieldSet={fieldSet}
+      typeName={selectedTypeName}
+      values={values.customerDetails}
+      isSubmitAttempted={isSubmitAttempted}
+      onChange={handleCustomerDetailChange}
+      notice={
+        typeSwitch && (
+          <TypeSwitchBanner
+            typeName={selectedTypeName}
+            summary={typeSwitch.summary}
+            onUndo={handleUndoTypeSwitch}
+            onDismiss={() => setTypeSwitch(null)}
+          />
+        )
+      }
+    />
+  );
+  const contactPicker = !isEditMode && (
+    <DirectoryContactPicker
+      multiple
+      disabled={isSaving}
+      title="אנשי קשר לפרויקט"
+      selected={selectedContacts}
+      onChange={setSelectedContacts}
+      subtitle="חפש ובחר אנשי קשר קיימים. הראשון שנבחר יהיה איש הקשר הראשי."
+    />
+  );
 
   return (
     <Box sx={styles.page}>
@@ -255,6 +320,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         nameError={nameError}
         onChange={updateValues}
         stages={stagesQuery.data ?? []}
+        originalStageId={originalStageId}
         projectCode={project?.code ?? null}
         isSubmitAttempted={isSubmitAttempted}
         onRetryNameCheck={handleRetryNameCheck}
@@ -266,42 +332,40 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         selectedTypeId={values.typeId}
         options={projectTypes.map(toProjectTypeOption)}
       />
-      <ProjectAddressCard
-        address={values.address}
-        onChange={handleAddressChange}
-        showMissingError={showAddressError}
-        requiresCity={isCityRequired(fieldSet)}
-      />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <ProjectAddressCard
+          address={values.address}
+          onChange={handleAddressChange}
+          showMissingError={showAddressError}
+          requiresCity={isCityRequired(fieldSet)}
+        />
+        <ProjectCustomerPickerCard
+          customerId={values.customerId}
+          onChange={handleCustomerChange}
+          isSubmitAttempted={isSubmitAttempted}
+        />
+      </Box>
       {isSubmitAttempted && formErrorCount > 0 && (
         <InlineError message={formatFieldErrorCount(formErrorCount)} />
       )}
-      <ProjectCustomerPickerCard
-        customerId={values.customerId}
-        onChange={handleCustomerChange}
-        isSubmitAttempted={isSubmitAttempted}
-      />
-      {fieldSet && hasSiteDetails && (
-        <ProjectSiteDetailsCard
-          fieldSet={fieldSet}
-          typeName={selectedTypeName}
-          values={values.customerDetails}
-          isSubmitAttempted={isSubmitAttempted}
-          onChange={handleCustomerDetailChange}
-          notice={
-            typeSwitch && (
-              <TypeSwitchBanner
-                typeName={selectedTypeName}
-                summary={typeSwitch.summary}
-                onUndo={handleUndoTypeSwitch}
-                onDismiss={() => setTypeSwitch(null)}
-              />
-            )
-          }
-        />
+      {contactPicker && siteDetailsCard ? (
+        <Box sx={styles.grid({ minColumnWidth: 560 })}>
+          {contactPicker}
+          {siteDetailsCard}
+        </Box>
+      ) : (
+        <>
+          {contactPicker}
+          {siteDetailsCard}
+        </>
+      )}
+      {canHaveApartments && (
+        <ProjectNotesCard notes={values.notes} onChange={notes => updateValues({ notes })} />
       )}
       <ProjectRolesCard
         assignees={values.assignees}
         users={usersQuery.data ?? []}
+        isBuilding={canHaveApartments}
         onAssigneeChange={handleAssigneeChange}
       />
 

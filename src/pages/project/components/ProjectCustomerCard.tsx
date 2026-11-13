@@ -70,7 +70,7 @@ const ProjectCustomerCard: FC<IProjectCustomerCardProps> = ({
               key={config.field}
               label={config.label}
               isLtr={config.isLtr}
-              value={customer[config.field]}
+              value={customer[config.field] ?? "—"}
             />
           ))}
         {!customer && (

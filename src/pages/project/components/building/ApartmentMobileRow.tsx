@@ -26,8 +26,7 @@ const ApartmentMobileRow: FC<IApartmentMobileRowProps> = ({ stages, apartment, o
       <ApartmentStageChip stages={stages} apartment={apartment} />
     </Box>
     <Box component="span" sx={APARTMENT_COLUMN_STYLES.caption}>
-      {`${formatEndCustomer(apartment)} · ${apartment.contactName ?? ""} · `}
-      <bdi dir="ltr">{apartment.contactPhone}</bdi>
+      {formatEndCustomer(apartment)}
     </Box>
   </Card>
 );

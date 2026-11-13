@@ -17,8 +17,8 @@ import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { CUSTOMER_PAGE_COPY } from "../../constants/customer.constant";
 import { NAVIGATION_LABELS } from "../../constants/navigation.constant";
 import { ROUTE_PARAMS, ROUTE_PATHS } from "../../constants/routes.constant";
+import CustomerPrimaryContactCard from "./components/CustomerPrimaryContactCard";
 import { CUSTOMER_PROJECT_COPY } from "../../constants/customer-project.constant";
-import CustomerContacts from "../../components/CustomerContacts/CustomerContacts";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import CustomerPaymentDefault from "../../components/CustomerPaymentDefault/CustomerPaymentDefault";
 
@@ -56,14 +56,14 @@ const CustomerPage = () => {
   return (
     <Box sx={styles.page}>
       <CustomerHeaderCard customer={customer} />
-      <CustomerSyncCard customer={customer} />
-      <CustomerDetailsCard customer={customer} />
-      <CustomerPaymentDefault customer={customer} key={`customer-payment:${customer.id}`} />
-      <CustomerContacts
-        editable
-        customerId={customer.id}
-        key={`customer-contacts:${customer.id}`}
-      />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <CustomerDetailsCard customer={customer} />
+        <CustomerPrimaryContactCard customer={customer} />
+      </Box>
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <CustomerSyncCard customer={customer} />
+        <CustomerPaymentDefault customer={customer} key={`customer-payment:${customer.id}`} />
+      </Box>
       {hasPermission(user, PERMISSIONS.PROJECTS_READ) && (
         <Box
           component="section"

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import type { IQuotation } from "../interfaces/quotation.interface";
+import { quotationSectionBrand } from "../utilities/quotation.utility";
 import { rebrandQuotationAction } from "../actions/quotation-rebrand.action";
 
 interface IQuotationRebrandOptions {
@@ -31,11 +32,26 @@ export const useQuotationRebrand = ({
       return;
     }
     setError(null);
-    if (quotation.sections.some(section => section.items.length)) {
+    if (
+      quotation.sections.some(
+        section =>
+          quotationSectionBrand(section, quotation.brand) === quotation.brand &&
+          section.items.length,
+      )
+    ) {
       setPendingBrand(brand);
       return;
     }
-    onChange({ ...quotation, brand });
+    onChange({
+      ...quotation,
+      brand,
+      brands: brand ? [brand] : [],
+      sections: quotation.sections.map(section =>
+        quotationSectionBrand(section, quotation.brand) === quotation.brand
+          ? { ...section, brand: brand || null }
+          : section,
+      ),
+    });
   };
   const confirm = async (): Promise<void> => {
     if (pendingBrand === null || inFlight.current || blocked || confirmBlocked) {

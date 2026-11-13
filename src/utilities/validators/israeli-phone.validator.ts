@@ -1,4 +1,4 @@
-import { FIELD_VALIDATION_REGEX } from "../../constants/field-validation.constant";
+import { toDialablePhone } from "../phone.utility";
 import { type IValidationResult } from "../../interfaces/validation-result.interface";
 
 export const validateIsraeliPhone = (value: string): IValidationResult => {
@@ -6,10 +6,10 @@ export const validateIsraeliPhone = (value: string): IValidationResult => {
     return { isValid: false, errorText: "שדה חובה" };
   }
 
-  if (!FIELD_VALIDATION_REGEX.ISRAELI_PHONE.test(value)) {
+  if (!toDialablePhone(value)) {
     return {
       isValid: false,
-      errorText: "מספר ישראלי תקין, לדוגמה 052-1234567 או 03-1234567",
+      errorText: "מספר ישראלי תקין או מספר בינלאומי עם + וקידומת מדינה",
     };
   }
 

@@ -3,9 +3,9 @@ import { queryClient } from "../providers/query-client";
 import { projectService } from "../services/project.service";
 import { QUERY_ROOTS } from "../constants/query-key.constant";
 import { toProjectPayload } from "../utilities/project.utility";
-import type { IProjectSubmission } from "../interfaces/project.interface";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
 import { toAuthorizedProjectUpdate } from "../utilities/project-permission.utility";
+import type { IStageMove, IProjectSubmission } from "../interfaces/project.interface";
 
 const invalidateProjectQueries = () =>
   Promise.all([
@@ -29,7 +29,10 @@ const requirePayload = (submission: IProjectSubmission) => {
 
 export const createProjectAction = async (submission: IProjectSubmission): Promise<string> => {
   const context = new AuthorizationContext();
-  const project = await projectService.create(requirePayload(submission));
+  const project = await projectService.create({
+    ...requirePayload(submission),
+    contacts: submission.contacts ?? [],
+  });
   context.assertCurrent();
 
   await invalidateProjectQueries();
@@ -63,15 +66,12 @@ export const deleteProjectAction = async (projectId: string): Promise<void> => {
 
 export const moveProjectToStageAction = async ({
   projectId,
-  stageId,
-}: {
-  projectId: string;
-  stageId: string;
-}): Promise<void> => {
+  ...move
+}: IStageMove & { projectId: string }): Promise<void> => {
   const context = new AuthorizationContext();
 
   try {
-    await projectService.moveToStage(projectId, stageId);
+    await projectService.moveToStage(projectId, move);
   } finally {
     if (context.isCurrent()) {
       await invalidateProjectQueries();

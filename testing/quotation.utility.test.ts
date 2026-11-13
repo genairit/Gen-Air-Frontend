@@ -7,20 +7,42 @@ import {
 } from "../src/utilities/quotation.utility";
 
 import {
+  QUOTATION_STATUS,
+  QUOTATION_SYSTEM,
+  QUOTATION_ALL_TAB_ID,
+  QUOTATION_CONFIRMATION,
+  QUOTATION_CANCELLATION_KIND,
+} from "../src/constants/quotation.constant";
+
+import {
+  isQuotation,
+  isCatalogueItem,
+  isQuotationStatusCounts,
+} from "../src/utilities/guards/quotation.guard";
+
+import {
   quotationPaymentLabel,
   quotationHasPaymentConflict,
   selectQuotationPaymentStages,
   changeQuotationPaymentSchedule,
 } from "../src/utilities/quotation-payment.utility";
 
+import {
+  quotationCancellationView,
+  quotationCancellationTimeline,
+} from "../src/utilities/quotation-cancellation.utility";
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { quotationFixture, catalogueFixture } from "./quotation.fixture";
-import { isQuotation, isCatalogueItem } from "../src/utilities/guards/quotation.guard";
+import { quotationReviewSections } from "../src/utilities/quotation-presentation.utility";
+import type { IQuotation, IQuotationStatusCounts } from "../src/interfaces/quotation.interface";
 
 test("quotation response guard rejects malformed snapshots, totals and warning payloads", () => {
   const quotation = quotationFixture();
   assert.ok(isQuotation(quotation));
+  assert.ok(isQuotation({ ...quotation, salesAgentName: "Neta Levi · 008" }));
+  assert.equal(isQuotation({ ...quotation, salesAgentName: { firstName: "Neta" } }), false);
   assert.equal(isQuotation({ ...quotation, totals: { total: "NaN" } }), false);
   assert.equal(
     isQuotation({
@@ -31,6 +53,78 @@ test("quotation response guard rejects malformed snapshots, totals and warning p
   );
   assert.equal(
     isQuotation({ ...quotation, warnings: [{ key: "x", text: "warning", acknowledged: "yes" }] }),
+    false,
+  );
+});
+test("quotation cancellation history and status counts are validated", () => {
+  const quotation = quotationFixture();
+  const cancelled: IQuotation = {
+    ...quotation,
+    status: QUOTATION_STATUS.CANCELLED,
+    cancelledFromStatus: QUOTATION_STATUS.REVIEW,
+    cancellationHistory: [
+      {
+        kind: QUOTATION_CANCELLATION_KIND.MANUAL,
+        fromStatus: QUOTATION_STATUS.REVIEW,
+        cancelledAt: "2026-10-31T12:00:00.000Z",
+        cancelledById: "user-1",
+        cancelledByName: "Dana Cohen",
+        reason: "Project withdrawn",
+        restoredAt: null,
+        restoredById: null,
+        restoredByName: null,
+      },
+    ],
+  };
+  assert.ok(isQuotation(cancelled));
+  assert.equal(
+    isQuotation({
+      ...cancelled,
+      cancellationHistory: [{ ...cancelled.cancellationHistory[0], reason: "   " }],
+    }),
+    false,
+  );
+  assert.deepEqual(
+    quotationCancellationTimeline([
+      ...cancelled.cancellationHistory,
+      {
+        ...cancelled.cancellationHistory[0],
+        restoredAt: "2026-10-31T13:00:00.000Z",
+        restoredById: "user-2",
+        restoredByName: "Rina Levy",
+      },
+    ]).map(entry => [entry.label, entry.author]),
+    [
+      ["שחזור הצעה", "Rina Levy"],
+      ["ביטול הצעה", "Dana Cohen · סיבה: Project withdrawn"],
+      ["ביטול הצעה", "Dana Cohen · סיבה: Project withdrawn"],
+    ],
+  );
+  assert.equal(
+    quotationCancellationView(
+      { ...cancelled, cancelledFromStatus: QUOTATION_STATUS.APPROVED },
+      QUOTATION_CONFIRMATION.RESTORE,
+    ).title,
+    "שחזור הזמנה",
+  );
+  assert.equal(
+    quotationCancellationView(
+      { ...quotation, status: QUOTATION_STATUS.APPROVED },
+      QUOTATION_CONFIRMATION.CANCEL,
+    ).title,
+    "ביטול הזמנה",
+  );
+  assert.equal(
+    quotationCancellationView(quotation, QUOTATION_CONFIRMATION.CANCEL).title,
+    "ביטול הצעה",
+  );
+  assert.equal(
+    isQuotation({ ...cancelled, cancelledFromStatus: QUOTATION_STATUS.CANCELLED }),
+    false,
+  );
+  assert.ok(isQuotationStatusCounts({ all: 4, draft: 1, review: 1, approved: 1, cancelled: 1 }));
+  assert.equal(
+    isQuotationStatusCounts({ all: 3, draft: 1, review: 1, approved: 1, cancelled: 1 }),
     false,
   );
 });
@@ -52,6 +146,7 @@ test("payment stages replace a copied fixed term without losing the quotation no
 test("catalogue response guard rejects invalid price and included-controller metadata", () => {
   const item = catalogueFixture();
   assert.ok(isCatalogueItem(item));
+  assert.ok(isCatalogueItem({ ...item, brand: "", systemType: "" }));
   assert.equal(isCatalogueItem({ ...item, price: 10 }), false);
   assert.equal(isCatalogueItem({ ...item, includesRemote: "true" }), false);
 });
@@ -74,6 +169,7 @@ test("save payload preserves repeated lines and omits server-controlled money/st
   quotation.sections = [{ id: "s", title: "קומה", systemType: "VRF", items: [a, b] }];
   const body = quotationPayload({ ...quotation, status: "approved", version: 7 });
   assert.equal(body.version, 7);
+  assert.equal(body.salesAgentId, null);
   assert.equal(body.sections[0].items.length, 2);
   assert.equal("status" in body, false);
   assert.equal("vatRate" in body, false);
@@ -102,6 +198,31 @@ test("section reordering preserves identities and bounds", () => {
     ["b", "a"],
   );
   assert.equal(moveQuotationSection(quotation, 0, -1), quotation);
+});
+test("brand tabs persist with section ownership and reordering stays inside a tab", () => {
+  const quotation = quotationFixture();
+  quotation.brands = ["אלקטרה", "תדיראן"];
+  quotation.sections = [
+    { id: "a", title: "A", systemType: "VRF", brand: "אלקטרה", items: [] },
+    { id: "b", title: "B", systemType: QUOTATION_SYSTEM.GENERAL, brand: null, items: [] },
+    { id: "c", title: "C", systemType: "VRF", brand: "תדיראן", items: [] },
+    { id: "d", title: "D", systemType: QUOTATION_SYSTEM.GENERAL, brand: "אלקטרה", items: [] },
+  ];
+  assert.deepEqual(
+    moveQuotationSection(quotation, 0, 1).sections.map(section => section.id),
+    ["d", "b", "c", "a"],
+  );
+  assert.equal(moveQuotationSection(quotation, 1, 1), quotation);
+  const body = quotationPayload(quotation);
+  assert.deepEqual(body.brands, ["אלקטרה", "תדיראן"]);
+  assert.deepEqual(
+    body.sections.map(section => section.brand),
+    ["אלקטרה", null, "תדיראן", "אלקטרה"],
+  );
+  assert.deepEqual(
+    quotationReviewSections(quotation).map(section => section.id),
+    ["a", "d", "c", "b"],
+  );
 });
 test("financial formatting retains cents beyond JavaScript safe integer precision", () => {
   const rendered = quotationMoney("10821521067063092717.57");
@@ -297,6 +418,14 @@ test("VRF diagnostics isolate sections and circuits, multiply quantities and avo
     { id: "one:B", key: "same · B", indoor: "0", outdoor: "0", ratio: null },
     { id: "two:A", key: "same · A", indoor: "10000", outdoor: "0", ratio: null },
   ]);
+  const branded = structuredClone(quotation);
+  branded.brands = ["אלקטרה", "תדיראן"];
+  branded.sections[0].brand = "אלקטרה";
+  branded.sections[1].brand = "תדיראן";
+  assert.deepEqual(
+    quotationCircuits(branded).map(circuit => circuit.key),
+    ["אלקטרה · same · A", "אלקטרה · same · B", "תדיראן · same · A"],
+  );
   assert.deepEqual(quotation, before);
 });
 
@@ -322,21 +451,40 @@ test("opening line selects the first general description across sections, with a
 
 test("status counts require complete consistent nonnegative safe integer totals", async () => {
   const { isQuotationStatusCounts } = await import("../src/utilities/guards/quotation.guard");
-  assert.ok(isQuotationStatusCounts({ all: 0, draft: 0, review: 0, approved: 0 }));
-  assert.ok(isQuotationStatusCounts({ all: 6, draft: 1, review: 2, approved: 3 }));
+  const emptyCounts: IQuotationStatusCounts = {
+    [QUOTATION_ALL_TAB_ID]: 0,
+    [QUOTATION_STATUS.DRAFT]: 0,
+    [QUOTATION_STATUS.REVIEW]: 0,
+    [QUOTATION_STATUS.APPROVED]: 0,
+    [QUOTATION_STATUS.CANCELLED]: 0,
+  };
+  assert.ok(isQuotationStatusCounts(emptyCounts));
+  assert.ok(
+    isQuotationStatusCounts({
+      ...emptyCounts,
+      [QUOTATION_ALL_TAB_ID]: 6,
+      [QUOTATION_STATUS.DRAFT]: 1,
+      [QUOTATION_STATUS.REVIEW]: 2,
+      [QUOTATION_STATUS.APPROVED]: 3,
+    }),
+  );
   for (const malformed of [
     null,
     [],
     {},
-    { all: 3, draft: 1, review: 1 },
-    { all: 4, draft: 1, review: 1, approved: 1 },
+    { [QUOTATION_ALL_TAB_ID]: 3, [QUOTATION_STATUS.DRAFT]: 1, [QUOTATION_STATUS.REVIEW]: 1 },
+    { ...emptyCounts, [QUOTATION_ALL_TAB_ID]: 1 },
   ]) {
     assert.equal(isQuotationStatusCounts(malformed), false, JSON.stringify(malformed));
   }
-  for (const field of ["all", "draft", "review", "approved"]) {
+  const fields = [QUOTATION_ALL_TAB_ID, ...Object.values(QUOTATION_STATUS)];
+  for (const field of fields) {
     for (const invalid of [-1, 0.5, "0", null, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1]) {
       assert.equal(
-        isQuotationStatusCounts({ all: 0, draft: 0, review: 0, approved: 0, [field]: invalid }),
+        isQuotationStatusCounts({
+          ...emptyCounts,
+          [field]: invalid,
+        }),
         false,
         `${field}: ${String(invalid)}`,
       );

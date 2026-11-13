@@ -30,6 +30,7 @@ import { getCustomerPickerLabel } from "../../../utilities/customer.utility";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import { useCustomerQuery, useCustomersQuery } from "../../../hooks/queries/customer.query";
+import { useCustomerSelectionChannel } from "../../../hooks/customer-selection-channel.hook";
 
 interface IProjectCustomerPickerCardProps {
   title?: string;
@@ -54,6 +55,7 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
   const sessionUser = useSessionUser();
   const canCreateCustomer = hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_CREATE);
   const [search, setSearch] = useState("");
+  const returnChannel = useCustomerSelectionChannel(onChange);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   const selectedQuery = useCustomerQuery(customerId);
   const customersQuery = useCustomersQuery({ search: debouncedSearch, prioritySyncStatus: null });
@@ -75,7 +77,7 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
       component={Link}
       sx={styles.link}
       rel="noopener noreferrer"
-      to={ROUTE_PATHS.NEW_CUSTOMER}
+      to={`${ROUTE_PATHS.NEW_CUSTOMER}?returnChannel=${returnChannel}`}
     >
       {APARTMENT_TEAM_COPY.NEW_CUSTOMER}
     </Box>

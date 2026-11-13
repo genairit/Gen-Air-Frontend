@@ -107,12 +107,12 @@ const TaskView: FC<ITaskViewProps> = ({
           <QuotationEmailDialog taskId={task.id} onClose={() => setEmailOpen(false)} />
         </Suspense>
       )}
+      {mutationError && <InlineError message={getApiErrorMessage(mutationError)} />}
       <TaskUrgencyCard
         task={task}
         isManager={canChangeUrgency}
         onRequestChange={requestUrgencyChange}
       />
-      {mutationError && <InlineError message={getApiErrorMessage(mutationError)} />}
       <TaskDetailsCard
         task={task}
         canEdit={canEdit}

@@ -12,6 +12,7 @@ import ProjectTimelineCard from "../ProjectTimelineCard";
 import ProjectCustomerCard from "../ProjectCustomerCard";
 import Button from "../../../../components/Button/Button";
 import BuildingInheritedCard from "./BuildingInheritedCard";
+import ProjectQuotationsCard from "../ProjectQuotationsCard";
 import { ICON_NAMES } from "../../../../constants/icon.constant";
 import { useSessionUser } from "../../../../store/session.store";
 import { PERMISSIONS } from "../../../../constants/permission.constant";
@@ -49,6 +50,7 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
   const canCreateApartment = hasPermission(sessionUser, PERMISSIONS.APARTMENTS_CREATE);
   const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
   const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
+  const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canImport = canImportApartments(sessionUser);
   const importOpen = canImport && apartmentImport.open;
@@ -95,9 +97,23 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         badge={<Chip label={formatBuildingBadge(stageCounts?.total ?? 0)} />}
       />
 
+      {canReadTasks && <ProjectTasksCard projectId={project.id} />}
+
       {canReadDrive && <ProjectDriveCard shareWithApartments projectId={project.id} />}
 
-      <BuildingInheritedCard building={project} />
+      <Box sx={styles.grid({ minColumnWidth: 500 })}>
+        <BuildingInheritedCard building={project} />
+        {fieldSet && (
+          <ProjectCustomerCard
+            project={project}
+            fieldSet={fieldSet}
+            onEdit={canEdit ? openEditForm : null}
+            typeName={project.projectType?.name ?? ""}
+          />
+        )}
+      </Box>
+
+      {canReadQuotations && <ProjectQuotationsCard projectId={project.id} />}
 
       <StageTilesCard
         onSelect={setActiveTileId}
@@ -113,18 +129,7 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         stageId={toStageFilter(activeTileId)}
       />
 
-      {canReadTasks && <ProjectTasksCard projectId={project.id} />}
-
       <ProjectTeamCard members={project.members ?? []} />
-
-      {fieldSet && (
-        <ProjectCustomerCard
-          project={project}
-          fieldSet={fieldSet}
-          onEdit={canEdit ? openEditForm : null}
-          typeName={project.projectType?.name ?? ""}
-        />
-      )}
 
       <ProjectTimelineCard projectId={project.id} />
     </Box>

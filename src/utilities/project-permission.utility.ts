@@ -13,6 +13,7 @@ export const toAuthorizedProjectUpdate = (
 
   const editable = { ...payload };
   delete editable.stageId;
+  delete editable.stageNote;
 
   return editable;
 };

@@ -1,5 +1,5 @@
-import { Button } from "@mui/material";
 import React, { Suspense } from "react";
+import { Box, Button } from "@mui/material";
 import SignatureIcon from "./SignatureIcon";
 import useStyles from "./UltraSignature.style";
 import type SignatureCanvas from "react-signature-canvas";
@@ -12,10 +12,7 @@ interface IUltraSignatureProps {
   setIsSigned: Dispatch<SetStateAction<boolean>>;
 }
 
-const UltraSignature: FC<IUltraSignatureProps> = ({
-  isSigned,
-  setIsSigned,
-}) => {
+const UltraSignature: FC<IUltraSignatureProps> = ({ isSigned, setIsSigned }) => {
   const styles = useStyles();
   const signatureCanvas = useRef<SignatureCanvas | null>(null);
 
@@ -29,16 +26,16 @@ const UltraSignature: FC<IUltraSignatureProps> = ({
   };
 
   return (
-    <div style={styles.signatureContainer}>
-      <Suspense fallback={<div />}>
+    <Box component="div" style={styles.signatureContainer}>
+      <Suspense fallback={<Box component="div" />}>
         <ReactSignatureCanvas
           penColor="black"
           ref={signatureCanvas}
           onBegin={handleBegin}
           canvasProps={{
             style: styles.signatureCanvas,
-            onMouseDown: (e) => e.stopPropagation(),
-            onTouchStart: (e) => e.stopPropagation(),
+            onMouseDown: e => e.stopPropagation(),
+            onTouchStart: e => e.stopPropagation(),
           }}
         />
       </Suspense>
@@ -52,7 +49,7 @@ const UltraSignature: FC<IUltraSignatureProps> = ({
       >
         ניקוי
       </Button>
-    </div>
+    </Box>
   );
 };
 

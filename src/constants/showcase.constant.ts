@@ -51,7 +51,7 @@ export const SHOWCASE_STATUS_CHIPS: IChipSample[] = [
     dotColor: palette.statusBlue,
   },
   {
-    label: "ממתין",
+    label: "טרם בעבודה",
     size: CHIP_SIZES.MEDIUM,
     variant: CHIP_VARIANTS.RAISED,
     dotColor: palette.statusGray,
@@ -124,7 +124,7 @@ export const SHOWCASE_TOP_BAR_USER: IPerson = {
   avatarTone: AVATAR_TONES.CHARCOAL,
 };
 
-export const PROJECT_STATUS_OPTIONS = ["ממתין", "בעבודה", "להמתין", "הסתיים"];
+export const PROJECT_STATUS_OPTIONS = ["טרם בעבודה", "בעבודה", "מחכה לתשובה", "הושלם"];
 
 export const MANAGER_FILTER_OPTIONS = ["כל המנהלים", "אביעד כהן", "דוד בן שחר", "יוסי בראון"];
 

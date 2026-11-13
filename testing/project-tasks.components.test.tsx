@@ -11,14 +11,14 @@ import { createClient, engineer, formValues, noop } from "./project-tasks.fixtur
 import { TASK_TYPES, TASK_TYPE_LABELS } from "../src/constants/task-type.constant";
 import TaskAssignmentCard from "../src/pages/task-form/components/TaskAssignmentCard";
 
-test("manual task type is a readonly General chip, never a quotation/planning choice", () => {
-  const markup = renderToStaticMarkup(<TaskTypeField />);
+test("task type selector offers General, quotation and planning choices", () => {
+  const markup = renderToStaticMarkup(<TaskTypeField onChange={noop} value={TASK_TYPES.GENERAL} />);
   assert.match(markup, />כללי</);
-  assert.match(markup, /משימות הצעת מחיר ותכנון נוצרות אוטומטית עם הפרויקט/);
-  assert.doesNotMatch(markup, /<button|<select|role="radio|role="option/);
+  assert.match(markup, /סוג משימה/);
+  assert.match(markup, /מוסיפים משימה רק כשנדרשת עבודה/);
 });
 
-test("persisted automatic and general types each render their own readable label", () => {
+test("persisted protected and general types each render their own readable label", () => {
   Object.values(TASK_TYPES).forEach(taskType => {
     const markup = renderToStaticMarkup(<TaskTypeChip taskType={taskType} />);
     assert.ok(markup.includes(TASK_TYPE_LABELS[taskType]));

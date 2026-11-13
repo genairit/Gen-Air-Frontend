@@ -6,21 +6,28 @@ import { CARD_TEXTS } from "../../../constants/card.constant";
 
 interface ICardHeaderProps {
   title?: string;
+  titleId?: string;
   subtitle?: string;
   action?: ReactNode;
+  focusableTitle?: boolean;
   titleAccessory?: ReactNode;
   onRemove: (() => void) | null;
+  titleElement?: "p" | "h2" | "h3";
 }
 
 const CardHeader: FC<ICardHeaderProps> = ({
   title,
+  titleId,
   subtitle,
+  titleElement = "p",
+  focusableTitle = false,
   action,
   onRemove,
   titleAccessory,
 }) => {
   const styles = useStyles();
 
+  const titleFocusProps = focusableTitle ? { tabIndex: -1 } : {};
   const hasTitles = Boolean(title || subtitle);
   const hasActions = Boolean(action || onRemove);
 
@@ -34,7 +41,14 @@ const CardHeader: FC<ICardHeaderProps> = ({
         <Box sx={styles.titles}>
           {title && (
             <Box sx={styles.titleRow}>
-              <Typography sx={styles.title}>{title}</Typography>
+              <Typography
+                id={titleId}
+                sx={styles.title}
+                component={titleElement}
+                {...titleFocusProps}
+              >
+                {title}
+              </Typography>
               {titleAccessory}
             </Box>
           )}

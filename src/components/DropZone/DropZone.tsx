@@ -5,9 +5,9 @@ import {
 
 import Card from "../Card/Card";
 import Icon from "../Icon/Icon";
-import { Box } from "@mui/material";
 import Button from "../Button/Button";
 import { useStyles } from "./DropZone.style";
+import { Box, InputBase } from "@mui/material";
 import { useFileDrop } from "../../hooks/file-drop.hook";
 import { type FC, type ChangeEvent, useRef } from "react";
 import { ICON_NAMES } from "../../constants/icon.constant";
@@ -80,16 +80,20 @@ const DropZone: FC<IDropZoneProps> = ({
           {description}
         </Box>
         {fileButton}
-        <Box
+        <InputBase
           type="file"
-          accept={accept}
-          sx={inputStyle}
-          component="input"
-          ref={fileInputRef}
-          multiple={multiple}
           disabled={disabled}
-          aria-label={buttonLabel}
-          onChange={handleInputChange}
+          inputRef={fileInputRef}
+          inputProps={{
+            accept,
+            multiple,
+            "aria-label": buttonLabel,
+            onChange: handleInputChange,
+          }}
+          sx={{
+            ...inputStyle,
+            "& .MuiInputBase-input": { width: "100%", height: "100%", cursor: "pointer" },
+          }}
         />
       </Card>
     </Box>

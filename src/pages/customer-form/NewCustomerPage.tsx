@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Box } from "@mui/material";
 import { usePageStyles } from "../page.style";
 import { useNavigate } from "react-router-dom";
@@ -9,14 +10,40 @@ import { ROUTE_PATHS } from "../../constants/routes.constant";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { getFullName } from "../../utilities/mappers/user.mapper";
+import { buildCustomerPath } from "../../utilities/route.utility";
 import { hasPermission } from "../../utilities/permission.utility";
+import CustomerProjectLinkStep from "./components/CustomerProjectLinkStep";
 import { CUSTOMER_FORM_COPY } from "../../constants/customer-form.constant";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
+import { publishCustomerSelection } from "../../hooks/customer-selection-channel.hook";
 
 const NewCustomerPage = () => {
   const styles = usePageStyles();
   const navigate = useNavigate();
   const user = useSessionUser();
+  const [createdCustomerId, setCreatedCustomerId] = useState<string | null>(null);
+  const returnChannel = new URLSearchParams(window.location.search).get("returnChannel");
+  const finish = (customerId: string) => {
+    publishCustomerSelection(returnChannel, customerId);
+    navigate(buildCustomerPath(customerId));
+  };
+  const renderStep = (creatorName: string) => {
+    if (createdCustomerId) {
+      return (
+        <CustomerProjectLinkStep
+          customerId={createdCustomerId}
+          onFinish={() => finish(createdCustomerId)}
+        />
+      );
+    }
+    return (
+      <NewCustomerForm
+        creatorName={creatorName}
+        onCreated={setCreatedCustomerId}
+        onCancel={() => navigate(ROUTE_PATHS.CUSTOMERS)}
+      />
+    );
+  };
 
   if (!user || !hasPermission(user, PERMISSIONS.CUSTOMERS_CREATE)) {
     return (
@@ -48,7 +75,7 @@ const NewCustomerPage = () => {
           {CUSTOMER_FORM_COPY.DESCRIPTION}
         </Box>
       </Box>
-      <NewCustomerForm creatorName={getFullName(user)} />
+      {renderStep(getFullName(user))}
     </Box>
   );
 };

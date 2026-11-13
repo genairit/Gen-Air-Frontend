@@ -102,7 +102,10 @@ test("assignment permission keeps pool selection available without exposing empl
     });
     const renderer = state.renderer;
     assert.ok(renderer);
-    const field = renderer.root.findByType(Autocomplete);
+    const field = renderer.root
+      .findAllByType(Autocomplete)
+      .find(item => item.props.title === NEW_TASK_COPY.ASSIGNEE);
+    assert.ok(field);
     assert.equal(field.props.options.length, 1);
     assert.ok(field.props.options[0].includes("מאגר פתוח"));
     await act(async () =>
@@ -111,7 +114,49 @@ test("assignment permission keeps pool selection available without exposing empl
         user: { ...user, permissions: [PERMISSIONS.TASKS_CREATE, PERMISSIONS.TASKS_ASSIGN] },
       }),
     );
-    assert.equal(renderer.root.findByType(Autocomplete).props.options.length, 2);
+    const updatedField = renderer.root
+      .findAllByType(Autocomplete)
+      .find(item => item.props.title === NEW_TASK_COPY.ASSIGNEE);
+    assert.equal(updatedField?.props.options.length, 2);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+    setSession(null);
+    client.clear();
+  }
+});
+
+test("protected task form opens the exact existing task even when the task list is not loaded", async () => {
+  const client = createClient();
+  client.setQueryData(QUERY_KEYS.projectProtectedTasks(project.id), [
+    { id: "existing-quotation", taskType: TASK_TYPES.QUOTATION, available: true },
+  ]);
+  const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
+  setSession({
+    accessToken: "unit-test-token",
+    user: { ...engineer, permissions: [PERMISSIONS.TASKS_CREATE] },
+  });
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <QueryClientProvider client={client}>
+          <MemoryRouter>
+            <NewTaskForm initialProjectId={project.id} initialTaskType={TASK_TYPES.QUOTATION} />
+          </MemoryRouter>
+        </QueryClientProvider>,
+        { createNodeMock },
+      );
+    });
+    const renderer = state.renderer;
+    assert.ok(renderer);
+    const save = renderer.root
+      .findAllByType(Button)
+      .find(button => button.props.text === NEW_TASK_COPY.SAVE);
+    assert.equal(save?.props.disabled, true);
+    assert.ok(
+      renderer.root
+        .findAllByType(Button)
+        .some(button => button.props.text === NEW_TASK_COPY.OPEN_EXISTING),
+    );
   } finally {
     await act(async () => state.renderer?.unmount());
     setSession(null);
@@ -206,7 +251,7 @@ test("an unavailable initial project remains selected and blocks submission inst
       state.renderer = create(
         <QueryClientProvider client={client}>
           <MemoryRouter>
-            <NewTaskForm initialProjectId={projectId} />
+            <NewTaskForm initialProjectId={projectId} initialTaskType={TASK_TYPES.GENERAL} />
           </MemoryRouter>
         </QueryClientProvider>,
         { createNodeMock },
@@ -273,7 +318,7 @@ test("cached project refetch failure exposes retry and blocks save until recover
       state.renderer = create(
         <QueryClientProvider client={client}>
           <MemoryRouter>
-            <NewTaskForm initialProjectId={project.id} />
+            <NewTaskForm initialProjectId={project.id} initialTaskType={TASK_TYPES.GENERAL} />
           </MemoryRouter>
         </QueryClientProvider>,
         { createNodeMock },
