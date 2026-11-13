@@ -24,6 +24,10 @@ export const USER_ROLE_VALUES: UserRoleType[] = [
   USER_ROLES.SALES_AGENT,
 ];
 
+export const ASSIGNABLE_USER_ROLE_VALUES: UserRoleType[] = USER_ROLE_VALUES.filter(
+  role => role !== USER_ROLES.SALES_AGENT,
+);
+
 export const PROJECT_MEMBER_ROLES = [
   USER_ROLES.ENGINEER,
   USER_ROLES.SECRETARY,
@@ -37,7 +41,7 @@ export const USER_ROLE_LABELS: Record<UserRoleType, string> = {
   finance: "מחלקת כספים",
   engineer: "עובד הנדסה",
   installer: "מתקין",
-  sales_agent: "סוכן מכירות",
+  sales_agent: "תפקיד ישן: סוכן מכירות",
   secretary: "מזכירה",
   system_admin: "הנהלה / מנהל מערכת",
   project_manager: "מנהל פרויקט",
@@ -48,7 +52,7 @@ export const USER_ROLE_PLURAL_LABELS: Record<UserRoleType, string> = {
   finance: "כספים",
   engineer: "הנדסה",
   installer: "מתקינים",
-  sales_agent: "סוכני מכירות",
+  sales_agent: "תפקיד ישן",
   secretary: "מזכירות",
   system_admin: "הנהלה",
   project_manager: "מנהלי פרויקטים",
@@ -73,7 +77,7 @@ export const PROJECT_ROLE_DESCRIPTIONS: Record<ProjectMemberRoleType, string> = 
   project_manager: "ניהול התיק בשלב הביצוע בשטח",
 };
 
-export const USER_ROLE_OPTIONS = USER_ROLE_VALUES.map(role => ({
+export const USER_ROLE_OPTIONS = ASSIGNABLE_USER_ROLE_VALUES.map(role => ({
   id: role,
   label: USER_ROLE_LABELS[role],
 }));

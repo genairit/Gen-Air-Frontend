@@ -1,10 +1,11 @@
 import {
   USER_ROLES,
-  USER_ROLE_VALUES,
   USER_ROLE_LABELS,
+  ASSIGNABLE_USER_ROLE_VALUES,
 } from "../src/constants/user-role.constant";
 
 import { test } from "node:test";
+import { Radio } from "@mui/material";
 import assert from "node:assert/strict";
 import type { ReactElement } from "react";
 import { AxiosError, AxiosHeaders } from "axios";
@@ -22,7 +23,6 @@ import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import InlineError from "../src/components/InlineError/InlineError";
 import RadioButton from "../src/components/RadioButton/RadioButton";
-import { EMPLOYEES_COPY } from "../src/constants/employee.constant";
 import UserMenuButton from "../src/components/TopBar/UserMenuButton";
 import GenericPopup from "../src/components/GenericPopup/GenericPopup";
 import { act, create, type ReactTestInstance } from "react-test-renderer";
@@ -32,6 +32,7 @@ import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { toEmployee, toPerson } from "../src/utilities/mappers/user.mapper";
 import { SESSION_USER_QUERY_KEY } from "../src/constants/permission.constant";
 import { verifySessionUserAction } from "../src/actions/session-refresh.action";
+import { EMPLOYEES_COPY, EMPLOYEE_FILTERS } from "../src/constants/employee.constant";
 import { QueryClient, QueryClientProvider, notifyManager } from "@tanstack/react-query";
 import EditEmployeeRolesPopup from "../src/pages/employees/components/EditEmployeeRolesPopup";
 import RoleAssignmentFields from "../src/components/RoleAssignmentFields/RoleAssignmentFields";
@@ -154,24 +155,22 @@ const deferred = <TValue,>(): {
   return { promise, resolve: state.resolve, reject: state.reject };
 };
 
-test("generic radio preserves checked standalone button activation", async () => {
+test("generic radio forwards its checked state and selection", async () => {
   const selections: string[] = [];
   const renderer = await renderComponent(
     <RadioButton checked label="Standalone" onSelect={() => selections.push("selected")} />,
   );
   try {
-    const button = renderer.root.findByType("button");
-    assert.equal(button.props.type, "button");
-    assert.equal(button.props["aria-checked"], true);
-    await act(async () => button.props.onClick());
+    const radio = renderer.root.findByType(Radio);
+    assert.equal(radio.props.checked, true);
+    await act(async () => radio.props.onChange());
     assert.deepEqual(selections, ["selected"]);
-    assert.equal(renderer.root.findAllByType("input").length, 0);
   } finally {
     await act(async () => renderer.unmount());
   }
 });
 
-test("employee role assignments show every account role with one shared helper per form", async () => {
+test("employee role assignments omit the retired sales role", async () => {
   const renderer = await renderComponent(
     <>
       <RoleAssignmentFields onAssignedRolesChange={noop} assignedRoles={user.assignedRoles} />
@@ -189,7 +188,13 @@ test("employee role assignments show every account role with one shared helper p
     assert.equal(groups.length, 2);
     assert.deepEqual(
       groups.map(group => group.findAllByType(CheckBox).map(option => option.props.text)),
-      [USER_ROLE_VALUES, USER_ROLE_VALUES].map(roles => roles.map(role => USER_ROLE_LABELS[role])),
+      [ASSIGNABLE_USER_ROLE_VALUES, ASSIGNABLE_USER_ROLE_VALUES].map(roles =>
+        roles.map(role => USER_ROLE_LABELS[role]),
+      ),
+    );
+    assert.equal(
+      EMPLOYEE_FILTERS.some(filter => filter.role === USER_ROLES.SALES_AGENT),
+      false,
     );
     assert.equal(renderer.root.findAllByType(RadioButton).length, 0);
     assert.notEqual(groups[0].props["aria-describedby"], groups[1].props["aria-describedby"]);
@@ -198,6 +203,27 @@ test("employee role assignments show every account role with one shared helper p
       .filter(node => node.props.id === groups[0].props["aria-describedby"]);
     assert.equal(assignmentHelpers.length, 1);
     assert.equal(assignmentHelpers[0].children[0], EMPLOYEES_COPY.ROLE_ASSIGNMENT_HELPER);
+  } finally {
+    await act(async () => renderer.unmount());
+  }
+});
+
+test("selecting a role replaces a retired sales-only assignment", async () => {
+  const changes: string[][] = [];
+  const renderer = await renderComponent(
+    <RoleAssignmentFields
+      assignedRoles={[USER_ROLES.SALES_AGENT]}
+      onAssignedRolesChange={roles => changes.push(roles)}
+    />,
+  );
+
+  try {
+    const engineer = renderer.root
+      .findAllByType(CheckBox)
+      .find(option => option.props.text === USER_ROLE_LABELS[USER_ROLES.ENGINEER]);
+    assert.ok(engineer);
+    await act(async () => engineer.props.onChange(true));
+    assert.deepEqual(changes, [[USER_ROLES.ENGINEER]]);
   } finally {
     await act(async () => renderer.unmount());
   }
@@ -224,6 +250,39 @@ test("header role menu switches to the purchasing and execution account role", a
     assert.ok(option);
     await act(async () => option.props.onClick());
     assert.deepEqual(changes, [USER_ROLES.PURCHASING_EXECUTION_MANAGER]);
+  } finally {
+    await act(async () => renderer.unmount());
+  }
+});
+
+test("a legacy-active employee can switch to an assigned engineer role", async () => {
+  const changes: string[] = [];
+  const renderer = await renderComponent(
+    <UserMenuButton
+      user={toPerson(user)}
+      activeRole={USER_ROLES.SALES_AGENT}
+      assignedRoles={[USER_ROLES.SALES_AGENT, USER_ROLES.ENGINEER]}
+      onRoleChange={async role => {
+        changes.push(role);
+      }}
+    />,
+  );
+
+  try {
+    await act(async () => renderer.root.findByType("button").props.onClick({ currentTarget: {} }));
+    const options = renderer.root.findAllByProps({ role: "menuitemradio" });
+    const engineer = options.find(option => option.props["aria-checked"] === false);
+    assert.ok(engineer);
+    assert.equal(engineer.props.children[0].props.children, USER_ROLE_LABELS[USER_ROLES.ENGINEER]);
+    assert.equal(
+      options.some(
+        option =>
+          option.props.children[0]?.props?.children === USER_ROLE_LABELS[USER_ROLES.SALES_AGENT],
+      ),
+      false,
+    );
+    await act(async () => engineer.props.onClick());
+    assert.deepEqual(changes, [USER_ROLES.ENGINEER]);
   } finally {
     await act(async () => renderer.unmount());
   }
