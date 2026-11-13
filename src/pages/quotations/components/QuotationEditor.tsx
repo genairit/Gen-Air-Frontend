@@ -104,8 +104,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const [activeTab, setActiveTab] = useState(initial.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
   const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
-  const pdfTitle = quotation.status === QUOTATION_STATUS.APPROVED ? "הזמנה" : "הצעת מחיר";
-  const pdf = useQuotationPdf(quotation.id, `${pdfTitle} ${quotation.number}.pdf`);
+  const pdf = useQuotationPdf(quotation.id);
   const sharing = useQuotationApartmentSharing({
     quotation,
     canEdit: editable,

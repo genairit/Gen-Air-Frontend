@@ -10,7 +10,7 @@ interface IQuotationPdfState {
   download: () => Promise<void>;
 }
 
-export const useQuotationPdf = (quotationId: string, filename: string): IQuotationPdfState => {
+export const useQuotationPdf = (quotationId: string): IQuotationPdfState => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,7 +18,7 @@ export const useQuotationPdf = (quotationId: string, filename: string): IQuotati
     setBusy(true);
     setError(null);
     try {
-      const pdf = await quotationService.exportPdf(quotationId);
+      const { pdf, filename } = await quotationService.exportPdf(quotationId);
       FileDownloadManager.download(pdf, filename);
     } catch (cause) {
       const status = isAxiosError(cause) ? (cause.response?.status ?? null) : null;
