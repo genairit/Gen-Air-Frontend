@@ -4,6 +4,7 @@ import { Box, ButtonBase } from "@mui/material";
 import { formatRelativeTime } from "../../../utilities/date.utility";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
+import { getTableRowSurfaceStyle } from "../../../components/DataTable/DataTable.style";
 import { QUOTATION_ROW_COPY, QUOTATION_STATUS_LABELS } from "../../../constants/quotation.constant";
 
 interface IQuotationRowProps {
@@ -16,7 +17,15 @@ const QuotationRow: FC<IQuotationRowProps> = ({ quotation, onOpen, details = nul
   const brands = quotation.brands.join(" · ") || QUOTATION_ROW_COPY.GENERAL;
 
   return (
-    <ButtonBase onClick={onOpen} sx={{ display: "grid" }} className={styles.quoteRow}>
+    <ButtonBase
+      onClick={onOpen}
+      className={styles.quoteRow}
+      sx={{
+        ...getTableRowSurfaceStyle({ isDimmed: false, isClickable: true }),
+        display: "grid",
+        padding: { xs: "14px 12px", sm: "10px 20px" },
+      }}
+    >
       <Box component="bdi" className={styles.number}>
         {quotation.number}
       </Box>
