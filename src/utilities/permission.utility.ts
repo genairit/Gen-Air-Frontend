@@ -10,7 +10,9 @@ export const hasPermission = (
 
 export const canCancelQuotation = (user: IApiAuthorizedUser | null): boolean =>
   hasPermission(user, PERMISSIONS.QUOTATIONS_UPDATE) &&
-  (user?.role === USER_ROLES.ENGINEER || user?.role === USER_ROLES.SYSTEM_ADMIN);
+  (user?.role === USER_ROLES.ENGINEER ||
+    user?.role === USER_ROLES.ENGINEERING_LEAD ||
+    user?.role === USER_ROLES.SYSTEM_ADMIN);
 
 export const canRestoreQuotation = (user: IApiAuthorizedUser | null): boolean =>
   hasPermission(user, PERMISSIONS.QUOTATIONS_UPDATE) && user?.role === USER_ROLES.SYSTEM_ADMIN;

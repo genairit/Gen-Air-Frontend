@@ -196,6 +196,15 @@ test("project role pickers include employees by assigned membership", () => {
   );
 });
 
+test("engineering leads are eligible for engineer project assignments", () => {
+  const lead = apiUser({
+    role: USER_ROLES.ENGINEERING_LEAD,
+    assignedRoles: [USER_ROLES.ENGINEERING_LEAD],
+  });
+  assert.deepEqual(getUsersAssignedToRole([lead], USER_ROLES.ENGINEER), [lead]);
+  assert.deepEqual(getUsersAssignedToRole([lead], USER_ROLES.ENGINEERING_LEAD), [lead]);
+});
+
 test("All counts distinct employee accounts rather than overlapping assigned-role memberships", () => {
   const counts = {
     ...Object.fromEntries(USER_ROLE_VALUES.map(role => [role, 0])),

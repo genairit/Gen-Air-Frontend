@@ -4,7 +4,7 @@ import { ROUTE_PARAMS, ROUTE_PATHS } from "./routes.constant";
 import type { IBackLinkRoute, INavigationItem } from "../interfaces/navigation-item.interface";
 
 export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
-  { id: ROUTE_PATHS.BOARD, label: "לוח בקרה", icon: ICON_NAMES.PROJECTS },
+  { id: ROUTE_PATHS.BOARD, label: "תיקים", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.PROJECT_BOQS, label: "כתבי רכש", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
   { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
@@ -14,7 +14,7 @@ export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
 ];
 
 export const MOBILE_NAVIGATION_ITEMS: INavigationItem[] = [
-  { id: ROUTE_PATHS.BOARD, label: "לוח", icon: ICON_NAMES.PROJECTS },
+  { id: ROUTE_PATHS.BOARD, label: "תיקים", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.PROJECT_BOQS, label: "כתבי רכש", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
   { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
@@ -76,7 +76,7 @@ export const BRAND = {
 export const NAVIGATION_LABELS = {
   LOGOUT: "התנתק",
   BACK_TO_QUOTATIONS: "חזרה להצעות מחיר",
-  BACK_TO_BOARD: "חזרה ללוח הבקרה",
+  BACK_TO_BOARD: "חזרה לתיקים",
   BACK_TO_CUSTOMERS: "חזרה ללקוחות",
   BACK_TO_BUILDING: "חזרה לבניין",
   BACK_TO_TASKS: "חזרה למשימות",
