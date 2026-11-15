@@ -160,17 +160,8 @@
   grid-template-columns: max-content minmax(0, 1fr) 90px 100px 130px 80px;
   align-items: center;
   gap: 20px;
-  border: 0;
-  border-radius: 20px;
-  padding: 12px 20px;
-  min-height: 72px;
-  background: #f5f5f7;
-  box-shadow:
-    4px 4px 10px #dcdce2,
-    -4px -4px 10px #fff;
   color: inherit;
   font: inherit;
-  cursor: pointer;
 }
 .quoteIdentity {
   display: flex;
@@ -201,9 +192,8 @@
   display: inline-flex;
   align-items: center;
   padding: 0 12px;
-  box-shadow:
-    inset 2px 2px 5px #dcdce2,
-    inset -2px -2px 5px #fff;
+  border: 1px solid #e2e8f0;
+  background: #fff;
   text-align: center;
   white-space: nowrap;
 }
@@ -672,16 +662,31 @@
   overflow: auto;
 }
 .viewTable table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 10px;
   width: 100%;
   min-width: 620px;
   font-size: 13px;
 }
 .viewTable td,
 .viewTable th {
-  padding: 12px 8px;
+  padding: 14px 12px;
   border: 0;
   text-align: right;
+}
+.viewTable tbody tr:not(.reviewSection) td {
+  border-block: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.94);
+}
+.viewTable tbody tr:not(.reviewSection) td:first-child {
+  border-inline-start: 1px solid #e2e8f0;
+  border-start-start-radius: 20px;
+  border-end-start-radius: 20px;
+}
+.viewTable tbody tr:not(.reviewSection) td:last-child {
+  border-inline-end: 1px solid #e2e8f0;
+  border-start-end-radius: 20px;
+  border-end-end-radius: 20px;
 }
 .viewTable th {
   color: #737780;
@@ -809,7 +814,6 @@
     font-size: 22px;
   }
   .quoteRow {
-    padding: 14px 12px;
     gap: 8px;
     grid-template-columns: max-content minmax(0, 1fr);
   }
@@ -1041,11 +1045,6 @@
   width: 18px;
   height: 2px;
   background: #b4c5d4;
-}
-.quoteRow:hover {
-  box-shadow:
-    8px 8px 18px #dcdce2,
-    -8px -8px 18px #fff;
 }
 
 .accessoryLine {

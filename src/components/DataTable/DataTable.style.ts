@@ -21,6 +21,23 @@ const createGridRow = ({ minWidth, gridTemplate }: IGridStyleOptions) => ({
   gridTemplateColumns: gridTemplate,
 });
 
+export const getTableRowSurfaceStyle = ({
+  isDimmed,
+  isClickable,
+}: Pick<IRowStyleOptions, "isDimmed" | "isClickable">) => ({
+  minHeight: 72,
+  padding: "10px 20px",
+  alignItems: "center",
+  borderRadius: theme.radius.panel,
+  border: `1px solid ${theme.glass.border}`,
+  backgroundColor: theme.glass.strong,
+  transition: "background-color 0.16s ease",
+  opacity: isDimmed ? DIMMED_ROW_OPACITY : 1,
+  cursor: isClickable ? "pointer" : "default",
+  "&:hover": isClickable ? { backgroundColor: theme.palette.surfaceHover } : {},
+  "&:focus-visible": isClickable ? { outline: `2px solid ${theme.palette.primary}` } : {},
+});
+
 export const useStyles = () =>
   createStyles({
     toolbar: {
@@ -48,16 +65,6 @@ export const useStyles = () =>
     }),
     row: ({ isDimmed, isClickable, ...options }: IRowStyleOptions) => ({
       ...createGridRow(options),
-      minHeight: 72,
-      padding: "10px 20px",
-      alignItems: "center",
-      borderRadius: theme.radius.panel,
-      border: `1px solid ${theme.glass.border}`,
-      backgroundColor: theme.glass.strong,
-      transition: "background-color 0.16s ease",
-      opacity: isDimmed ? DIMMED_ROW_OPACITY : 1,
-      cursor: isClickable ? "pointer" : "default",
-      "&:hover": isClickable ? { backgroundColor: theme.palette.surfaceHover } : {},
-      "&:focus-visible": isClickable ? { outline: `2px solid ${theme.palette.primary}` } : {},
+      ...getTableRowSurfaceStyle({ isDimmed, isClickable }),
     }),
   });
