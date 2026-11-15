@@ -5,7 +5,6 @@ import {
 } from "../../../../constants/quotation-execution-email.constant";
 
 import { useState } from "react";
-import { Box } from "@mui/material";
 import Card from "../../../../components/Card/Card";
 import styles from "./QuotationEmailDialog.module.css";
 import Button from "../../../../components/Button/Button";
@@ -16,6 +15,7 @@ import { ICON_NAMES } from "../../../../constants/icon.constant";
 import TextField from "../../../../components/TextField/TextField";
 import BrandLogo from "../../../../components/BrandLogo/BrandLogo";
 import FieldLabel from "../../../../components/FieldLabel/FieldLabel";
+import { Box, MenuItem, TextField as MuiTextField } from "@mui/material";
 import InlineError from "../../../../components/InlineError/InlineError";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { IApiDriveItem } from "../../../../interfaces/api.interface";
@@ -24,6 +24,7 @@ import NoticeBanner from "../../../../components/NoticeBanner/NoticeBanner";
 import GenericPopup from "../../../../components/GenericPopup/GenericPopup";
 import { getApiErrorMessage } from "../../../../utilities/api-error.utility";
 import { useProjectDriveQuery } from "../../../../hooks/queries/project.query";
+import { useProjectQuotationsQuery } from "../../../../hooks/queries/quotation.query";
 import { BUTTON_VARIANTS } from "../../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../../components/TextField/constants/textfield.constants";
 import { quotationExecutionEmailService } from "../../../../services/quotation-execution-email.service";
@@ -39,6 +40,7 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
   const [recipientIds, setRecipientIds] = useState<string[]>([]);
   const [architectId, setArchitectId] = useState("");
   const [version, setVersion] = useState("");
+  const [quotationId, setQuotationId] = useState("");
   const [folderPath, setFolderPath] = useState<{ id: string | null; name: string }[]>([
     { id: null, name: "תיקיית הפרויקט" },
   ]);
@@ -55,12 +57,18 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
     folderPath.at(-1)?.id ?? null,
     step === 2,
   );
+  const quotationsQuery = useProjectQuotationsQuery(
+    contextQuery.data?.projectId ?? "",
+    contextQuery.data?.projectId != null,
+  );
+  const quotations = quotationsQuery.data?.pages.flatMap(page => page.items) ?? [];
   const sendMutation = useMutation({
     mutationFn: () => {
       if (!plan || !zip) {
         throw new Error("בחרו תוכנית וקובץ ZIP לפני השליחה");
       }
       return quotationExecutionEmailService.send(taskId, {
+        quotationId,
         requestId,
         recipientContactIds: recipientIds,
         architectContactId: architectId,
@@ -87,6 +95,7 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
   const canContinue =
     context?.apartmentNumber != null &&
     version.trim().length > 0 &&
+    quotationId.length > 0 &&
     recipientIds.length > 0 &&
     architect != null;
   const locked = sendMutation.isPending;
@@ -193,6 +202,31 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
               >
                 {step === 1 && (
                   <>
+                    <MuiTextField
+                      select
+                      fullWidth
+                      label="הצעת מחיר לתוכנית"
+                      value={quotationId}
+                      onChange={event => setQuotationId(event.target.value)}
+                    >
+                      {quotations.map(quotation => (
+                        <MenuItem key={quotation.id} value={quotation.id}>
+                          {quotation.number} · {quotation.customerName ?? quotation.projectName}
+                        </MenuItem>
+                      ))}
+                    </MuiTextField>
+                    {quotationsQuery.hasNextPage && (
+                      <Button
+                        text="טען הצעות נוספות"
+                        variant={BUTTON_VARIANTS.NEUTRAL}
+                        onClick={async () => {
+                          await quotationsQuery.fetchNextPage();
+                        }}
+                      />
+                    )}
+                    {quotationsQuery.isError && (
+                      <InlineError message={getApiErrorMessage(quotationsQuery.error)} />
+                    )}
                     <FieldLabel title="בחרו אנשי קשר שיקבלו את המייל" />
                     {context.contacts.length === 0 && (
                       <InlineError message="לא נמצאו אנשי קשר עם כתובת מייל אצל הלקוח." />
@@ -247,6 +281,9 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
                         onClick={() => setStep(1)}
                         disabled={locked}
                       />
+                    </Box>
+                    <Box component="p">
+                      אפשר לשלוח רק את גרסת התוכנית שאושרה להצעת המחיר שנבחרה.
                     </Box>
                     <Box component="p" className={styles.folderPath}>
                       {folderPath.map(folder => folder.name).join(" / ")}

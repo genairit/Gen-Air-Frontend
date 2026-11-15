@@ -75,6 +75,7 @@ test("legacy sales-role records have a label but the role is not assignable", ()
   assert.deepEqual(USER_ROLE_LABELS, {
     system_admin: "הנהלה / מנהל מערכת",
     engineer: "עובד הנדסה",
+    engineering_lead: "ראש צוות הנדסה",
     secretary: "מזכירה",
     project_manager: "מנהל פרויקט",
     finance: "מחלקת כספים",
@@ -82,7 +83,7 @@ test("legacy sales-role records have a label but the role is not assignable", ()
     purchasing_execution_manager: "מנהל רכש וביצוע",
     sales_agent: "תפקיד ישן: סוכן מכירות",
   });
-  assert.equal(USER_ROLE_VALUES.length, 8);
+  assert.equal(USER_ROLE_VALUES.length, 9);
   assert.deepEqual(new Set(USER_ROLE_VALUES), new Set(Object.values(USER_ROLES)));
   assert.equal(ASSIGNABLE_USER_ROLE_VALUES.includes(USER_ROLES.SALES_AGENT), false);
 });
