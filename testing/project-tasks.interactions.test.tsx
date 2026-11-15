@@ -17,6 +17,7 @@ import { setSession } from "../src/store/session.store";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import NewTaskPage from "../src/pages/task-form/NewTaskPage";
 import TextField from "../src/components/TextField/TextField";
+import DateField from "../src/components/DateField/DateField";
 import { DATE_FORMAT } from "../src/constants/date.constants";
 import { httpClient } from "../src/services/http-client.service";
 import { QUERY_KEYS } from "../src/constants/query-key.constant";
@@ -32,7 +33,6 @@ import TaskContentCard from "../src/pages/task-form/components/TaskContentCard";
 import { NEW_TASK_COPY, POOL_ASSIGNEE_ID } from "../src/constants/task.constant";
 import TaskLinkSelection from "../src/pages/task-form/components/TaskLinkSelection";
 import TaskAssignmentCard from "../src/pages/task-form/components/TaskAssignmentCard";
-import { FIELD_TYPES } from "../src/components/TextField/constants/textfield.constants";
 import TaskLinkSelectionStatus from "../src/pages/task-form/components/TaskLinkSelectionStatus";
 
 interface ITestElement {
@@ -68,12 +68,11 @@ test("the manual date field is optional while title and description remain requi
     const renderer = state.renderer;
     assert.ok(renderer);
     const fields = renderer.root.findAllByType(TextField);
-    const date = fields.find(field => field.props.type === FIELD_TYPES.DATE);
-    assert.ok(date);
+    const date = renderer.root.findByType(DateField);
     assert.notEqual(date.props.isRequired, true);
     assert.equal(date.props.value, "");
     assert.equal(fields.filter(field => field.props.isRequired === true).length, 2);
-    assert.equal(date.props.validator("").errorText, "");
+    assert.equal(date.props.errorText ?? null, null);
   } finally {
     await act(async () => state.renderer?.unmount());
   }
@@ -190,10 +189,7 @@ test("protected task edits allow date clearing and assignment without an invente
     });
     const renderer = state.renderer;
     assert.ok(renderer);
-    const date = renderer.root
-      .findAllByType(TextField)
-      .find(field => field.props.type === FIELD_TYPES.DATE);
-    assert.ok(date);
+    const date = renderer.root.findByType(DateField);
     assert.equal(date.props.value, "");
     await act(async () => date.props.onChange(""));
     assert.deepEqual(changes, [{ dueDate: null }]);
