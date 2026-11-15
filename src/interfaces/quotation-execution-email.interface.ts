@@ -25,6 +25,7 @@ export interface IQuotationEmailContext {
 }
 
 export interface ISendQuotationEmail {
+  quotationId: string;
   requestId: string;
   zipFileId: string;
   planFileId: string;

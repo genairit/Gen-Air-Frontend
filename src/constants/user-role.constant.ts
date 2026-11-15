@@ -3,6 +3,7 @@ import { AVATAR_TONES, type AvatarToneType } from "./tone.constant";
 export const USER_ROLES = {
   FINANCE: "finance",
   ENGINEER: "engineer",
+  ENGINEERING_LEAD: "engineering_lead",
   INSTALLER: "installer",
   SALES_AGENT: "sales_agent",
   SECRETARY: "secretary",
@@ -16,6 +17,7 @@ export type UserRoleType = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 export const USER_ROLE_VALUES: UserRoleType[] = [
   USER_ROLES.SYSTEM_ADMIN,
   USER_ROLES.ENGINEER,
+  USER_ROLES.ENGINEERING_LEAD,
   USER_ROLES.SECRETARY,
   USER_ROLES.PROJECT_MANAGER,
   USER_ROLES.FINANCE,
@@ -40,6 +42,7 @@ export type ProjectMemberRoleType = (typeof PROJECT_MEMBER_ROLES)[number];
 export const USER_ROLE_LABELS: Record<UserRoleType, string> = {
   finance: "מחלקת כספים",
   engineer: "עובד הנדסה",
+  engineering_lead: "ראש צוות הנדסה",
   installer: "מתקין",
   sales_agent: "תפקיד ישן: סוכן מכירות",
   secretary: "מזכירה",
@@ -51,6 +54,7 @@ export const USER_ROLE_LABELS: Record<UserRoleType, string> = {
 export const USER_ROLE_PLURAL_LABELS: Record<UserRoleType, string> = {
   finance: "כספים",
   engineer: "הנדסה",
+  engineering_lead: "ראשי צוות הנדסה",
   installer: "מתקינים",
   sales_agent: "תפקיד ישן",
   secretary: "מזכירות",
@@ -62,6 +66,7 @@ export const USER_ROLE_PLURAL_LABELS: Record<UserRoleType, string> = {
 export const AVATAR_TONE_BY_ROLE: Record<UserRoleType, AvatarToneType> = {
   finance: AVATAR_TONES.AIR,
   engineer: AVATAR_TONES.AIR,
+  engineering_lead: AVATAR_TONES.CHARCOAL,
   installer: AVATAR_TONES.AIR,
   sales_agent: AVATAR_TONES.AIR,
   secretary: AVATAR_TONES.AIR,

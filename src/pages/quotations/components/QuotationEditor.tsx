@@ -58,6 +58,10 @@ import TextField from "../../../components/TextField/TextField";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
+import ExecutionPlanReviewCard from "./ExecutionPlanReviewCard";
+import { useSessionUser } from "../../../store/session.store";
+import { PERMISSIONS } from "../../../constants/permission.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
 import { useQuotationPdf } from "../../../hooks/quotation-pdf.hook";
 import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
 import { QUOTATION_STEPS } from "../../../constants/quotation.constant";
@@ -97,6 +101,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   canClone = false,
 }: IQuotationEditorProps) => {
   const navigate = useNavigate();
+  const sessionUser = useSessionUser();
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
   const [confirmation, setConfirmation] = useState<TQuotationConfirmation | null>(null);
   const [cancellationReason, setCancellationReason] = useState("");
@@ -392,6 +397,11 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           </Box>
         )}
       </Card>
+      {hasPermission(sessionUser, PERMISSIONS.EXECUTION_PLANS_READ) &&
+        hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ) &&
+        hasPermission(sessionUser, PERMISSIONS.PROJECTS_READ) && (
+          <ExecutionPlanReviewCard quotationId={quotation.id} blocked={blocked} />
+        )}
       {sharing.isBuilding && (
         <QuotationApartmentSharingCard sharing={sharing} canEdit={editable} quotation={quotation} />
       )}

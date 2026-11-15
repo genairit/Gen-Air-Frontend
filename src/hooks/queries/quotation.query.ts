@@ -44,8 +44,9 @@ export const useQuotationApartmentOptionsQuery = (quotationId: string, enabled: 
     queryKey: QUOTATION_SHARING_KEYS.apartmentOptions(quotationId),
     queryFn: () => quotationService.apartmentOptions(quotationId),
   });
-export const useProjectQuotationsQuery = (projectId: string) =>
+export const useProjectQuotationsQuery = (projectId: string, enabled = true) =>
   useInfiniteQuery({
+    enabled,
     initialPageParam: null as string | null,
     getNextPageParam: (page: IProjectQuotationPage) => page.nextCursor,
     queryKey: QUOTATION_SHARING_KEYS.projectQuotations(projectId),
