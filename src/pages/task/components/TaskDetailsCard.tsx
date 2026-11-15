@@ -4,7 +4,6 @@ import {
   toDateInputValue,
   buildTaskLinkPath,
   formatTaskDueFull,
-  getTodayInputValue,
   getTaskDueDateError,
   getTaskProjectCustomer,
   formatTaskLinkedToLabel,
@@ -36,6 +35,7 @@ import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
 import TextField from "../../../components/TextField/TextField";
+import DateField from "../../../components/DateField/DateField";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import { buildCustomerPath } from "../../../utilities/route.utility";
 import { toErrorValidator } from "../../../utilities/field-feedback.utility";
@@ -76,6 +76,7 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
   const isDescriptionChanged = trimmedDescription !== (task.description ?? "");
   const canSaveDescription = isDescriptionChanged && Boolean(trimmedDescription);
   const descriptionError = trimmedDescription ? null : NEW_TASK_COPY.REQUIRED;
+  const earliestDueDate = new Date();
 
   const changeDueDate = (dueDate: string) => {
     if (getTaskDueDateError(dueDate)) {
@@ -135,11 +136,11 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
         </TaskFieldTile>
         <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.DUE_DATE}>
           {canEdit && (
-            <TextField
-              type={FIELD_TYPES.DATE}
+            <DateField
               onChange={changeDueDate}
+              minDate={earliestDueDate}
+              ariaLabel={TASK_PAGE_COPY.DUE_DATE}
               value={toDateInputValue(task.dueDate)}
-              slotProps={{ htmlInput: { min: getTodayInputValue() } }}
             />
           )}
           {isLocked && (
