@@ -40,15 +40,18 @@
 }
 .quotationActions {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
   max-width: 100%;
   min-width: 0;
-  overflow-x: auto;
 }
 .quotationActions > * {
   flex: 0 0 auto;
+}
+.quotationActions > :global(.MuiButton-root.MuiButton-root),
+.quotationActions > :global(.MuiButton-root.MuiButton-root:hover) {
+  box-shadow: none;
 }
 .stack {
   display: flex;
