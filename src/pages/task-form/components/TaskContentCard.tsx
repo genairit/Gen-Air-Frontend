@@ -4,9 +4,9 @@ import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import TextField from "../../../components/TextField/TextField";
+import DateField from "../../../components/DateField/DateField";
 import { NEW_TASK_COPY } from "../../../constants/task.constant";
 import CardHeader from "../../../components/CardHeader/CardHeader";
-import { getTodayInputValue } from "../../../utilities/task.utility";
 import { toErrorValidator } from "../../../utilities/field-feedback.utility";
 import { FIELD_INPUT_LIMITS } from "../../../constants/field-validation.constant";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
@@ -20,6 +20,7 @@ interface ITaskContentCardProps {
 
 const TaskContentCard: FC<ITaskContentCardProps> = ({ errors, values, onChange }) => {
   const styles = usePageStyles();
+  const earliestDueDate = new Date();
 
   return (
     <Card gap="18px" padding="24px">
@@ -39,13 +40,13 @@ const TaskContentCard: FC<ITaskContentCardProps> = ({ errors, values, onChange }
           placeholder={NEW_TASK_COPY.TASK_TITLE_PLACEHOLDER}
           maxLength={FIELD_INPUT_LIMITS.TASK_TITLE_CHARACTERS}
         />
-        <TextField
+        <DateField
           value={values.dueDate}
-          type={FIELD_TYPES.DATE}
+          minDate={earliestDueDate}
+          errorText={errors.dueDate}
           title={NEW_TASK_COPY.DUE_DATE}
+          ariaLabel={NEW_TASK_COPY.DUE_DATE}
           onChange={dueDate => onChange({ dueDate })}
-          validator={toErrorValidator(errors.dueDate)}
-          slotProps={{ htmlInput: { min: getTodayInputValue() } }}
         />
       </Box>
       <TextField
