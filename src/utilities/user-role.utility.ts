@@ -9,8 +9,15 @@ import type { IApiUser } from "../interfaces/api.interface";
 export const getAssignedRoles = (user: Pick<IApiUser, "assignedRoles" | "role">): UserRoleType[] =>
   user.assignedRoles ?? [user.role];
 
+export const hasEngineeringRole = (user: Pick<IApiUser, "assignedRoles" | "role">): boolean =>
+  getAssignedRoles(user).some(
+    role => role === USER_ROLES.ENGINEER || role === USER_ROLES.ENGINEERING_LEAD,
+  );
+
 export const getUsersAssignedToRole = (users: IApiUser[], role: UserRoleType): IApiUser[] =>
-  users.filter(user => getAssignedRoles(user).includes(role));
+  users.filter(user =>
+    role === USER_ROLES.ENGINEER ? hasEngineeringRole(user) : getAssignedRoles(user).includes(role),
+  );
 
 export const mapProjectMemberRoles = <TValue>(
   mapRole: (role: ProjectMemberRoleType) => TValue,

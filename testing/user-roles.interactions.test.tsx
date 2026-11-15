@@ -94,6 +94,30 @@ test("apartment engineer picker selects and clears the dedicated assignment", as
   }
 });
 
+test("apartment engineer picker includes engineering leads", async () => {
+  const lead = {
+    ...user,
+    role: USER_ROLES.ENGINEERING_LEAD,
+    assignedRoles: [USER_ROLES.ENGINEERING_LEAD],
+  };
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  });
+  client.setQueryData(QUERY_KEYS.users({ search: "", role: USER_ROLES.ENGINEER }), [lead]);
+  const renderer = await renderComponent(
+    <QueryClientProvider client={client}>
+      <ApartmentEngineerPicker value={null} onChange={noop} />
+    </QueryClientProvider>,
+  );
+  try {
+    const picker = renderer.root.findByType("select");
+    assert.ok(picker.props.options.some((option: string) => option.includes("Rina")));
+  } finally {
+    await act(async () => renderer.unmount());
+    client.clear();
+  }
+});
+
 test("apartment engineer picker keeps the selected member visible and offers retry after a load error", async () => {
   const engineer = {
     ...user,

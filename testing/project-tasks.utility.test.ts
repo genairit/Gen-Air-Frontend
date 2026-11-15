@@ -18,6 +18,12 @@ import {
   resolveAssigneeAfterProjectChange,
 } from "../src/utilities/task.utility";
 
+import {
+  isApiTask,
+  isApiTaskTransition,
+  isProtectedTaskSlot,
+} from "../src/utilities/guards/task.guard";
+
 import moment from "moment";
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -28,11 +34,6 @@ import { TASK_TYPES } from "../src/constants/task-type.constant";
 import { createTask, project, engineer } from "./project-tasks.fixture";
 import type { ITaskFormValues } from "../src/interfaces/task.interface";
 import { EMPTY_TASK_FORM, POOL_ASSIGNEE_ID, TASK_LINK_KINDS } from "../src/constants/task.constant";
-import {
-  isApiTask,
-  isApiTaskTransition,
-  isProtectedTaskSlot,
-} from "../src/utilities/guards/task.guard";
 
 const formValues: ITaskFormValues = {
   ...EMPTY_TASK_FORM,
@@ -137,6 +138,17 @@ test("inactive apartment engineers are not selectable as task assignees", () => 
     toProjectTaskAssigneeOptions([], apartment).map(option => option.id),
     [POOL_ASSIGNEE_ID],
   );
+});
+
+test("engineering leads can be selected for engineer tasks", () => {
+  const lead = {
+    ...engineer,
+    id: "engineering-lead-1",
+    role: USER_ROLES.ENGINEERING_LEAD,
+    assignedRoles: [USER_ROLES.ENGINEERING_LEAD],
+  };
+  const options = toProjectTaskAssigneeOptions([lead], null);
+  assert.ok(options.some(option => option.id === lead.id));
 });
 
 test("changing apartments clears a recommended engineer outside the global user page", () => {
