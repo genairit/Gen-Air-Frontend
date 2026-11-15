@@ -11,7 +11,7 @@ import { useStyles } from "./DateField.style";
 import TextField from "../TextField/TextField";
 import DatePicker from "../DatePicker/DatePicker";
 import { CalendarMonth } from "@mui/icons-material";
-import { useRef, useState, type FC, type KeyboardEvent } from "react";
+import { useState, type FC, type KeyboardEvent } from "react";
 import { DATE_FIELD_COPY } from "../../constants/date-field.constant";
 import { FIELD_TYPES } from "../TextField/constants/textfield.constants";
 import { toErrorValidator } from "../../utilities/field-feedback.utility";
@@ -37,20 +37,19 @@ const DateField: FC<IDateFieldProps> = ({
   onChange,
 }) => {
   const styles = useStyles();
-  const triggerRef = useRef<HTMLInputElement>(null);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const isOpen = anchor !== null;
   const calendarMinDateProps = minDate ? { minDate: startOfDate(minDate) } : {};
 
-  const open = () => {
+  const open = (element: HTMLElement) => {
     if (!disabled) {
-      setAnchor(triggerRef.current);
+      setAnchor(element);
     }
   };
 
   const close = () => {
+    anchor?.querySelector("input")?.focus();
     setAnchor(null);
-    triggerRef.current?.focus();
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -59,7 +58,7 @@ const DateField: FC<IDateFieldProps> = ({
     }
 
     event.preventDefault();
-    open();
+    open(event.currentTarget);
   };
 
   const selectDate = (date: Date | null) => {
@@ -81,14 +80,13 @@ const DateField: FC<IDateFieldProps> = ({
       <TextField
         isLtr
         title={title}
-        onClick={open}
         disabled={disabled}
-        inputRef={triggerRef}
         type={FIELD_TYPES.TEXT}
         onKeyDown={handleKeyDown}
         value={formatDateInputDisplay(value)}
         validator={toErrorValidator(errorText)}
         placeholder={DATE_FIELD_COPY.PLACEHOLDER}
+        onClick={event => open(event.currentTarget)}
         endAdornment={<CalendarMonth sx={styles.calendarIcon} />}
         slotProps={{
           htmlInput: {
