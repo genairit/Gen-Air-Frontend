@@ -13,7 +13,10 @@ import { Box, MenuItem } from "@mui/material";
 import QuotationInput from "./QuotationInput";
 import { useNavigate } from "react-router-dom";
 import QuotationSelect from "./QuotationSelect";
+import Card from "../../../components/Card/Card";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
+import { QUOTATION_CLONE_STYLES } from "./QuotationCloneForm.style";
+import { quotationMoney } from "../../../utilities/quotation.utility";
 import { buildQuotationPath } from "../../../utilities/route.utility";
 import { quotationService } from "../../../services/quotation.service";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
@@ -64,11 +67,19 @@ const CloneLinePicker: FC<{
   );
   const shownChoices =
     selected && !choices.some(item => item.id === selected.id) ? [selected, ...choices] : choices;
+  const canSuggest = selected === null && !candidates.isError;
+  const suggested = canSuggest ? (choices[0] ?? null) : null;
+  const showNoMatch = candidates.isSuccess && choices.length === 0 && selected === null;
+  const selectedLabel = selected ? `נבחרה חלופה: ${selected.sku}` : "";
+  const suggestedPrice = suggested ? quotationMoney(suggested.price) : "";
+  const cardLabel = `חלופה לפריט ${line.item.sku}`;
   return (
-    <Box component="div" className={styles.cloneLine}>
-      <Box component="div">
-        <Box component="strong">{line.item.sku}</Box> · {line.item.description}
-        <Box component="p" className={styles.muted}>
+    <Card ariaLabel={cardLabel} sx={QUOTATION_CLONE_STYLES.card}>
+      <Box sx={QUOTATION_CLONE_STYLES.header}>
+        <Box component="h3" sx={QUOTATION_CLONE_STYLES.title}>
+          <Box component="bdi">{line.item.sku}</Box> · {line.item.description}
+        </Box>
+        <Box component="p" sx={QUOTATION_CLONE_STYLES.metadata}>
           כמות {line.item.quantity} ·{" "}
           {line.item.capacityBtu ? `${line.item.capacityBtu} BTU · ` : ""}
           {line.sourceBrand}
@@ -96,30 +107,46 @@ const CloneLinePicker: FC<{
           </MenuItem>
         ))}
       </QuotationSelect>
-      {!selected && choices[0] && (
-        <Box component="div" className={styles.row}>
-          <Box component="span">
-            הצעה לבדיקה: {choices[0].sku} · {choices[0].description} · ₪{choices[0].price}
+      <Box sx={QUOTATION_CLONE_STYLES.feedback}>
+        {suggested && (
+          <>
+            <Box sx={QUOTATION_CLONE_STYLES.candidate}>
+              <Box component="span" className={styles.muted}>
+                הצעה לבדיקה
+              </Box>
+              <Box component="strong">
+                <Box component="bdi">{suggested.sku}</Box>
+              </Box>
+              <Box component="span">{suggested.description}</Box>
+              <Box component="bdi" sx={QUOTATION_CLONE_STYLES.price}>
+                {suggestedPrice}
+              </Box>
+            </Box>
+            <Button
+              text="אשר חלופה מוצעת"
+              sx={QUOTATION_CLONE_STYLES.action}
+              onClick={() => onChange(suggested)}
+            />
+          </>
+        )}
+        {selected && (
+          <Box role="status" component="p" sx={QUOTATION_CLONE_STYLES.selected}>
+            {selectedLabel}
           </Box>
-          <Button text="אשר חלופה מוצעת" onClick={() => onChange(choices[0])} />
-        </Box>
-      )}
-      {candidates.isPending && (
-        <Box role="status" component="span">
-          מחפש חלופות...
-        </Box>
-      )}
-      {candidates.isError && (
-        <Box role="alert" component="p" className={styles.error}>
-          {getApiErrorMessage(candidates.error)}
-        </Box>
-      )}
-      {candidates.isSuccess && !choices.length && (
-        <Box component="p" className={styles.error}>
-          לא נמצאה חלופה תואמת. חפש מק״ט אחר או בחר חברה אחרת.
-        </Box>
-      )}
-    </Box>
+        )}
+        {candidates.isPending && <Box role="status">מחפש חלופות...</Box>}
+        {candidates.isError && (
+          <Box role="alert" className={styles.error}>
+            {getApiErrorMessage(candidates.error)}
+          </Box>
+        )}
+        {showNoMatch && (
+          <Box role="status" className={styles.muted}>
+            לא נמצאה חלופה תואמת. חפש מק״ט אחר או בחר חברה אחרת.
+          </Box>
+        )}
+      </Box>
+    </Card>
   );
 };
 
