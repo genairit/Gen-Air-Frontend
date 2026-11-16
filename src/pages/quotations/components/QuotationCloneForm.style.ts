@@ -1,7 +1,13 @@
 import { theme } from "../../../constants/theme.constants";
 
 export const QUOTATION_CLONE_STYLES = {
-  card: { height: "100%", boxSizing: "border-box", gap: "16px" },
+  card: {
+    gap: "16px",
+    display: "grid",
+    gridRow: "span 4",
+    boxSizing: "border-box",
+    gridTemplateRows: "subgrid",
+  },
   header: { minHeight: 100, overflowWrap: "anywhere" },
   title: { margin: 0, fontSize: "16px", fontWeight: 700, lineHeight: 1.5 },
   metadata: { margin: "8px 0 0", color: theme.palette.textMuted },
