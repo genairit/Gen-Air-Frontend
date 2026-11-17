@@ -12,8 +12,72 @@ import {
   type TPurchaseRecordStatus,
 } from "../constants/purchase-record.constant";
 
+import type {
+  IPurchaseLine,
+  IPurchaseInputLine,
+  IPurchaseHistoryLine,
+} from "../interfaces/purchase-record.interface";
+
 import Decimal from "decimal.js";
-import type { IPurchaseLine } from "../interfaces/purchase-record.interface";
+import { formatAgreementPrice } from "./supplier-agreement.utility";
+import type { ISupplierAgreement } from "../interfaces/supplier-agreement.interface";
+
+interface IPurchaseCostFieldsInput {
+  supplierId: string;
+  manualUnitCost: string;
+  agreement: ISupplierAgreement | null;
+}
+
+export const purchaseCostFields = ({
+  supplierId,
+  agreement,
+  manualUnitCost,
+}: IPurchaseCostFieldsInput): Pick<
+  IPurchaseInputLine,
+  "unitCost" | "agreementId" | "agreementVersion"
+> => {
+  if (supplierId && agreement) {
+    return {
+      agreementId: agreement.id,
+      agreementVersion: agreement.version,
+      unitCost: agreement.unitPrice,
+    };
+  }
+
+  if (manualUnitCost) {
+    return { unitCost: manualUnitCost };
+  }
+
+  return {};
+};
+
+interface IOrderLinePriceNoteInput {
+  line: IPurchaseHistoryLine;
+  selectedSupplierId: string;
+  hasRecordedSupplier: boolean;
+  agreement: ISupplierAgreement | null;
+}
+
+export const orderLinePriceNote = ({
+  line,
+  hasRecordedSupplier,
+  selectedSupplierId,
+  agreement,
+}: IOrderLinePriceNoteInput): string => {
+  if (hasRecordedSupplier && line.unitCost) {
+    return ` · ${formatPurchaseQuantity(line.unitCost)} ${line.currencyCode} ליחידה`;
+  }
+
+  if (hasRecordedSupplier || !selectedSupplierId) {
+    return "";
+  }
+
+  if (agreement) {
+    return ` · ${formatAgreementPrice(agreement)} ליחידה`;
+  }
+
+  return " · אין הסכם בתוקף";
+};
 
 const isProjectBoqBasis = (value: string): value is ProjectBoqBasisType =>
   Object.values(PROJECT_BOQ_BASIS).some(basis => basis === value);

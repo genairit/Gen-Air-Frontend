@@ -5,6 +5,7 @@ import type {
 
 import { httpClient } from "./http-client.service";
 import type { TPurchaseRecordStatus } from "../constants/purchase-record.constant";
+import type { ITransitionPurchaseInput } from "../interfaces/purchase-record.interface";
 
 const path = (projectId: string) => `/purchase-record/${projectId}`;
 
@@ -46,7 +47,7 @@ export const purchaseRecordService = {
     projectId: string,
     recordId: string,
     status: TPurchaseRecordStatus,
-    input: { reason: string; supplierName?: string; orderDate?: string; idempotencyKey: string },
+    input: ITransitionPurchaseInput,
   ): Promise<IPurchaseWorkspace> {
     const response = await httpClient.patch<IPurchaseWorkspace>(
       `${path(projectId)}/records/${recordId}/status`,

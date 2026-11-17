@@ -51,6 +51,8 @@ export const parseDateInput = (value: string): Date | null => {
 
 export const formatDateInput = (date: Date): string => formatDate(date, DATE_FORMAT.DATE_INPUT);
 
+export const todayDateInput = (): string => moment().format(DATE_FORMAT.DATE_INPUT);
+
 export const formatDateInputDisplay = (value: string): string =>
   formatDate(parseDateInput(value), DATE_FORMAT.DATE);
 

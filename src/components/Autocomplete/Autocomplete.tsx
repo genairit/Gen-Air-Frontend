@@ -2,17 +2,20 @@ import type { FC } from "react";
 import Icon from "../Icon/Icon";
 import type { IconNameType } from "../../constants/icon.constant";
 import SmartbaseAutocomplete from "../../vendor/smartbase/components/Autocomplete/Autocomplete";
+import type { IAutocompleteOption } from "../../vendor/smartbase/interfaces/autocomplete.interface";
 
 interface IAutocompleteProps {
   title?: string;
   options?: string[];
   disabled?: boolean;
+  isLoading?: boolean;
   isRequired?: boolean;
   placeholder?: string;
   value?: string | null;
   noOptionsText?: string;
   startIcon?: IconNameType;
   isAutocomplete?: boolean;
+  items?: IAutocompleteOption[];
   onSearch?: (value: string) => void;
   onChange?: (value: string | null) => void;
 }
@@ -23,6 +26,8 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   startIcon,
   value = null,
   options = [],
+  items,
+  isLoading = false,
   disabled = false,
   isRequired = false,
   onChange = () => {},
@@ -36,6 +41,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
     disabled={disabled}
     onSearch={onSearch}
     onChange={onChange}
+    isLoading={isLoading}
     required={isRequired}
     placeholder={placeholder}
     emptyText={noOptionsText}
@@ -44,7 +50,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
     isInputReadOnly={!isAutocomplete}
     isSearchIconShown={isAutocomplete}
     startIcon={startIcon ? <Icon name={startIcon} /> : null}
-    options={options.map(option => ({ value: option, label: option }))}
+    options={items ?? options.map(option => ({ value: option, label: option }))}
   />
 );
 
