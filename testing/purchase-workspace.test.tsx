@@ -1,3 +1,9 @@
+import {
+  matchesPurchaseLine,
+  getPurchaseSourceLabel,
+  getPurchaseQuantityNote,
+} from "../src/utilities/purchase-record.utility";
+
 import type {
   IPurchaseLine,
   IPurchaseWorkspace,
@@ -10,11 +16,12 @@ import { act, create } from "react-test-renderer";
 import Button from "../src/components/Button/Button";
 import { setSession } from "../src/store/session.store";
 import CheckBox from "../src/components/CheckBox/CheckBox";
+import TextField from "../src/components/TextField/TextField";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
+import BoqLineEditor from "../src/pages/project-boq/BoqLineEditor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PurchaseWorkspace from "../src/pages/project-boq/PurchaseWorkspace";
-import { matchesPurchaseLine } from "../src/utilities/purchase-record.utility";
 import { purchaseRecordService } from "../src/services/purchase-record.service";
 import { PURCHASE_RECORD_STATUS } from "../src/constants/purchase-record.constant";
 import { usePurchaseWorkspace } from "../src/pages/project-boq/usePurchaseWorkspace";
@@ -55,6 +62,83 @@ const initial: IPurchaseWorkspace = {
   history: [],
   nextCursor: null,
 };
+
+test("quantity indicators distinguish unresolved, estimated and overridden planning", () => {
+  assert.equal(
+    getPurchaseQuantityNote({ ...initial.lines[0], requiredQuantity: null }),
+    "כמות נדרשת טרם נקבעה",
+  );
+  assert.equal(
+    getPurchaseQuantityNote({ ...initial.lines[0], reviewState: "pending" }),
+    "כמות ממתינה לאישור",
+  );
+  assert.equal(
+    getPurchaseQuantityNote({ ...initial.lines[0], quantityOverridden: true }),
+    "כמות עודכנה ידנית",
+  );
+  assert.equal(
+    getPurchaseQuantityNote({ ...initial.lines[0], sourceBasis: "conditional" }),
+    "כמות מותנית בפרויקט",
+  );
+  assert.equal(
+    getPurchaseQuantityNote({ ...initial.lines[0], sourceBasis: "project_measurement" }),
+    "כמות לפי מדידת פרויקט",
+  );
+  assert.equal(getPurchaseQuantityNote(initial.lines[0]), null);
+  assert.equal(getPurchaseSourceLabel(initial.lines[0]), "נוסף ידנית");
+  assert.equal(
+    getPurchaseSourceLabel({ ...initial.lines[0], sourceBasis: "legacy" }),
+    "מקור לא מזוהה",
+  );
+});
+
+test("BOQ editor keeps a draft on unchanged refetch and shows saved cost after same-revision refresh", async () => {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+  });
+  client.setQueryData(["purchase-workspace", "project-1", "", null], initial);
+  const rendered: { current: ReturnType<typeof create> | null } = { current: null };
+  const editorCost = () =>
+    rendered.current?.root
+      .findAllByType(BoqLineEditor)[0]
+      ?.findAllByType(TextField)
+      .find(field => field.props.title === "עלות יחידה משוערת ₪");
+  const refreshWorkspace = async (lines: IPurchaseLine[]) => {
+    await act(async () => {
+      client.setQueryData(["purchase-workspace", "project-1", "", null], {
+        ...initial,
+        lines,
+      });
+      await new Promise<void>(resolve => setTimeout(resolve, 0));
+    });
+  };
+  try {
+    await act(async () => {
+      rendered.current = create(
+        <QueryClientProvider client={client}>
+          <PurchaseWorkspace
+            canManageBoq
+            boqRevision={1}
+            projectId="project-1"
+            onUpdateBoqLine={() => Promise.resolve()}
+          />
+        </QueryClientProvider>,
+      );
+    });
+    assert.equal(editorCost()?.props.value, "");
+    await act(async () => editorCost()?.props.onChange("7"));
+    await refreshWorkspace([{ ...initial.lines[0], requestedQuantity: "2" }, initial.lines[1]]);
+    assert.equal(editorCost()?.props.value, "7");
+    await refreshWorkspace([
+      { ...initial.lines[0], estimatedUnitCost: "12.5000" },
+      initial.lines[1],
+    ]);
+    assert.equal(editorCost()?.props.value, "12.5000");
+  } finally {
+    await act(async () => rendered.current?.unmount());
+    client.clear();
+  }
+});
 
 test("selection survives category changes and submits one shared supplier with partial quantities", async () => {
   const originalWorkspace = purchaseRecordService.workspace;
@@ -221,10 +305,17 @@ test("rendered ordered control records an order, persists across categories, and
       setSession(authorizedSession);
       rendered.current = create(
         <QueryClientProvider client={client}>
-          <PurchaseWorkspace projectId="project-1" />
+          <PurchaseWorkspace
+            boqRevision={1}
+            canManageBoq={false}
+            projectId="project-1"
+            onUpdateBoqLine={() => Promise.resolve()}
+          />
         </QueryClientProvider>,
       );
     });
+    assert.equal(rendered.current?.root.findByType(Tabs).props.activeId, "צנרת");
+    assert.equal(rendered.current?.root.findByType(Tabs).props.isScrollable, true);
     assert.equal(orderedCheck()?.props.value, false);
     await act(async () => orderedCheck()?.props.onChange(true));
     assert.ok(
@@ -255,7 +346,12 @@ test("rendered ordered control records an order, persists across categories, and
       rendered.current?.unmount();
       rendered.current = create(
         <QueryClientProvider client={client}>
-          <PurchaseWorkspace projectId="project-1" />
+          <PurchaseWorkspace
+            boqRevision={1}
+            canManageBoq={false}
+            projectId="project-1"
+            onUpdateBoqLine={() => Promise.resolve()}
+          />
         </QueryClientProvider>,
       );
     });

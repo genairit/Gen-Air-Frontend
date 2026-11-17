@@ -1,7 +1,9 @@
 import {
   matchesPurchaseLine,
   getPurchaseLineStatus,
+  getPurchaseSourceLabel,
   formatPurchaseQuantity,
+  getPurchaseQuantityNote,
 } from "../../utilities/purchase-record.utility";
 
 import {
@@ -17,7 +19,8 @@ import {
   PURCHASE_RECORD_NEXT_STATUS,
 } from "../../constants/purchase-record.constant";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import BoqLineEditor from "./BoqLineEditor";
 import Tabs from "../../components/Tabs/Tabs";
 import Card from "../../components/Card/Card";
 import { Box, Typography } from "@mui/material";
@@ -32,37 +35,61 @@ import { hasPermission } from "../../utilities/permission.utility";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { TAB_MODES, TABS_VARIANTS } from "../../constants/tabs.constant";
+import type { IBoqLineEdit } from "../../interfaces/project-boq.interface";
 import { purchaseWorkspaceStyles as styles } from "./purchase-workspace.style";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../components/TextField/constants/textfield.constants";
 
 interface IPurchaseWorkspaceProps {
   projectId: string;
+  boqRevision: number;
+  canManageBoq: boolean;
+  onUpdateBoqLine: (lineId: string, edit: IBoqLineEdit) => Promise<void>;
 }
 
-const PurchaseWorkspace = ({ projectId }: IPurchaseWorkspaceProps) => {
+const PurchaseWorkspace = ({
+  projectId,
+  boqRevision,
+  canManageBoq,
+  onUpdateBoqLine,
+}: IPurchaseWorkspaceProps) => {
   const user = useSessionUser();
   const [historySearch, setHistorySearch] = useState("");
   const [historyCursor, setHistoryCursor] = useState<string | null>(null);
   const [historyCursors, setHistoryCursors] = useState<(string | null)[]>([]);
-  const [category, setCategory] = useState(PURCHASE_ALL_CATEGORY);
+  const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
+  const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
   const state = usePurchaseWorkspace(projectId, historySearch, historyCursor);
   const canRequest = hasPermission(user, PERMISSIONS.PURCHASE_REQUESTS_REVIEW);
   const canOrder = hasPermission(user, PERMISSIONS.PURCHASE_ORDERS_APPROVE);
   const data = state.workspace.data;
   const categories = [...new Set(data?.lines.map(line => line.materialCategory) ?? [])];
+  const activeCategory =
+    category === PURCHASE_ALL_CATEGORY || categories.includes(category)
+      ? category
+      : (categories[0] ?? PURCHASE_ALL_CATEGORY);
   const categoryItems = [
-    { id: PURCHASE_ALL_CATEGORY, label: "הכול", count: data?.lines.length ?? 0 },
     ...categories.map(name => ({
       id: name,
       label: name,
       count: data?.lines.filter(line => line.materialCategory === name).length ?? 0,
     })),
+    { id: PURCHASE_ALL_CATEGORY, label: "הכול", count: data?.lines.length ?? 0 },
   ];
   const visibleLines = (data?.lines ?? []).filter(line =>
-    matchesPurchaseLine(line, category, search),
+    matchesPurchaseLine(line, activeCategory, search),
   );
+  const visibleRows = visibleLines.map(line => ({
+    line,
+    editorVersionKey: JSON.stringify([
+      line.id,
+      boqRevision,
+      line.requiredQuantity,
+      line.estimatedUnitCost,
+      line.notes,
+    ]),
+  }));
   const selectedLines = (data?.lines ?? []).filter(line => state.selectedIds.includes(line.id));
   const inputLines = state.pendingLineId
     ? (data?.lines ?? []).filter(line => line.id === state.pendingLineId)
@@ -95,20 +122,172 @@ const PurchaseWorkspace = ({ projectId }: IPurchaseWorkspaceProps) => {
         <TextField
           value={search}
           title="חיפוש חומר"
-          onChange={setSearch}
           type={FIELD_TYPES.SEARCH}
           placeholder="שם, דגם או קוד"
+          onChange={value => {
+            setSearch(value);
+            if (value) setCategory(PURCHASE_ALL_CATEGORY);
+          }}
         />
         <Box sx={styles.tabScroller}>
           <Tabs
-            activeId={category}
+            isScrollable
             items={categoryItems}
             mode={TAB_MODES.TABS}
             onChange={setCategory}
+            activeId={activeCategory}
             ariaLabel="קטגוריות חומרים"
             variant={TABS_VARIANTS.PILLS}
           />
         </Box>
+        {selectedLines.length > 0 && !state.pendingLineId && (
+          <Box sx={styles.selectionBar}>
+            <Typography role="status">נבחרו {selectedLines.length} חומרים</Typography>
+            <Button
+              text="לרכש קבוצתי"
+              variant={BUTTON_VARIANTS.SECONDARY}
+              onClick={() => {
+                reviewHeadingRef.current?.focus();
+                reviewHeadingRef.current?.scrollIntoView({ block: "center" });
+              }}
+            />
+            <Button
+              text="נקה בחירה"
+              onClick={state.clearSelection}
+              variant={BUTTON_VARIANTS.NEUTRAL}
+            />
+          </Box>
+        )}
+        {(inputLines.length > 0 || state.correctionLineId) && (
+          <Box sx={styles.reviewPanel}>
+            {state.correctionLineId ? (
+              <>
+                <Typography component="h3" sx={styles.heading}>
+                  תיקון סימון ״הוזמן״
+                </Typography>
+                <Typography variant="body2">
+                  הפעולה תחזיר את כל הכמות המוזמנת הפעילה בשורה לזמינה. היסטוריית ההזמנות תישמר.
+                </Typography>
+                <TextField
+                  isRequired
+                  title="סיבת התיקון"
+                  type={FIELD_TYPES.TEXT}
+                  value={state.correctionReason}
+                  onChange={state.setCorrectionReason}
+                />
+                <Box sx={styles.actions}>
+                  <Button
+                    text="שמור תיקון"
+                    isLoading={state.busy}
+                    onClick={state.correct}
+                    variant={BUTTON_VARIANTS.DANGER}
+                    disabled={state.busy || !state.correctionReason.trim()}
+                  />
+                  <Button
+                    text="ביטול"
+                    variant={BUTTON_VARIANTS.NEUTRAL}
+                    onClick={() => state.setCorrectionLineId(null)}
+                  />
+                </Box>
+              </>
+            ) : (
+              <>
+                <Typography tabIndex={-1} component="h3" sx={styles.heading} ref={reviewHeadingRef}>
+                  {state.pendingLineId
+                    ? "רישום הזמנה לחומר"
+                    : `רכש קבוצתי · ${selectedLines.length} שורות`}
+                </Typography>
+                {!state.pendingLineId && (
+                  <Typography variant="body2">
+                    {selectedLines.map(line => line.materialName).join(" · ")}
+                  </Typography>
+                )}
+                <Box sx={styles.formGrid}>
+                  <TextField
+                    title="ספק"
+                    type={FIELD_TYPES.TEXT}
+                    value={state.supplierName}
+                    onChange={state.setSupplierName}
+                  />
+                  <TextField
+                    title="תאריך הזמנה"
+                    type={FIELD_TYPES.DATE}
+                    value={state.orderDate}
+                    onChange={state.setOrderDate}
+                  />
+                  <TextField
+                    type={FIELD_TYPES.TEXT}
+                    value={state.onBehalfOf}
+                    title="עבור מי התבקשה הכמות"
+                    onChange={state.setOnBehalfOf}
+                  />
+                  <TextField
+                    type={FIELD_TYPES.TEXT}
+                    value={state.exceptionReason}
+                    title="סיבת חריגה מהכמות המתוכננת"
+                    onChange={state.setExceptionReason}
+                  />
+                </Box>
+                {inputLines.map(line => (
+                  <Box key={line.id} sx={styles.quantityEditor}>
+                    <Typography>
+                      {line.materialName} · זמין {formatPurchaseQuantity(line.remainingQuantity)}{" "}
+                      {line.materialUnit}
+                    </Typography>
+                    <TextField
+                      type={FIELD_TYPES.NUMBER}
+                      title={`כמות ${line.materialName}`}
+                      value={state.quantities[line.id] ?? ""}
+                      onChange={value =>
+                        state.setQuantities(current => ({ ...current, [line.id]: value }))
+                      }
+                    />
+                    <TextField
+                      type={FIELD_TYPES.NUMBER}
+                      value={state.unitCosts[line.id] ?? ""}
+                      title={`מחיר קנייה ליחידה ₪ · ${line.materialName} (אם ידוע)`}
+                      onChange={value =>
+                        state.setUnitCosts(current => ({ ...current, [line.id]: value }))
+                      }
+                    />
+                  </Box>
+                ))}
+                <TextField
+                  title="הערות"
+                  value={state.notes}
+                  type={FIELD_TYPES.TEXT}
+                  onChange={state.setNotes}
+                />
+                <Box sx={styles.actions}>
+                  {canRequest && !state.pendingLineId && (
+                    <Button
+                      disabled={state.busy}
+                      isLoading={state.busy}
+                      text="שמור בקשה ושמור כמות"
+                      variant={BUTTON_VARIANTS.SECONDARY}
+                      onClick={() => state.submit(PURCHASE_ACTION.REQUEST)}
+                    />
+                  )}
+                  {canOrder && (
+                    <Button
+                      text="רשום כהוזמן"
+                      disabled={state.busy}
+                      isLoading={state.busy}
+                      onClick={() => state.submit(PURCHASE_ACTION.ORDER)}
+                    />
+                  )}
+                  <Button
+                    text="ביטול"
+                    onClick={state.clearSelection}
+                    variant={BUTTON_VARIANTS.NEUTRAL}
+                  />
+                </Box>
+              </>
+            )}
+            {state.error && <InlineError message={state.error} />}
+          </Box>
+        )}
+
         {data.lines.length === 0 && <Typography>אין עדיין כתב רכש לפרויקט.</Typography>}
         {data.lines.length > 0 && visibleLines.length === 0 && (
           <Typography>לא נמצאו חומרים בקטגוריה או בחיפוש.</Typography>
@@ -116,9 +295,9 @@ const PurchaseWorkspace = ({ projectId }: IPurchaseWorkspaceProps) => {
         <Box
           role="tabpanel"
           sx={styles.lines}
-          aria-label={`חומרים בקטגוריה ${category === PURCHASE_ALL_CATEGORY ? "הכול" : category}`}
+          aria-label={`חומרים בקטגוריה ${activeCategory === PURCHASE_ALL_CATEGORY ? "הכול" : activeCategory}`}
         >
-          {visibleLines.map(line => (
+          {visibleRows.map(({ line, editorVersionKey }) => (
             <Box key={line.id} sx={styles.line}>
               <Box sx={styles.lineTitle}>
                 <Typography sx={styles.materialName}>{line.materialName}</Typography>
@@ -126,6 +305,11 @@ const PurchaseWorkspace = ({ projectId }: IPurchaseWorkspaceProps) => {
                   {line.materialCode}
                 </Typography>
                 <Typography variant="body2">{getPurchaseLineStatus(line)}</Typography>
+                {getPurchaseQuantityNote(line) && (
+                  <Typography variant="caption" color="warning.main">
+                    {getPurchaseQuantityNote(line)}
+                  </Typography>
+                )}
               </Box>
               <Box sx={styles.quantities}>
                 <Typography>
@@ -183,139 +367,33 @@ const PurchaseWorkspace = ({ projectId }: IPurchaseWorkspaceProps) => {
                   {line.systemTitle} · {line.componentTitle}
                 </Typography>
                 <Typography variant="body2">
-                  {line.materialSpecification || "אין מפרט נוסף"} · מקור: {line.sourceBasis}
+                  {line.materialSpecification || "אין מפרט נוסף"} · מקור:{" "}
+                  {getPurchaseSourceLabel(line)}
+                </Typography>
+                <Typography variant="body2">
+                  כמות מקור: {formatPurchaseQuantity(line.proposedQuantity)} {line.materialUnit} ·
+                  עלות משוערת ליחידה:{" "}
+                  {line.estimatedUnitCost === null
+                    ? "לא הוזנה"
+                    : `₪${formatPurchaseQuantity(line.estimatedUnitCost)}`}
                 </Typography>
                 {line.notes && <Typography variant="body2">הערה: {line.notes}</Typography>}
+                {canManageBoq && (
+                  <Box sx={styles.editorScroll}>
+                    <BoqLineEditor
+                      line={line}
+                      revision={boqRevision}
+                      key={editorVersionKey}
+                      canManage={canManageBoq}
+                      onSave={onUpdateBoqLine}
+                    />
+                  </Box>
+                )}
               </Box>
             </Box>
           ))}
         </Box>
       </Card>
-
-      {(inputLines.length > 0 || state.correctionLineId) && (
-        <Card>
-          {state.correctionLineId ? (
-            <>
-              <Typography component="h3" sx={styles.heading}>
-                תיקון סימון ״הוזמן״
-              </Typography>
-              <Typography variant="body2">
-                הפעולה תחזיר את כל הכמות המוזמנת הפעילה בשורה לזמינה. היסטוריית ההזמנות תישמר.
-              </Typography>
-              <TextField
-                isRequired
-                title="סיבת התיקון"
-                type={FIELD_TYPES.TEXT}
-                value={state.correctionReason}
-                onChange={state.setCorrectionReason}
-              />
-              <Box sx={styles.actions}>
-                <Button
-                  text="שמור תיקון"
-                  isLoading={state.busy}
-                  onClick={state.correct}
-                  variant={BUTTON_VARIANTS.DANGER}
-                  disabled={state.busy || !state.correctionReason.trim()}
-                />
-                <Button
-                  text="ביטול"
-                  variant={BUTTON_VARIANTS.NEUTRAL}
-                  onClick={() => state.setCorrectionLineId(null)}
-                />
-              </Box>
-            </>
-          ) : (
-            <>
-              <Typography component="h3" sx={styles.heading}>
-                {state.pendingLineId
-                  ? "רישום הזמנה לחומר"
-                  : `רכש קבוצתי · ${selectedLines.length} שורות`}
-              </Typography>
-              <Box sx={styles.formGrid}>
-                <TextField
-                  title="ספק"
-                  type={FIELD_TYPES.TEXT}
-                  value={state.supplierName}
-                  onChange={state.setSupplierName}
-                />
-                <TextField
-                  title="תאריך הזמנה"
-                  type={FIELD_TYPES.DATE}
-                  value={state.orderDate}
-                  onChange={state.setOrderDate}
-                />
-                <TextField
-                  type={FIELD_TYPES.TEXT}
-                  value={state.onBehalfOf}
-                  title="עבור מי התבקשה הכמות"
-                  onChange={state.setOnBehalfOf}
-                />
-                <TextField
-                  type={FIELD_TYPES.TEXT}
-                  value={state.exceptionReason}
-                  title="סיבת חריגה מהכמות המתוכננת"
-                  onChange={state.setExceptionReason}
-                />
-              </Box>
-              {inputLines.map(line => (
-                <Box key={line.id} sx={styles.quantityEditor}>
-                  <Typography>
-                    {line.materialName} · זמין {formatPurchaseQuantity(line.remainingQuantity)}{" "}
-                    {line.materialUnit}
-                  </Typography>
-                  <TextField
-                    type={FIELD_TYPES.NUMBER}
-                    title={`כמות ${line.materialName}`}
-                    value={state.quantities[line.id] ?? ""}
-                    onChange={value =>
-                      state.setQuantities(current => ({ ...current, [line.id]: value }))
-                    }
-                  />
-                  <TextField
-                    type={FIELD_TYPES.NUMBER}
-                    value={state.unitCosts[line.id] ?? ""}
-                    title={`מחיר קנייה ליחידה ₪ · ${line.materialName} (אם ידוע)`}
-                    onChange={value =>
-                      state.setUnitCosts(current => ({ ...current, [line.id]: value }))
-                    }
-                  />
-                </Box>
-              ))}
-              <TextField
-                title="הערות"
-                value={state.notes}
-                type={FIELD_TYPES.TEXT}
-                onChange={state.setNotes}
-              />
-              <Box sx={styles.actions}>
-                {canRequest && !state.pendingLineId && (
-                  <Button
-                    disabled={state.busy}
-                    isLoading={state.busy}
-                    text="שמור בקשה ושמור כמות"
-                    variant={BUTTON_VARIANTS.SECONDARY}
-                    onClick={() => state.submit(PURCHASE_ACTION.REQUEST)}
-                  />
-                )}
-                {canOrder && (
-                  <Button
-                    text="רשום כהוזמן"
-                    disabled={state.busy}
-                    isLoading={state.busy}
-                    onClick={() => state.submit(PURCHASE_ACTION.ORDER)}
-                  />
-                )}
-                <Button
-                  text="ביטול"
-                  onClick={state.clearSelection}
-                  variant={BUTTON_VARIANTS.NEUTRAL}
-                />
-              </Box>
-            </>
-          )}
-          {state.error && <InlineError message={state.error} />}
-        </Card>
-      )}
 
       <Card>
         <Typography component="h2" sx={styles.heading}>

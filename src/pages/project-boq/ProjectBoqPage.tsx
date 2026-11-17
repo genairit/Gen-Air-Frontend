@@ -5,7 +5,6 @@ import {
 } from "../../constants/project-boq.constant";
 
 import { useState } from "react";
-import BoqLineEditor from "./BoqLineEditor";
 import { useParams } from "react-router-dom";
 import Card from "../../components/Card/Card";
 import { usePageStyles } from "../page.style";
@@ -24,7 +23,7 @@ import LoadingState from "../../components/LoadingState/LoadingState";
 import { projectBoqService } from "../../services/project-boq.service";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { FIELD_TYPES } from "../../components/TextField/constants/textfield.constants";
-import type { IBoqLine, IBoqLineEdit, IBoqPreview } from "../../interfaces/project-boq.interface";
+import type { IBoqLineEdit, IBoqPreview } from "../../interfaces/project-boq.interface";
 
 const ProjectBoqPage = () => {
   const { projectId = "" } = useParams();
@@ -123,10 +122,6 @@ const ProjectBoqPage = () => {
   if (boq.isPending || project.isPending) return <LoadingState />;
   if (boq.error || project.error || !current)
     return <InlineError message={getApiErrorMessage(boq.error ?? project.error)} />;
-  const groups = current.lines.reduce<Record<string, IBoqLine[]>>((result, line) => {
-    const group = `${line.systemTitle} · ${line.componentTitle}`;
-    return { ...result, [group]: [...(result[group] ?? []), line] };
-  }, {});
   return (
     <Box sx={styles.page}>
       <Box sx={styles.header}>
@@ -156,7 +151,12 @@ const ProjectBoqPage = () => {
           </Typography>
         </Card>
       </Box>
-      <PurchaseWorkspace projectId={projectId} />
+      <PurchaseWorkspace
+        projectId={projectId}
+        canManageBoq={canManage}
+        onUpdateBoqLine={update}
+        boqRevision={current.revision}
+      />
       {canManage && (
         <Card>
           <Typography component="h2" sx={{ fontWeight: 700 }}>
@@ -252,32 +252,6 @@ const ProjectBoqPage = () => {
         </Card>
       )}
       {error && <InlineError message={error} />}
-      <Box sx={styles.stack({ gap: "16px" })}>
-        <Typography component="h2" sx={{ fontWeight: 700 }}>
-          חומרים נדרשים
-        </Typography>
-        {current.lines.length === 0 && (
-          <Typography>אין עדיין שורות. בחרו הצעה מאושרת ליצירת כתב רכש.</Typography>
-        )}
-        {Object.entries(groups).map(([group, lines]) => (
-          <Card key={group}>
-            <Typography component="h3" sx={{ fontWeight: 700 }}>
-              {group}
-            </Typography>
-            <Box sx={{ overflowX: "auto" }}>
-              {lines?.map(line => (
-                <BoqLineEditor
-                  line={line}
-                  onSave={update}
-                  canManage={canManage}
-                  revision={current.revision}
-                  key={`${line.id}:${current.revision}`}
-                />
-              ))}
-            </Box>
-          </Card>
-        ))}
-      </Box>
       {canManage && current.revision > 0 && (
         <Card>
           <Typography component="h2" sx={{ fontWeight: 700 }}>

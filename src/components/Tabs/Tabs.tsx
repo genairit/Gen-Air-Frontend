@@ -23,6 +23,7 @@ interface ITabsProps {
   ariaLabel?: string;
   mode?: TabsModeType;
   isFullWidth?: boolean;
+  isScrollable?: boolean;
   ref?: Ref<HTMLDivElement>;
   variant?: TabsVariantType;
   onChange: (id: string) => void;
@@ -38,6 +39,7 @@ const Tabs: FC<ITabsProps> = ({
   onChange,
   mode = TAB_MODES.FILTER,
   isFullWidth = false,
+  isScrollable = false,
   formatCount = String,
   variant = TABS_VARIANTS.SEGMENTED,
 }) => {
@@ -76,13 +78,13 @@ const Tabs: FC<ITabsProps> = ({
         ref={ref}
         aria-label={ariaLabel}
         role={isFilter ? "group" : "tablist"}
-        sx={styles.container({ variant, isFullWidth })}
+        sx={styles.container({ variant, isFullWidth, isScrollable })}
       >
         {items.map((item, index) => {
           const countLabel =
             typeof item.count === "number" ? formatCount(item.count) : (item.count ?? null);
           const isActive = item.id === activeId;
-          const tabStyles = styles.tab({ variant, isFullWidth });
+          const tabStyles = styles.tab({ variant, isFullWidth, isScrollable });
           const isRovingTab = isActive || (activeIndex < 0 && index === 0);
           const tabIndex = isFilter || isRovingTab ? 0 : -1;
           const buttonSemantics = isFilter

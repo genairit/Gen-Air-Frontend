@@ -12,6 +12,24 @@ export const purchaseWorkspaceStyles = {
   heading: { fontSize: "1.1rem", fontWeight: 700 },
   materialName: { fontWeight: 700 },
   tabScroller: { overflowX: "auto", maxWidth: "100%" },
+  selectionBar: {
+    display: "flex",
+    gap: "12px",
+    flexWrap: "wrap",
+    alignItems: "center",
+    paddingBlock: "10px",
+    position: "sticky",
+    top: 0,
+    zIndex: 3,
+    backgroundColor: theme.glass.strong,
+    borderBlockEnd: `1px solid ${theme.glass.border}`,
+  },
+  reviewPanel: {
+    display: "grid",
+    gap: "12px",
+    paddingBlock: "16px",
+    borderBlockEnd: `1px solid ${theme.glass.border}`,
+  },
   lines: { display: "grid", gap: 0 },
   line: {
     display: "grid",
@@ -27,8 +45,10 @@ export const purchaseWorkspaceStyles = {
   lineActions: { display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" },
   details: {
     gridColumn: "1 / -1",
+    minWidth: 0,
     "& summary": { cursor: "pointer", color: theme.palette.primary, fontWeight: 600 },
   },
+  editorScroll: { overflowX: "auto", maxWidth: "100%" },
   formGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",

@@ -1,3 +1,5 @@
+import { PROJECT_BOQ_BASIS, type ProjectBoqBasisType } from "./project-boq.constant";
+
 export const PURCHASE_RECORD_STATUS = {
   DRAFT: "draft",
   REQUESTED: "requested",
@@ -33,4 +35,17 @@ export const PURCHASE_RECORD_NEXT_STATUS: Record<
   [PURCHASE_RECORD_STATUS.APPROVED]: PURCHASE_RECORD_STATUS.ORDERED,
   [PURCHASE_RECORD_STATUS.ORDERED]: null,
   [PURCHASE_RECORD_STATUS.CANCELLED]: null,
+};
+export const PURCHASE_SOURCE_LABELS: Record<ProjectBoqBasisType, string> = {
+  [PROJECT_BOQ_BASIS.FIXED]: "לפי קטלוג",
+  [PROJECT_BOQ_BASIS.CONDITIONAL]: "תלוי פרויקט",
+  [PROJECT_BOQ_BASIS.MEASUREMENT]: "מדידה בפרויקט",
+  [PROJECT_BOQ_BASIS.MANUAL]: "נוסף ידנית",
+};
+
+export const PURCHASE_BASIS_NOTES: Record<ProjectBoqBasisType, string | null> = {
+  [PROJECT_BOQ_BASIS.FIXED]: null,
+  [PROJECT_BOQ_BASIS.CONDITIONAL]: "כמות מותנית בפרויקט",
+  [PROJECT_BOQ_BASIS.MEASUREMENT]: "כמות לפי מדידת פרויקט",
+  [PROJECT_BOQ_BASIS.MANUAL]: null,
 };
