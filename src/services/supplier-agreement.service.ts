@@ -1,3 +1,8 @@
+import {
+  normalizeSupplierInput,
+  normalizeAgreementInput,
+} from "../utilities/supplier-agreement.utility";
+
 import type {
   ISupplier,
   ISupplierInput,
@@ -17,11 +22,17 @@ export const supplierAgreementService = {
     return response.data;
   },
   async createSupplier(input: ISupplierInput): Promise<ISupplier> {
-    const response = await httpClient.post<ISupplier>(`${root}/suppliers`, input);
+    const response = await httpClient.post<ISupplier>(
+      `${root}/suppliers`,
+      normalizeSupplierInput(input),
+    );
     return response.data;
   },
   async updateSupplier(id: string, input: ISupplierInput): Promise<ISupplier> {
-    const response = await httpClient.patch<ISupplier>(`${root}/suppliers/${id}`, input);
+    const response = await httpClient.patch<ISupplier>(
+      `${root}/suppliers/${id}`,
+      normalizeSupplierInput(input),
+    );
     return response.data;
   },
   async agreements(projectId: string): Promise<ISupplierAgreement[]> {
@@ -29,7 +40,10 @@ export const supplierAgreementService = {
     return response.data;
   },
   async createAgreement(projectId: string, input: IAgreementInput): Promise<ISupplierAgreement> {
-    const response = await httpClient.post<ISupplierAgreement>(projectPath(projectId), input);
+    const response = await httpClient.post<ISupplierAgreement>(
+      projectPath(projectId),
+      normalizeAgreementInput(input),
+    );
     return response.data;
   },
   async updateAgreement(
@@ -39,7 +53,7 @@ export const supplierAgreementService = {
   ): Promise<ISupplierAgreement> {
     const response = await httpClient.patch<ISupplierAgreement>(
       `${projectPath(projectId)}/${id}`,
-      input,
+      normalizeAgreementInput(input),
     );
     return response.data;
   },

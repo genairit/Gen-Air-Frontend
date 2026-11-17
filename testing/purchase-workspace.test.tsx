@@ -10,6 +10,12 @@ import type {
   IPurchaseWorkspace,
 } from "../src/interfaces/purchase-record.interface";
 
+import {
+  matchingAgreement,
+  normalizeSupplierInput,
+  normalizeAgreementInput,
+} from "../src/utilities/supplier-agreement.utility";
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import Tabs from "../src/components/Tabs/Tabs";
@@ -24,7 +30,6 @@ import BoqLineEditor from "../src/pages/project-boq/BoqLineEditor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PurchaseWorkspace from "../src/pages/project-boq/PurchaseWorkspace";
 import { purchaseRecordService } from "../src/services/purchase-record.service";
-import { matchingAgreement } from "../src/utilities/supplier-agreement.utility";
 import { PURCHASE_RECORD_STATUS } from "../src/constants/purchase-record.constant";
 import { usePurchaseWorkspace } from "../src/pages/project-boq/usePurchaseWorkspace";
 import type { ISupplierAgreement } from "../src/interfaces/supplier-agreement.interface";
@@ -65,6 +70,34 @@ const initial: IPurchaseWorkspace = {
   history: [],
   nextCursor: null,
 };
+
+test("optional supplier contacts and agreement references submit as null when blank", () => {
+  assert.deepEqual(
+    normalizeSupplierInput({ name: " ספק ", contactName: " ", phone: "", email: " " }),
+    {
+      name: "ספק",
+      contactName: null,
+      phone: null,
+      email: null,
+    },
+  );
+  assert.deepEqual(
+    normalizeAgreementInput({
+      unitPrice: "12.5000",
+      currencyCode: "ILS",
+      agreedQuantity: "",
+      effectiveFrom: "",
+      effectiveThrough: "",
+    }),
+    {
+      unitPrice: "12.5000",
+      currencyCode: "ILS",
+      agreedQuantity: null,
+      effectiveFrom: null,
+      effectiveThrough: null,
+    },
+  );
+});
 
 test("approved request sends selected supplier agreement terms", async () => {
   const originalWorkspace = purchaseRecordService.workspace;

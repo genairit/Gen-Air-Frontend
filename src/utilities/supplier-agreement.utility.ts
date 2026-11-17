@@ -1,6 +1,22 @@
 import { todayDateInput } from "./date.utility";
 import type { ISupplierAgreement } from "../interfaces/supplier-agreement.interface";
+import type { ISupplierInput, IAgreementInput } from "../interfaces/supplier-agreement.interface";
 import type { IPurchaseLine, IPurchaseHistoryLine } from "../interfaces/purchase-record.interface";
+
+export const normalizeSupplierInput = (input: ISupplierInput): ISupplierInput => ({
+  ...input,
+  name: input.name.trim(),
+  contactName: input.contactName?.trim() || null,
+  phone: input.phone?.trim() || null,
+  email: input.email?.trim() || null,
+});
+
+export const normalizeAgreementInput = (input: IAgreementInput): IAgreementInput => ({
+  ...input,
+  agreedQuantity: input.agreedQuantity?.trim() || null,
+  effectiveFrom: input.effectiveFrom?.trim() || null,
+  effectiveThrough: input.effectiveThrough?.trim() || null,
+});
 
 export const matchingAgreement = (
   agreements: ISupplierAgreement[],
