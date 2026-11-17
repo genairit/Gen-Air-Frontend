@@ -1,11 +1,22 @@
 import {
+  PROJECT_BOQ_BASIS,
+  PROJECT_BOQ_REVIEW,
+  type ProjectBoqBasisType,
+} from "../constants/project-boq.constant";
+
+import {
+  PURCHASE_BASIS_NOTES,
   PURCHASE_ALL_CATEGORY,
   PURCHASE_RECORD_STATUS,
+  PURCHASE_SOURCE_LABELS,
   type TPurchaseRecordStatus,
 } from "../constants/purchase-record.constant";
 
 import Decimal from "decimal.js";
 import type { IPurchaseLine } from "../interfaces/purchase-record.interface";
+
+const isProjectBoqBasis = (value: string): value is ProjectBoqBasisType =>
+  Object.values(PROJECT_BOQ_BASIS).some(basis => basis === value);
 
 export const formatPurchaseQuantity = (value: string | null): string => {
   if (value === null) {
@@ -34,6 +45,34 @@ export const getPurchaseLineStatus = (line: IPurchaseLine): string => {
   }
 
   return "הוזמן חלקית";
+};
+
+export const getPurchaseQuantityNote = (line: IPurchaseLine): string | null => {
+  if (line.requiredQuantity === null) {
+    return "כמות נדרשת טרם נקבעה";
+  }
+
+  if (line.reviewState !== PROJECT_BOQ_REVIEW.CONFIRMED) {
+    return "כמות ממתינה לאישור";
+  }
+
+  if (line.quantityOverridden) {
+    return "כמות עודכנה ידנית";
+  }
+
+  if (!isProjectBoqBasis(line.sourceBasis)) {
+    return null;
+  }
+
+  return PURCHASE_BASIS_NOTES[line.sourceBasis];
+};
+
+export const getPurchaseSourceLabel = (line: IPurchaseLine): string => {
+  if (!isProjectBoqBasis(line.sourceBasis)) {
+    return "מקור לא מזוהה";
+  }
+
+  return PURCHASE_SOURCE_LABELS[line.sourceBasis];
 };
 
 export const matchesPurchaseLine = (
