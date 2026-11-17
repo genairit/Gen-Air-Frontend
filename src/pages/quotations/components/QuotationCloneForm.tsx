@@ -6,10 +6,10 @@ import {
 
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import { isAxiosError } from "axios";
 import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
-import { Box, MenuItem } from "@mui/material";
 import QuotationInput from "./QuotationInput";
 import { useNavigate } from "react-router-dom";
 import QuotationSelect from "./QuotationSelect";
@@ -98,15 +98,14 @@ const CloneLinePicker: FC<{
         onChange={event =>
           onChange(shownChoices.find(item => item.id === event.target.value) ?? null)
         }
-      >
-        <MenuItem value="">בחר חלופה לאחר בדיקה</MenuItem>
-        {shownChoices.map(item => (
-          <MenuItem key={item.id} value={item.id}>
-            {item.sku} · {item.description} · ₪{item.price}
-            {item.capacityBtu ? ` · ${item.capacityBtu} BTU` : ""}
-          </MenuItem>
-        ))}
-      </QuotationSelect>
+        items={[
+          { value: "", label: "בחר חלופה לאחר בדיקה" },
+          ...shownChoices.map(item => ({
+            value: item.id,
+            label: `${item.sku} · ${item.description} · ₪${item.price}${item.capacityBtu ? ` · ${item.capacityBtu} BTU` : ""}`,
+          })),
+        ]}
+      />
       <Box sx={QUOTATION_CLONE_STYLES.feedback}>
         {suggested && (
           <>
@@ -243,14 +242,14 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
           setTargetBrand(event.target.value);
           setSelected({});
         }}
-      >
-        <MenuItem value="">בחר חברה</MenuItem>
-        {QUOTATION_BRANDS.filter(brand => brand !== source.data.brands[0]).map(brand => (
-          <MenuItem key={brand} value={brand}>
-            {brand}
-          </MenuItem>
-        ))}
-      </QuotationSelect>
+        items={[
+          { value: "", label: "בחר חברה" },
+          ...QUOTATION_BRANDS.filter(brand => brand !== source.data.brands[0]).map(brand => ({
+            value: brand,
+            label: brand,
+          })),
+        ]}
+      />
       {sourceItems.some(result => result.isPending) && (
         <Box component="p" role="status">
           בודק פריטי מקור...

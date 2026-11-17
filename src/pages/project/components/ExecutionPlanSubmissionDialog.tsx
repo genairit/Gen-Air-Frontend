@@ -6,17 +6,21 @@ import {
 
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import Button from "../../../components/Button/Button";
-import { Box, MenuItem, TextField } from "@mui/material";
 import CheckBox from "../../../components/CheckBox/CheckBox";
+import TextField from "../../../components/TextField/TextField";
 import InlineError from "../../../components/InlineError/InlineError";
+import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { IProjectFile } from "../../../interfaces/project.interface";
 import { EXECUTION_PLAN_COPY } from "../../../constants/execution-plan.constant";
 import { useProjectQuotationsQuery } from "../../../hooks/queries/quotation.query";
+import { validateFreeText } from "../../../utilities/validators/free-text.validator";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import type { IExecutionPlanSubmission } from "../../../interfaces/execution-plan.interface";
 import { useExecutionPlanDraftForFileQuery } from "../../../hooks/queries/execution-plan.query";
 
@@ -101,19 +105,17 @@ const ExecutionPlanSubmissionDialog: FC<IExecutionPlanSubmissionDialogProps> = (
               {quotationsQuery.isSuccess && quotations.length === 0 && (
                 <Box component="p">{EXECUTION_PLAN_COPY.NO_QUOTATIONS}</Box>
               )}
-              <TextField
-                select
-                fullWidth
-                label={EXECUTION_PLAN_COPY.SELECT_QUOTATION}
-                value={quotationId}
-                onChange={event => setQuotationId(event.target.value)}
-              >
-                {quotations.map(quotation => (
-                  <MenuItem key={quotation.id} value={quotation.id}>
-                    {quotation.number} · {quotation.customerName ?? quotation.projectName}
-                  </MenuItem>
-                ))}
-              </TextField>
+              <Autocomplete
+                title={EXECUTION_PLAN_COPY.SELECT_QUOTATION}
+                value={quotationId || null}
+                isAutocomplete={false}
+                isLoading={quotationsQuery.isPending}
+                items={quotations.map(quotation => ({
+                  value: quotation.id,
+                  label: `${quotation.number} · ${quotation.customerName ?? quotation.projectName}`,
+                }))}
+                onChange={value => setQuotationId(value ?? "")}
+              />
               {quotationsQuery.hasNextPage && (
                 <Button
                   text="טען הצעות נוספות"
@@ -124,10 +126,11 @@ const ExecutionPlanSubmissionDialog: FC<IExecutionPlanSubmissionDialogProps> = (
                 />
               )}
               <TextField
-                fullWidth
-                label={EXECUTION_PLAN_COPY.PLAN_VERSION}
+                type={FIELD_TYPES.TEXT}
+                validator={validateFreeText}
+                title={EXECUTION_PLAN_COPY.PLAN_VERSION}
                 value={planVersion}
-                onChange={event => setPlanVersion(event.target.value)}
+                onChange={setPlanVersion}
               />
             </>
           )}

@@ -4,11 +4,12 @@ import {
 } from "../../../utilities/quotation.utility";
 
 import type { FC } from "react";
+import { Box } from "@mui/material";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationSelect from "./QuotationSelect";
-import { MenuItem, Box, Checkbox } from "@mui/material";
 import QuotationDecimalInput from "./QuotationDecimalInput";
+import CheckBox from "../../../components/CheckBox/CheckBox";
 import { CONTROL_KIND } from "../../../constants/quotation.constant";
 import { quotationLineMoney } from "../../../utilities/quotation.utility";
 import type { IQuotationLine } from "../../../interfaces/quotation.interface";
@@ -35,9 +36,14 @@ const QuotationLinkedControl: FC<IQuotationLinkedControlProps> = ({
 
   return (
     <Box className={styles.linkedControl}>
-      <Box component="label" className={styles.linkedToggle}>
-        <Checkbox checked disabled={disabled} onChange={onRemove} aria-label={`הסר ${kind}`} />
-        {kind}
+      <Box className={styles.linkedToggle}>
+        <CheckBox
+          value
+          text={kind}
+          disabled={disabled}
+          onChange={onRemove}
+          ariaLabel={`הסר ${kind}`}
+        />
       </Box>
       <QuotationInput
         maxLength={1000}
@@ -67,14 +73,11 @@ const QuotationLinkedControl: FC<IQuotationLinkedControlProps> = ({
             reparentQuotationControl({ line, items, parentItemId: event.target.value || null }),
           )
         }
-      >
-        <MenuItem value="">פריט נפרד</MenuItem>
-        {parents.map(parent => (
-          <MenuItem key={parent.id} value={parent.id}>
-            {parent.location || parent.sku}
-          </MenuItem>
-        ))}
-      </QuotationSelect>
+        items={[
+          { value: "", label: "פריט נפרד" },
+          ...parents.map(parent => ({ value: parent.id, label: parent.location || parent.sku })),
+        ]}
+      />
     </Box>
   );
 };

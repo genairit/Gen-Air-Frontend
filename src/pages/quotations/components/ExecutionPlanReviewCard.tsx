@@ -11,20 +11,23 @@ import {
 
 import type { FC } from "react";
 import { useState } from "react";
-import { Box, TextField } from "@mui/material";
+import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useSessionUser } from "../../../store/session.store";
+import TextField from "../../../components/TextField/TextField";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { validateFreeText } from "../../../utilities/validators/free-text.validator";
 import { buildApartmentPath, buildProjectPath } from "../../../utilities/route.utility";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import type { IExecutionPlanSubmission } from "../../../interfaces/execution-plan.interface";
 import { useQuotationExecutionPlansQuery } from "../../../hooks/queries/execution-plan.query";
 
@@ -100,12 +103,13 @@ const ExecutionPlanReviewRow: FC<IExecutionPlanReviewRowProps> = ({ submission, 
       {canReview && (
         <Box sx={{ display: "grid", gap: "12px" }}>
           <TextField
-            fullWidth
             multiline
             minRows={2}
             value={comment}
-            label={EXECUTION_PLAN_COPY.RETURN_COMMENT}
-            onChange={event => setComment(event.target.value)}
+            onChange={setComment}
+            type={FIELD_TYPES.TEXT}
+            validator={validateFreeText}
+            title={EXECUTION_PLAN_COPY.RETURN_COMMENT}
           />
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             <Button

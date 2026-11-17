@@ -777,7 +777,7 @@ test("linked controller reassignment inherits parent quantity and removal stays 
 });
 
 test("direct customer search keeps an unloaded selection and selects duplicate names by identifier", async () => {
-  const { Autocomplete } = await import("@mui/material");
+  const { default: Autocomplete } = await import("../src/components/Autocomplete/Autocomplete");
   const { SEARCH_DEBOUNCE_MS } = await import("../src/constants/search.constant");
   const { default: QuotationCustomerPicker } =
     await import("../src/pages/quotations/components/QuotationCustomerPicker");
@@ -787,7 +787,7 @@ test("direct customer search keeps an unloaded selection and selects duplicate n
     { id: "second-match", name: "שם זהה" },
   ];
   const customers = mock.method(customerService, "getByFilter", async query =>
-    query.search ? choices : [],
+    query.search === "שם זהה" ? choices : [],
   );
   const customer = mock.method(customerService, "getById", async () => selected);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
@@ -813,45 +813,28 @@ test("direct customer search keeps an unloaded selection and selects duplicate n
       await settle(30);
     });
     assert.equal(root().findAllByType("details").length, 0);
-    assert.equal(root().findAllByType("input").length, 1);
-    assert.equal(autocomplete().props.value.id, selected.id);
-    assert.equal(autocomplete().props.value.name, selected.name);
-    assert.equal(autocomplete().props.disableClearable, true);
-    await act(async () => {
-      autocomplete().props.onInputChange(null, "שם זהה", "input");
+    assert.equal(root().findAllByType("select").length, 1);
+    assert.equal(autocomplete().props.value, selected.id);
+    assert.deepEqual(autocomplete().props.selectedItem, {
+      value: selected.id,
+      label: selected.name,
     });
-    await act(async () => {
-      await settle(SEARCH_DEBOUNCE_MS + 30);
-    });
-    await act(async () => {
-      await settle(30);
-    });
+    assert.equal(autocomplete().props.isClearable, false);
+    assert.equal(autocomplete().props.isClientFiltered, false);
+    await act(async () => autocomplete().props.onSearch("שם זהה"));
+    await act(async () => settle(SEARCH_DEBOUNCE_MS + 30));
+    await act(async () => settle(30));
     assert.equal(customers.mock.calls.at(-1)!.arguments[0].search, "שם זהה");
-    assert.deepEqual(autocomplete().props.options, choices);
-    assert.equal(autocomplete().props.value.id, selected.id);
-    assert.equal(autocomplete().props.value.name, selected.name);
-    assert.equal(autocomplete().props.isOptionEqualToValue(choices[0], choices[1]), false);
-    assert.equal(autocomplete().props.inputValue, "שם זהה");
-    assert.equal(autocomplete().props.getOptionKey(choices[0]), choices[0].id);
-    assert.equal(autocomplete().props.getOptionKey(choices[1]), choices[1].id);
-    const queryCount = customers.mock.callCount();
-    await act(async () => {
-      autocomplete().props.onInputChange(null, selected.name, "reset");
-      await settle(SEARCH_DEBOUNCE_MS + 30);
-    });
-    assert.equal(customers.mock.callCount(), queryCount);
-    assert.equal(autocomplete().props.inputValue, "שם זהה");
-    await act(async () => {
-      autocomplete().props.onClose();
-    });
-    assert.equal(autocomplete().props.inputValue, selected.name);
-    await act(async () => {
-      await settle(SEARCH_DEBOUNCE_MS + 30);
-    });
-    assert.equal(customers.mock.calls.at(-1)!.arguments[0].search, "");
-    await act(async () => {
-      autocomplete().props.onChange(null, choices[1]);
-    });
+    assert.deepEqual(autocomplete().props.items, [
+      { value: choices[0].id, label: choices[0].name },
+      { value: choices[1].id, label: choices[1].name },
+    ]);
+    await act(async () => autocomplete().props.onSearch("אין תוצאות"));
+    await act(async () => settle(SEARCH_DEBOUNCE_MS + 30));
+    await act(async () => settle(30));
+    assert.deepEqual(autocomplete().props.items, []);
+    assert.equal(autocomplete().props.value, selected.id);
+    await act(async () => autocomplete().props.onChange(choices[1].id));
     assert.deepEqual(selectedIds, [choices[1].id]);
     assert.deepEqual(selected, { id: "selected-customer", name: "לקוח קיים" });
   } finally {
@@ -864,13 +847,15 @@ test("direct customer search keeps an unloaded selection and selects duplicate n
 });
 
 test("direct project search stays customer-scoped, retains the selected name and permits clearing", async () => {
-  const { Autocomplete } = await import("@mui/material");
+  const { default: Autocomplete } = await import("../src/components/Autocomplete/Autocomplete");
   const { SEARCH_DEBOUNCE_MS } = await import("../src/constants/search.constant");
   const { default: QuotationProjectPicker } =
     await import("../src/pages/quotations/components/QuotationProjectPicker");
   const selected = { id: "selected-project", name: "פרויקט מקושר מחוץ לתוצאות" };
   const other = { id: "other-project", name: "פרויקט אחר" };
-  const projects = mock.method(quotationService, "projectChoices", async () => [other]);
+  const projects = mock.method(quotationService, "projectChoices", async (_customerId, search) =>
+    search === "פרויקט אחר" ? [other] : [],
+  );
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   const selectedIds: (string | null)[] = [];
   const state = { renderer: null as ReturnType<typeof create> | null };
@@ -891,30 +876,27 @@ test("direct project search stays customer-scoped, retains the selected name and
       );
     });
     assert.equal(root().findAllByType("details").length, 0);
-    assert.equal(root().findAllByType("input").length, 1);
-    assert.equal(autocomplete().props.value.id, selected.id);
-    assert.equal(autocomplete().props.value.name, selected.name);
-    assert.equal(autocomplete().props.disableClearable, false);
-    await act(async () => {
-      autocomplete().props.onInputChange(null, "פרויקט אחר", "input");
+    assert.equal(root().findAllByType("select").length, 1);
+    assert.equal(autocomplete().props.value, selected.id);
+    assert.deepEqual(autocomplete().props.selectedItem, {
+      value: selected.id,
+      label: selected.name,
     });
-    await act(async () => {
-      await settle(SEARCH_DEBOUNCE_MS + 30);
-    });
+    assert.equal(autocomplete().props.isClearable, true);
+    assert.equal(autocomplete().props.isClientFiltered, false);
+    await act(async () => autocomplete().props.onSearch("פרויקט אחר"));
+    await act(async () => settle(SEARCH_DEBOUNCE_MS + 30));
     assert.deepEqual(projects.mock.calls.at(-1)!.arguments, ["customer-scope", "פרויקט אחר"]);
-    assert.equal(autocomplete().props.value.name, selected.name);
-    assert.equal(autocomplete().props.inputValue, "פרויקט אחר");
+    await act(async () => settle(30));
+    assert.deepEqual(autocomplete().props.items, [{ value: other.id, label: other.name }]);
+    await act(async () => autocomplete().props.onSearch("אין תוצאות"));
+    await act(async () => settle(SEARCH_DEBOUNCE_MS + 30));
+    await act(async () => settle(30));
+    assert.deepEqual(autocomplete().props.items, []);
+    assert.equal(autocomplete().props.value, selected.id);
     await act(async () => {
-      autocomplete().props.onInputChange(null, selected.name, "reset");
-    });
-    assert.equal(autocomplete().props.inputValue, "פרויקט אחר");
-    await act(async () => {
-      autocomplete().props.onClose();
-    });
-    assert.equal(autocomplete().props.inputValue, selected.name);
-    await act(async () => {
-      autocomplete().props.onChange(null, other);
-      autocomplete().props.onChange(null, null);
+      autocomplete().props.onChange(other.id);
+      autocomplete().props.onChange(null);
     });
     assert.deepEqual(selectedIds, [other.id, null]);
   } finally {
@@ -1176,7 +1158,7 @@ test("delete confirmation supports cancel, retry and reload while blocking pendi
 });
 
 test("sales-agent picker selects and clears an eligible user", async () => {
-  const { Autocomplete } = await import("@mui/material");
+  const { default: Autocomplete } = await import("../src/components/Autocomplete/Autocomplete");
   setSalesAgentTestSession();
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   client.setQueryData(salesAgentTestQueryKey, [
@@ -1197,18 +1179,15 @@ test("sales-agent picker selects and clears an eligible user", async () => {
       );
     });
     const picker = () => state.renderer!.root.findByType(Autocomplete);
-    assert.equal(picker().props.disableClearable, false);
-    assert.deepEqual(picker().props.options, [{ id: "agent-1", name: "Dana Cohen · 007" }]);
-    await act(async () => picker().props.onInputChange(null, "007", "input"));
-    assert.deepEqual(picker().props.options, [{ id: "agent-1", name: "Dana Cohen · 007" }]);
-    await act(async () => picker().props.onInputChange(null, "missing", "input"));
-    assert.deepEqual(picker().props.options, []);
-    await act(async () => picker().props.onInputChange(null, "007", "input"));
-    assert.deepEqual(picker().props.options, [{ id: "agent-1", name: "Dana Cohen · 007" }]);
-    await act(async () =>
-      picker().props.onChange(null, { id: "agent-1", name: "Dana Cohen · 007" }),
-    );
-    await act(async () => picker().props.onChange(null, null));
+    assert.equal(picker().props.isClearable, true);
+    assert.deepEqual(picker().props.items, [{ value: "agent-1", label: "Dana Cohen · 007" }]);
+    await act(async () => picker().props.onSearch("007"));
+    assert.deepEqual(picker().props.items, [{ value: "agent-1", label: "Dana Cohen · 007" }]);
+    await act(async () => picker().props.onSearch("missing"));
+    assert.deepEqual(picker().props.items, []);
+    await act(async () => picker().props.onSearch("007"));
+    await act(async () => picker().props.onChange("agent-1"));
+    await act(async () => picker().props.onChange(null));
 
     assert.deepEqual(selected, ["agent-1", null]);
   } finally {
@@ -1219,7 +1198,7 @@ test("sales-agent picker selects and clears an eligible user", async () => {
 });
 
 test("sales-agent picker keeps an unavailable historical employee name visible", async () => {
-  const { Autocomplete } = await import("@mui/material");
+  const { default: Autocomplete } = await import("../src/components/Autocomplete/Autocomplete");
   setSalesAgentTestSession();
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: 0, staleTime: Infinity } },
@@ -1240,7 +1219,12 @@ test("sales-agent picker keeps an unavailable historical employee name visible",
       );
     });
     const picker = state.renderer!.root.findByType(Autocomplete);
-    assert.equal(picker.props.value.name, "Neta Levi · 008 · לא זמין");
+    assert.equal(picker.props.value, "former-agent");
+    assert.deepEqual(picker.props.items, []);
+    assert.deepEqual(picker.props.selectedItem, {
+      value: "former-agent",
+      label: "Neta Levi · 008 · לא זמין",
+    });
   } finally {
     await act(async () => state.renderer?.unmount());
     client.clear();
@@ -1249,7 +1233,7 @@ test("sales-agent picker keeps an unavailable historical employee name visible",
 });
 
 test("sales-agent picker does not query employees without employee read access", async () => {
-  const { Autocomplete } = await import("@mui/material");
+  const { default: Autocomplete } = await import("../src/components/Autocomplete/Autocomplete");
   setSalesAgentTestSession([PERMISSIONS.QUOTATIONS_READ]);
   const salesAgents = mock.method(quotationService, "salesAgents", async () => []);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
@@ -1269,7 +1253,12 @@ test("sales-agent picker does not query employees without employee read access",
     });
     const picker = state.renderer!.root.findByType(Autocomplete);
     assert.equal(picker.props.disabled, true);
-    assert.equal(picker.props.value.name, "Neta Levi · 008");
+    assert.equal(picker.props.value, "former-agent");
+    assert.deepEqual(picker.props.items, []);
+    assert.deepEqual(picker.props.selectedItem, {
+      value: "former-agent",
+      label: "Neta Levi · 008",
+    });
     assert.equal(salesAgents.mock.callCount(), 0);
   } finally {
     await act(async () => state.renderer?.unmount());
@@ -1280,7 +1269,7 @@ test("sales-agent picker does not query employees without employee read access",
 });
 
 test("approved quotation assignment and clearing use the agent-only update", async () => {
-  const { Autocomplete } = await import("@mui/material");
+  const { default: Autocomplete } = await import("../src/components/Autocomplete/Autocomplete");
   setSalesAgentTestSession();
   const quotation = { ...quotationFixture(), status: "approved" as const };
   const customerList = mock.method(customerService, "getByFilter", async () => []);
@@ -1331,9 +1320,7 @@ test("approved quotation assignment and clearing use the agent-only update", asy
     const agentPicker = () =>
       state.renderer!.root.findByType(QuotationSalesAgentPicker).findByType(Autocomplete);
     assert.equal(agentPicker().props.disabled, false);
-    await act(async () =>
-      agentPicker().props.onChange(null, { id: "agent-1", name: "Dana Cohen · 007" }),
-    );
+    await act(async () => agentPicker().props.onChange("agent-1"));
     await act(async () => {
       await settle(0);
     });
@@ -1342,12 +1329,12 @@ test("approved quotation assignment and clearing use the agent-only update", asy
       version: 1,
       salesAgentId: "agent-1",
     });
-    assert.equal(agentPicker().props.value.name, "Dana Cohen · 007");
+    assert.equal(agentPicker().props.value, "agent-1");
     assert.equal(
       state.renderer!.root.findByType(QuotationSummary).props.quotation.salesAgentId,
       "agent-1",
     );
-    await act(async () => agentPicker().props.onChange(null, null));
+    await act(async () => agentPicker().props.onChange(null));
     await act(async () => {
       await settle(0);
     });

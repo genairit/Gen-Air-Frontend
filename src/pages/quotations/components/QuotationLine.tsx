@@ -3,11 +3,18 @@ import {
   reparentQuotationControl,
 } from "../../../utilities/quotation.utility";
 
+import {
+  BUTTON_SIZES,
+  BUTTON_SHAPES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
+import { Box } from "@mui/material";
 import type { FC, ReactNode } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationSelect from "./QuotationSelect";
-import { Box, MenuItem, IconButton } from "@mui/material";
+import Button from "../../../components/Button/Button";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import QuotationAccessoryLine from "./QuotationAccessoryLine";
 import { EQUIPMENT_ROLE } from "../../../constants/quotation.constant";
@@ -105,13 +112,8 @@ const QuotationLine: FC<IQuotationLineProps> = ({
             disabled={disabled}
             value={line.circuit ?? QUOTATION_DEFAULTS.CIRCUIT}
             onChange={event => onChange({ ...line, circuit: event.target.value })}
-          >
-            {QUOTATION_CIRCUITS.map(circuit => (
-              <MenuItem key={circuit} value={circuit}>
-                {circuit}
-              </MenuItem>
-            ))}
-          </QuotationSelect>
+            items={QUOTATION_CIRCUITS.map(circuit => ({ value: circuit, label: circuit }))}
+          />
         )}
       </Box>
       <Box component="div" className={styles.lineQuantity}>
@@ -147,14 +149,15 @@ const QuotationLine: FC<IQuotationLineProps> = ({
         {amount}
       </Box>
       {!disabled && (
-        <IconButton
-          title="הסר שורה"
+        <Button
+          text="×"
           onClick={onRemove}
-          aria-label="הסר שורה"
-          className={styles.removeLine}
-        >
-          ×
-        </IconButton>
+          ariaLabel="הסר שורה"
+          size={BUTTON_SIZES.COMPACT}
+          sx={{ gridArea: "remove" }}
+          shape={BUTTON_SHAPES.CIRCLE}
+          variant={BUTTON_VARIANTS.DANGER}
+        />
       )}
       {isControl && (
         <QuotationSelect
@@ -166,14 +169,11 @@ const QuotationLine: FC<IQuotationLineProps> = ({
               reparentQuotationControl({ line, items, parentItemId: event.target.value || null }),
             )
           }
-        >
-          <MenuItem value="">פריט נפרד</MenuItem>
-          {parents.map(parent => (
-            <MenuItem key={parent.id} value={parent.id}>
-              {parent.location || parent.sku}
-            </MenuItem>
-          ))}
-        </QuotationSelect>
+          items={[
+            { value: "", label: "פריט נפרד" },
+            ...parents.map(parent => ({ value: parent.id, label: parent.location || parent.sku })),
+          ]}
+        />
       )}
       {children && (
         <Box component="div" className={styles.lineControls}>

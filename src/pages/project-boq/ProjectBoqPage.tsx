@@ -8,12 +8,13 @@ import { useState } from "react";
 import { useParams } from "react-router-dom";
 import Card from "../../components/Card/Card";
 import { usePageStyles } from "../page.style";
+import { Box, Typography } from "@mui/material";
 import PurchaseWorkspace from "./PurchaseWorkspace";
 import Button from "../../components/Button/Button";
 import { useSessionUser } from "../../store/session.store";
 import TextField from "../../components/TextField/TextField";
+import DetailTile from "../../components/DetailTile/DetailTile";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Box, MenuItem, Select, Typography } from "@mui/material";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import InlineError from "../../components/InlineError/InlineError";
 import { hasPermission } from "../../utilities/permission.utility";
@@ -134,23 +135,23 @@ const ProjectBoqPage = () => {
           </Typography>
         </Box>
       </Box>
-      <Box sx={styles.grid({ minColumnWidth: 220 })}>
-        <Card>
-          <Typography sx={{ fontWeight: 700 }}>מקור התכנון</Typography>
-          <Typography>
-            {current.sourceQuotationNumber
-              ? `הצעה ${current.sourceQuotationNumber} · גרסה ${current.sourceQuotationVersion}`
-              : "טרם נבחרה הצעה"}
-          </Typography>
-        </Card>
-        <Card>
-          <Typography sx={{ fontWeight: 700 }}>עלות משוערת חלקית</Typography>
-          <Typography>₪{Number(current.estimatedTotal).toLocaleString("he-IL")}</Typography>
-          <Typography variant="caption">
-            {current.missingCostCount} שורות ללא עלות; {current.unresolvedCount} שורות דורשות בדיקה
-          </Typography>
-        </Card>
-      </Box>
+      <Card>
+        <Box sx={styles.grid({ minColumnWidth: 220 })}>
+          <DetailTile
+            label="מקור התכנון"
+            value={
+              current.sourceQuotationNumber
+                ? `הצעה ${current.sourceQuotationNumber} · גרסה ${current.sourceQuotationVersion}`
+                : "טרם נבחרה הצעה"
+            }
+          />
+          <DetailTile
+            label="עלות משוערת חלקית"
+            value={`₪${Number(current.estimatedTotal).toLocaleString("he-IL")}`}
+            note={`${current.missingCostCount} שורות ללא עלות · ${current.unresolvedCount} שורות דורשות בדיקה`}
+          />
+        </Box>
+      </Card>
       <PurchaseWorkspace
         projectId={projectId}
         canManageBoq={canManage}
@@ -166,24 +167,21 @@ const ProjectBoqPage = () => {
             בחרו הצעה אחת המקושרת לפרויקט. דירות אינן מצורפות אוטומטית.
           </Typography>
           <Box sx={styles.row({ gap: "12px" })}>
-            <Select
-              size="small"
-              displayEmpty
-              value={sourceId}
-              sx={{ minWidth: 260 }}
-              inputProps={{ "aria-label": "בחר הצעת מחיר מאושרת" }}
-              onChange={event => {
-                setSourceId(event.target.value);
+            <Autocomplete
+              isAutocomplete={false}
+              title="הצעת מחיר מאושרת"
+              value={sourceId || null}
+              isLoading={sources.isPending}
+              placeholder="בחר הצעה מאושרת"
+              onChange={value => {
+                setSourceId(value ?? "");
                 setPreview(null);
               }}
-            >
-              <MenuItem value="">בחר הצעה מאושרת</MenuItem>
-              {(sources.data ?? []).map(source => (
-                <MenuItem key={source.id} value={source.id}>
-                  {source.number} · גרסה {source.version}
-                </MenuItem>
-              ))}
-            </Select>
+              items={(sources.data ?? []).map(source => ({
+                value: source.id,
+                label: `${source.number} · גרסה ${source.version}`,
+              }))}
+            />
             <Button
               isLoading={busy}
               text="הצג שינויים"
@@ -311,23 +309,16 @@ const ProjectBoqPage = () => {
           <Typography component="h2" sx={{ fontWeight: 700 }}>
             גרסאות כתב הרכש
           </Typography>
-          <Select
-            size="small"
-            displayEmpty
-            sx={{ maxWidth: 220 }}
-            value={historyRevision}
-            inputProps={{ "aria-label": "בחר גרסה קודמת" }}
-            onChange={event => setHistoryRevision(Number(event.target.value))}
-          >
-            <MenuItem value={0}>בחר גרסה לצפייה</MenuItem>
-            {Array.from({ length: current.revision }, (_, index) => index + 1)
+          <Autocomplete
+            title="גרסת כתב רכש"
+            isAutocomplete={false}
+            placeholder="בחר גרסה לצפייה"
+            value={historyRevision ? String(historyRevision) : null}
+            onChange={value => setHistoryRevision(value ? Number(value) : 0)}
+            items={Array.from({ length: current.revision }, (_, index) => index + 1)
               .reverse()
-              .map(revision => (
-                <MenuItem key={revision} value={revision}>
-                  גרסה {revision}
-                </MenuItem>
-              ))}
-          </Select>
+              .map(revision => ({ value: String(revision), label: `גרסה ${revision}` }))}
+          />
           {history.isFetching && <LoadingState />}
           {history.error && <InlineError message={getApiErrorMessage(history.error)} />}
           {history.data && (

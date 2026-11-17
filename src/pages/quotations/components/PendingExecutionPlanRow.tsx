@@ -1,6 +1,7 @@
 import type { FC } from "react";
+import { Box } from "@mui/material";
 import styles from "../quotation.module.css";
-import { Box, ButtonBase } from "@mui/material";
+import ChoiceRow from "../../../components/ChoiceRow/ChoiceRow";
 import { getTableRowSurfaceStyle } from "../../../components/DataTable/DataTable.style";
 import type { IExecutionPlanSubmission } from "../../../interfaces/execution-plan.interface";
 
@@ -19,7 +20,7 @@ const PendingExecutionPlanRow: FC<IPendingExecutionPlanRowProps> = ({
     submissions.find(submission => submission.quotation != null)?.quotation?.number ?? quotationId;
 
   return (
-    <ButtonBase
+    <ChoiceRow
       onClick={onOpen}
       className={styles.quoteRow}
       sx={{
@@ -63,7 +64,7 @@ const PendingExecutionPlanRow: FC<IPendingExecutionPlanRowProps> = ({
           </Box>
         );
       })}
-    </ButtonBase>
+    </ChoiceRow>
   );
 };
 

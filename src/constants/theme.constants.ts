@@ -64,6 +64,7 @@ export const theme = {
     checkbox: "7px",
   },
   controlHeight: {
+    dense: 38,
     large: 56,
     medium: 48,
     compact: 44,
