@@ -54,15 +54,15 @@ import QuotationDecimalInput from "./QuotationDecimalInput";
 import Timeline from "../../../components/Timeline/Timeline";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import QuotationProjectPicker from "./QuotationProjectPicker";
+import { useSessionUser } from "../../../store/session.store";
 import TextField from "../../../components/TextField/TextField";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
+import ExecutionPlanReviewCard from "./ExecutionPlanReviewCard";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
-import ExecutionPlanReviewCard from "./ExecutionPlanReviewCard";
-import { useSessionUser } from "../../../store/session.store";
+import { useQuotationPdf } from "../../../hooks/quotation-pdf.hook";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
-import { useQuotationPdf } from "../../../hooks/quotation-pdf.hook";
 import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
 import { QUOTATION_STEPS } from "../../../constants/quotation.constant";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
@@ -70,12 +70,12 @@ import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
 import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
+import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import QuotationApartmentSharingCard from "./sharing/QuotationApartmentSharingCard";
 import { QUOTATION_SHARING_COPY } from "../../../constants/quotation-sharing.constant";
 import { quotationSaveLabel } from "../../../utilities/quotation-presentation.utility";
 import { quotationOpeningLine } from "../../../utilities/quotation-presentation.utility";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
-import { Box, MenuItem, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
 import { useQuotationApartmentSharing } from "../../../hooks/quotation-apartment-sharing.hook";
 import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-navigation.hook";
@@ -327,13 +327,8 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               value={quotation.brand}
               caption="החלפת החברה בלשונית הקיימת"
               onChange={event => rebrand.request(event.target.value)}
-            >
-              {QUOTATION_BRANDS.map(brand => (
-                <MenuItem key={brand} value={brand}>
-                  {brand}
-                </MenuItem>
-              ))}
-            </QuotationSelect>
+              items={QUOTATION_BRANDS.map(brand => ({ value: brand, label: brand }))}
+            />
           )}
           <QuotationDecimalInput
             min="0"
@@ -400,7 +395,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
       {hasPermission(sessionUser, PERMISSIONS.EXECUTION_PLANS_READ) &&
         hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ) &&
         hasPermission(sessionUser, PERMISSIONS.PROJECTS_READ) && (
-          <ExecutionPlanReviewCard quotationId={quotation.id} blocked={blocked} />
+          <ExecutionPlanReviewCard blocked={blocked} quotationId={quotation.id} />
         )}
       {sharing.isBuilding && (
         <QuotationApartmentSharingCard sharing={sharing} canEdit={editable} quotation={quotation} />
@@ -454,6 +449,12 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               <QuotationSelect
                 value=""
                 label="הוספת לשונית חברה"
+                items={[
+                  { value: "", label: "בחרו חברה להוספה..." },
+                  ...QUOTATION_BRANDS.filter(brand => !quotation.brands.includes(brand)).map(
+                    brand => ({ value: brand, label: brand }),
+                  ),
+                ]}
                 onChange={event => {
                   const brand = event.target.value;
                   if (!brand || quotation.brands.includes(brand)) {
@@ -462,14 +463,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                   update(addQuotationBrand(quotation, brand));
                   setActiveTab(brand);
                 }}
-              >
-                <MenuItem value="">בחרו חברה להוספה...</MenuItem>
-                {QUOTATION_BRANDS.filter(brand => !quotation.brands.includes(brand)).map(brand => (
-                  <MenuItem key={brand} value={brand}>
-                    {brand}
-                  </MenuItem>
-                ))}
-              </QuotationSelect>
+              />
               {brandTabs.brand &&
                 !quotation.sections.some(section => section.brand === brandTabs.brand) && (
                   <Button

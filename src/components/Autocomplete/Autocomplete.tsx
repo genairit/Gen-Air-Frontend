@@ -12,9 +12,11 @@ interface IAutocompleteProps {
   isRequired?: boolean;
   placeholder?: string;
   value?: string | null;
+  isClearable?: boolean;
   noOptionsText?: string;
   startIcon?: IconNameType;
   isAutocomplete?: boolean;
+  isClientFiltered?: boolean;
   items?: IAutocompleteOption[];
   onSearch?: (value: string) => void;
   onChange?: (value: string | null) => void;
@@ -32,6 +34,8 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   isRequired = false,
   onChange = () => {},
   isAutocomplete = true,
+  isClearable = isAutocomplete,
+  isClientFiltered = true,
   placeholder = "בחר אופציה",
   noOptionsText = "אין אפשרויות",
 }) => (
@@ -45,10 +49,11 @@ const Autocomplete: FC<IAutocompleteProps> = ({
     required={isRequired}
     placeholder={placeholder}
     emptyText={noOptionsText}
-    isClearable={isAutocomplete}
+    isClearable={isClearable}
     isSearchMode={isAutocomplete}
     isInputReadOnly={!isAutocomplete}
     isSearchIconShown={isAutocomplete}
+    isClientFiltered={isClientFiltered}
     startIcon={startIcon ? <Icon name={startIcon} /> : null}
     options={items ?? options.map(option => ({ value: option, label: option }))}
   />

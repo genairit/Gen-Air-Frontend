@@ -5,11 +5,12 @@ import {
 
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import Button from "./QuotationButton";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
 import QuotationSelect from "./QuotationSelect";
-import { Box, ButtonBase, MenuItem } from "@mui/material";
+import ChoiceRow from "../../../components/ChoiceRow/ChoiceRow";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
@@ -84,14 +85,11 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
           caption="יחידה"
           label="סוג פריט"
           onChange={event => changeRole(event.target.value)}
-        >
-          <MenuItem value="">כל הפריטים המתאימים</MenuItem>
-          {QUOTATION_ROLE_OPTIONS.map(option => (
-            <MenuItem key={option.value} value={option.value}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </QuotationSelect>
+          items={[
+            { value: "", label: "כל הפריטים המתאימים" },
+            ...QUOTATION_ROLE_OPTIONS.map(option => ({ value: option.value, label: option.label })),
+          ]}
+        />
         {isEquipment && (
           <QuotationSelect
             caption="סוג"
@@ -101,14 +99,11 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
               setEquipmentType(event.target.value);
               setShowMatches(true);
             }}
-          >
-            <MenuItem value="">כל הסוגים</MenuItem>
-            {typeOptions.map(type => (
-              <MenuItem key={type} value={type}>
-                {type}
-              </MenuItem>
-            ))}
-          </QuotationSelect>
+            items={[
+              { value: "", label: "כל הסוגים" },
+              ...typeOptions.map(type => ({ value: type, label: type })),
+            ]}
+          />
         )}
         {acceptsCapacity && (
           <QuotationInput
@@ -146,13 +141,8 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
             value={circuit}
             label="מעגל להוספה"
             onChange={event => setCircuit(event.target.value)}
-          >
-            {QUOTATION_CIRCUITS.map(value => (
-              <MenuItem key={value} value={value}>
-                {value}
-              </MenuItem>
-            ))}
-          </QuotationSelect>
+            items={QUOTATION_CIRCUITS.map(value => ({ value, label: value }))}
+          />
         )}
       </Box>
       <QuotationInput
@@ -190,7 +180,7 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
             </Box>
           )}
           {catalogue.data.map(item => (
-            <ButtonBase
+            <ChoiceRow
               key={item.id}
               className={styles.result}
               sx={{ display: "block" }}
@@ -205,7 +195,7 @@ const QuotationCataloguePicker: FC<IQuotationCataloguePickerProps> = ({
                 )}{" "}
                 · {quotationMoney(item.price)}
               </Box>
-            </ButtonBase>
+            </ChoiceRow>
           ))}
         </Box>
       )}

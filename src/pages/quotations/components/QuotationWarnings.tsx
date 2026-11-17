@@ -1,6 +1,7 @@
 import type { FC } from "react";
+import { Box } from "@mui/material";
 import styles from "../quotation.module.css";
-import { Box, Checkbox } from "@mui/material";
+import CheckBox from "../../../components/CheckBox/CheckBox";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
 
@@ -29,17 +30,21 @@ const QuotationWarnings: FC<IQuotationWarningsProps> = ({
       checked ? [...acknowledged, key] : acknowledged.filter(current => current !== key),
     );
   return quotation.warnings.map(warning => (
-    <Box component="label" key={warning.key} className={styles.warning}>
-      <Checkbox
+    <Box key={warning.key} className={styles.warning}>
+      <CheckBox
         disabled={disabled}
-        checked={warning.acknowledged}
-        onChange={event => toggle(warning.key, event.target.checked)}
+        value={warning.acknowledged}
+        onChange={async checked => {
+          await toggle(warning.key, checked);
+        }}
+        text={
+          <Box component="span">
+            {warning.text}
+            <Box component="br" />
+            <Box component="b">חריג — מאושר במפורש</Box>
+          </Box>
+        }
       />
-      <Box component="span">
-        {warning.text}
-        <Box component="br" />
-        <Box component="b">חריג — מאושר במפורש</Box>
-      </Box>
     </Box>
   ));
 };

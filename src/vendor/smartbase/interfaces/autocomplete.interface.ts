@@ -50,6 +50,7 @@ export interface IAutocompleteProps {
   maxVisibleRows?: number;
   onLoadMore?: () => void;
   isInputReadOnly?: boolean;
+  isClientFiltered?: boolean;
   isSearchIconShown?: boolean;
   isMatchHighlighted?: boolean;
   options: IAutocompleteOption[];
@@ -96,6 +97,7 @@ export interface IUseAutocompleteSearchOptions {
   value: string | null;
   onLoadMore?: () => void;
   autoFocusSearch?: boolean;
+  isClientFiltered?: boolean;
   options: IAutocompleteOption[];
   onSearch?: (value: string) => void;
   onChange: (value: string | null) => void;

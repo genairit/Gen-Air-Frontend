@@ -1,13 +1,11 @@
-import { useState, type FC } from "react";
-import styles from "../quotation.module.css";
-import { Box, Autocomplete } from "@mui/material";
-import QuotationEntityInput from "./QuotationEntityInput";
-import { QUOTATION_INPUT_REASON } from "../../../constants/quotation.constant";
+import type { FC } from "react";
+import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 
 interface IEntityChoice {
   id: string;
   name: string;
 }
+
 interface IQuotationEntityPickerProps {
   label: string;
   loading: boolean;
@@ -19,6 +17,7 @@ interface IQuotationEntityPickerProps {
   onSearch: (search: string) => void;
   onChange: (id: string | null) => void;
 }
+
 const QuotationEntityPicker: FC<IQuotationEntityPickerProps> = ({
   label,
   value,
@@ -30,54 +29,23 @@ const QuotationEntityPicker: FC<IQuotationEntityPickerProps> = ({
   placeholder,
   allowClear = false,
 }) => {
-  const [searchText, setSearchText] = useState<string | null>(null);
-  const inputValue = searchText ?? value?.name ?? "";
-  const resetSearch = () => {
-    setSearchText(null);
-    onSearch("");
-  };
+  const choices =
+    value && !options.some(option => option.id === value.id) ? [value, ...options] : options;
+
   return (
-    <Box component="div" className={styles.entityPicker}>
-      <Box component="span" className={styles.labelText}>
-        {label}
-      </Box>
-      <Autocomplete
-        openOnFocus
-        value={value}
-        options={options}
-        loading={loading}
-        disabled={disabled}
-        onClose={resetSearch}
-        clearText="נקה בחירה"
-        inputValue={inputValue}
-        openText="הצג אפשרויות"
-        closeText="סגור אפשרויות"
-        loadingText="טוען אפשרויות..."
-        disableClearable={!allowClear}
-        noOptionsText="לא נמצאו תוצאות"
-        getOptionKey={option => option.id}
-        filterOptions={choices => choices}
-        getOptionLabel={option => option.name}
-        isOptionEqualToValue={(option, selected) => option.id === selected.id}
-        onChange={(_event, option) => {
-          onChange(option?.id ?? null);
-          resetSearch();
-        }}
-        slotProps={{
-          paper: { className: styles.entityOptions },
-          listbox: { className: styles.entityListbox },
-        }}
-        renderInput={params => (
-          <QuotationEntityInput params={params} label={label} placeholder={placeholder} />
-        )}
-        onInputChange={(_event, search, reason) => {
-          if (reason === QUOTATION_INPUT_REASON.INPUT || reason === QUOTATION_INPUT_REASON.CLEAR) {
-            setSearchText(search);
-            onSearch(search);
-          }
-        }}
-      />
-    </Box>
+    <Autocomplete
+      title={label}
+      disabled={disabled}
+      isLoading={loading}
+      onSearch={onSearch}
+      onChange={onChange}
+      isClearable={allowClear}
+      isClientFiltered={false}
+      value={value?.id ?? null}
+      placeholder={placeholder}
+      items={choices.map(option => ({ value: option.id, label: option.name }))}
+    />
   );
 };
+
 export default QuotationEntityPicker;

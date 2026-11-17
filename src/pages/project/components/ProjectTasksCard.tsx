@@ -6,16 +6,17 @@ import {
   formatProjectTasksSubtitle,
 } from "../../../utilities/task.utility";
 
+import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
-import { useStyles } from "./ProjectTasksCard.style";
 import Button from "../../../components/Button/Button";
 import { type FC, useState, type MouseEvent } from "react";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useSessionUser } from "../../../store/session.store";
-import { Box, Menu, MenuItem, ListSubheader } from "@mui/material";
+import ChoiceMenu from "../../../components/ChoiceMenu/ChoiceMenu";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
@@ -37,7 +38,6 @@ interface IProjectTasksCardProps {
 
 const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
   const styles = usePageStyles();
-  const menuStyles = useStyles();
   const navigate = useNavigate();
   const sessionUser = useSessionUser();
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
@@ -53,6 +53,22 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
     const slot = slotsQuery.data?.find(item => item.taskType === taskType);
     navigate(slot?.available ? buildTaskPath(slot.id) : buildNewTaskPath(projectId, taskType));
   };
+  const taskTypeOptions = Object.values(TASK_TYPES).map(taskType => {
+    const isProtected = taskType !== TASK_TYPES.GENERAL;
+    const slot = slotsQuery.data?.find(item => item.taskType === taskType);
+    const disabled =
+      isProtected && (slotsQuery.isPending || slotsQuery.isError || slot?.available === false);
+    const actionCopy = slot?.available
+      ? PROJECT_TASKS_COPY.OPEN_EXISTING
+      : PROJECT_TASKS_COPY.CREATE_TASK;
+    return {
+      id: taskType,
+      onSelect: () => chooseType(taskType),
+      label: TASK_TYPE_LABELS[taskType],
+      disabled,
+      description: slot?.available === false ? PROJECT_TASKS_COPY.EXISTING_UNAVAILABLE : actionCopy,
+    };
+  });
 
   const action = isManager ? (
     <>
@@ -61,46 +77,12 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
         text={PROJECT_TASKS_COPY.NEW_TASK}
         onClick={(event: MouseEvent<HTMLButtonElement>) => setMenuAnchor(event.currentTarget)}
       />
-      <Menu
+      <ChoiceMenu
         anchorEl={menuAnchor}
-        open={menuAnchor !== null}
+        options={taskTypeOptions}
         onClose={() => setMenuAnchor(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{
-          paper: { sx: menuStyles.menuPaper },
-          list: { "aria-label": PROJECT_TASKS_COPY.CHOOSE_TYPE, sx: menuStyles.menuList },
-        }}
-      >
-        <ListSubheader sx={menuStyles.menuHeading}>{PROJECT_TASKS_COPY.CHOOSE_TYPE}</ListSubheader>
-        {Object.values(TASK_TYPES).map(taskType => {
-          const isProtected = taskType !== TASK_TYPES.GENERAL;
-          const slot = slotsQuery.data?.find(item => item.taskType === taskType);
-          const isUnavailable =
-            isProtected &&
-            (slotsQuery.isPending || slotsQuery.isError || slot?.available === false);
-          const actionCopy = slot?.available
-            ? PROJECT_TASKS_COPY.OPEN_EXISTING
-            : PROJECT_TASKS_COPY.CREATE_TASK;
-          const description =
-            slot?.available === false ? PROJECT_TASKS_COPY.EXISTING_UNAVAILABLE : actionCopy;
-          return (
-            <MenuItem
-              key={taskType}
-              sx={menuStyles.menuItem}
-              disabled={isUnavailable}
-              onClick={() => chooseType(taskType)}
-            >
-              <Box component="span" sx={menuStyles.itemTitle}>
-                {TASK_TYPE_LABELS[taskType]}
-              </Box>
-              <Box component="span" sx={menuStyles.itemDescription}>
-                {description}
-              </Box>
-            </MenuItem>
-          );
-        })}
-      </Menu>
+        title={PROJECT_TASKS_COPY.CHOOSE_TYPE}
+      />
     </>
   ) : (
     <Box component="span" sx={styles.caption}>
@@ -124,6 +106,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
           key={task.id}
           padding="14px 18px"
           ariaLabel={task.title}
+          depth={SURFACE_DEPTHS.INSET}
           onClick={() => navigate(buildTaskPath(task.id))}
         >
           <Box sx={TASK_COLUMN_STYLES.mobileRow}>

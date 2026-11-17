@@ -5,6 +5,7 @@ import {
 } from "../../../../constants/quotation-execution-email.constant";
 
 import { useState } from "react";
+import { Box } from "@mui/material";
 import Card from "../../../../components/Card/Card";
 import styles from "./QuotationEmailDialog.module.css";
 import Button from "../../../../components/Button/Button";
@@ -15,10 +16,10 @@ import { ICON_NAMES } from "../../../../constants/icon.constant";
 import TextField from "../../../../components/TextField/TextField";
 import BrandLogo from "../../../../components/BrandLogo/BrandLogo";
 import FieldLabel from "../../../../components/FieldLabel/FieldLabel";
-import { Box, MenuItem, TextField as MuiTextField } from "@mui/material";
 import InlineError from "../../../../components/InlineError/InlineError";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { IApiDriveItem } from "../../../../interfaces/api.interface";
+import Autocomplete from "../../../../components/Autocomplete/Autocomplete";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
 import NoticeBanner from "../../../../components/NoticeBanner/NoticeBanner";
 import GenericPopup from "../../../../components/GenericPopup/GenericPopup";
@@ -202,19 +203,17 @@ const QuotationEmailDialog = ({ taskId, onClose }: IQuotationEmailDialogProps) =
               >
                 {step === 1 && (
                   <>
-                    <MuiTextField
-                      select
-                      fullWidth
-                      label="הצעת מחיר לתוכנית"
-                      value={quotationId}
-                      onChange={event => setQuotationId(event.target.value)}
-                    >
-                      {quotations.map(quotation => (
-                        <MenuItem key={quotation.id} value={quotation.id}>
-                          {quotation.number} · {quotation.customerName ?? quotation.projectName}
-                        </MenuItem>
-                      ))}
-                    </MuiTextField>
+                    <Autocomplete
+                      title="הצעת מחיר לתוכנית"
+                      value={quotationId || null}
+                      isAutocomplete={false}
+                      isLoading={quotationsQuery.isPending}
+                      items={quotations.map(quotation => ({
+                        value: quotation.id,
+                        label: `${quotation.number} · ${quotation.customerName ?? quotation.projectName}`,
+                      }))}
+                      onChange={value => setQuotationId(value ?? "")}
+                    />
                     {quotationsQuery.hasNextPage && (
                       <Button
                         text="טען הצעות נוספות"

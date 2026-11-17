@@ -12,7 +12,7 @@ import {
   isScrollable,
   isNearScrollEnd,
   getNextActiveIndex,
-  filterOptionsByQuery,
+  getVisibleSearchOptions,
 } from "../utilities/autocomplete.utility";
 
 import {
@@ -32,6 +32,7 @@ export const useAutocompleteSearch = ({
   onLoadMore,
   onSearch,
   autoFocusSearch = false,
+  isClientFiltered = true,
 }: IUseAutocompleteSearchOptions): IUseAutocompleteSearchResult => {
   const [query, setQuery] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -48,7 +49,10 @@ export const useAutocompleteSearch = ({
     return () => window.cancelAnimationFrame(frame);
   }, [isOpen, autoFocusSearch]);
 
-  const filteredOptions = useMemo(() => filterOptionsByQuery(options, query), [options, query]);
+  const filteredOptions = useMemo(
+    () => getVisibleSearchOptions(options, query, isClientFiltered),
+    [isClientFiltered, options, query],
+  );
 
   const visibleOptions = filteredOptions.slice(0, visibleCount);
   const selectedOption =

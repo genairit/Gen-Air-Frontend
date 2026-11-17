@@ -18,7 +18,6 @@ import {
 
 import type { FC } from "react";
 import { Box } from "@mui/material";
-import { Alert } from "@mui/material";
 import DriveFolderList from "./DriveFolderList";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
@@ -35,6 +34,7 @@ import CardHeader from "../../../components/CardHeader/CardHeader";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
+import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { DRIVE_FILE_COPY } from "../../../constants/drive-file.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
@@ -45,6 +45,7 @@ import { DRIVE_STATUS_BADGE_SIZES } from "../../../constants/drive-folder.consta
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { toProjectFile, toProjectFolder } from "../../../utilities/mappers/project.mapper";
 import { useSelectSharedDocumentMutation } from "../../../hooks/mutations/project.mutation";
+import { NOTICE_VARIANTS } from "../../../vendor/smartbase/components/NoticeCard/constants/notice-card.constant";
 
 interface IProjectDriveCardProps {
   projectId: string;
@@ -78,6 +79,10 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({
   const sharedStatusMessage = sharedQuery.data
     ? sharedStatusMessages[sharedQuery.data.status]
     : null;
+  const sharedStatusIsUnavailable = sharedQuery.data?.status === SHARED_DOCUMENT_STATUS.UNAVAILABLE;
+  const sharedNoticeVariant = sharedStatusIsUnavailable
+    ? NOTICE_VARIANTS.warning
+    : NOTICE_VARIANTS.info;
 
   const folders = (rootQuery.data?.folders ?? []).map(toProjectFolder);
   const rootFiles = (rootQuery.data?.files ?? []).filter(item => !item.isFolder).map(toProjectFile);
@@ -108,24 +113,25 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({
               )
             }
           />
-          {showFeedback && <Alert severity="success">{feedback.message}</Alert>}
+          {showFeedback && (
+            <NoticeBanner title={feedback.message} variant={NOTICE_VARIANTS.success} />
+          )}
           {shareWithApartments && sharedQuery.isSuccess && (
-            <Alert
-              severity={
-                sharedQuery.data.status === SHARED_DOCUMENT_STATUS.UNAVAILABLE ? "warning" : "info"
-              }
-            >
-              {sharedStatusMessage}
-              {sharedQuery.data.status !== SHARED_DOCUMENT_STATUS.NONE &&
-                canChangeSharedDocument && (
+            <NoticeBanner
+              variant={sharedNoticeVariant}
+              title={sharedStatusMessage ?? ""}
+              actions={
+                sharedQuery.data.status !== SHARED_DOCUMENT_STATUS.NONE &&
+                canChangeSharedDocument ? (
                   <Button
                     text={SHARED_DOCUMENT_COPY.CLEAR}
                     variant={BUTTON_VARIANTS.NEUTRAL}
                     disabled={selectSharedDocument.isPending}
                     onClick={() => selectSharedDocument.mutate({ projectId, fileId: null })}
                   />
-                )}
-            </Alert>
+                ) : null
+              }
+            />
           )}
           {shareWithApartments && sharedQuery.isError && (
             <InlineError message={getApiErrorMessage(sharedQuery.error)} />

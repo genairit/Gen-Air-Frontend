@@ -1,6 +1,7 @@
+import { Box } from "@mui/material";
 import type { FC, ReactNode } from "react";
 import styles from "../quotation.module.css";
-import { Box, ButtonBase } from "@mui/material";
+import ChoiceRow from "../../../components/ChoiceRow/ChoiceRow";
 import { formatRelativeTime } from "../../../utilities/date.utility";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
@@ -17,7 +18,7 @@ const QuotationRow: FC<IQuotationRowProps> = ({ quotation, onOpen, details = nul
   const brands = quotation.brands.join(" · ") || QUOTATION_ROW_COPY.GENERAL;
 
   return (
-    <ButtonBase
+    <ChoiceRow
       onClick={onOpen}
       className={styles.quoteRow}
       sx={{
@@ -48,7 +49,7 @@ const QuotationRow: FC<IQuotationRowProps> = ({ quotation, onOpen, details = nul
       <Box component="span" className={styles.updated}>
         {formatRelativeTime(quotation.updatedAt)}
       </Box>
-    </ButtonBase>
+    </ChoiceRow>
   );
 };
 

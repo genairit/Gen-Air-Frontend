@@ -43,6 +43,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   isInputReadOnly = false,
   isSearchIconShown = true,
   isMatchHighlighted = true,
+  isClientFiltered = true,
   searchModeContainer = null,
   emptyText = AUTOCOMPLETE_TEXTS.EMPTY,
   cancelText = AUTOCOMPLETE_TEXTS.CANCEL,
@@ -69,6 +70,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
     isLoading,
     onLoadMore,
     autoFocusSearch: isSearchMode,
+    isClientFiltered,
   });
 
   useImperativeHandle(actionsRef, () => ({ open: search.openSearch }));

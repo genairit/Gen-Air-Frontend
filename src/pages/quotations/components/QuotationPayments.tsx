@@ -24,15 +24,16 @@ import {
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
+import { Box } from "@mui/material";
 import Button from "./QuotationButton";
 import { useState, type FC } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
-import { Box, ButtonBase } from "@mui/material";
 import Icon from "../../../components/Icon/Icon";
 import Card from "../../../components/Card/Card";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import ChoiceRow from "../../../components/ChoiceRow/ChoiceRow";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
 
 interface IQuotationPaymentsProps {
@@ -85,7 +86,7 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
         className={styles.paymentChips}
       >
         {PAYMENT_TERMS_VALUES.map(value => (
-          <ButtonBase
+          <ChoiceRow
             key={value}
             role="radio"
             type="button"
@@ -94,9 +95,9 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
             aria-checked={!schedule.length && quotation.paymentTerms === value}
           >
             {PAYMENT_TERMS_LABELS[value].title}
-          </ButtonBase>
+          </ChoiceRow>
         ))}
-        <ButtonBase
+        <ChoiceRow
           role="radio"
           type="button"
           disabled={disabled}
@@ -107,7 +108,7 @@ const QuotationPayments: FC<IQuotationPaymentsProps> = ({
           }}
         >
           {PAYMENT_STAGES_LABEL}
-        </ButtonBase>
+        </ChoiceRow>
       </Box>
       {hasConflict && (
         <Box role="alert" component="p" className={styles.error}>
