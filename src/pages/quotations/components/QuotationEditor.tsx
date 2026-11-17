@@ -284,14 +284,16 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                 />
               )}
               {canDelete && (
-                <QuotationDelete
-                  blocked={blocked}
-                  pending={editor.busy}
-                  onDelete={editor.remove}
-                  number={quotation.number}
-                  error={editor.deleteError}
-                  onReload={reloadQuotation}
-                />
+                <Box component="div" className={styles.deleteHeaderAction}>
+                  <QuotationDelete
+                    blocked={blocked}
+                    pending={editor.busy}
+                    onDelete={editor.remove}
+                    number={quotation.number}
+                    error={editor.deleteError}
+                    onReload={reloadQuotation}
+                  />
+                </Box>
               )}
             </Box>
           </Box>

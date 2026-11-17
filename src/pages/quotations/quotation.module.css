@@ -21,6 +21,7 @@
   flex-direction: column;
   gap: 12px;
   min-width: 0;
+  position: relative;
 }
 .quotationHeaderTop {
   display: flex;
@@ -681,6 +682,17 @@
 @media (max-width: 600px) {
   .page {
     gap: 20px;
+  }
+  .quotationIdentity {
+    padding-left: 52px;
+  }
+  .quotationHeaderTop {
+    min-height: 44px;
+  }
+  .deleteHeaderAction {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
   .listTitle {
     font-size: 28px;
