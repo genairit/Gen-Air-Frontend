@@ -10,6 +10,8 @@ export const useStyles = ({ align }: IStyleParams) =>
   createStyles({
     root: {
       "& .MuiPaper-root": {
+        minWidth: 0,
+        overflowWrap: "anywhere",
         borderRadius: "22px",
         border: `1px solid ${theme.glass.rim}`,
         boxShadow: theme.glass.shadow,
@@ -20,6 +22,7 @@ export const useStyles = ({ align }: IStyleParams) =>
       "& .MuiBackdrop-root": { backdropFilter: "blur(4px)" },
     },
     headerContainer: {
+      minWidth: 0,
       py: 1,
       px: 2,
       display: "flex",
@@ -28,6 +31,10 @@ export const useStyles = ({ align }: IStyleParams) =>
     },
 
     title: {
+      minWidth: 0,
+      flex: "1 1 auto",
+      whiteSpace: "normal",
+      overflowWrap: "anywhere",
       margin: 0,
       padding: 0,
       fontSize: 19,
@@ -43,11 +50,14 @@ export const useStyles = ({ align }: IStyleParams) =>
       color: theme.palette.primary,
     },
     contentContainer: {
+      minWidth: 0,
       display: "flex",
       flexDirection: "column",
       gap: 2,
     },
     content: {
+      minWidth: 0,
+      overflowWrap: "anywhere",
       textAlign: align,
     },
     signature: {
