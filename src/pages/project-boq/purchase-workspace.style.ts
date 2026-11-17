@@ -18,6 +18,10 @@ export const purchaseWorkspaceStyles = {
     flexWrap: "wrap",
     alignItems: "center",
     paddingBlock: "10px",
+    position: "sticky",
+    top: 0,
+    zIndex: 3,
+    backgroundColor: theme.glass.strong,
     borderBlockEnd: `1px solid ${theme.glass.border}`,
   },
   reviewPanel: {

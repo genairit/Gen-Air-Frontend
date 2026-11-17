@@ -19,7 +19,7 @@ import {
   PURCHASE_RECORD_NEXT_STATUS,
 } from "../../constants/purchase-record.constant";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import BoqLineEditor from "./BoqLineEditor";
 import Tabs from "../../components/Tabs/Tabs";
 import Card from "../../components/Card/Card";
@@ -59,6 +59,7 @@ const PurchaseWorkspace = ({
   const [historyCursors, setHistoryCursors] = useState<(string | null)[]>([]);
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
+  const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
   const state = usePurchaseWorkspace(projectId, historySearch, historyCursor);
   const canRequest = hasPermission(user, PERMISSIONS.PURCHASE_REQUESTS_REVIEW);
   const canOrder = hasPermission(user, PERMISSIONS.PURCHASE_ORDERS_APPROVE);
@@ -130,13 +131,16 @@ const PurchaseWorkspace = ({
           />
         </Box>
         {selectedLines.length > 0 && !state.pendingLineId && (
-          <Box role="status" sx={styles.selectionBar}>
-            <Typography>
-              נבחרו {selectedLines.length} חומרים · אפשר לעבור בין הקטגוריות בלי לאבד את הבחירה
-            </Typography>
-            <Typography variant="body2">
-              {selectedLines.map(line => line.materialName).join(" · ")}
-            </Typography>
+          <Box sx={styles.selectionBar}>
+            <Typography role="status">נבחרו {selectedLines.length} חומרים</Typography>
+            <Button
+              text="לרכש קבוצתי"
+              variant={BUTTON_VARIANTS.SECONDARY}
+              onClick={() => {
+                reviewHeadingRef.current?.focus();
+                reviewHeadingRef.current?.scrollIntoView({ block: "center" });
+              }}
+            />
             <Button
               text="נקה בחירה"
               onClick={state.clearSelection}
@@ -178,11 +182,16 @@ const PurchaseWorkspace = ({
               </>
             ) : (
               <>
-                <Typography component="h3" sx={styles.heading}>
+                <Typography tabIndex={-1} component="h3" sx={styles.heading} ref={reviewHeadingRef}>
                   {state.pendingLineId
                     ? "רישום הזמנה לחומר"
                     : `רכש קבוצתי · ${selectedLines.length} שורות`}
                 </Typography>
+                {!state.pendingLineId && (
+                  <Typography variant="body2">
+                    {selectedLines.map(line => line.materialName).join(" · ")}
+                  </Typography>
+                )}
                 <Box sx={styles.formGrid}>
                   <TextField
                     title="ספק"
