@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useStyles } from "./BoardToolbar.style";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
@@ -39,9 +40,10 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
 }) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
+  const toolbarStyles = useStyles();
 
   return (
-    <Card padding="20px" sx={styles.stack({ gap: "20px" })}>
+    <Card gap="20px" padding="20px" sx={toolbarStyles.card}>
       <Box sx={styles.row({})}>
         <Box sx={styles.flexItem({ basis: "2 1 280px" })}>
           <TextField
