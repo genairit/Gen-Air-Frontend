@@ -43,6 +43,14 @@ export interface IQuotationCancellation {
   kind: TQuotationCancellationKind;
   fromStatus: TQuotationRestorableStatus;
 }
+export interface IQuotationRejection {
+  reason: string;
+  rejectedAt: string;
+  rejectedById: string;
+  rejectedByName: string;
+  resubmittedAt: string | null;
+  resubmittedById: string | null;
+}
 export interface IQuotationLine {
   id: string;
   sku: string;
@@ -97,6 +105,7 @@ export interface IQuotation {
   warnings: IQuotationWarning[];
   salesAgentName?: string | null;
   targetPretaxAmount: string | null;
+  rejectionHistory: IQuotationRejection[];
   apartmentLinks?: IQuotationApartmentLink[];
   cancellationHistory: IQuotationCancellation[];
   primaryProject?: IQuotationPrimaryProject | null;
@@ -167,8 +176,10 @@ export interface IQuotationEditorState {
   remove: () => Promise<void>;
   reload: () => Promise<boolean>;
   restore: () => Promise<boolean>;
+  resubmit: () => Promise<boolean>;
   update: (quotation: IQuotation) => void;
   cancel: (reason: string) => Promise<boolean>;
+  reject: (reason: string) => Promise<boolean>;
   acknowledge: (keys: string[]) => Promise<void>;
   transition: (status: TQuotationStatus) => Promise<boolean>;
   updateSalesAgent: (salesAgentId: string | null) => Promise<boolean>;
