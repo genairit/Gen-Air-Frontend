@@ -1,0 +1,36 @@
+export const PURCHASE_RECORD_STATUS = {
+  DRAFT: "draft",
+  REQUESTED: "requested",
+  REVIEWED: "reviewed",
+  APPROVED: "approved",
+  ORDERED: "ordered",
+  CANCELLED: "cancelled",
+} as const;
+
+export type TPurchaseRecordStatus =
+  (typeof PURCHASE_RECORD_STATUS)[keyof typeof PURCHASE_RECORD_STATUS];
+
+export const PURCHASE_ACTION = { REQUEST: "request", ORDER: "order" } as const;
+export type TPurchaseAction = (typeof PURCHASE_ACTION)[keyof typeof PURCHASE_ACTION];
+export const PURCHASE_ALL_CATEGORY = "all";
+
+export const PURCHASE_RECORD_LABELS: Record<TPurchaseRecordStatus, string> = {
+  [PURCHASE_RECORD_STATUS.DRAFT]: "טיוטה",
+  [PURCHASE_RECORD_STATUS.REQUESTED]: "התבקשה",
+  [PURCHASE_RECORD_STATUS.REVIEWED]: "נבדקה",
+  [PURCHASE_RECORD_STATUS.APPROVED]: "אושרה",
+  [PURCHASE_RECORD_STATUS.ORDERED]: "הוזמנה",
+  [PURCHASE_RECORD_STATUS.CANCELLED]: "בוטלה",
+};
+
+export const PURCHASE_RECORD_NEXT_STATUS: Record<
+  TPurchaseRecordStatus,
+  TPurchaseRecordStatus | null
+> = {
+  [PURCHASE_RECORD_STATUS.DRAFT]: PURCHASE_RECORD_STATUS.REQUESTED,
+  [PURCHASE_RECORD_STATUS.REQUESTED]: PURCHASE_RECORD_STATUS.REVIEWED,
+  [PURCHASE_RECORD_STATUS.REVIEWED]: PURCHASE_RECORD_STATUS.APPROVED,
+  [PURCHASE_RECORD_STATUS.APPROVED]: PURCHASE_RECORD_STATUS.ORDERED,
+  [PURCHASE_RECORD_STATUS.ORDERED]: null,
+  [PURCHASE_RECORD_STATUS.CANCELLED]: null,
+};

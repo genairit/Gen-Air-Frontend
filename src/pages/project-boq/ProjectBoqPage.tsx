@@ -9,6 +9,7 @@ import BoqLineEditor from "./BoqLineEditor";
 import { useParams } from "react-router-dom";
 import Card from "../../components/Card/Card";
 import { usePageStyles } from "../page.style";
+import PurchaseWorkspace from "./PurchaseWorkspace";
 import Button from "../../components/Button/Button";
 import { useSessionUser } from "../../store/session.store";
 import TextField from "../../components/TextField/TextField";
@@ -68,6 +69,7 @@ const ProjectBoqPage = () => {
   const update = async (lineId: string, edit: IBoqLineEdit) => {
     const updated = await projectBoqService.updateLine(projectId, lineId, edit);
     queryClient.setQueryData(key, updated);
+    await queryClient.invalidateQueries({ queryKey: ["purchase-workspace", projectId] });
     setPreview(null);
   };
   const run = async (action: () => Promise<void>) => {
@@ -90,6 +92,7 @@ const ProjectBoqPage = () => {
       if (!preview || !current) return;
       const updated = await projectBoqService.generate(projectId, preview, current.revision);
       queryClient.setQueryData(key, updated);
+      await queryClient.invalidateQueries({ queryKey: ["purchase-workspace", projectId] });
       setPreview(null);
     });
   const addMaterial = () =>
@@ -110,6 +113,7 @@ const ProjectBoqPage = () => {
         notes,
       });
       queryClient.setQueryData(key, updated);
+      await queryClient.invalidateQueries({ queryKey: ["purchase-workspace", projectId] });
       setPreview(null);
       setSelectedMaterial("");
       setQuantity("");
@@ -151,14 +155,8 @@ const ProjectBoqPage = () => {
             {current.missingCostCount} שורות ללא עלות; {current.unresolvedCount} שורות דורשות בדיקה
           </Typography>
         </Card>
-        <Card>
-          <Typography sx={{ fontWeight: 700 }}>בקשות והזמנות</Typography>
-          <Typography>לא זמין עדיין</Typography>
-          <Typography variant="caption">
-            כמות מבוקשת, מוזמנת ויתרה יהיו זמינות עם יומן הרכש.
-          </Typography>
-        </Card>
       </Box>
+      <PurchaseWorkspace projectId={projectId} />
       {canManage && (
         <Card>
           <Typography component="h2" sx={{ fontWeight: 700 }}>

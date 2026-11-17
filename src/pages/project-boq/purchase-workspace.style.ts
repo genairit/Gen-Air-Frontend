@@ -1,0 +1,52 @@
+import { theme } from "../../constants/theme.constants";
+
+export const purchaseWorkspaceStyles = {
+  stack: { display: "grid", gap: "16px" },
+  header: {
+    display: "flex",
+    gap: "12px",
+    alignItems: "start",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+  },
+  heading: { fontSize: "1.1rem", fontWeight: 700 },
+  materialName: { fontWeight: 700 },
+  tabScroller: { overflowX: "auto", maxWidth: "100%" },
+  lines: { display: "grid", gap: 0 },
+  line: {
+    display: "grid",
+    gridTemplateColumns: "minmax(160px, 1.3fr) minmax(260px, 2fr) minmax(150px, 1fr)",
+    alignItems: "center",
+    gap: "12px",
+    paddingBlock: "12px",
+    borderBlockEnd: `1px solid ${theme.glass.border}`,
+    "@media (max-width: 800px)": { gridTemplateColumns: "1fr" },
+  },
+  lineTitle: { display: "grid", gap: "2px" },
+  quantities: { display: "flex", gap: "12px", flexWrap: "wrap", fontSize: "0.9rem" },
+  lineActions: { display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" },
+  details: {
+    gridColumn: "1 / -1",
+    "& summary": { cursor: "pointer", color: theme.palette.primary, fontWeight: 600 },
+  },
+  formGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+    gap: "12px",
+  },
+  quantityEditor: {
+    display: "grid",
+    gridTemplateColumns: "minmax(180px, 1fr) minmax(150px, 220px) minmax(150px, 260px)",
+    gap: "12px",
+    alignItems: "center",
+    "@media (max-width: 600px)": { gridTemplateColumns: "1fr" },
+  },
+  actions: { display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" },
+  historyList: { display: "grid" },
+  historyItem: {
+    display: "grid",
+    gap: "6px",
+    paddingBlock: "12px",
+    borderBlockEnd: `1px solid ${theme.glass.border}`,
+  },
+} as const;
