@@ -6,9 +6,7 @@ export const useStyles = () =>
   createStyles({
     card: {
       width: "100%",
-      maxWidth: 1120,
       boxSizing: "border-box",
-      marginInlineEnd: "auto",
       [`@media ${MOBILE_LAYOUT_QUERY}`]: { padding: "16px" },
     },
     sections: {
