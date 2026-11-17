@@ -10,11 +10,20 @@ import {
   type TPurchaseRecordStatus,
 } from "../../constants/purchase-record.constant";
 
+import type {
+  IPurchaseLine,
+  IPurchaseHistory,
+  IPurchaseWorkspace,
+  IPurchaseInputLine,
+} from "../../interfaces/purchase-record.interface";
+
 import { useState } from "react";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import { purchaseCostFields } from "../../utilities/purchase-record.utility";
 import { purchaseRecordService } from "../../services/purchase-record.service";
+import { matchingAgreement } from "../../utilities/supplier-agreement.utility";
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { IPurchaseLine, IPurchaseWorkspace } from "../../interfaces/purchase-record.interface";
+import type { ISupplierAgreement } from "../../interfaces/supplier-agreement.interface";
 
 export const usePurchaseWorkspace = (
   projectId: string,
@@ -29,6 +38,7 @@ export const usePurchaseWorkspace = (
   const [pendingLineId, setPendingLineId] = useState<string | null>(null);
   const [correctionLineId, setCorrectionLineId] = useState<string | null>(null);
   const [supplierName, setSupplierName] = useState("");
+  const [supplierId, setSupplierId] = useState("");
   const [orderDate, setOrderDate] = useState("");
   const [onBehalfOf, setOnBehalfOf] = useState("");
   const [exceptionReason, setExceptionReason] = useState("");
@@ -53,8 +63,10 @@ export const usePurchaseWorkspace = (
       await queryClient.invalidateQueries({ queryKey: ["purchase-workspace", projectId] });
       onSuccess?.();
       setCommandKey(crypto.randomUUID());
+      return true;
     } catch (cause) {
       setError(getApiErrorMessage(cause));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -95,13 +107,38 @@ export const usePurchaseWorkspace = (
     setCommandKey(crypto.randomUUID());
   };
 
-  const submit = async (kind: TPurchaseAction) => {
+  const submit = async (kind: TPurchaseAction, agreements: ISupplierAgreement[] = []) => {
     const ids = pendingLineId ? [pendingLineId] : selectedIds;
-    const lines = ids.map(boqLineId => ({
-      boqLineId,
-      quantity: quantities[boqLineId] ?? "",
-      ...(unitCosts[boqLineId] ? { unitCost: unitCosts[boqLineId] } : {}),
-    }));
+    const selectedLines = (workspace.data?.lines ?? []).filter(line => ids.includes(line.id));
+    if (selectedLines.length !== ids.length) {
+      setError("רשימת החומרים השתנתה; יש לבחור מחדש.");
+      return;
+    }
+    const agreementsByLine = new Map(
+      selectedLines.map(line => [
+        line.id,
+        matchingAgreement(agreements, line, supplierId, orderDate),
+      ]),
+    );
+    const missingAgreements = supplierId
+      ? selectedLines.some(line => !agreementsByLine.get(line.id))
+      : false;
+    if (missingAgreements) {
+      setError("אין הסכם מתאים לכל החומרים אצל הספק שנבחר; יש לפצל את הבחירה או לעדכן הסכם.");
+      return;
+    }
+    const lines: IPurchaseInputLine[] = selectedLines.map(line => {
+      const agreement = agreementsByLine.get(line.id);
+      return {
+        boqLineId: line.id,
+        quantity: quantities[line.id] ?? "",
+        ...purchaseCostFields({
+          supplierId,
+          agreement: agreement ?? null,
+          manualUnitCost: unitCosts[line.id] ?? "",
+        }),
+      };
+    });
     if (
       lines.length === 0 ||
       lines.some(
@@ -115,7 +152,7 @@ export const usePurchaseWorkspace = (
       setError("מחיר יחידה חייב להיות מספר תקין.");
       return;
     }
-    if (kind === PURCHASE_ACTION.ORDER && (!supplierName.trim() || !orderDate)) {
+    if (kind === PURCHASE_ACTION.ORDER && (!(supplierName.trim() || supplierId) || !orderDate)) {
       setError("יש לציין ספק ותאריך להזמנה.");
       return;
     }
@@ -123,6 +160,7 @@ export const usePurchaseWorkspace = (
       idempotencyKey: commandKey,
       lines,
       supplierName: supplierName.trim(),
+      ...(supplierId ? { supplierId } : {}),
       onBehalfOf: onBehalfOf.trim(),
       exceptionReason: exceptionReason.trim(),
       notes: notes.trim(),
@@ -162,17 +200,57 @@ export const usePurchaseWorkspace = (
     );
   };
 
-  const transition = async (recordId: string, status: TPurchaseRecordStatus) => {
+  const transition = async (
+    record: IPurchaseHistory,
+    status: TPurchaseRecordStatus,
+    agreements: ISupplierAgreement[] = [],
+  ) => {
+    const selectedSupplierId = record.supplierId || supplierId;
+    const agreementLines =
+      status === PURCHASE_RECORD_STATUS.ORDERED && !record.supplierId && selectedSupplierId
+        ? record.lines.map(line => {
+            const agreement = matchingAgreement(agreements, line, selectedSupplierId, orderDate);
+            return agreement
+              ? {
+                  recordLineId: line.id,
+                  agreementId: agreement.id,
+                  agreementVersion: agreement.version,
+                  unitCost: agreement.unitPrice,
+                }
+              : null;
+          })
+        : [];
+    if (status === PURCHASE_RECORD_STATUS.ORDERED && !orderDate) {
+      setError("יש לציין תאריך הזמנה.");
+      return false;
+    }
+    if (
+      status === PURCHASE_RECORD_STATUS.ORDERED &&
+      !record.supplierId &&
+      selectedSupplierId &&
+      agreementLines.some(line => !line)
+    ) {
+      setError("אין הסכם מתאים לכל שורת בקשה אצל הספק שנבחר.");
+      return false;
+    }
     const orderDetails =
       status === PURCHASE_RECORD_STATUS.ORDERED
         ? {
             ...(supplierName.trim() ? { supplierName: supplierName.trim() } : {}),
             ...(orderDate ? { orderDate } : {}),
+            ...(!record.supplierId && selectedSupplierId
+              ? {
+                  supplierId: selectedSupplierId,
+                  lines: agreementLines.filter(
+                    (line): line is NonNullable<typeof line> => line !== null,
+                  ),
+                }
+              : {}),
           }
         : {};
-    await run(
+    return run(
       () =>
-        purchaseRecordService.transition(projectId, recordId, status, {
+        purchaseRecordService.transition(projectId, record.id, status, {
           idempotencyKey: commandKey,
           reason: transitionReason.trim(),
           ...orderDetails,
@@ -194,6 +272,7 @@ export const usePurchaseWorkspace = (
     pendingLineId,
     correctionLineId,
     supplierName,
+    supplierId,
     orderDate,
     onBehalfOf,
     exceptionReason,
@@ -205,6 +284,7 @@ export const usePurchaseWorkspace = (
     setQuantities,
     setUnitCosts,
     setSupplierName,
+    setSupplierId,
     setOrderDate,
     setOnBehalfOf,
     setExceptionReason,

@@ -6,6 +6,7 @@ import {
 
 import type {
   IPurchaseLine,
+  IPurchaseHistory,
   IPurchaseWorkspace,
 } from "../src/interfaces/purchase-record.interface";
 
@@ -23,8 +24,10 @@ import BoqLineEditor from "../src/pages/project-boq/BoqLineEditor";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PurchaseWorkspace from "../src/pages/project-boq/PurchaseWorkspace";
 import { purchaseRecordService } from "../src/services/purchase-record.service";
+import { matchingAgreement } from "../src/utilities/supplier-agreement.utility";
 import { PURCHASE_RECORD_STATUS } from "../src/constants/purchase-record.constant";
 import { usePurchaseWorkspace } from "../src/pages/project-boq/usePurchaseWorkspace";
+import type { ISupplierAgreement } from "../src/interfaces/supplier-agreement.interface";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 
@@ -62,6 +65,112 @@ const initial: IPurchaseWorkspace = {
   history: [],
   nextCursor: null,
 };
+
+test("approved request sends selected supplier agreement terms", async () => {
+  const originalWorkspace = purchaseRecordService.workspace;
+  const originalTransition = purchaseRecordService.transition;
+  const record: IPurchaseHistory = {
+    id: "request-1",
+    status: PURCHASE_RECORD_STATUS.APPROVED,
+    notes: "",
+    createdAt: "2026-11-17T12:00:00.000Z",
+    updatedAt: "2026-11-17T12:00:00.000Z",
+    createdById: "user-1",
+    updatedById: "user-1",
+    orderDate: null,
+    onBehalfOf: null,
+    supplierId: null,
+    supplierName: null,
+    supplierContactName: null,
+    supplierPhone: null,
+    supplierEmail: null,
+    exceptionReason: null,
+    events: [],
+    lines: [
+      {
+        id: "request-line-1",
+        materialId: "material:a",
+        quantity: "3",
+        activeQuantity: "3",
+        materialName: "חומר a",
+        materialUnit: "unit",
+        boqSourceKey: "source:a",
+        currencyCode: "ILS",
+        unitCost: null,
+        supplierAgreementId: null,
+        supplierAgreementVersion: null,
+      },
+    ],
+  };
+  const supplierId = "supplier-1";
+  const agreement: ISupplierAgreement = {
+    id: "agreement-1",
+    projectId: "project-1",
+    boqSourceKey: "source:a",
+    materialId: "material:a",
+    materialUnit: "unit",
+    supplierId,
+    supplierName: "ספק אחד",
+    unitPrice: "12.5000",
+    currencyCode: "ILS",
+    agreedQuantity: "5.00000000",
+    effectiveFrom: null,
+    effectiveThrough: null,
+    active: true,
+    version: 2,
+    notes: "",
+  };
+  const calls: unknown[] = [];
+  purchaseRecordService.workspace = () => Promise.resolve({ ...initial, history: [record] });
+  purchaseRecordService.transition = (_projectId, _recordId, _status, input) => {
+    calls.push(input);
+    return Promise.resolve({
+      ...initial,
+      history: [{ ...record, status: PURCHASE_RECORD_STATUS.ORDERED }],
+    });
+  };
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const holder: { current: ReturnType<typeof usePurchaseWorkspace> | null } = { current: null };
+  const Probe = () => {
+    holder.current = usePurchaseWorkspace("project-1", "", null);
+    return null;
+  };
+  const rendered: { current: ReturnType<typeof create> | null } = { current: null };
+  try {
+    await act(async () => {
+      rendered.current = create(
+        <QueryClientProvider client={client}>
+          <Probe />
+        </QueryClientProvider>,
+      );
+    });
+    await act(async () => {
+      holder.current?.setSupplierId(supplierId);
+      holder.current?.setOrderDate("2026-11-17");
+    });
+    let saved = false;
+    await act(async () => {
+      saved =
+        (await holder.current?.transition(record, PURCHASE_RECORD_STATUS.ORDERED, [agreement])) ??
+        false;
+    });
+    assert.equal(saved, true);
+    assert.deepEqual((calls[0] as { supplierId: string; lines: unknown[] }).supplierId, supplierId);
+    assert.deepEqual((calls[0] as { lines: unknown[] }).lines, [
+      {
+        recordLineId: "request-line-1",
+        agreementId: "agreement-1",
+        agreementVersion: 2,
+        unitCost: "12.5000",
+      },
+    ]);
+  } finally {
+    purchaseRecordService.workspace = originalWorkspace;
+    purchaseRecordService.transition = originalTransition;
+    await act(async () => rendered.current?.unmount());
+    client.clear();
+  }
+});
 
 test("quantity indicators distinguish unresolved, estimated and overridden planning", () => {
   assert.equal(
@@ -181,6 +290,97 @@ test("selection survives category changes and submits one shared supplier with p
       ["3", "8"],
     );
     assert.deepEqual(holder.current?.selectedIds, []);
+  } finally {
+    purchaseRecordService.workspace = originalWorkspace;
+    purchaseRecordService.order = originalOrder;
+    await act(async () => rendered.current?.unmount());
+    client.clear();
+  }
+});
+
+test("selected supplier reuses matching agreement prices and rejects mixed supplier groups", async () => {
+  const originalWorkspace = purchaseRecordService.workspace;
+  const originalOrder = purchaseRecordService.order;
+  const calls: {
+    supplierId?: string;
+    lines: {
+      agreementId?: string;
+      agreementVersion?: number;
+      quantity: string;
+      unitCost?: string;
+    }[];
+  }[] = [];
+  const agreement = (id: string, supplierId: string): ISupplierAgreement => ({
+    id: `agreement:${id}:${supplierId}`,
+    projectId: "project-1",
+    boqSourceKey: `source:${id}`,
+    materialId: `material:${id}`,
+    materialUnit: "unit",
+    supplierId,
+    supplierName: "ספק אחד",
+    unitPrice: "12.5000",
+    currencyCode: "ILS",
+    agreedQuantity: "5.00000000",
+    effectiveFrom: null,
+    effectiveThrough: null,
+    active: true,
+    version: 1,
+    notes: "",
+  });
+  const agreements = [agreement("a", "supplier-1"), agreement("b", "supplier-1")];
+  purchaseRecordService.workspace = () => Promise.resolve(initial);
+  purchaseRecordService.order = (_projectId, input) => {
+    calls.push(input);
+    return Promise.resolve(initial);
+  };
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const holder: { current: ReturnType<typeof usePurchaseWorkspace> | null } = { current: null };
+  const Probe = () => {
+    holder.current = usePurchaseWorkspace("project-1", "", null);
+    return null;
+  };
+  const rendered: { current: ReturnType<typeof create> | null } = { current: null };
+  try {
+    await act(async () => {
+      rendered.current = create(
+        <QueryClientProvider client={client}>
+          <Probe />
+        </QueryClientProvider>,
+      );
+    });
+    await act(async () => {
+      holder.current?.selectLine(initial.lines[0], true);
+      holder.current?.selectLine(initial.lines[1], true);
+      holder.current?.setQuantities({ a: "3", b: "4" });
+      holder.current?.setSupplierId("supplier-1");
+      holder.current?.setOrderDate("2026-11-17");
+    });
+    assert.equal(
+      matchingAgreement(agreements, initial.lines[0], "supplier-1", "2026-11-17")?.id,
+      agreements[0].id,
+    );
+    await act(async () => holder.current?.submit("order", [agreements[0]]));
+    assert.equal(calls.length, 0);
+    assert.match(holder.current?.error ?? "", /אין הסכם מתאים/);
+    await act(async () => holder.current?.submit("order", agreements));
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].supplierId, "supplier-1");
+    assert.deepEqual(
+      calls[0].lines.map(item => item.agreementId),
+      agreements.map(item => item.id),
+    );
+    assert.deepEqual(
+      calls[0].lines.map(item => item.quantity),
+      ["3", "4"],
+    );
+    assert.deepEqual(
+      calls[0].lines.map(item => item.agreementVersion),
+      [1, 1],
+    );
+    assert.deepEqual(
+      calls[0].lines.map(item => item.unitCost),
+      ["12.5000", "12.5000"],
+    );
   } finally {
     purchaseRecordService.workspace = originalWorkspace;
     purchaseRecordService.order = originalOrder;

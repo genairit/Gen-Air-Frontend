@@ -1,4 +1,5 @@
 import {
+  orderLinePriceNote,
   matchesPurchaseLine,
   getPurchaseLineStatus,
   getPurchaseSourceLabel,
@@ -19,19 +20,28 @@ import {
   PURCHASE_RECORD_NEXT_STATUS,
 } from "../../constants/purchase-record.constant";
 
+import {
+  matchingAgreement,
+  formatAgreementPrice,
+} from "../../utilities/supplier-agreement.utility";
+
 import { useRef, useState } from "react";
 import BoqLineEditor from "./BoqLineEditor";
 import Tabs from "../../components/Tabs/Tabs";
 import Card from "../../components/Card/Card";
 import { Box, Typography } from "@mui/material";
+import SupplierDirectory from "./SupplierDirectory";
 import Button from "../../components/Button/Button";
 import CheckBox from "../../components/CheckBox/CheckBox";
 import { useSessionUser } from "../../store/session.store";
 import TextField from "../../components/TextField/TextField";
 import { usePurchaseWorkspace } from "./usePurchaseWorkspace";
+import SupplierAgreementEditor from "./SupplierAgreementEditor";
+import { useSupplierAgreements } from "./useSupplierAgreements";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import InlineError from "../../components/InlineError/InlineError";
 import { hasPermission } from "../../utilities/permission.utility";
+import Autocomplete from "../../components/Autocomplete/Autocomplete";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { TAB_MODES, TABS_VARIANTS } from "../../constants/tabs.constant";
@@ -59,10 +69,22 @@ const PurchaseWorkspace = ({
   const [historyCursors, setHistoryCursors] = useState<(string | null)[]>([]);
   const [category, setCategory] = useState("");
   const [search, setSearch] = useState("");
+  const [transitionOrderId, setTransitionOrderId] = useState<string | null>(null);
   const reviewHeadingRef = useRef<HTMLHeadingElement>(null);
   const state = usePurchaseWorkspace(projectId, historySearch, historyCursor);
   const canRequest = hasPermission(user, PERMISSIONS.PURCHASE_REQUESTS_REVIEW);
   const canOrder = hasPermission(user, PERMISSIONS.PURCHASE_ORDERS_APPROVE);
+  const canManageAgreements = hasPermission(user, PERMISSIONS.SUPPLIER_AGREEMENTS_MANAGE);
+  const supplierData = useSupplierAgreements(projectId, canManageAgreements);
+  const suppliers = supplierData.suppliers.data ?? [];
+  const agreements = supplierData.agreements.data ?? [];
+  const supplierOptions = suppliers
+    .filter(supplier => supplier.active)
+    .map(supplier => ({
+      value: supplier.id,
+      label: supplier.name,
+      ...(supplier.contactName ? { subtitle: supplier.contactName } : {}),
+    }));
   const data = state.workspace.data;
   const categories = [...new Set(data?.lines.map(line => line.materialCategory) ?? [])];
   const activeCategory =
@@ -119,6 +141,19 @@ const PurchaseWorkspace = ({
             {data.lines.length} חומרים · {data.history.length} פעולות
           </Typography>
         </Box>
+        {canManageAgreements && (
+          <SupplierDirectory
+            suppliers={suppliers}
+            onSave={supplierData.saveSupplier}
+            isLoading={supplierData.suppliers.isPending}
+          />
+        )}
+        {canManageAgreements && supplierData.suppliers.error && (
+          <InlineError message={getApiErrorMessage(supplierData.suppliers.error)} />
+        )}
+        {canManageAgreements && supplierData.agreements.error && (
+          <InlineError message={getApiErrorMessage(supplierData.agreements.error)} />
+        )}
         <TextField
           value={search}
           title="חיפוש חומר"
@@ -203,12 +238,26 @@ const PurchaseWorkspace = ({
                   </Typography>
                 )}
                 <Box sx={styles.formGrid}>
-                  <TextField
-                    title="ספק"
-                    type={FIELD_TYPES.TEXT}
-                    value={state.supplierName}
-                    onChange={state.setSupplierName}
-                  />
+                  {canManageAgreements ? (
+                    <Autocomplete
+                      title="ספק להזמנה"
+                      items={supplierOptions}
+                      value={state.supplierId || null}
+                      isLoading={supplierData.suppliers.isPending}
+                      noOptionsText="אין ספק פעיל; הוסיפו ספק והסכם תחילה"
+                      onChange={value => {
+                        state.setSupplierId(value ?? "");
+                        state.setSupplierName("");
+                      }}
+                    />
+                  ) : (
+                    <TextField
+                      title="ספק"
+                      type={FIELD_TYPES.TEXT}
+                      value={state.supplierName}
+                      onChange={state.setSupplierName}
+                    />
+                  )}
                   <TextField
                     title="תאריך הזמנה"
                     type={FIELD_TYPES.DATE}
@@ -228,30 +277,43 @@ const PurchaseWorkspace = ({
                     onChange={state.setExceptionReason}
                   />
                 </Box>
-                {inputLines.map(line => (
-                  <Box key={line.id} sx={styles.quantityEditor}>
-                    <Typography>
-                      {line.materialName} · זמין {formatPurchaseQuantity(line.remainingQuantity)}{" "}
-                      {line.materialUnit}
-                    </Typography>
-                    <TextField
-                      type={FIELD_TYPES.NUMBER}
-                      title={`כמות ${line.materialName}`}
-                      value={state.quantities[line.id] ?? ""}
-                      onChange={value =>
-                        state.setQuantities(current => ({ ...current, [line.id]: value }))
-                      }
-                    />
-                    <TextField
-                      type={FIELD_TYPES.NUMBER}
-                      value={state.unitCosts[line.id] ?? ""}
-                      title={`מחיר קנייה ליחידה ₪ · ${line.materialName} (אם ידוע)`}
-                      onChange={value =>
-                        state.setUnitCosts(current => ({ ...current, [line.id]: value }))
-                      }
-                    />
-                  </Box>
-                ))}
+                {inputLines.map(line => {
+                  const agreement = state.supplierId
+                    ? matchingAgreement(agreements, line, state.supplierId, state.orderDate)
+                    : null;
+                  return (
+                    <Box key={line.id} sx={styles.quantityEditor}>
+                      <Typography>
+                        {line.materialName} · זמין {formatPurchaseQuantity(line.remainingQuantity)}{" "}
+                        {line.materialUnit}
+                      </Typography>
+                      <TextField
+                        type={FIELD_TYPES.NUMBER}
+                        title={`כמות ${line.materialName}`}
+                        value={state.quantities[line.id] ?? ""}
+                        onChange={value =>
+                          state.setQuantities(current => ({ ...current, [line.id]: value }))
+                        }
+                      />
+                      {state.supplierId ? (
+                        <Typography color={agreement ? "text.primary" : "warning.main"}>
+                          {agreement
+                            ? `הסכם: ${formatAgreementPrice(agreement)} ל${line.materialUnit}`
+                            : "אין הסכם בתוקף לחומר זה אצל הספק שנבחר"}
+                        </Typography>
+                      ) : (
+                        <TextField
+                          type={FIELD_TYPES.NUMBER}
+                          value={state.unitCosts[line.id] ?? ""}
+                          title={`מחיר קנייה ליחידה ₪ · ${line.materialName} (אם ידוע)`}
+                          onChange={value =>
+                            state.setUnitCosts(current => ({ ...current, [line.id]: value }))
+                          }
+                        />
+                      )}
+                    </Box>
+                  );
+                })}
                 <TextField
                   title="הערות"
                   value={state.notes}
@@ -265,7 +327,7 @@ const PurchaseWorkspace = ({
                       isLoading={state.busy}
                       text="שמור בקשה ושמור כמות"
                       variant={BUTTON_VARIANTS.SECONDARY}
-                      onClick={() => state.submit(PURCHASE_ACTION.REQUEST)}
+                      onClick={() => state.submit(PURCHASE_ACTION.REQUEST, agreements)}
                     />
                   )}
                   {canOrder && (
@@ -273,7 +335,7 @@ const PurchaseWorkspace = ({
                       text="רשום כהוזמן"
                       disabled={state.busy}
                       isLoading={state.busy}
-                      onClick={() => state.submit(PURCHASE_ACTION.ORDER)}
+                      onClick={() => state.submit(PURCHASE_ACTION.ORDER, agreements)}
                     />
                   )}
                   <Button
@@ -389,6 +451,15 @@ const PurchaseWorkspace = ({
                     />
                   </Box>
                 )}
+                {canManageAgreements && (
+                  <SupplierAgreementEditor
+                    line={line}
+                    projectId={projectId}
+                    suppliers={suppliers}
+                    agreements={agreements}
+                    onSave={supplierData.saveAgreement}
+                  />
+                )}
               </Box>
             </Box>
           ))}
@@ -399,6 +470,7 @@ const PurchaseWorkspace = ({
         <Typography component="h2" sx={styles.heading}>
           היסטוריית בקשות והזמנות
         </Typography>
+        {state.error && <InlineError message={state.error} />}
         {state.workspace.isFetching && (
           <Typography role="status" variant="body2">
             מעדכן היסטוריה…
@@ -435,10 +507,17 @@ const PurchaseWorkspace = ({
                 {record.lines
                   .map(
                     line =>
-                      `${line.materialName}: ${formatPurchaseQuantity(line.activeQuantity)} ${line.materialUnit}${line.unitCost ? ` · ₪${formatPurchaseQuantity(line.unitCost)} ליחידה` : ""}`,
+                      `${line.materialName}: ${formatPurchaseQuantity(line.activeQuantity)} ${line.materialUnit}${line.unitCost ? ` · ${formatPurchaseQuantity(line.unitCost)} ${line.currencyCode} ליחידה` : ""}`,
                   )
                   .join(" · ")}
               </Typography>
+              {record.supplierId && (
+                <Typography variant="body2">
+                  פרטי ספק בעת הרישום: {record.supplierContactName || "ללא איש קשר"}
+                  {record.supplierPhone ? ` · ${record.supplierPhone}` : ""}
+                  {record.supplierEmail ? ` · ${record.supplierEmail}` : ""}
+                </Typography>
+              )}
               {record.onBehalfOf && (
                 <Typography variant="body2">לבקשת: {record.onBehalfOf}</Typography>
               )}
@@ -468,9 +547,18 @@ const PurchaseWorkspace = ({
                           PURCHASE_RECORD_STATUS.ORDERED &&
                           !canOrder)
                       }
-                      onClick={() => {
+                      onClick={async () => {
                         const next = PURCHASE_RECORD_NEXT_STATUS[record.status];
-                        if (next) state.transition(record.id, next);
+                        if (next === PURCHASE_RECORD_STATUS.ORDERED) {
+                          setTransitionOrderId(record.id);
+                          state.setSupplierId(record.supplierId ?? "");
+                          state.setSupplierName(record.supplierName ?? "");
+                          state.setOrderDate(record.orderDate ?? "");
+                          return;
+                        }
+                        if (next) {
+                          await state.transition(record, next);
+                        }
                       }}
                     />
                   )}
@@ -479,9 +567,90 @@ const PurchaseWorkspace = ({
                       text="בטל בקשה/הזמנה"
                       variant={BUTTON_VARIANTS.DANGER}
                       disabled={state.busy || !state.transitionReason.trim()}
-                      onClick={() => state.transition(record.id, PURCHASE_RECORD_STATUS.CANCELLED)}
+                      onClick={async () => {
+                        await state.transition(record, PURCHASE_RECORD_STATUS.CANCELLED);
+                      }}
                     />
                   )}
+                </Box>
+              )}
+              {transitionOrderId === record.id && (
+                <Box sx={styles.details}>
+                  <Typography component="h3" sx={styles.heading}>
+                    רישום הזמנה מבקשה
+                  </Typography>
+                  {!record.supplierId && canManageAgreements && (
+                    <Autocomplete
+                      title="ספק להזמנה"
+                      items={supplierOptions}
+                      value={state.supplierId || null}
+                      isLoading={supplierData.suppliers.isPending}
+                      onChange={value => state.setSupplierId(value ?? "")}
+                    />
+                  )}
+                  {!record.supplierId && !canManageAgreements && (
+                    <TextField
+                      title="ספק"
+                      type={FIELD_TYPES.TEXT}
+                      value={state.supplierName}
+                      onChange={state.setSupplierName}
+                    />
+                  )}
+                  {record.supplierId && <Typography>ספק: {record.supplierName}</Typography>}
+                  <TextField
+                    title="תאריך הזמנה"
+                    type={FIELD_TYPES.DATE}
+                    value={state.orderDate}
+                    onChange={state.setOrderDate}
+                  />
+                  {record.lines.map(line => {
+                    const agreement = state.supplierId
+                      ? matchingAgreement(agreements, line, state.supplierId, state.orderDate)
+                      : null;
+                    const priceNote = orderLinePriceNote({
+                      line,
+                      hasRecordedSupplier: record.supplierId !== null,
+                      selectedSupplierId: state.supplierId,
+                      agreement,
+                    });
+                    const missingAgreement =
+                      state.supplierId !== "" && !agreement && !record.supplierId;
+                    return (
+                      <Typography
+                        key={line.id}
+                        color={missingAgreement ? "warning.main" : "text.primary"}
+                      >
+                        {line.materialName} · {formatPurchaseQuantity(line.activeQuantity)}{" "}
+                        {line.materialUnit}
+                        {priceNote}
+                      </Typography>
+                    );
+                  })}
+                  <Box sx={styles.actions}>
+                    <Button
+                      text="רשום הזמנה"
+                      disabled={
+                        state.busy ||
+                        !state.orderDate ||
+                        (!record.supplierId && !state.supplierId && !state.supplierName.trim())
+                      }
+                      onClick={async () => {
+                        const saved = await state.transition(
+                          record,
+                          PURCHASE_RECORD_STATUS.ORDERED,
+                          agreements,
+                        );
+                        if (saved) {
+                          setTransitionOrderId(null);
+                        }
+                      }}
+                    />
+                    <Button
+                      text="ביטול"
+                      variant={BUTTON_VARIANTS.NEUTRAL}
+                      onClick={() => setTransitionOrderId(null)}
+                    />
+                  </Box>
                 </Box>
               )}
             </Box>
@@ -512,23 +681,6 @@ const PurchaseWorkspace = ({
             )}
           </Box>
         )}
-        {visibleHistory.some(record => record.status === PURCHASE_RECORD_STATUS.APPROVED) &&
-          canOrder && (
-            <Box sx={styles.formGrid}>
-              <TextField
-                type={FIELD_TYPES.TEXT}
-                title="ספק להזמנה מאושרת"
-                value={state.supplierName}
-                onChange={state.setSupplierName}
-              />
-              <TextField
-                type={FIELD_TYPES.DATE}
-                value={state.orderDate}
-                title="תאריך הזמנה מאושרת"
-                onChange={state.setOrderDate}
-              />
-            </Box>
-          )}
         {data.history.length > 0 && canRequest && (
           <TextField
             type={FIELD_TYPES.TEXT}
