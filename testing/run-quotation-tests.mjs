@@ -34,7 +34,12 @@ for (const suite of ["components", "cancellation"]) {
           tabsRendererTestPlugin,
           componentStyleTestPlugin,
         ]
-      : [autocompleteRendererPlugin, tabsRendererTestPlugin, componentStyleTestPlugin];
+      : [
+          autocompleteRendererPlugin,
+          confirmationPopupRendererTestPlugin,
+          tabsRendererTestPlugin,
+          componentStyleTestPlugin,
+        ];
   await runBundledTest({
     input: `testing/quotation.${suite}.test.tsx`,
     output: `quotation.${suite}.test.mjs`,

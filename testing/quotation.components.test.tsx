@@ -11,6 +11,7 @@ import { quotationService } from "../src/services/quotation.service";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { getActiveNavigationId } from "../src/utilities/route.utility";
 import { QUOTATION_SYSTEM } from "../src/constants/quotation.constant";
+import GenericPopup from "../src/components/GenericPopup/GenericPopup";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { QUOTATION_DETAIL_KEY } from "../src/constants/quotation.constant";
 import { QUOTATION_AUTOSAVE_MS } from "../src/constants/quotation.constant";
@@ -906,7 +907,7 @@ test("direct project search stays customer-scoped, retains the selected name and
   }
 });
 
-test("review progress reflects explicit acknowledgements and marks a warning-free quotation complete", async () => {
+test("review summary shows a concise warning count and readable VAT", async () => {
   const quotation = {
     ...quotationFixture(),
     vatRate: "18.0000",
@@ -928,10 +929,7 @@ test("review progress reflects explicit acknowledgements and marks a warning-fre
     await act(async () => {
       state.renderer = create(<QuotationSummary {...props} quotation={quotation} />);
     });
-    const progress = () => state.renderer!.root.findByType("progress");
-    assert.equal(progress().props.max, 2);
-    assert.equal(progress().props.value, 1);
-    assert.equal(progress().props["aria-label"], "התקדמות בדיקת הצעה");
+    assert.ok(JSON.stringify(state.renderer!.toJSON()).includes("1 התראות פתוחות"));
     assert.ok(JSON.stringify(state.renderer!.toJSON()).includes("מע״מ 18%"));
     assert.ok(!JSON.stringify(state.renderer!.toJSON()).includes("מע״מ 18.0000%"));
     await act(async () => {
@@ -939,8 +937,7 @@ test("review progress reflects explicit acknowledgements and marks a warning-fre
         <QuotationSummary {...props} quotation={{ ...quotation, warnings: [] }} />,
       );
     });
-    assert.equal(progress().props.max, 1);
-    assert.equal(progress().props.value, 1);
+    assert.ok(JSON.stringify(state.renderer!.toJSON()).includes("אין התראות פתוחות"));
   } finally {
     await act(async () => state.renderer?.unmount());
   }
@@ -1122,32 +1119,39 @@ test("delete confirmation supports cancel, retry and reload while blocking pendi
   };
   const state = { renderer: null as ReturnType<typeof create> | null };
   const buttons = () => state.renderer!.root.findAllByType(QuotationButton);
+  const popup = () => state.renderer!.root.findByType(GenericPopup);
   try {
     await act(async () => {
       state.renderer = create(<QuotationDelete {...props} />);
     });
 
     assert.equal(buttons().length, 1);
-    assert.equal(buttons()[0].props.text, "מחיקת ההצעה");
+    assert.equal(buttons()[0].props.ariaLabel, "מחיקת ההצעה");
+    assert.equal("text" in buttons()[0].props, false);
     await act(async () => buttons()[0].props.onClick());
     assert.equal(calls.remove, 0);
-    assert.equal(buttons().length, 2);
-    await act(async () => buttons()[1].props.onClick());
-    assert.equal(buttons().length, 1);
+    assert.ok(
+      state
+        .renderer!.root.findAllByType("p")
+        .some(node => node.children.join("").includes("Q-123")),
+    );
+    await act(async () => popup().props.buttons.secondary.onClick());
+    assert.equal(state.renderer!.root.findAllByType(GenericPopup).length, 0);
     await act(async () => buttons()[0].props.onClick());
     await act(async () => state.renderer!.update(<QuotationDelete {...props} error="Conflict" />));
     assert.equal(
       state.renderer!.root.findByProps({ role: "alert" }).children.includes("Conflict"),
       true,
     );
-    await act(() => buttons()[0].props.onClick());
-    await act(() => buttons()[2].props.onClick());
+    await act(async () => popup().props.buttons.primary.onClick());
+    await act(async () => buttons()[1].props.onClick());
     assert.deepEqual(calls, { remove: 1, reload: 1 });
     await act(async () =>
       state.renderer!.update(<QuotationDelete {...props} pending error="Conflict" />),
     );
+    assert.equal(buttons()[0].props.disabled, true);
     assert.equal(
-      buttons().every(button => button.props.disabled),
+      state.renderer!.root.findByType(GenericPopup).props.buttons.primary.isDisabled,
       true,
     );
     await act(async () => state.renderer!.update(<QuotationDelete {...props} blocked />));
