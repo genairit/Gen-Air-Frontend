@@ -19,6 +19,7 @@ interface IAutocompleteProps {
   isClientFiltered?: boolean;
   items?: IAutocompleteOption[];
   onSearch?: (value: string) => void;
+  selectedItem?: IAutocompleteOption | null;
   onChange?: (value: string | null) => void;
 }
 
@@ -29,6 +30,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   value = null,
   options = [],
   items,
+  selectedItem = null,
   isLoading = false,
   disabled = false,
   isRequired = false,
@@ -50,6 +52,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
     placeholder={placeholder}
     emptyText={noOptionsText}
     isClearable={isClearable}
+    selectedItem={selectedItem}
     isSearchMode={isAutocomplete}
     isInputReadOnly={!isAutocomplete}
     isSearchIconShown={isAutocomplete}

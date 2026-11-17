@@ -29,8 +29,7 @@ const QuotationEntityPicker: FC<IQuotationEntityPickerProps> = ({
   placeholder,
   allowClear = false,
 }) => {
-  const choices =
-    value && !options.some(option => option.id === value.id) ? [value, ...options] : options;
+  const selectedItem = value ? { value: value.id, label: value.name } : null;
 
   return (
     <Autocomplete
@@ -43,7 +42,8 @@ const QuotationEntityPicker: FC<IQuotationEntityPickerProps> = ({
       isClientFiltered={false}
       value={value?.id ?? null}
       placeholder={placeholder}
-      items={choices.map(option => ({ value: option.id, label: option.name }))}
+      selectedItem={selectedItem}
+      items={options.map(option => ({ value: option.id, label: option.name }))}
     />
   );
 };

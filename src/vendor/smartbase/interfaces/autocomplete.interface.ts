@@ -58,6 +58,7 @@ export interface IAutocompleteProps {
   colors?: Partial<IAutocompleteColors>;
   onChange: (value: string | null) => void;
   searchModeContainer?: HTMLElement | null;
+  selectedItem?: IAutocompleteOption | null;
   actionsRef?: Ref<IAutocompleteActions | null>;
 }
 
@@ -101,6 +102,7 @@ export interface IUseAutocompleteSearchOptions {
   options: IAutocompleteOption[];
   onSearch?: (value: string) => void;
   onChange: (value: string | null) => void;
+  selectedItem?: IAutocompleteOption | null;
 }
 
 export interface IUseAutocompleteSearchResult {

@@ -29,6 +29,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   value,
   colors,
   options,
+  selectedItem = null,
   onChange,
   onSearch,
   disabled = false,
@@ -64,6 +65,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   const search = useAutocompleteSearch({
     value,
     options,
+    selectedItem,
     pageSize,
     onChange,
     onSearch,

@@ -26,6 +26,7 @@ import { KEY_TYPES } from "../../../constants/keyboard.constant";
 export const useAutocompleteSearch = ({
   value,
   options,
+  selectedItem = null,
   pageSize,
   onChange,
   isLoading,
@@ -56,7 +57,9 @@ export const useAutocompleteSearch = ({
 
   const visibleOptions = filteredOptions.slice(0, visibleCount);
   const selectedOption =
-    options.find(option => option.value === value) ?? (value ? { value, label: value } : null);
+    options.find(option => option.value === value) ??
+    (selectedItem?.value === value ? selectedItem : null) ??
+    (value ? { value, label: value } : null);
   const highlightedOption = visibleOptions[activeIndex] ?? null;
   const activeOption = isOpen ? highlightedOption : null;
   const isEmpty = filteredOptions.length === 0 && !isLoading;
