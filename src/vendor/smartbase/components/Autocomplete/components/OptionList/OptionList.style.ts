@@ -37,6 +37,12 @@ export const useStyles = (colors: IAutocompleteColors, maxHeight: number) =>
       scrollbarColor: `${alpha(colors.placeholder, 0.36)} transparent`,
       maxHeight: `${maxHeight}px`,
       overscrollBehavior: "contain",
+      "&:hover [role='option']:not([aria-disabled]):not(:hover)": {
+        backgroundColor: alpha(TOKENS.SURFACE, 0.4),
+      },
+      "& [role='option']:not([aria-disabled]):hover": {
+        backgroundColor: alpha(colors.accent, 0.25),
+      },
     },
     option: {
       ...optionRow,
