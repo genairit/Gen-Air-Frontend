@@ -80,6 +80,16 @@ const PurchaseWorkspace = ({
   const visibleLines = (data?.lines ?? []).filter(line =>
     matchesPurchaseLine(line, activeCategory, search),
   );
+  const visibleRows = visibleLines.map(line => ({
+    line,
+    editorVersionKey: JSON.stringify([
+      line.id,
+      boqRevision,
+      line.requiredQuantity,
+      line.estimatedUnitCost,
+      line.notes,
+    ]),
+  }));
   const selectedLines = (data?.lines ?? []).filter(line => state.selectedIds.includes(line.id));
   const inputLines = state.pendingLineId
     ? (data?.lines ?? []).filter(line => line.id === state.pendingLineId)
@@ -287,7 +297,7 @@ const PurchaseWorkspace = ({
           sx={styles.lines}
           aria-label={`חומרים בקטגוריה ${activeCategory === PURCHASE_ALL_CATEGORY ? "הכול" : activeCategory}`}
         >
-          {visibleLines.map(line => (
+          {visibleRows.map(({ line, editorVersionKey }) => (
             <Box key={line.id} sx={styles.line}>
               <Box sx={styles.lineTitle}>
                 <Typography sx={styles.materialName}>{line.materialName}</Typography>
@@ -373,9 +383,9 @@ const PurchaseWorkspace = ({
                     <BoqLineEditor
                       line={line}
                       revision={boqRevision}
+                      key={editorVersionKey}
                       canManage={canManageBoq}
                       onSave={onUpdateBoqLine}
-                      key={`${line.id}:${boqRevision}`}
                     />
                   </Box>
                 )}
