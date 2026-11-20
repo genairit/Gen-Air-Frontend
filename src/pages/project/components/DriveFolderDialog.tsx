@@ -1,12 +1,10 @@
+import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import DriveFolderPicker from "./DriveFolderPicker";
-import { useStyles } from "./DriveFileManager.style";
-import Button from "../../../components/Button/Button";
 import InlineError from "../../../components/InlineError/InlineError";
+import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 import { useProjectDriveQuery } from "../../../hooks/queries/project.query";
 import type { IDriveFolderLocation } from "../../../interfaces/drive-file.interface";
-import { Box, Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { DRIVE_FILE_COPY, ROOT_DRIVE_LOCATION } from "../../../constants/drive-file.constant";
 
 interface IDriveFolderDialogProps {
@@ -32,7 +30,6 @@ const DriveFolderDialog: FC<IDriveFolderDialogProps> = ({
   onClose,
   onConfirm,
 }) => {
-  const styles = useStyles();
   const [path, setPath] = useState(initialPath);
   const location = path.at(-1) ?? ROOT_DRIVE_LOCATION;
   const query = useProjectDriveQuery(projectId, location.folderId);
@@ -44,40 +41,29 @@ const DriveFolderDialog: FC<IDriveFolderDialogProps> = ({
   };
 
   return (
-    <Dialog
+    <GenericPopup
       open
-      fullWidth
-      maxWidth="sm"
+      title={title}
       onClose={close}
-      slotProps={{ paper: { sx: styles.dialog } }}
-    >
-      <DialogTitle>{title}</DialogTitle>
-      <DialogContent>
-        {description && <Box component="p">{description}</Box>}
-        <DriveFolderPicker
-          path={path}
-          onChange={setPath}
-          disabled={isPending}
-          projectId={projectId}
-        />
-        {error && <InlineError message={error} />}
-      </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={close}
-          disabled={isPending}
-          text={DRIVE_FILE_COPY.CANCEL}
-          variant={BUTTON_VARIANTS.NEUTRAL}
-        />
-        <Button
-          text={confirmLabel}
-          disabled={isDisabled}
-          isLoading={isPending}
-          ariaLabel={confirmLabel}
-          onClick={() => onConfirm(path)}
-        />
-      </DialogActions>
-    </Dialog>
+      closeAfterAction={false}
+      closeDisabled={isPending}
+      buttons={{
+        primary: { text: confirmLabel, isDisabled, onClick: () => onConfirm(path) },
+        secondary: { text: DRIVE_FILE_COPY.CANCEL, isDisabled: isPending, onClick: close },
+      }}
+      content={
+        <Box>
+          {description && <Box component="p">{description}</Box>}
+          <DriveFolderPicker
+            path={path}
+            onChange={setPath}
+            disabled={isPending}
+            projectId={projectId}
+          />
+          {error && <InlineError message={error} />}
+        </Box>
+      }
+    />
   );
 };
 export default DriveFolderDialog;

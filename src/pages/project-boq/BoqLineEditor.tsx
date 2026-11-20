@@ -1,5 +1,4 @@
 import {
-  PROJECT_BOQ_BASIS,
   PROJECT_BOQ_REVIEW,
   PROJECT_BOQ_COST_PATTERN,
   PROJECT_BOQ_QUANTITY_PATTERN,
@@ -11,13 +10,15 @@ import Button from "../../components/Button/Button";
 import TextField from "../../components/TextField/TextField";
 import InlineError from "../../components/InlineError/InlineError";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
-import type { IBoqLine, IBoqLineEdit } from "../../interfaces/project-boq.interface";
+import type { IBoqLineEdit } from "../../interfaces/project-boq.interface";
+import type { IPurchaseLine } from "../../interfaces/purchase-record.interface";
+import { getPurchaseSourceLabel } from "../../utilities/purchase-record.utility";
 import { FIELD_TYPES } from "../../components/TextField/constants/textfield.constants";
 
 interface IProps {
-  line: IBoqLine;
   revision: number;
   canManage: boolean;
+  line: IPurchaseLine;
   onSave: (lineId: string, edit: IBoqLineEdit) => Promise<void>;
 }
 
@@ -72,11 +73,7 @@ const BoqLineEditor = ({ line, revision, onSave, canManage }: IProps) => {
         <Typography sx={{ fontWeight: 700 }}>{line.materialName}</Typography>
         <Typography variant="caption">
           {line.materialCode} · {line.materialSpecification ?? "ללא מפרט"} ·{" "}
-          {line.sourceBasis === PROJECT_BOQ_BASIS.MANUAL
-            ? "נוסף ידנית"
-            : line.sourceBasis === PROJECT_BOQ_BASIS.FIXED
-              ? "לפי קטלוג"
-              : "נדרשת בדיקה"}
+          {getPurchaseSourceLabel(line)}
         </Typography>
       </Box>
       <TextField
@@ -110,10 +107,6 @@ const BoqLineEditor = ({ line, revision, onSave, canManage }: IProps) => {
         disabled={!canManage}
         type={FIELD_TYPES.TEXT}
       />
-      <Box sx={{ gridColumn: { xs: "1 / -1", md: "auto" } }}>
-        <Typography variant="caption">מבוקש / מוזמן / יתרה</Typography>
-        <Typography>לא זמין עדיין</Typography>
-      </Box>
       {canManage && (
         <Button
           text="שמור"

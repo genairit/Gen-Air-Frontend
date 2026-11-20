@@ -1,7 +1,14 @@
+import {
+  BUTTON_SIZES,
+  BUTTON_SHAPES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
+import { Box } from "@mui/material";
 import type { FC, Ref } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
-import { Box, IconButton } from "@mui/material";
+import Button from "../../../components/Button/Button";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { EQUIPMENT_ROLE } from "../../../constants/quotation.constant";
 import { quotationLineMoney } from "../../../utilities/quotation.utility";
@@ -77,14 +84,15 @@ const QuotationAccessoryLine: FC<IQuotationAccessoryLineProps> = ({
         {amount}
       </Box>
       {!disabled && (
-        <IconButton
-          title="הסר שורה"
+        <Button
+          text="×"
           onClick={onRemove}
-          aria-label="הסר שורה"
-          className={styles.removeLine}
-        >
-          ×
-        </IconButton>
+          ariaLabel="הסר שורה"
+          size={BUTTON_SIZES.COMPACT}
+          sx={{ gridArea: "remove" }}
+          shape={BUTTON_SHAPES.CIRCLE}
+          variant={BUTTON_VARIANTS.DANGER}
+        />
       )}
     </Box>
   );

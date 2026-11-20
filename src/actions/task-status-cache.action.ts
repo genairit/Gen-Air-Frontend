@@ -1,11 +1,27 @@
 import { queryClient } from "../providers/query-client";
+import { isApiTask } from "../utilities/guards/task.guard";
 import type { IApiTask } from "../interfaces/task.interface";
+import { isCursorPageOf } from "../utilities/guards/api.guard";
 import type { ICursorPage } from "../interfaces/api.interface";
+import { isRecord } from "../utilities/guards/primitive.guard";
 import type { InfiniteData, QueryKey } from "@tanstack/react-query";
 import { QUERY_KEYS, QUERY_ROOTS } from "../constants/query-key.constant";
 import type { ITaskStatusChange, ITaskStatusSnapshot } from "../interfaces/task.interface";
 
 type TTaskPages = InfiniteData<ICursorPage<IApiTask>>;
+
+const isTaskPage = isCursorPageOf(isApiTask);
+
+const isTaskPages = (value: unknown): value is TTaskPages =>
+  isRecord(value) &&
+  Array.isArray(value.pages) &&
+  value.pages.every(isTaskPage) &&
+  Array.isArray(value.pageParams);
+
+const getTaskListQueries = () =>
+  queryClient
+    .getQueriesData<unknown>({ queryKey: [QUERY_ROOTS.TASKS] })
+    .flatMap(([queryKey, data]) => (isTaskPages(data) ? [{ queryKey, data }] : []));
 
 const patchTaskStatus = (task: IApiTask, change: ITaskStatusChange): IApiTask => {
   if (task.id !== change.taskId) {
@@ -16,8 +32,8 @@ const patchTaskStatus = (task: IApiTask, change: ITaskStatusChange): IApiTask =>
 };
 
 const patchListStatus = (queryKey: QueryKey, change: ITaskStatusChange) => {
-  queryClient.setQueryData<TTaskPages>(queryKey, current => {
-    if (!current) {
+  queryClient.setQueryData<unknown>(queryKey, (current: unknown) => {
+    if (!isTaskPages(current)) {
       return current;
     }
 
@@ -33,21 +49,17 @@ const patchListStatus = (queryKey: QueryKey, change: ITaskStatusChange) => {
 
 export const snapshotTaskStatusAction = (taskId: string): ITaskStatusSnapshot => ({
   task: queryClient.getQueryData<IApiTask>(QUERY_KEYS.task(taskId)) ?? null,
-  lists: queryClient
-    .getQueriesData<TTaskPages>({ queryKey: [QUERY_ROOTS.TASKS] })
-    .flatMap(([queryKey, data]) => {
-      const task = data?.pages.flatMap(page => page.items).find(task => task.id === taskId);
-      return task ? [{ queryKey, status: task.status }] : [];
-    }),
+  lists: getTaskListQueries().flatMap(({ queryKey, data }) => {
+    const task = data.pages.flatMap(page => page.items).find(task => task.id === taskId);
+    return task ? [{ queryKey, status: task.status }] : [];
+  }),
 });
 
 export const applyTaskStatusAction = (change: ITaskStatusChange) => {
   queryClient.setQueryData<IApiTask>(QUERY_KEYS.task(change.taskId), current =>
     current ? patchTaskStatus(current, change) : current,
   );
-  queryClient
-    .getQueriesData<TTaskPages>({ queryKey: [QUERY_ROOTS.TASKS] })
-    .forEach(([queryKey]) => patchListStatus(queryKey, change));
+  getTaskListQueries().forEach(({ queryKey }) => patchListStatus(queryKey, change));
 };
 
 export const restoreTaskStatusAction = (taskId: string, snapshot: ITaskStatusSnapshot) => {

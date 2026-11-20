@@ -1,9 +1,10 @@
+import { Box } from "@mui/material";
 import type { FC, ReactNode } from "react";
 import { useStyles } from "./TaskForm.style";
-import { Box, ButtonBase } from "@mui/material";
 import Chip from "../../../components/Chip/Chip";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import ChoiceRow from "../../../components/ChoiceRow/ChoiceRow";
 import TextField from "../../../components/TextField/TextField";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
@@ -65,7 +66,7 @@ const TaskLinkPicker: FC<ITaskLinkPickerProps> = ({
         )}
         {hasLoadedOptions &&
           options.map(option => (
-            <ButtonBase
+            <ChoiceRow
               role="option"
               key={option.id}
               sx={styles.option}
@@ -82,7 +83,7 @@ const TaskLinkPicker: FC<ITaskLinkPickerProps> = ({
                 </Box>
               </Box>
               {option.tag && <Chip label={option.tag} />}
-            </ButtonBase>
+            </ChoiceRow>
           ))}
         {hasNoResults && (
           <Box sx={styles.selected}>

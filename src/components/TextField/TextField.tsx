@@ -25,12 +25,13 @@ export type TTextfieldProps = Omit<TextFieldProps, "onChange" | "title"> & {
   isLtr?: boolean;
   infoText?: string;
   readonly?: boolean;
+  compact?: boolean;
   titleHint?: string;
   maxLength?: number;
   isRequired?: boolean;
   warningText?: string;
   titleAction?: ReactNode;
-  startIcon?: IconNameType;
+  startIcon?: IconNameType | null;
   showCharCounter?: boolean;
   endAdornment?: ReactNode;
   setIsValid?: (isValid: boolean) => void;
@@ -42,10 +43,12 @@ const TextField: FC<TTextfieldProps> = ({
   type,
   value,
   style,
+  inputRef,
   isLtr: forcedLtr,
   title,
   infoText,
   readonly,
+  compact = false,
   onChange,
   maxLength,
   validator,
@@ -78,6 +81,7 @@ const TextField: FC<TTextfieldProps> = ({
     isMultiline: Boolean(multiline),
     helperTextColor: helperText.color,
     isLtr,
+    compact,
     isPassword: type === FIELD_TYPES.PASSWORD,
   });
 
@@ -128,6 +132,7 @@ const TextField: FC<TTextfieldProps> = ({
         value={value}
         type={inputType}
         variant="outlined"
+        inputRef={inputRef}
         disabled={disabled}
         multiline={multiline}
         id={rest.id ?? inputId}

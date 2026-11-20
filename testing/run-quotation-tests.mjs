@@ -4,6 +4,7 @@ import {
   confirmationPopupRendererTestPlugin,
 } from "./quotation-render.test-plugin.mjs";
 
+import "./run-shared-ui-tests.mjs";
 import { runBundledTest } from "./test-runner.utility.mjs";
 import { autocompleteRendererPlugin } from "./autocomplete-renderer.plugin.mjs";
 
@@ -33,7 +34,12 @@ for (const suite of ["components", "cancellation"]) {
           tabsRendererTestPlugin,
           componentStyleTestPlugin,
         ]
-      : [autocompleteRendererPlugin, tabsRendererTestPlugin, componentStyleTestPlugin];
+      : [
+          autocompleteRendererPlugin,
+          confirmationPopupRendererTestPlugin,
+          tabsRendererTestPlugin,
+          componentStyleTestPlugin,
+        ];
   await runBundledTest({
     input: `testing/quotation.${suite}.test.tsx`,
     output: `quotation.${suite}.test.mjs`,

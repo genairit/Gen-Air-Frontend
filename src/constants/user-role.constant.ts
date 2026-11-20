@@ -3,6 +3,7 @@ import { AVATAR_TONES, type AvatarToneType } from "./tone.constant";
 export const USER_ROLES = {
   FINANCE: "finance",
   ENGINEER: "engineer",
+  ENGINEERING_LEAD: "engineering_lead",
   INSTALLER: "installer",
   SALES_AGENT: "sales_agent",
   SECRETARY: "secretary",
@@ -16,6 +17,7 @@ export type UserRoleType = (typeof USER_ROLES)[keyof typeof USER_ROLES];
 export const USER_ROLE_VALUES: UserRoleType[] = [
   USER_ROLES.SYSTEM_ADMIN,
   USER_ROLES.ENGINEER,
+  USER_ROLES.ENGINEERING_LEAD,
   USER_ROLES.SECRETARY,
   USER_ROLES.PROJECT_MANAGER,
   USER_ROLES.FINANCE,
@@ -23,6 +25,10 @@ export const USER_ROLE_VALUES: UserRoleType[] = [
   USER_ROLES.PURCHASING_EXECUTION_MANAGER,
   USER_ROLES.SALES_AGENT,
 ];
+
+export const ASSIGNABLE_USER_ROLE_VALUES: UserRoleType[] = USER_ROLE_VALUES.filter(
+  role => role !== USER_ROLES.SALES_AGENT,
+);
 
 export const PROJECT_MEMBER_ROLES = [
   USER_ROLES.ENGINEER,
@@ -36,8 +42,9 @@ export type ProjectMemberRoleType = (typeof PROJECT_MEMBER_ROLES)[number];
 export const USER_ROLE_LABELS: Record<UserRoleType, string> = {
   finance: "מחלקת כספים",
   engineer: "עובד הנדסה",
+  engineering_lead: "ראש צוות הנדסה",
   installer: "מתקין",
-  sales_agent: "סוכן מכירות",
+  sales_agent: "תפקיד ישן: סוכן מכירות",
   secretary: "מזכירה",
   system_admin: "הנהלה / מנהל מערכת",
   project_manager: "מנהל פרויקט",
@@ -47,8 +54,9 @@ export const USER_ROLE_LABELS: Record<UserRoleType, string> = {
 export const USER_ROLE_PLURAL_LABELS: Record<UserRoleType, string> = {
   finance: "כספים",
   engineer: "הנדסה",
+  engineering_lead: "ראשי צוות הנדסה",
   installer: "מתקינים",
-  sales_agent: "סוכני מכירות",
+  sales_agent: "תפקיד ישן",
   secretary: "מזכירות",
   system_admin: "הנהלה",
   project_manager: "מנהלי פרויקטים",
@@ -58,6 +66,7 @@ export const USER_ROLE_PLURAL_LABELS: Record<UserRoleType, string> = {
 export const AVATAR_TONE_BY_ROLE: Record<UserRoleType, AvatarToneType> = {
   finance: AVATAR_TONES.AIR,
   engineer: AVATAR_TONES.AIR,
+  engineering_lead: AVATAR_TONES.CHARCOAL,
   installer: AVATAR_TONES.AIR,
   sales_agent: AVATAR_TONES.AIR,
   secretary: AVATAR_TONES.AIR,
@@ -73,7 +82,7 @@ export const PROJECT_ROLE_DESCRIPTIONS: Record<ProjectMemberRoleType, string> = 
   project_manager: "ניהול התיק בשלב הביצוע בשטח",
 };
 
-export const USER_ROLE_OPTIONS = USER_ROLE_VALUES.map(role => ({
+export const USER_ROLE_OPTIONS = ASSIGNABLE_USER_ROLE_VALUES.map(role => ({
   id: role,
   label: USER_ROLE_LABELS[role],
 }));

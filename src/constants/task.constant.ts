@@ -194,6 +194,8 @@ export const URGENCY_CONFIRM_COPY = {
 export const PROJECT_TASKS_COPY = {
   TITLE: "משימות הפרויקט",
   NEW_TASK: "+ משימה",
+  CHOOSE_TYPE: "בחר סוג משימה",
+  CREATE_TASK: "יצירת משימה",
   ADD_QUOTATION: "משימת הצעת מחיר",
   ADD_PLANNING: "משימת תכנון",
   ADD_GENERAL: "משימה כללית",

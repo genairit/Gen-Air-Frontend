@@ -54,27 +54,35 @@ import QuotationDecimalInput from "./QuotationDecimalInput";
 import Timeline from "../../../components/Timeline/Timeline";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import QuotationProjectPicker from "./QuotationProjectPicker";
+import { useSessionUser } from "../../../store/session.store";
 import TextField from "../../../components/TextField/TextField";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
+import ExecutionPlanReviewCard from "./ExecutionPlanReviewCard";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
+import { USER_ROLES } from "../../../constants/user-role.constant";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
 import { useQuotationPdf } from "../../../hooks/quotation-pdf.hook";
+import { PERMISSIONS } from "../../../constants/permission.constant";
+import { hasPermission } from "../../../utilities/permission.utility";
+import { getAssignedRoles } from "../../../utilities/user-role.utility";
 import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
-import { QUOTATION_STEPS } from "../../../constants/quotation.constant";
+import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
 import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
+import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import QuotationApartmentSharingCard from "./sharing/QuotationApartmentSharingCard";
 import { QUOTATION_SHARING_COPY } from "../../../constants/quotation-sharing.constant";
 import { quotationSaveLabel } from "../../../utilities/quotation-presentation.utility";
 import { quotationOpeningLine } from "../../../utilities/quotation-presentation.utility";
+import { quotationNeedsCorrection } from "../../../utilities/quotation-rejection.utility";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
-import { Box, MenuItem, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
 import { useQuotationApartmentSharing } from "../../../hooks/quotation-apartment-sharing.hook";
 import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-navigation.hook";
+import { NOTICE_VARIANTS } from "../../../vendor/smartbase/components/NoticeCard/constants/notice-card.constant";
 
 interface IQuotationEditorProps {
   editable: boolean;
@@ -97,15 +105,17 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   canClone = false,
 }: IQuotationEditorProps) => {
   const navigate = useNavigate();
+  const sessionUser = useSessionUser();
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
   const [confirmation, setConfirmation] = useState<TQuotationConfirmation | null>(null);
   const [cancellationReason, setCancellationReason] = useState("");
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [rejecting, setRejecting] = useState(false);
   const [latestLoadedAfterConflict, setLatestLoadedAfterConflict] = useState(false);
   const [activeTab, setActiveTab] = useState(initial.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
   const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
-  const pdfTitle = quotation.status === QUOTATION_STATUS.APPROVED ? "הזמנה" : "הצעת מחיר";
-  const pdf = useQuotationPdf(quotation.id, `${pdfTitle} ${quotation.number}.pdf`);
+  const pdf = useQuotationPdf(quotation.id);
   const sharing = useQuotationApartmentSharing({
     quotation,
     canEdit: editable,
@@ -140,6 +150,14 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const brandTabs = quotationBrandTabs(quotation, activeTab);
   const openingLine = quotationOpeningLine(quotation);
   const cancellationEntries = quotationCancellationTimeline(quotation.cancellationHistory);
+  const latestRejection = quotation.rejectionHistory.at(-1);
+  const needsCorrection = quotationNeedsCorrection(quotation);
+  const canReject =
+    canApprove &&
+    sessionUser !== null &&
+    getAssignedRoles(sessionUser).some(
+      role => role === USER_ROLES.SYSTEM_ADMIN || role === USER_ROLES.ENGINEERING_LEAD,
+    );
   const cancellationNoun = quotationCancellationNoun(quotation);
   const canCancelQuotation = canCancel && quotation.status !== QUOTATION_STATUS.CANCELLED;
   const canRestoreQuotation = canRestore && quotation.status === QUOTATION_STATUS.CANCELLED;
@@ -186,6 +204,23 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
       setEditingStatus(null);
     }
   };
+  const rejectQuotation = async (): Promise<void> => {
+    if (!rejectionReason.trim()) {
+      return;
+    }
+    const accepted = await editor.reject(rejectionReason);
+    if (accepted) {
+      setRejecting(false);
+      setRejectionReason("");
+      setEditingStatus(null);
+    }
+  };
+  const resubmitQuotation = async (): Promise<void> => {
+    const accepted = await editor.resubmit();
+    if (accepted) {
+      setEditingStatus(null);
+    }
+  };
   const changeSalesAgent = async (salesAgentId: string | null): Promise<void> => {
     if (quotation.status === QUOTATION_STATUS.APPROVED) {
       await editor.updateSalesAgent(salesAgentId);
@@ -203,8 +238,13 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               <Box component="h1" className={styles.heading}>
                 {quotation.number}
               </Box>
-              <Box component="span" className={styles.badge} data-status={quotation.status}>
-                {QUOTATION_STATUS_LABELS[quotation.status]}
+              <Box
+                component="span"
+                className={styles.badge}
+                data-status={quotation.status}
+                data-needs-correction={needsCorrection}
+              >
+                {needsCorrection ? "נדרש תיקון" : QUOTATION_STATUS_LABELS[quotation.status]}
               </Box>
             </Box>
             <Box component="div" className={styles.quotationActions}>
@@ -242,33 +282,30 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                   onClick={() => setConfirmation(QUOTATION_CONFIRMATION.RESTORE)}
                 />
               )}
+              {canDelete && (
+                <Box component="div" className={styles.deleteHeaderAction}>
+                  <QuotationDelete
+                    blocked={blocked}
+                    pending={editor.busy}
+                    onDelete={editor.remove}
+                    number={quotation.number}
+                    error={editor.deleteError}
+                    onReload={reloadQuotation}
+                  />
+                </Box>
+              )}
             </Box>
-          </Box>
-          <Box component="div" className={styles.quotationStatusSteps}>
-            {QUOTATION_STEPS.map(step => (
-              <Box
-                component="span"
-                key={step.status}
-                className={styles.step}
-                data-active={quotation.status === step.status}
-              >
-                {step.label}
-              </Box>
-            ))}
           </Box>
           <Box component="span" aria-live="polite" className={styles.muted}>
             {statusText}
           </Box>
         </Box>
-        {cancellationEntries.length > 0 && (
-          <Accordion elevation={0} disableGutters className={styles.cancellationHistory}>
-            <AccordionSummary>
-              היסטוריית ביטול ושחזור ({cancellationEntries.length})
-            </AccordionSummary>
-            <AccordionDetails>
-              <Timeline entries={cancellationEntries} />
-            </AccordionDetails>
-          </Accordion>
+        {latestRejection && (
+          <NoticeBanner
+            title={needsCorrection ? "נדרש תיקון בהצעה" : "הערת בדיקה קודמת"}
+            variant={needsCorrection ? NOTICE_VARIANTS.error : NOTICE_VARIANTS.info}
+            lines={[latestRejection.reason, `הוחזרה על ידי ${latestRejection.rejectedByName}`]}
+          />
         )}
         {editor.error && (
           <Box role="alert" component="div" className={styles.error}>
@@ -322,13 +359,8 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               value={quotation.brand}
               caption="החלפת החברה בלשונית הקיימת"
               onChange={event => rebrand.request(event.target.value)}
-            >
-              {QUOTATION_BRANDS.map(brand => (
-                <MenuItem key={brand} value={brand}>
-                  {brand}
-                </MenuItem>
-              ))}
-            </QuotationSelect>
+              items={QUOTATION_BRANDS.map(brand => ({ value: brand, label: brand }))}
+            />
           )}
           <QuotationDecimalInput
             min="0"
@@ -348,24 +380,35 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             onChange={event => update({ ...quotation, date: event.target.value })}
           />
         </Box>
-        <TextField
-          multiline
-          minRows={3}
-          maxLength={5000}
-          disabled={disabled}
-          type={FIELD_TYPES.TEXT}
-          value={quotation.internalNotes}
-          title="הערות פנימיות (לא יופיעו ללקוח)"
-          onChange={internalNotes => update({ ...quotation, internalNotes })}
-        />
-        {openingLine && (
-          <Box component="div" className={styles.openingLine}>
-            <Box component="span" className={styles.muted}>
-              שורת פתיחה בהצעה:
-            </Box>
-            <Box component="span">{openingLine}</Box>
-          </Box>
-        )}
+        <Accordion elevation={0} disableGutters className={styles.detailsDisclosure}>
+          <AccordionSummary>פרטים נוספים</AccordionSummary>
+          <AccordionDetails>
+            <TextField
+              multiline
+              minRows={3}
+              maxLength={5000}
+              disabled={disabled}
+              type={FIELD_TYPES.TEXT}
+              value={quotation.internalNotes}
+              title="הערות פנימיות (לא יופיעו ללקוח)"
+              onChange={internalNotes => update({ ...quotation, internalNotes })}
+            />
+            {openingLine && (
+              <Box component="div" className={styles.openingLine}>
+                <Box component="span" className={styles.muted}>
+                  שורת פתיחה בהצעה:
+                </Box>
+                <Box component="span">{openingLine}</Box>
+              </Box>
+            )}
+            {cancellationEntries.length > 0 && (
+              <Box component="div" className={styles.cancellationHistory}>
+                <Box component="h3">היסטוריית ביטול ושחזור</Box>
+                <Timeline entries={cancellationEntries} />
+              </Box>
+            )}
+          </AccordionDetails>
+        </Accordion>
         {rebrand.error && (
           <Box role="alert" component="p" className={styles.error}>
             {rebrand.error}
@@ -392,6 +435,11 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           </Box>
         )}
       </Card>
+      {hasPermission(sessionUser, PERMISSIONS.EXECUTION_PLANS_READ) &&
+        hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ) &&
+        hasPermission(sessionUser, PERMISSIONS.PROJECTS_READ) && (
+          <ExecutionPlanReviewCard blocked={blocked} quotationId={quotation.id} />
+        )}
       {sharing.isBuilding && (
         <QuotationApartmentSharingCard sharing={sharing} canEdit={editable} quotation={quotation} />
       )}
@@ -444,6 +492,12 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               <QuotationSelect
                 value=""
                 label="הוספת לשונית חברה"
+                items={[
+                  { value: "", label: "בחרו חברה להוספה..." },
+                  ...QUOTATION_BRANDS.filter(brand => !quotation.brands.includes(brand)).map(
+                    brand => ({ value: brand, label: brand }),
+                  ),
+                ]}
                 onChange={event => {
                   const brand = event.target.value;
                   if (!brand || quotation.brands.includes(brand)) {
@@ -452,14 +506,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                   update(addQuotationBrand(quotation, brand));
                   setActiveTab(brand);
                 }}
-              >
-                <MenuItem value="">בחרו חברה להוספה...</MenuItem>
-                {QUOTATION_BRANDS.filter(brand => !quotation.brands.includes(brand)).map(brand => (
-                  <MenuItem key={brand} value={brand}>
-                    {brand}
-                  </MenuItem>
-                ))}
-              </QuotationSelect>
+              />
               {brandTabs.brand &&
                 !quotation.sections.some(section => section.brand === brandTabs.brand) && (
                   <Button
@@ -538,20 +585,58 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         canApprove={canApprove}
         onTransition={transition}
         showWarnings={isEditorVisible}
+        onResubmit={resubmitQuotation}
         onAcknowledge={editor.acknowledge}
-        deleteAction={
-          canDelete && (
-            <QuotationDelete
-              number={quotation.number}
-              blocked={blocked}
-              pending={editor.busy}
-              error={editor.deleteError}
-              onDelete={editor.remove}
-              onReload={reloadQuotation}
-            />
-          )
-        }
+        canResubmit={needsCorrection && editable}
+        onReject={canReject ? () => setRejecting(true) : null}
       />
+      {rejecting && (
+        <GenericPopup
+          open={rejecting}
+          closeAfterAction={false}
+          dir={TEXT_DIRECTIONS.RTL}
+          title="החזרת הצעה לתיקון"
+          closeDisabled={editor.commandBusy}
+          onClose={() => setRejecting(false)}
+          buttons={{
+            primary: {
+              text: "החזר לתיקון",
+              isDisabled: blocked || !rejectionReason.trim(),
+              onClick: rejectQuotation,
+            },
+            secondary: {
+              text: "חזרה",
+              isDisabled: editor.commandBusy,
+              onClick: () => setRejecting(false),
+            },
+          }}
+          content={
+            <Box component="div">
+              <Box component="p">סיבת הדחייה תוצג לצוות ההנדסה עד לשליחה מחדש לבדיקה.</Box>
+              <TextField
+                multiline
+                minRows={3}
+                isRequired
+                type={FIELD_TYPES.TEXT}
+                title="סיבת דחייה"
+                value={rejectionReason}
+                disabled={editor.commandBusy}
+                maxLength={MAX_QUOTATION_CANCELLATION_REASON_LENGTH}
+                onChange={setRejectionReason}
+              />
+              {editor.error && (
+                <Box component="div" role="alert" className={styles.error}>
+                  {editor.error}
+                  <Button
+                    text={editor.hasVersionConflict ? "טען גרסה עדכנית" : "נסה שוב"}
+                    onClick={editor.hasVersionConflict ? reloadConflict : editor.retry}
+                  />
+                </Box>
+              )}
+            </Box>
+          }
+        />
+      )}
       <GenericPopup
         closeAfterAction={false}
         dir={TEXT_DIRECTIONS.RTL}

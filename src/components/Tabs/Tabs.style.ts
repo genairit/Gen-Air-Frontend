@@ -41,11 +41,12 @@ const TAB_BY_VARIANT: Record<TabsVariantType, TTabsStyle> = {
 
 interface ITabStyleOptions {
   isFullWidth: boolean;
+  isScrollable?: boolean;
   variant: TabsVariantType;
 }
 
 export const useStyles = () => ({
-  container: ({ variant, isFullWidth }: ITabStyleOptions): TTabsStyle => ({
+  container: ({ variant, isFullWidth, isScrollable }: ITabStyleOptions): TTabsStyle => ({
     display: "flex",
     position: "relative",
     width: isFullWidth ? "100%" : "fit-content",
@@ -55,6 +56,7 @@ export const useStyles = () => ({
     ...(variant === TABS_VARIANTS.SEGMENTED &&
       isFullWidth && { display: "grid", gridAutoFlow: "column", gridAutoColumns: "1fr" }),
     ...CONTAINER_BY_VARIANT[variant],
+    ...(isScrollable && { width: "max-content", maxWidth: "none", flexWrap: "nowrap" }),
     ...(variant === TABS_VARIANTS.STATUS &&
       isFullWidth && {
         boxSizing: "border-box",

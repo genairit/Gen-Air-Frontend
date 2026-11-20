@@ -30,14 +30,20 @@ import { QUOTATION_SHARING_LAYOUT } from "../constants/quotation-sharing.constan
 import { isQuotationApartmentOptions } from "../utilities/guards/quotation-sharing.guard";
 
 export const quotationService = {
-  async exportPdf(id: string): Promise<Blob> {
+  async exportPdf(id: string): Promise<{ pdf: Blob; filename: string }> {
     const response = await httpClient.post<Blob>(API_ENDPOINTS.quotationPdf(id), null, {
       responseType: "blob",
     });
     if (response.data.type !== "application/pdf") {
       throw new Error("קובץ הצעת המחיר אינו תקין");
     }
-    return response.data;
+    const disposition = response.headers["content-disposition"];
+    const encodedFilename =
+      typeof disposition === "string" ? /filename\*=UTF-8''([^;]+)/i.exec(disposition)?.[1] : null;
+    if (!encodedFilename) {
+      throw new Error("שם קובץ הצעת המחיר חסר");
+    }
+    return { pdf: response.data, filename: decodeURIComponent(encodedFilename) };
   },
   async statusCounts(search: string): Promise<IQuotationStatusCounts> {
     const endpoint = API_ENDPOINTS.QUOTATION_STATUS_COUNTS;
@@ -122,6 +128,19 @@ export const quotationService = {
       version: quotation.version,
       status,
     });
+    return ensureResponse(endpoint, response.data, isQuotation);
+  },
+  async reject(quotation: IQuotation, reason: string): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationReject(quotation.id);
+    const response = await httpClient.post<unknown>(endpoint, {
+      version: quotation.version,
+      reason,
+    });
+    return ensureResponse(endpoint, response.data, isQuotation);
+  },
+  async resubmit(quotation: IQuotation): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationResubmit(quotation.id);
+    const response = await httpClient.post<unknown>(endpoint, { version: quotation.version });
     return ensureResponse(endpoint, response.data, isQuotation);
   },
   async cancel(quotation: Pick<IQuotation, "id" | "version">, reason: string): Promise<IQuotation> {

@@ -7,6 +7,12 @@ await runBundledTest({
 });
 
 await runBundledTest({
+  input: "testing/task-status-cache.test.ts",
+  output: "task-status-cache.test.mjs",
+  external: ["@tanstack/react-query", "react-router-dom"],
+});
+
+await runBundledTest({
   input: "testing/project-tasks.components.test.tsx",
   output: "project-tasks.components.test.mjs",
   external: ["@tanstack/react-query", "react-router-dom"],

@@ -6,7 +6,7 @@ export const autocompleteRendererPlugin = {
     id === "\0test-autocomplete-renderer"
       ? {
           code: `import React from "react";
-          const Autocomplete = ({title, options = [], value = null, disabled = false, onChange}) =>
+          const Autocomplete = ({title, options = [], items, value = null, disabled = false, onChange}) =>
             React.createElement("label", null,
               React.createElement("span", null, title),
               React.createElement("select", {
@@ -16,9 +16,9 @@ export const autocompleteRendererPlugin = {
                 onChange: event => onChange?.(event.target.value || null)
               },
                 React.createElement("option", {value: ""}, ""),
-                options.map(option => React.createElement("option", {
-                  key: option, value: option
-                }, option))
+                (items ?? options.map(option => ({value: option, label: option}))).map(option => React.createElement("option", {
+                  key: option.value, value: option.value
+                }, option.label))
               )
             );
           export default Autocomplete;`,

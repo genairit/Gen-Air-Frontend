@@ -1,10 +1,11 @@
 import type { FC } from "react";
+import { Box } from "@mui/material";
 import { useStyles } from "./TaskForm.style";
-import { Box, ButtonBase } from "@mui/material";
 import Card from "../../../components/Card/Card";
 import IconTile from "../../../components/IconTile/IconTile";
 import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import ChoiceRow from "../../../components/ChoiceRow/ChoiceRow";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
@@ -43,7 +44,7 @@ const TaskUrgencyChoiceCard: FC<ITaskUrgencyChoiceCardProps> = ({
       />
       <Box role="radiogroup" sx={styles.urgencyOptions}>
         {URGENCY_CHOICES.map(choice => (
-          <ButtonBase
+          <ChoiceRow
             role="radio"
             key={choice.title}
             onClick={() => onChange(choice.isUrgent)}
@@ -58,7 +59,7 @@ const TaskUrgencyChoiceCard: FC<ITaskUrgencyChoiceCardProps> = ({
               <Box component="b">{choice.title}</Box>
               <Box component="span">{choice.subtitle}</Box>
             </Box>
-          </ButtonBase>
+          </ChoiceRow>
         ))}
       </Box>
       {isUrgent && (

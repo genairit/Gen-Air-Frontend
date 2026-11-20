@@ -134,15 +134,7 @@ export const QUOTATION_DECIMAL = Decimal.clone({ precision: 50, rounding: Decima
 
 export const QUOTATION_COUNTS_KEY = [...QUOTATION_QUERY_KEY, "status-counts"] as const;
 export const QUOTATION_SALES_AGENTS_KEY = [...QUOTATION_QUERY_KEY, "sales-agents"] as const;
-export const QUOTATION_STEPS = [
-  { status: QUOTATION_STATUS.DRAFT, label: "טיוטה" },
-  { status: QUOTATION_STATUS.REVIEW, label: "בדיקה" },
-  { status: QUOTATION_STATUS.APPROVED, label: "הזמנה" },
-];
-
 export const QUOTATION_DEFAULTS = { CIRCUIT: "A" } as const;
-
-export const QUOTATION_INPUT_REASON = { INPUT: "input", CLEAR: "clear" } as const;
 
 export const QUOTATION_BUTTON_HEIGHT = {
   [BUTTON_SIZES.COMPACT]: { [BUTTON_SHAPES.PILL]: 34, [BUTTON_SHAPES.CIRCLE]: 36 },

@@ -5,15 +5,16 @@ import {
 } from "../../constants/project-boq.constant";
 
 import { useState } from "react";
-import BoqLineEditor from "./BoqLineEditor";
 import { useParams } from "react-router-dom";
 import Card from "../../components/Card/Card";
 import { usePageStyles } from "../page.style";
+import { Box, Typography } from "@mui/material";
+import PurchaseWorkspace from "./PurchaseWorkspace";
 import Button from "../../components/Button/Button";
 import { useSessionUser } from "../../store/session.store";
 import TextField from "../../components/TextField/TextField";
+import DetailTile from "../../components/DetailTile/DetailTile";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Box, MenuItem, Select, Typography } from "@mui/material";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import InlineError from "../../components/InlineError/InlineError";
 import { hasPermission } from "../../utilities/permission.utility";
@@ -23,7 +24,7 @@ import LoadingState from "../../components/LoadingState/LoadingState";
 import { projectBoqService } from "../../services/project-boq.service";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { FIELD_TYPES } from "../../components/TextField/constants/textfield.constants";
-import type { IBoqLine, IBoqLineEdit, IBoqPreview } from "../../interfaces/project-boq.interface";
+import type { IBoqLineEdit, IBoqPreview } from "../../interfaces/project-boq.interface";
 
 const ProjectBoqPage = () => {
   const { projectId = "" } = useParams();
@@ -68,6 +69,7 @@ const ProjectBoqPage = () => {
   const update = async (lineId: string, edit: IBoqLineEdit) => {
     const updated = await projectBoqService.updateLine(projectId, lineId, edit);
     queryClient.setQueryData(key, updated);
+    await queryClient.invalidateQueries({ queryKey: ["purchase-workspace", projectId] });
     setPreview(null);
   };
   const run = async (action: () => Promise<void>) => {
@@ -90,6 +92,7 @@ const ProjectBoqPage = () => {
       if (!preview || !current) return;
       const updated = await projectBoqService.generate(projectId, preview, current.revision);
       queryClient.setQueryData(key, updated);
+      await queryClient.invalidateQueries({ queryKey: ["purchase-workspace", projectId] });
       setPreview(null);
     });
   const addMaterial = () =>
@@ -110,6 +113,7 @@ const ProjectBoqPage = () => {
         notes,
       });
       queryClient.setQueryData(key, updated);
+      await queryClient.invalidateQueries({ queryKey: ["purchase-workspace", projectId] });
       setPreview(null);
       setSelectedMaterial("");
       setQuantity("");
@@ -119,10 +123,6 @@ const ProjectBoqPage = () => {
   if (boq.isPending || project.isPending) return <LoadingState />;
   if (boq.error || project.error || !current)
     return <InlineError message={getApiErrorMessage(boq.error ?? project.error)} />;
-  const groups = current.lines.reduce<Record<string, IBoqLine[]>>((result, line) => {
-    const group = `${line.systemTitle} · ${line.componentTitle}`;
-    return { ...result, [group]: [...(result[group] ?? []), line] };
-  }, {});
   return (
     <Box sx={styles.page}>
       <Box sx={styles.header}>
@@ -135,30 +135,29 @@ const ProjectBoqPage = () => {
           </Typography>
         </Box>
       </Box>
-      <Box sx={styles.grid({ minColumnWidth: 220 })}>
-        <Card>
-          <Typography sx={{ fontWeight: 700 }}>מקור התכנון</Typography>
-          <Typography>
-            {current.sourceQuotationNumber
-              ? `הצעה ${current.sourceQuotationNumber} · גרסה ${current.sourceQuotationVersion}`
-              : "טרם נבחרה הצעה"}
-          </Typography>
-        </Card>
-        <Card>
-          <Typography sx={{ fontWeight: 700 }}>עלות משוערת חלקית</Typography>
-          <Typography>₪{Number(current.estimatedTotal).toLocaleString("he-IL")}</Typography>
-          <Typography variant="caption">
-            {current.missingCostCount} שורות ללא עלות; {current.unresolvedCount} שורות דורשות בדיקה
-          </Typography>
-        </Card>
-        <Card>
-          <Typography sx={{ fontWeight: 700 }}>בקשות והזמנות</Typography>
-          <Typography>לא זמין עדיין</Typography>
-          <Typography variant="caption">
-            כמות מבוקשת, מוזמנת ויתרה יהיו זמינות עם יומן הרכש.
-          </Typography>
-        </Card>
-      </Box>
+      <Card>
+        <Box sx={styles.grid({ minColumnWidth: 220 })}>
+          <DetailTile
+            label="מקור התכנון"
+            value={
+              current.sourceQuotationNumber
+                ? `הצעה ${current.sourceQuotationNumber} · גרסה ${current.sourceQuotationVersion}`
+                : "טרם נבחרה הצעה"
+            }
+          />
+          <DetailTile
+            label="עלות משוערת חלקית"
+            value={`₪${Number(current.estimatedTotal).toLocaleString("he-IL")}`}
+            note={`${current.missingCostCount} שורות ללא עלות · ${current.unresolvedCount} שורות דורשות בדיקה`}
+          />
+        </Box>
+      </Card>
+      <PurchaseWorkspace
+        projectId={projectId}
+        canManageBoq={canManage}
+        onUpdateBoqLine={update}
+        boqRevision={current.revision}
+      />
       {canManage && (
         <Card>
           <Typography component="h2" sx={{ fontWeight: 700 }}>
@@ -168,24 +167,21 @@ const ProjectBoqPage = () => {
             בחרו הצעה אחת המקושרת לפרויקט. דירות אינן מצורפות אוטומטית.
           </Typography>
           <Box sx={styles.row({ gap: "12px" })}>
-            <Select
-              size="small"
-              displayEmpty
-              value={sourceId}
-              sx={{ minWidth: 260 }}
-              inputProps={{ "aria-label": "בחר הצעת מחיר מאושרת" }}
-              onChange={event => {
-                setSourceId(event.target.value);
+            <Autocomplete
+              isAutocomplete={false}
+              title="הצעת מחיר מאושרת"
+              value={sourceId || null}
+              isLoading={sources.isPending}
+              placeholder="בחר הצעה מאושרת"
+              onChange={value => {
+                setSourceId(value ?? "");
                 setPreview(null);
               }}
-            >
-              <MenuItem value="">בחר הצעה מאושרת</MenuItem>
-              {(sources.data ?? []).map(source => (
-                <MenuItem key={source.id} value={source.id}>
-                  {source.number} · גרסה {source.version}
-                </MenuItem>
-              ))}
-            </Select>
+              items={(sources.data ?? []).map(source => ({
+                value: source.id,
+                label: `${source.number} · גרסה ${source.version}`,
+              }))}
+            />
             <Button
               isLoading={busy}
               text="הצג שינויים"
@@ -254,32 +250,6 @@ const ProjectBoqPage = () => {
         </Card>
       )}
       {error && <InlineError message={error} />}
-      <Box sx={styles.stack({ gap: "16px" })}>
-        <Typography component="h2" sx={{ fontWeight: 700 }}>
-          חומרים נדרשים
-        </Typography>
-        {current.lines.length === 0 && (
-          <Typography>אין עדיין שורות. בחרו הצעה מאושרת ליצירת כתב רכש.</Typography>
-        )}
-        {Object.entries(groups).map(([group, lines]) => (
-          <Card key={group}>
-            <Typography component="h3" sx={{ fontWeight: 700 }}>
-              {group}
-            </Typography>
-            <Box sx={{ overflowX: "auto" }}>
-              {lines?.map(line => (
-                <BoqLineEditor
-                  line={line}
-                  onSave={update}
-                  canManage={canManage}
-                  revision={current.revision}
-                  key={`${line.id}:${current.revision}`}
-                />
-              ))}
-            </Box>
-          </Card>
-        ))}
-      </Box>
       {canManage && current.revision > 0 && (
         <Card>
           <Typography component="h2" sx={{ fontWeight: 700 }}>
@@ -339,23 +309,16 @@ const ProjectBoqPage = () => {
           <Typography component="h2" sx={{ fontWeight: 700 }}>
             גרסאות כתב הרכש
           </Typography>
-          <Select
-            size="small"
-            displayEmpty
-            sx={{ maxWidth: 220 }}
-            value={historyRevision}
-            inputProps={{ "aria-label": "בחר גרסה קודמת" }}
-            onChange={event => setHistoryRevision(Number(event.target.value))}
-          >
-            <MenuItem value={0}>בחר גרסה לצפייה</MenuItem>
-            {Array.from({ length: current.revision }, (_, index) => index + 1)
+          <Autocomplete
+            title="גרסת כתב רכש"
+            isAutocomplete={false}
+            placeholder="בחר גרסה לצפייה"
+            value={historyRevision ? String(historyRevision) : null}
+            onChange={value => setHistoryRevision(value ? Number(value) : 0)}
+            items={Array.from({ length: current.revision }, (_, index) => index + 1)
               .reverse()
-              .map(revision => (
-                <MenuItem key={revision} value={revision}>
-                  גרסה {revision}
-                </MenuItem>
-              ))}
-          </Select>
+              .map(revision => ({ value: String(revision), label: `גרסה ${revision}` }))}
+          />
           {history.isFetching && <LoadingState />}
           {history.error && <InlineError message={getApiErrorMessage(history.error)} />}
           {history.data && (
