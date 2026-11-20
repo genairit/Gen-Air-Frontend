@@ -1,9 +1,12 @@
+import { Box } from "@mui/material";
 import type { FC, ReactNode } from "react";
 import styles from "../quotation.module.css";
-import { Box, ButtonBase } from "@mui/material";
+import ChoiceRow from "../../../components/ChoiceRow/ChoiceRow";
 import { formatRelativeTime } from "../../../utilities/date.utility";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
+import { getTableRowSurfaceStyle } from "../../../components/DataTable/DataTable.style";
+import { quotationNeedsCorrection } from "../../../utilities/quotation-rejection.utility";
 import { QUOTATION_ROW_COPY, QUOTATION_STATUS_LABELS } from "../../../constants/quotation.constant";
 
 interface IQuotationRowProps {
@@ -14,9 +17,18 @@ interface IQuotationRowProps {
 
 const QuotationRow: FC<IQuotationRowProps> = ({ quotation, onOpen, details = null }) => {
   const brands = quotation.brands.join(" · ") || QUOTATION_ROW_COPY.GENERAL;
+  const needsCorrection = quotationNeedsCorrection(quotation);
 
   return (
-    <ButtonBase onClick={onOpen} sx={{ display: "grid" }} className={styles.quoteRow}>
+    <ChoiceRow
+      onClick={onOpen}
+      className={styles.quoteRow}
+      sx={{
+        ...getTableRowSurfaceStyle({ isDimmed: false, isClickable: true }),
+        display: "grid",
+        padding: { xs: "14px 12px", sm: "10px 20px" },
+      }}
+    >
       <Box component="bdi" className={styles.number}>
         {quotation.number}
       </Box>
@@ -30,8 +42,13 @@ const QuotationRow: FC<IQuotationRowProps> = ({ quotation, onOpen, details = nul
       <Box component="span" className={styles.muted}>
         {brands}
       </Box>
-      <Box component="span" className={styles.badge} data-status={quotation.status}>
-        {QUOTATION_STATUS_LABELS[quotation.status]}
+      <Box
+        component="span"
+        className={styles.badge}
+        data-status={quotation.status}
+        data-needs-correction={needsCorrection}
+      >
+        {needsCorrection ? "נדרש תיקון" : QUOTATION_STATUS_LABELS[quotation.status]}
       </Box>
       <Box component="b" className={styles.quoteAmount}>
         {quotationMoney(quotation.totals.total)}
@@ -39,7 +56,7 @@ const QuotationRow: FC<IQuotationRowProps> = ({ quotation, onOpen, details = nul
       <Box component="span" className={styles.updated}>
         {formatRelativeTime(quotation.updatedAt)}
       </Box>
-    </ButtonBase>
+    </ChoiceRow>
   );
 };
 

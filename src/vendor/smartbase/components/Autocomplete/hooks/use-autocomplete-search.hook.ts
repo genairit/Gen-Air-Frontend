@@ -12,7 +12,7 @@ import {
   isScrollable,
   isNearScrollEnd,
   getNextActiveIndex,
-  filterOptionsByQuery,
+  getVisibleSearchOptions,
 } from "../utilities/autocomplete.utility";
 
 import {
@@ -26,12 +26,14 @@ import { KEY_TYPES } from "../../../constants/keyboard.constant";
 export const useAutocompleteSearch = ({
   value,
   options,
+  selectedItem = null,
   pageSize,
   onChange,
   isLoading,
   onLoadMore,
   onSearch,
   autoFocusSearch = false,
+  isClientFiltered = true,
 }: IUseAutocompleteSearchOptions): IUseAutocompleteSearchResult => {
   const [query, setQuery] = useState<string>("");
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -48,11 +50,16 @@ export const useAutocompleteSearch = ({
     return () => window.cancelAnimationFrame(frame);
   }, [isOpen, autoFocusSearch]);
 
-  const filteredOptions = useMemo(() => filterOptionsByQuery(options, query), [options, query]);
+  const filteredOptions = useMemo(
+    () => getVisibleSearchOptions(options, query, isClientFiltered),
+    [isClientFiltered, options, query],
+  );
 
   const visibleOptions = filteredOptions.slice(0, visibleCount);
   const selectedOption =
-    options.find(option => option.value === value) ?? (value ? { value, label: value } : null);
+    options.find(option => option.value === value) ??
+    (selectedItem?.value === value ? selectedItem : null) ??
+    (value ? { value, label: value } : null);
   const highlightedOption = visibleOptions[activeIndex] ?? null;
   const activeOption = isOpen ? highlightedOption : null;
   const isEmpty = filteredOptions.length === 0 && !isLoading;

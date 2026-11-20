@@ -3,6 +3,7 @@ import { theme } from "../../constants/theme.constants";
 
 interface IStylesParams {
   isLtr: boolean;
+  compact: boolean;
   hasError: boolean;
   disabled: boolean;
   isPassword: boolean;
@@ -12,16 +13,21 @@ interface IStylesParams {
 
 const { palette, glass, controlHeight } = theme;
 
-const getFieldShape = (isMultiline: boolean) => {
+const getFieldShape = (isMultiline: boolean, compact: boolean) => {
   if (isMultiline) {
     return { borderRadius: "17px", padding: "18px 16px", alignItems: "flex-start" };
   }
 
-  return { borderRadius: "17px", padding: "0 16px", height: controlHeight.large };
+  return {
+    borderRadius: "17px",
+    padding: "0 16px",
+    height: compact ? controlHeight.dense : controlHeight.large,
+  };
 };
 
 export const useStyles = ({
   isLtr,
+  compact,
   hasError,
   disabled,
   isPassword,
@@ -31,7 +37,7 @@ export const useStyles = ({
   createStyles({
     textField: {
       "& .MuiOutlinedInput-root": {
-        ...getFieldShape(isMultiline),
+        ...getFieldShape(isMultiline, compact),
         gap: "12px",
         transition: "border-color 0.18s ease, box-shadow 0.18s ease",
         border: `1px solid ${hasError ? palette.danger : glass.border}`,

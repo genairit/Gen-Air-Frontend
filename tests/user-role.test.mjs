@@ -32,7 +32,13 @@ const roles = await import("../src/constants/user-role.constant.ts");
 const { hasPermission } = await import("../src/utilities/permission.utility.ts");
 const { EMPLOYEE_FILTERS } = await import("../src/constants/employee.constant.ts");
 
-const { USER_ROLES, USER_ROLE_VALUES, USER_ROLE_LABELS, PROJECT_MEMBER_ROLES } = roles;
+const {
+  USER_ROLES,
+  USER_ROLE_VALUES,
+  USER_ROLE_LABELS,
+  PROJECT_MEMBER_ROLES,
+  ASSIGNABLE_USER_ROLE_VALUES,
+} = roles;
 const { canSubmitEmployeeForm, toUserPayload } =
   await import("../src/utilities/employee.utility.ts");
 const { getApartmentTeamCandidates } = await import("../src/utilities/apartment.utility.ts");
@@ -65,19 +71,21 @@ const apiUser = overrides => ({
   ...overrides,
 });
 
-test("each app account role has its label, including purchasing and sales", () => {
+test("legacy sales-role records have a label but the role is not assignable", () => {
   assert.deepEqual(USER_ROLE_LABELS, {
     system_admin: "הנהלה / מנהל מערכת",
     engineer: "עובד הנדסה",
+    engineering_lead: "ראש צוות הנדסה",
     secretary: "מזכירה",
     project_manager: "מנהל פרויקט",
     finance: "מחלקת כספים",
     installer: "מתקין",
     purchasing_execution_manager: "מנהל רכש וביצוע",
-    sales_agent: "סוכן מכירות",
+    sales_agent: "תפקיד ישן: סוכן מכירות",
   });
-  assert.equal(USER_ROLE_VALUES.length, 8);
+  assert.equal(USER_ROLE_VALUES.length, 9);
   assert.deepEqual(new Set(USER_ROLE_VALUES), new Set(Object.values(USER_ROLES)));
+  assert.equal(ASSIGNABLE_USER_ROLE_VALUES.includes(USER_ROLES.SALES_AGENT), false);
 });
 
 test("projects are staffed only by engineer, secretary, project manager and installer", () => {
@@ -108,10 +116,10 @@ test("a grant permits only its specific feature action", () => {
   assert.equal(hasPermission(null, "tasks.create"), false);
 });
 
-test("the employees page filters by every app role", () => {
+test("the employees page filters by assignable roles", () => {
   assert.deepEqual(
     EMPLOYEE_FILTERS.map(filter => filter.role),
-    [null, ...USER_ROLE_VALUES],
+    [null, ...ASSIGNABLE_USER_ROLE_VALUES],
   );
 });
 
@@ -186,6 +194,15 @@ test("project role pickers include employees by assigned membership", () => {
     getUsersAssignedToRole([apiUser()], USER_ROLES.ENGINEER).map(user => user.id),
     ["employee-1"],
   );
+});
+
+test("engineering leads are eligible for engineer project assignments", () => {
+  const lead = apiUser({
+    role: USER_ROLES.ENGINEERING_LEAD,
+    assignedRoles: [USER_ROLES.ENGINEERING_LEAD],
+  });
+  assert.deepEqual(getUsersAssignedToRole([lead], USER_ROLES.ENGINEER), [lead]);
+  assert.deepEqual(getUsersAssignedToRole([lead], USER_ROLES.ENGINEERING_LEAD), [lead]);
 });
 
 test("All counts distinct employee accounts rather than overlapping assigned-role memberships", () => {

@@ -8,6 +8,17 @@ export const API_PAGE_SIZE = 200;
 
 export const API_ENDPOINTS = {
   QUOTATIONS: "/quotation",
+  EXECUTION_PLANS: "/execution-plan",
+  EXECUTION_PLAN_TEMPLATE: "/execution-plan/template",
+  EXECUTION_PLAN_PENDING: "/execution-plan/pending",
+  executionPlanById: (id: string) => `/execution-plan/${id}`,
+  executionPlansForQuotation: (id: string) => `/execution-plan/quotation/${id}`,
+  executionPlanDraftForFile: (projectId: string, fileId: string) =>
+    `/execution-plan/project/${projectId}/file/${encodeURIComponent(fileId)}/draft`,
+  executionPlanChecklist: (id: string) => `/execution-plan/${id}/checklist`,
+  executionPlanSubmit: (id: string) => `/execution-plan/${id}/submit`,
+  executionPlanDecision: (id: string) => `/execution-plan/${id}/decision`,
+  executionPlanCancel: (id: string) => `/execution-plan/${id}/cancel`,
   QUOTATION_STATUS_COUNTS: "/quotation/status-counts",
   QUOTATION_SALES_AGENTS: "/quotation/sales-agents",
   CATALOGUE: "/catalogue-item",
@@ -15,6 +26,8 @@ export const API_ENDPOINTS = {
   quotationClone: (id: string) => `/quotation/${id}/clone`,
   quotationPdf: (id: string) => `/quotation/${id}/pdf`,
   quotationReview: (id: string) => `/quotation/${id}/review`,
+  quotationReject: (id: string) => `/quotation/${id}/reject`,
+  quotationResubmit: (id: string) => `/quotation/${id}/resubmit`,
   quotationWarnings: (id: string) => `/quotation/${id}/warnings`,
   quotationApartmentLinks: (id: string) => `/quotation/${id}/apartment-links`,
   quotationApartmentOptions: (id: string) => `/quotation/${id}/apartment-options`,

@@ -1,14 +1,12 @@
+import type { FC } from "react";
 import { Box } from "@mui/material";
 import Button from "./QuotationButton";
-import type { FC, ReactNode } from "react";
 import styles from "../quotation.module.css";
 import Card from "../../../components/Card/Card";
 import QuotationWarnings from "./QuotationWarnings";
 import QuotationDecimalInput from "./QuotationDecimalInput";
-import ProgressBar from "../../../components/ProgressBar/ProgressBar";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
-import { CONTROL_SIZES } from "../../../constants/selection-control.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { quotationDecimalInput } from "../../../utilities/quotation-presentation.utility";
 import type { IQuotation, TQuotationStatus } from "../../../interfaces/quotation.interface";
@@ -18,8 +16,10 @@ interface IQuotationSummaryProps {
   disabled: boolean;
   canApprove: boolean;
   quotation: IQuotation;
+  canResubmit?: boolean;
   showWarnings?: boolean;
-  deleteAction?: ReactNode;
+  onReject?: (() => void) | null;
+  onResubmit?: () => Promise<void>;
   onChange: (quotation: IQuotation) => void;
   onAcknowledge: (keys: string[]) => Promise<void>;
   onTransition: (status: TQuotationStatus) => Promise<void>;
@@ -30,23 +30,19 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
   canApprove,
   blocked,
   showWarnings = true,
-  deleteAction,
+  canResubmit = false,
+  onResubmit,
+  onReject,
   onChange,
   onTransition,
   onAcknowledge,
 }: IQuotationSummaryProps) => {
   const totals = quotation.totals;
   const openWarnings = quotation.warnings.filter(warning => !warning.acknowledged);
-  const acknowledged = quotation.warnings
-    .filter(warning => warning.acknowledged)
-    .map(warning => warning.key);
   const isDraft = quotation.status === QUOTATION_STATUS.DRAFT;
   const isReview = quotation.status === QUOTATION_STATUS.REVIEW;
   const isApproved = quotation.status === QUOTATION_STATUS.APPROVED;
   const isCancelled = quotation.status === QUOTATION_STATUS.CANCELLED;
-  const shouldShowNoWarningsMessage = quotation.warnings.length === 0 && !blocked;
-  const progressMaximum = Math.max(quotation.warnings.length, 1);
-  const progressValue = quotation.warnings.length ? acknowledged.length : 1;
   const amounts = [
     { label: "סכום השורות", value: totals.subtotal },
     { label: "הנחה / התאמה ליעד", value: totals.discount },
@@ -87,13 +83,8 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
         <Box component="h2" className={styles.heading}>
           בדיקה ואישור
         </Box>
-        <ProgressBar
-          size={CONTROL_SIZES.SMALL}
-          ariaLabel="התקדמות בדיקת הצעה"
-          value={(progressValue / progressMaximum) * 100}
-        />
         <Box component="p" className={styles.muted}>
-          {openWarnings.length} התראות חובה פתוחות מתוך {quotation.warnings.length}
+          {openWarnings.length > 0 ? `${openWarnings.length} התראות פתוחות` : "אין התראות פתוחות"}
         </Box>
         {blocked && (
           <Box component="p" role="status">
@@ -108,10 +99,12 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
             onAcknowledge={onAcknowledge}
           />
         )}
-        {shouldShowNoWarningsMessage && <Box component="p">אין התראות פתוחות</Box>}
+        {canResubmit && onResubmit && (
+          <Button disabled={blocked} onClick={onResubmit} text="שליחה מחדש לבדיקה" />
+        )}
         {canApprove && !isCancelled && (
           <Box component="div" className={styles.stack}>
-            {isDraft && (
+            {isDraft && !canResubmit && (
               <Button
                 disabled={blocked}
                 text="סיימתי, לבדיקה"
@@ -125,12 +118,14 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
                   disabled={blocked || openWarnings.length > 0}
                   onClick={() => onTransition(QUOTATION_STATUS.APPROVED)}
                 />
-                <Button
-                  text="חזרה לטיוטה"
-                  disabled={blocked}
-                  variant={BUTTON_VARIANTS.NEUTRAL}
-                  onClick={() => onTransition(QUOTATION_STATUS.DRAFT)}
-                />
+                {onReject && (
+                  <Button
+                    text="החזר לתיקון"
+                    disabled={blocked}
+                    onClick={onReject}
+                    variant={BUTTON_VARIANTS.DANGER}
+                  />
+                )}
               </>
             )}
             {isApproved && (
@@ -143,11 +138,6 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
           </Box>
         )}
       </Card>
-      {deleteAction && (
-        <Box component="div" className={styles.deleteAction}>
-          {deleteAction}
-        </Box>
-      )}
     </Box>
   );
 };

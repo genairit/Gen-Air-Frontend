@@ -9,6 +9,7 @@ export const quotationFixture = (): IQuotation => ({
   status: "draft",
   cancelledFromStatus: null,
   cancellationHistory: [],
+  rejectionHistory: [],
   date: "2026-10-31",
   brand: "אלקטרה",
   brands: ["אלקטרה"],

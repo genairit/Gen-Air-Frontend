@@ -11,6 +11,7 @@ import type { ICustomerProjectQuery } from "../interfaces/customer-project.inter
 
 export const QUERY_ROOTS = {
   TASKS: "tasks",
+  EXECUTION_PLANS: "execution-plans",
   TASK: "task",
   TASK_COUNTS: "task-counts",
   TASK_TRANSITIONS: "task-transitions",
@@ -30,6 +31,19 @@ export const QUERY_ROOTS = {
 } as const;
 
 export const QUERY_KEYS = {
+  executionPlanTemplate: () => [QUERY_ROOTS.EXECUTION_PLANS, "template"],
+  executionPlanPending: () => [QUERY_ROOTS.EXECUTION_PLANS, "pending"],
+  executionPlanDraftForFile: (projectId: string, fileId: string) => [
+    QUERY_ROOTS.EXECUTION_PLANS,
+    "draft",
+    projectId,
+    fileId,
+  ],
+  executionPlansForQuotation: (quotationId: string) => [
+    QUERY_ROOTS.EXECUTION_PLANS,
+    "quotation",
+    quotationId,
+  ],
   myTasks: (userId: string | null, query: ITaskQuery) => [QUERY_ROOTS.TASKS, "mine", userId, query],
   myTaskCounts: (userId: string | null) => [QUERY_ROOTS.TASK_COUNTS, "mine", userId],
   tasks: (query: ITaskQuery) => [QUERY_ROOTS.TASKS, query],

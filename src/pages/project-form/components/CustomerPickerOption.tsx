@@ -1,6 +1,7 @@
 import type { FC } from "react";
-import { Box, ButtonBase } from "@mui/material";
+import { Box } from "@mui/material";
 import { useStyles } from "./ProjectCustomerPicker.style";
+import ChoiceRow from "../../../components/ChoiceRow/ChoiceRow";
 import type { IApiCustomer } from "../../../interfaces/api.interface";
 import { CUSTOMER_PICKER_COPY } from "../../../constants/customer.constant";
 import CustomerSyncChip from "../../../components/CustomerSyncChip/CustomerSyncChip";
@@ -16,7 +17,7 @@ const CustomerPickerOption: FC<ICustomerPickerOptionProps> = ({ customer, onPick
   const isSelectable = isCustomerSelectable(customer);
 
   return (
-    <ButtonBase
+    <ChoiceRow
       role="option"
       aria-selected={false}
       disabled={!isSelectable}
@@ -40,7 +41,7 @@ const CustomerPickerOption: FC<ICustomerPickerOptionProps> = ({ customer, onPick
           </Box>
         )}
       </Box>
-    </ButtonBase>
+    </ChoiceRow>
   );
 };
 

@@ -159,7 +159,7 @@ test("cancellation and restoration require active authorized roles", () => {
   assert.equal(canCancelQuotation(null), false);
   assert.equal(canRestoreQuotation(null), false);
   assert.equal(canCancelQuotation(authorizedUser([])), false);
-  for (const role of [USER_ROLES.ENGINEER, USER_ROLES.SYSTEM_ADMIN]) {
+  for (const role of [USER_ROLES.ENGINEER, USER_ROLES.ENGINEERING_LEAD, USER_ROLES.SYSTEM_ADMIN]) {
     const user = authorizedUser([role, USER_ROLES.FINANCE]);
     assert.equal(canCancelQuotation(user), true);
     assert.equal(canRestoreQuotation(user), role === USER_ROLES.SYSTEM_ADMIN);
@@ -176,7 +176,10 @@ for (const role of USER_ROLE_VALUES) {
       const base = { ...quotationFixture(), status };
       const view = await mountQuotation(base, authorizedUser([role]));
       try {
-        const permitted = role === USER_ROLES.ENGINEER || role === USER_ROLES.SYSTEM_ADMIN;
+        const permitted =
+          role === USER_ROLES.ENGINEER ||
+          role === USER_ROLES.ENGINEERING_LEAD ||
+          role === USER_ROLES.SYSTEM_ADMIN;
         const canCancel = permitted && status !== QUOTATION_STATUS.CANCELLED;
         const canRestore =
           role === USER_ROLES.SYSTEM_ADMIN && status === QUOTATION_STATUS.CANCELLED;

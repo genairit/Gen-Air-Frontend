@@ -130,6 +130,19 @@ export const quotationService = {
     });
     return ensureResponse(endpoint, response.data, isQuotation);
   },
+  async reject(quotation: IQuotation, reason: string): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationReject(quotation.id);
+    const response = await httpClient.post<unknown>(endpoint, {
+      version: quotation.version,
+      reason,
+    });
+    return ensureResponse(endpoint, response.data, isQuotation);
+  },
+  async resubmit(quotation: IQuotation): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationResubmit(quotation.id);
+    const response = await httpClient.post<unknown>(endpoint, { version: quotation.version });
+    return ensureResponse(endpoint, response.data, isQuotation);
+  },
   async cancel(quotation: Pick<IQuotation, "id" | "version">, reason: string): Promise<IQuotation> {
     const endpoint = API_ENDPOINTS.quotationCancel(quotation.id);
     const response = await httpClient.post<unknown>(endpoint, {
