@@ -43,6 +43,7 @@ const TextField: FC<TTextfieldProps> = ({
   type,
   value,
   style,
+  inputRef,
   isLtr: forcedLtr,
   title,
   infoText,
@@ -131,6 +132,7 @@ const TextField: FC<TTextfieldProps> = ({
         value={value}
         type={inputType}
         variant="outlined"
+        inputRef={inputRef}
         disabled={disabled}
         multiline={multiline}
         id={rest.id ?? inputId}
