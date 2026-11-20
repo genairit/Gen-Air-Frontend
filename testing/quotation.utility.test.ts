@@ -35,9 +35,27 @@ import {
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { quotationFixture, catalogueFixture } from "./quotation.fixture";
+import { quotationNeedsCorrection } from "../src/utilities/quotation-rejection.utility";
 import { quotationReviewSections } from "../src/utilities/quotation-presentation.utility";
 import type { IQuotation, IQuotationStatusCounts } from "../src/interfaces/quotation.interface";
 
+test("a rejected draft needs correction until it is resubmitted", () => {
+  const quotation = quotationFixture();
+  assert.equal(quotationNeedsCorrection(quotation), false);
+  quotation.rejectionHistory = [
+    {
+      reason: "Fix total",
+      rejectedAt: "2026-11-17T00:00:00.000Z",
+      rejectedById: "reviewer",
+      rejectedByName: "Reviewer",
+      resubmittedAt: null,
+      resubmittedById: null,
+    },
+  ];
+  assert.equal(quotationNeedsCorrection(quotation), true);
+  quotation.rejectionHistory[0].resubmittedAt = "2026-11-17T01:00:00.000Z";
+  assert.equal(quotationNeedsCorrection(quotation), false);
+});
 test("quotation response guard rejects malformed snapshots, totals and warning payloads", () => {
   const quotation = quotationFixture();
   assert.ok(isQuotation(quotation));

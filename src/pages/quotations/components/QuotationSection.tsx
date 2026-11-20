@@ -1,15 +1,16 @@
 import {
   BUTTON_SIZES,
+  BUTTON_SHAPES,
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
 import type { FC } from "react";
 import { useState } from "react";
+import { Box } from "@mui/material";
 import Button from "./QuotationButton";
 import QuotationLine from "./QuotationLine";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
-import { Box, IconButton } from "@mui/material";
 import QuotationLinkedControl from "./QuotationLinkedControl";
 import QuotationCataloguePicker from "./QuotationCataloguePicker";
 import { quotationMoney } from "../../../utilities/quotation.utility";
@@ -56,22 +57,22 @@ const QuotationSection: FC<IQuotationSectionProps> = ({
         <Box component="b">{amount}</Box>
         {!disabled && (
           <Box component="div" className={styles.sectionButtons}>
-            <IconButton
-              sx={{ p: 0 }}
-              title="הזז למעלה"
-              aria-label="הזז למעלה"
+            <Button
+              text="↑"
+              ariaLabel="הזז למעלה"
               onClick={() => onMove(-1)}
-            >
-              ↑
-            </IconButton>
-            <IconButton
-              sx={{ p: 0 }}
-              title="הזז למטה"
-              aria-label="הזז למטה"
+              size={BUTTON_SIZES.COMPACT}
+              shape={BUTTON_SHAPES.CIRCLE}
+              variant={BUTTON_VARIANTS.NEUTRAL}
+            />
+            <Button
+              text="↓"
+              ariaLabel="הזז למטה"
               onClick={() => onMove(1)}
-            >
-              ↓
-            </IconButton>
+              size={BUTTON_SIZES.COMPACT}
+              shape={BUTTON_SHAPES.CIRCLE}
+              variant={BUTTON_VARIANTS.NEUTRAL}
+            />
             <Button
               text="מחק מקטע"
               ariaLabel="מחיקת מערכת"

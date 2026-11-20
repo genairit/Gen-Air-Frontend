@@ -35,7 +35,7 @@ import { formatDate } from "./date.utility";
 import { getInitials } from "./text.utility";
 import { isTaskStatus } from "./guards/task.guard";
 import { getFullName } from "./mappers/user.mapper";
-import { getAssignedRoles } from "./user-role.utility";
+import { hasEngineeringRole } from "./user-role.utility";
 import { DATE_FORMAT } from "../constants/date.constants";
 import type { ITabItem } from "../interfaces/tab-item.interface";
 import { buildCustomerPath, buildProjectPath } from "./route.utility";
@@ -223,8 +223,7 @@ export const toProjectTaskAssigneeOptions = (
   const apartmentEngineer = project?.parentProjectId
     ? project.members?.find(member => member.role === USER_ROLES.ENGINEER)
     : null;
-  const canAssignEngineer = (user: IApiUser) =>
-    !user.deletedAt && getAssignedRoles(user).includes(USER_ROLES.ENGINEER);
+  const canAssignEngineer = (user: IApiUser) => !user.deletedAt && hasEngineeringRole(user);
   const allUsers = users.filter(canAssignEngineer);
   for (const extra of [apartmentEngineer?.user, currentAssignee]) {
     if (extra && canAssignEngineer(extra) && !allUsers.some(user => user.id === extra.id)) {

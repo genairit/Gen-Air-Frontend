@@ -62,6 +62,14 @@ const isQuotationCancellation = (value: unknown): value is IQuotationCancellatio
   isNullableString(value.restoredAt) &&
   isNullableString(value.restoredById) &&
   isNullableString(value.restoredByName);
+const isQuotationRejection = (value: unknown): boolean =>
+  isRecord(value) &&
+  hasStringFields(value, ["reason", "rejectedAt", "rejectedById", "rejectedByName"]) &&
+  typeof value.reason === "string" &&
+  value.reason.trim().length > 0 &&
+  value.reason.length <= MAX_QUOTATION_CANCELLATION_REASON_LENGTH &&
+  isNullableString(value.resubmittedAt) &&
+  isNullableString(value.resubmittedById);
 export const isQuotationSystem = (value: unknown): value is TQuotationSystem =>
   Object.values(QUOTATION_SYSTEM).some(system => system === value);
 export const isDecimal = (value: unknown): value is string =>
@@ -155,6 +163,8 @@ const hasQuotationIdentity = (value: { [field: string]: unknown }): boolean =>
   (value.cancelledFromStatus === null || isRestorableQuotationStatus(value.cancelledFromStatus)) &&
   Array.isArray(value.cancellationHistory) &&
   value.cancellationHistory.every(isQuotationCancellation) &&
+  Array.isArray(value.rejectionHistory) &&
+  value.rejectionHistory.every(isQuotationRejection) &&
   isNullableString(value.salesAgentId) &&
   isOptionalOf(isNullableString)(value.salesAgentName) &&
   isOptionalOf(isNullableString)(value.customerName) &&

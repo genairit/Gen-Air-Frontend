@@ -1,10 +1,9 @@
 import type { FC } from "react";
+import { Box } from "@mui/material";
 import { useStyles } from "./DriveFileManager.style";
-import Button from "../../../components/Button/Button";
 import InlineError from "../../../components/InlineError/InlineError";
+import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 import { DRIVE_FILE_COPY } from "../../../constants/drive-file.constant";
-import { Dialog, DialogTitle, DialogContent, DialogActions, Box } from "@mui/material";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 
 interface IDriveTrashDialogProps {
   fileName: string;
@@ -28,37 +27,28 @@ const DriveTrashDialog: FC<IDriveTrashDialogProps> = ({
     }
   };
   return (
-    <Dialog
+    <GenericPopup
       open
-      fullWidth
-      maxWidth="sm"
       onClose={close}
-      slotProps={{ paper: { sx: styles.dialog } }}
-    >
-      <DialogTitle>{DRIVE_FILE_COPY.DELETE_TITLE}</DialogTitle>
-      <DialogContent>
+      closeAfterAction={false}
+      closeDisabled={isPending}
+      title={DRIVE_FILE_COPY.DELETE_TITLE}
+      buttons={{
+        primary: {
+          text: DRIVE_FILE_COPY.DELETE_CONFIRM,
+          isDisabled: isPending,
+          onClick: onConfirm,
+        },
+        secondary: { text: DRIVE_FILE_COPY.CANCEL, isDisabled: isPending, onClick: close },
+      }}
+      content={
         <Box sx={styles.stack}>
           <Box component="b">{fileName}</Box>
           <Box component="span">{DRIVE_FILE_COPY.DELETE_DESCRIPTION}</Box>
           {hasError && <InlineError message={DRIVE_FILE_COPY.ACTION_ERROR} />}
         </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button
-          onClick={close}
-          disabled={isPending}
-          text={DRIVE_FILE_COPY.CANCEL}
-          variant={BUTTON_VARIANTS.NEUTRAL}
-        />
-        <Button
-          onClick={onConfirm}
-          disabled={isPending}
-          isLoading={isPending}
-          text={DRIVE_FILE_COPY.DELETE_CONFIRM}
-          ariaLabel={DRIVE_FILE_COPY.DELETE_CONFIRM}
-        />
-      </DialogActions>
-    </Dialog>
+      }
+    />
   );
 };
 export default DriveTrashDialog;

@@ -20,6 +20,18 @@ export const filterOptionsByQuery = (
   );
 };
 
+export const getVisibleSearchOptions = (
+  options: IAutocompleteOption[],
+  query: string,
+  isClientFiltered: boolean,
+): IAutocompleteOption[] => {
+  if (!isClientFiltered) {
+    return options;
+  }
+
+  return filterOptionsByQuery(options, query);
+};
+
 export const getListMaxHeight = (rows: number): number => {
   const visibleRows = clamp({
     value: rows,

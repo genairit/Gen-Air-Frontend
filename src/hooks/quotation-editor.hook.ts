@@ -127,7 +127,9 @@ export const useQuotationEditor = (
       });
       setError(error);
       const isCancellationCommand =
-        operation === QUOTATION_COMMAND.CANCEL || operation === QUOTATION_COMMAND.RESTORE;
+        operation === QUOTATION_COMMAND.CANCEL ||
+        operation === QUOTATION_COMMAND.RESTORE ||
+        operation === QUOTATION_COMMAND.TRANSITION;
       if (isCancellationCommand) {
         setHasVersionConflict(
           isAxiosError(failure) && failure.response?.status === HTTP_STATUS.CONFLICT,
@@ -199,6 +201,20 @@ export const useQuotationEditor = (
       quotationService.restore({ id: quotation.id, version: version.current }),
     );
   };
+  const reject = async (reason: string): Promise<boolean> => {
+    if (dirty || !reason.trim()) {
+      return false;
+    }
+    return command(QUOTATION_COMMAND.TRANSITION, () =>
+      quotationService.reject(quotation, reason.trim()),
+    );
+  };
+  const resubmit = async (): Promise<boolean> => {
+    if (dirty) {
+      return false;
+    }
+    return command(QUOTATION_COMMAND.TRANSITION, () => quotationService.resubmit(quotation));
+  };
   const updateSalesAgent = async (salesAgentId: string | null): Promise<boolean> => {
     if (!editable || dirty) {
       return false;
@@ -230,6 +246,8 @@ export const useQuotationEditor = (
     remove,
     cancel,
     restore,
+    reject,
+    resubmit,
     updateSalesAgent,
     quotation,
     update,

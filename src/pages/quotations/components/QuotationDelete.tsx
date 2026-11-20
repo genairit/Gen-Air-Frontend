@@ -1,10 +1,14 @@
-import { Box } from "@mui/material";
+import {
+  BUTTON_SIZES,
+  BUTTON_SHAPES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
 import Button from "./QuotationButton";
 import { useState, type FC } from "react";
-import styles from "../quotation.module.css";
-import Card from "../../../components/Card/Card";
-import { QUOTATION_DELETE_STYLES } from "./QuotationDelete.style";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { ICON_NAMES } from "../../../constants/icon.constant";
+import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
+import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 
 interface IQuotationDeleteProps {
   number: string;
@@ -22,54 +26,49 @@ const QuotationDelete: FC<IQuotationDeleteProps> = ({
   onDelete,
   onReload,
 }) => {
-  const [confirming, setConfirming] = useState(false);
-  const disabled = blocked || pending;
-  const confirmationLabel = pending ? "מוחק..." : "מחק";
+  const [open, setOpen] = useState(false);
   return (
-    <Card gap="10px" padding="16px 20px">
-      {confirming ? (
-        <>
-          <Box component="span">למחוק את {number}? אי אפשר לשחזר דרך האפליקציה.</Box>
-          <Box component="div" className={styles.row}>
-            <Button
-              onClick={onDelete}
-              disabled={disabled}
-              text={confirmationLabel}
-              ariaLabel="אישור מחיקת ההצעה"
-              variant={BUTTON_VARIANTS.DARK}
-              sx={QUOTATION_DELETE_STYLES.confirmation}
-            />
-            <Button
-              text="ביטול"
-              disabled={pending}
-              variant={BUTTON_VARIANTS.NEUTRAL}
-              onClick={() => setConfirming(false)}
-              sx={QUOTATION_DELETE_STYLES.confirmation}
-            />
-          </Box>
-        </>
-      ) : (
-        <Button
-          text="מחיקת ההצעה"
-          disabled={disabled}
-          variant={BUTTON_VARIANTS.NEUTRAL}
-          sx={QUOTATION_DELETE_STYLES.action}
-          onClick={() => setConfirming(true)}
+    <>
+      <Button
+        ariaLabel="מחיקת ההצעה"
+        icon={ICON_NAMES.DELETE}
+        size={BUTTON_SIZES.COMPACT}
+        shape={BUTTON_SHAPES.CIRCLE}
+        disabled={blocked || pending}
+        onClick={() => setOpen(true)}
+        variant={BUTTON_VARIANTS.DANGER}
+        sx={{ width: 44, height: 44, minWidth: 44, minHeight: 44 }}
+      />
+      {open && (
+        <GenericPopup
+          open={open}
+          title="מחיקת הצעה"
+          closeDisabled={pending}
+          closeAfterAction={false}
+          dir={TEXT_DIRECTIONS.RTL}
+          onClose={() => setOpen(false)}
+          content={
+            <>
+              <p>למחוק את {number}? אי אפשר לשחזר דרך האפליקציה.</p>
+              {error && (
+                <div role="alert">
+                  {error}
+                  <Button text="טען גרסה עדכנית" onClick={onReload} disabled={pending} />
+                </div>
+              )}
+            </>
+          }
+          buttons={{
+            primary: {
+              text: pending ? "מוחק..." : "מחק הצעה",
+              isDisabled: blocked || pending,
+              onClick: onDelete,
+            },
+            secondary: { text: "חזרה", isDisabled: pending, onClick: () => setOpen(false) },
+          }}
         />
       )}
-      {error && (
-        <Box role="alert" component="div" className={styles.error}>
-          {error}
-          <Button
-            onClick={onReload}
-            disabled={disabled}
-            text="טעינת גרסה מעודכנת"
-            variant={BUTTON_VARIANTS.NEUTRAL}
-            sx={QUOTATION_DELETE_STYLES.confirmation}
-          />
-        </Box>
-      )}
-    </Card>
+    </>
   );
 };
 export default QuotationDelete;

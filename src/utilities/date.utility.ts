@@ -1,5 +1,5 @@
-import "moment/dist/locale/he";
 import moment from "moment";
+import "moment/dist/locale/he";
 import { DATE_FORMAT, RELATIVE_TIME_LOCALE } from "../constants/date.constants";
 import type { IDateRange } from "../components/DatePicker/interfaces/date-range.interface";
 
@@ -39,6 +39,24 @@ export const formatDate = (date: Date | null, format = DATE_FORMAT.DATE): string
 
   return moment(date).format(format);
 };
+
+export const parseDateInput = (value: string): Date | null => {
+  if (!value) {
+    return null;
+  }
+
+  const date = moment(value, DATE_FORMAT.DATE_INPUT, true);
+  return date.isValid() ? date.toDate() : null;
+};
+
+export const formatDateInput = (date: Date): string => formatDate(date, DATE_FORMAT.DATE_INPUT);
+
+export const todayDateInput = (): string => moment().format(DATE_FORMAT.DATE_INPUT);
+
+export const formatDateInputDisplay = (value: string): string =>
+  formatDate(parseDateInput(value), DATE_FORMAT.DATE);
+
+export const startOfDate = (date: Date): Date => moment(date).startOf("day").toDate();
 
 export const formatRelativeTime = (date: string | Date | null) => {
   if (!date) {

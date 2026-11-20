@@ -5,6 +5,7 @@ import { EMPLOYEES_COPY } from "../../../constants/employee.constant";
 import type { IEmployee } from "../../../interfaces/employee.interface";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { ASSIGNABLE_USER_ROLE_VALUES } from "../../../constants/user-role.constant";
 import { useUpdateEmployeeRolesMutation } from "../../../hooks/mutations/user.mutation";
 import RoleAssignmentFields from "../../../components/RoleAssignmentFields/RoleAssignmentFields";
 
@@ -14,7 +15,9 @@ interface IEditEmployeeRolesPopupProps {
 }
 
 const EditEmployeeRolesPopup: FC<IEditEmployeeRolesPopupProps> = ({ employee, onClose }) => {
-  const [assignedRoles, setAssignedRoles] = useState(employee.assignedRoles);
+  const [assignedRoles, setAssignedRoles] = useState(
+    employee.assignedRoles.filter(role => ASSIGNABLE_USER_ROLE_VALUES.includes(role)),
+  );
   const updateMutation = useUpdateEmployeeRolesMutation();
   const hasAssignedRoles = assignedRoles.length > 0;
   const canSave = !updateMutation.isPending && hasAssignedRoles;
