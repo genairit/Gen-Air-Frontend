@@ -38,19 +38,29 @@ const QuotationCloneForm: FC<ICloneFormProps> = ({ sourceId, onCancel }): ReactE
     queryFn: (): Promise<IQuotation> => quotationService.get(sourceId),
   });
   useElementFocus(errorRef, failure !== null, failure);
-  const brandOptions = cloneBrandOptions(source.data?.brands[0] ?? null);
-  const createDisabled = !targetBrand || pending || failure?.staleSource === true;
-  const createText = pending ? "יוצר הצעה חדשה..." : "צור הצעה חדשה";
+  const retainedCommand = command.getCommand();
+  const canRecover = retainedCommand !== null && retainedCommand.targetBrand === targetBrand;
+  const sourceBrand = source.data?.brands[0] ?? null;
+  const hasSingleSourceBrand = source.isSuccess && source.data.brands.length === 1;
+  const canCreate = hasSingleSourceBrand && targetBrand !== sourceBrand;
+  const brandOptions = cloneBrandOptions(sourceBrand, retainedCommand?.targetBrand ?? null);
+  const createDisabled =
+    !targetBrand || pending || failure?.staleSource === true || (!canRecover && !canCreate);
+  const idleText = canRecover ? "בדוק תוצאת היצירה" : "צור הצעה חדשה";
+  const createText = pending ? "יוצר הצעה חדשה..." : idleText;
+  const selectorDisabled = pending || (!hasSingleSourceBrand && canRecover);
+  const sourceLabel = source.isSuccess ? source.data.number : "בקשת יצירה קודמת";
 
   const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
-    if (!source.data || !targetBrand || source.data.brands.length !== 1 || failure?.staleSource) {
+    const sourceVersion = retainedCommand?.sourceVersion ?? source.data?.version ?? null;
+    if (createDisabled || sourceVersion === null) {
       return;
     }
 
     await command.submit({
       targetBrand,
-      sourceVersion: source.data.version,
+      sourceVersion,
       execute: quotationService.cloneRecommended,
       onPending: setPending,
       onFailure: setFailure,
@@ -59,7 +69,7 @@ const QuotationCloneForm: FC<ICloneFormProps> = ({ sourceId, onCancel }): ReactE
     });
   };
 
-  if (source.isPending) {
+  if (source.isPending && !canRecover) {
     return (
       <Box component="p" role="status">
         טוען הצעת מקור...
@@ -67,7 +77,7 @@ const QuotationCloneForm: FC<ICloneFormProps> = ({ sourceId, onCancel }): ReactE
     );
   }
 
-  if (source.isError) {
+  if (source.isError && !canRecover) {
     return (
       <NoticeBanner
         variant="error"
@@ -87,7 +97,7 @@ const QuotationCloneForm: FC<ICloneFormProps> = ({ sourceId, onCancel }): ReactE
     );
   }
 
-  if (source.data.brands.length !== 1) {
+  if (!hasSingleSourceBrand && !canRecover) {
     return (
       <NoticeBanner
         variant="error"
@@ -97,52 +107,59 @@ const QuotationCloneForm: FC<ICloneFormProps> = ({ sourceId, onCancel }): ReactE
     );
   }
 
+  const staleSourceAction = failure?.staleSource ? (
+    <Button
+      text="רענן הצעת מקור"
+      disabled={source.isFetching}
+      onClick={(): Promise<void> =>
+        command.refreshSource({ refresh: source.refetch, onFailure: setFailure })
+      }
+    />
+  ) : null;
+  const emptyTargetView = targetBrand ? null : (
+    <Box component="p" sx={QUOTATION_CLONE_STYLES.description}>
+      בחר חברה כדי ליצור הצעה חדשה.
+    </Box>
+  );
+  const failureView = failure ? (
+    <Box tabIndex={-1} ref={errorRef} sx={QUOTATION_CLONE_STYLES.error}>
+      <NoticeBanner
+        variant="error"
+        title={failure.title}
+        lines={failure.lines}
+        actions={staleSourceAction}
+      />
+    </Box>
+  ) : null;
+  const recoveryNotice =
+    canRecover && !source.isSuccess ? (
+      <NoticeBanner title="ניתן לבדוק את תוצאת בקשת היצירה הקודמת גם כשהצעת המקור אינה זמינה כעת." />
+    ) : null;
+
   return (
     <Card sx={QUOTATION_CLONE_STYLES.card} ariaLabel="יצירת העתק לחברת מיזוג אחרת">
       <Box component="form" onSubmit={submit} aria-busy={pending} sx={QUOTATION_CLONE_STYLES.form}>
         <Box component="h2" sx={QUOTATION_CLONE_STYLES.title}>
-          יצירת העתק לחברת מיזוג אחרת · <Box component="bdi">{source.data.number}</Box>
+          יצירת העתק לחברת מיזוג אחרת · <Box component="bdi">{sourceLabel}</Box>
         </Box>
         <Box component="p" sx={QUOTATION_CLONE_STYLES.description}>
           ההצעה החדשה תיווצר עם פריטי הקטלוג המוצעים לחברה שנבחרה, וניתן לערוך אותה לאחר היצירה.
           הלקוח, הפרויקט, הכמויות והפריטים הכלליים יישמרו. התאריך וההנחה יתאפסו.
         </Box>
         <QuotationSelect
-          disabled={pending}
           value={targetBrand}
           items={brandOptions}
           label="חברת מיזוג חדשה"
+          disabled={selectorDisabled}
           onChange={(event): void => {
             command.reset();
             setFailure(null);
             setTargetBrand(event.target.value);
           }}
         />
-        {!targetBrand && (
-          <Box component="p" sx={QUOTATION_CLONE_STYLES.description}>
-            בחר חברה כדי ליצור הצעה חדשה.
-          </Box>
-        )}
-        {failure && (
-          <Box tabIndex={-1} ref={errorRef} sx={QUOTATION_CLONE_STYLES.error}>
-            <NoticeBanner
-              variant="error"
-              title={failure.title}
-              lines={failure.lines}
-              actions={
-                failure.staleSource ? (
-                  <Button
-                    text="רענן הצעת מקור"
-                    disabled={source.isFetching}
-                    onClick={(): Promise<void> =>
-                      command.refreshSource({ refresh: source.refetch, onFailure: setFailure })
-                    }
-                  />
-                ) : null
-              }
-            />
-          </Box>
-        )}
+        {emptyTargetView}
+        {recoveryNotice}
+        {failureView}
         <Box sx={QUOTATION_CLONE_STYLES.actions}>
           <Button
             text={createText}

@@ -1,15 +1,21 @@
+import {
+  CLONE_ERROR_CODES,
+  CLONE_RECOVERY_BY_STATUS,
+  CLONE_COMMAND_UUID_PATTERN,
+} from "../constants/quotation-clone.constant";
+
 import { isAxiosError } from "axios";
 import { isRecord } from "./guards/primitive.guard";
 import { getApiErrorMessage } from "./api-error.utility";
 import { QUOTATION_BRANDS } from "../constants/quotation.constant";
-import { CLONE_RECOVERY_BY_STATUS } from "../constants/quotation-clone.constant";
+import type { IRecommendedCloneCommand } from "../interfaces/quotation.interface";
 import type { ICloneFailure, ICloneBrandOption } from "../interfaces/quotation-clone.interface";
 
 export const cloneFailure = (error: unknown): ICloneFailure => {
   const status = isAxiosError(error) ? error.response?.status : null;
   const body: unknown = isAxiosError(error) ? error.response?.data : null;
   const code = isRecord(body) ? body.code : null;
-  const staleSource = code === "QUOTATION_CLONE_SOURCE_CHANGED";
+  const staleSource = code === CLONE_ERROR_CODES.SOURCE_CHANGED;
   const unknownOutcome = !status || status >= 500;
 
   if (unknownOutcome) {
@@ -41,7 +47,7 @@ export const cloneFailure = (error: unknown): ICloneFailure => {
             : [],
         )
     : [];
-  const mappingFailed = code === "QUOTATION_CLONE_MAPPING_FAILED";
+  const mappingFailed = code === CLONE_ERROR_CODES.MAPPING_FAILED;
 
   return {
     staleSource,
@@ -52,12 +58,44 @@ export const cloneFailure = (error: unknown): ICloneFailure => {
   };
 };
 
-export const cloneBrandOptions = (sourceBrand: string | null): ICloneBrandOption[] => [
+export const cloneBrandOptions = (
+  sourceBrand: string | null,
+  retainedTarget: string | null,
+): ICloneBrandOption[] => [
   { value: "", label: "בחר חברה" },
-  ...QUOTATION_BRANDS.filter((brand): boolean => brand !== sourceBrand).map(
-    (brand): ICloneBrandOption => ({
-      value: brand,
-      label: brand,
-    }),
-  ),
+  ...QUOTATION_BRANDS.filter(
+    (brand): boolean => brand !== sourceBrand || brand === retainedTarget,
+  ).map((brand): ICloneBrandOption => ({
+    value: brand,
+    label: brand,
+  })),
 ];
+
+export const isRecommendedCloneCommand = (value: unknown): value is IRecommendedCloneCommand => {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const hasSource = typeof value.sourceId === "string" && value.sourceId.trim().length > 0;
+  const hasTarget = typeof value.targetBrand === "string" && value.targetBrand.trim().length > 0;
+  const version = value.sourceVersion;
+  const key = value.idempotencyKey;
+  const hasNumericVersion = typeof version === "number";
+  const hasPositiveVersion = hasNumericVersion && version > 0;
+  const hasIntegerVersion = hasNumericVersion && Number.isSafeInteger(version);
+  const hasKey = typeof key === "string";
+  const hasValidKey = hasKey && CLONE_COMMAND_UUID_PATTERN.test(key);
+  return hasSource && hasTarget && hasPositiveVersion && hasIntegerVersion && hasValidKey;
+};
+
+export const safeCloneDiagnostics = (error: unknown): Record<string, unknown> => {
+  const status = isAxiosError(error) ? (error.response?.status ?? null) : null;
+  const body: unknown = isAxiosError(error) ? error.response?.data : null;
+  const receivedCode = isRecord(body) ? body.code : null;
+  const code =
+    Object.values(CLONE_ERROR_CODES).find((candidate): boolean => candidate === receivedCode) ??
+    null;
+  const classification = isAxiosError(error) ? "http-or-transport" : "platform-or-client";
+  const cause = error instanceof SyntaxError ? "invalid-json" : "request-or-storage-failure";
+  return { classification, status, code, cause };
+};

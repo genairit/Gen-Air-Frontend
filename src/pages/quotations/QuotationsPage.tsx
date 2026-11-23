@@ -47,6 +47,7 @@ const QuotationsPage: FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const cloneFrom = searchParams.get("cloneFrom");
   const user = useSessionUser();
+  const cloneFormContextKey = `${location.key}:${cloneFrom}:${user?.id}:${user?.role}:${user?.permissions.join(",")}`;
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<TQuotationStatus | null>(null);
   const [showPendingPlans, setShowPendingPlans] = useState(false);
@@ -147,8 +148,8 @@ const QuotationsPage: FC = () => {
         {canClone && cloneFrom && (
           <QuotationCloneForm
             sourceId={cloneFrom}
+            key={cloneFormContextKey}
             onCancel={() => navigate(buildQuotationPath(cloneFrom))}
-            key={`${location.key}:${cloneFrom}:${user?.id}:${user?.role}:${user?.permissions.join(",")}`}
           />
         )}
         {cloneFrom && !canClone && (

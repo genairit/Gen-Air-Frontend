@@ -5,13 +5,13 @@ import type {
 
 import { logger } from "../utilities/logger.utility";
 import { buildQuotationPath } from "../utilities/route.utility";
-import { cloneFailure } from "../utilities/quotation-clone.utility";
 import { TASK_QUOTATION_KEYS } from "../constants/task-quotation.constant";
 import { CommandIdentityManager } from "../managers/command-identity.manager";
 import type { ICloneExecution } from "../interfaces/quotation-clone.interface";
 import { QUOTATION_SHARING_KEYS } from "../constants/quotation-sharing.constant";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
 import type { IRecommendedCloneCommand } from "../interfaces/quotation.interface";
+import { cloneFailure, safeCloneDiagnostics } from "../utilities/quotation-clone.utility";
 import { QuotationCloneStorageManager } from "../managers/quotation-clone-storage.manager";
 import { QUOTATION_DETAIL_HEADING_ID, QUOTATION_QUERY_KEY } from "../constants/quotation.constant";
 
@@ -28,7 +28,12 @@ export class QuotationCloneCommand {
   constructor(sourceId: string) {
     this.sourceId = sourceId;
     this.storageKey = QuotationCloneStorageManager.scope(sourceId);
-    this.command = QuotationCloneStorageManager.read(this.storageKey);
+    const stored = QuotationCloneStorageManager.read(this.storageKey);
+    this.command = stored?.sourceId === sourceId ? stored : null;
+  }
+
+  getCommand(): IRecommendedCloneCommand | null {
+    return this.completed ? null : this.command;
   }
 
   getTargetBrand(): string {
@@ -105,7 +110,7 @@ export class QuotationCloneCommand {
       this.completed = true;
       await input.onSuccess(quotation, (): boolean => this.isCurrent(context));
     } catch (error: unknown) {
-      logger.error("Recommended quotation clone failed", {});
+      logger.error("Recommended quotation clone failed", safeCloneDiagnostics(error));
       if (!this.isCurrent(context)) {
         return;
       }
