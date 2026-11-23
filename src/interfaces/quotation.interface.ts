@@ -10,6 +10,7 @@ import type {
   TQuotationProjectRole,
 } from "../constants/quotation-sharing.constant";
 
+import type { IQuotationTaskLink } from "./task-quotation.interface";
 import type { IPaymentStage } from "./payment-configuration.interface";
 
 export type {
@@ -100,12 +101,15 @@ export interface IQuotation {
   projectId: string | null;
   status: TQuotationStatus;
   paymentTermsNote: string;
+  taskContextLocked?: boolean;
+  taskProjectLocked?: boolean;
   salesAgentId: string | null;
   projectName?: string | null;
   paymentTerms: string | null;
   sections: IQuotationSection[];
   warnings: IQuotationWarning[];
   salesAgentName?: string | null;
+  taskLinks?: IQuotationTaskLink[];
   paymentSchedule: IPaymentStage[];
   targetPretaxAmount: string | null;
   rejectionHistory: IQuotationRejection[];
