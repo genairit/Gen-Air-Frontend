@@ -31,6 +31,7 @@
     "test:task-quotations": "node testing/run-task-quotations-tests.mjs",
     "test:quotation-clone": "node testing/run-quotation-clone-tests.mjs",
     "test:task-sort": "node testing/run-task-sort-tests.mjs",
+    "test:quotation-publication": "node testing/run-quotation-publication-tests.mjs",
     "test:popup-focus": "node testing/run-popup-focus-tests.mjs"
   },
   "dependencies": {

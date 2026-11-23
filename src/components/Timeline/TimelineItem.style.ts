@@ -31,6 +31,7 @@ export const useStyles = () =>
     },
     content: {
       flex: 1,
+      minWidth: 0,
       gap: "6px",
       display: "flex",
       paddingBottom: "22px",
@@ -61,4 +62,5 @@ export const useStyles = () =>
     },
     date: MONOSPACE_CAPTION,
     author: MUTED_CAPTION,
+    detail: { ...MUTED_CAPTION, overflowWrap: "anywhere" },
   });

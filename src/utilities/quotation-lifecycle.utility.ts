@@ -10,10 +10,16 @@ import { formatDate, normalizeDate } from "./date.utility";
 import type { ITimelineEntry } from "../interfaces/project.interface";
 import { QUOTATION_LIFECYCLE_COPY } from "../constants/quotation.constant";
 import { QUOTATION_LIFECYCLE_ACTION } from "../constants/quotation.constant";
+import { PUBLICATION_COPY } from "../constants/quotation-publication.constant";
+import { publicationHistoryDescription } from "./quotation-publication.utility";
 import type { IQuotationActionAvailability } from "../interfaces/quotation.interface";
+import type { IQuotationPublication } from "../interfaces/quotation-publication.interface";
 import type { IQuotation, IQuotationTimelineEntry } from "../interfaces/quotation.interface";
 
-export const quotationLifecycleTimeline = (quotation: IQuotation): ITimelineEntry[] => {
+export const quotationLifecycleTimeline = (
+  quotation: IQuotation,
+  publication: IQuotationPublication | null = null,
+): ITimelineEntry[] => {
   const legacyCancellations = quotation.cancellationHistory.flatMap(
     (record, index): IQuotationTimelineEntry[] => {
       const cancellation = {
@@ -50,26 +56,35 @@ export const quotationLifecycleTimeline = (quotation: IQuotation): ITimelineEntr
       dotColor: theme.palette.danger,
     }),
   );
-  const lifecycle = (quotation.lifecycleHistory ?? [])
-    .filter((event): boolean => {
-      const hasLegacyEvidence =
-        event.action === QUOTATION_LIFECYCLE_ACTION.CANCEL ||
-        event.action === QUOTATION_LIFECYCLE_ACTION.RESTORE ||
-        event.action === QUOTATION_LIFECYCLE_ACTION.REJECT;
-      return !hasLegacyEvidence;
-    })
-    .map((event): IQuotationTimelineEntry => {
-      const transition = `${QUOTATION_STATUS_LABELS[event.fromStatus]} ← ${QUOTATION_STATUS_LABELS[event.toStatus]}`;
-      return {
-        id: event.id,
-        createdAt: event.occurredAt,
-        label: `${QUOTATION_LIFECYCLE_LABELS[event.action]} · ${transition}`,
-        date: formatDate(normalizeDate(event.occurredAt), DATE_FORMAT.FULL_DATE),
-        author: event.actorName,
-        dotColor: theme.palette.statusBlue,
-      };
-    });
-  return sortByNewest([...legacyCancellations, ...legacyRejections, ...lifecycle]).reverse();
+  const lifecycle = (quotation.lifecycleHistory ?? []).map((event): IQuotationTimelineEntry => {
+    const stages =
+      publication?.history.filter((stage): boolean => stage.lifecycleEventId === event.id) ?? [];
+    const fileStage = stages.findLast((stage): boolean => stage.fileUrl !== null);
+    const fileUrl = fileStage?.fileUrl ?? null;
+    const detail = stages.map(publicationHistoryDescription).join(" · ");
+    const fileLink =
+      fileUrl === null ? null : { href: fileUrl, label: PUBLICATION_COPY.HISTORY_OPEN };
+    const transition = `${QUOTATION_STATUS_LABELS[event.fromStatus]} ← ${QUOTATION_STATUS_LABELS[event.toStatus]}`;
+    return {
+      id: event.id,
+      createdAt: event.occurredAt,
+      label: `${QUOTATION_LIFECYCLE_LABELS[event.action]} · ${transition}`,
+      date: formatDate(normalizeDate(event.occurredAt), DATE_FORMAT.FULL_DATE),
+      author: event.actorName,
+      note: event.reason,
+      detail,
+      fileLink,
+      dotColor: theme.palette.statusBlue,
+    };
+  });
+  const legacy = [...legacyCancellations, ...legacyRejections].filter(
+    (entry): boolean =>
+      !lifecycle.some(
+        (event): boolean =>
+          event.createdAt === entry.createdAt && event.label.startsWith(entry.label),
+      ),
+  );
+  return sortByNewest([...legacy, ...lifecycle]).reverse();
 };
 
 export const quotationActionAvailabilityMessage = ({
