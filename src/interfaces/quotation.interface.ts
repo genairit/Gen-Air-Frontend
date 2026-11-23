@@ -268,3 +268,10 @@ export interface IQuotationLineGroup {
   line: IQuotationLine;
   controls: IQuotationLine[];
 }
+
+export interface IRecommendedCloneCommand {
+  sourceId: string;
+  targetBrand: string;
+  sourceVersion: number;
+  idempotencyKey: string;
+}

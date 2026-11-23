@@ -1,331 +1,178 @@
-import {
-  CATALOGUE_STATUS,
-  QUOTATION_BRANDS,
-  QUOTATION_QUERY_KEY,
-} from "../../../constants/quotation.constant";
-
-import type { FC } from "react";
-import { useState } from "react";
 import { Box } from "@mui/material";
-import { isAxiosError } from "axios";
 import Button from "./QuotationButton";
+import { useRef, useState } from "react";
 import styles from "../quotation.module.css";
-import QuotationInput from "./QuotationInput";
-import { useNavigate } from "react-router-dom";
 import QuotationSelect from "./QuotationSelect";
 import Card from "../../../components/Card/Card";
-import { ROUTE_PATHS } from "../../../constants/routes.constant";
+import type { FC, FormEvent, ReactElement } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useElementFocus } from "../../../hooks/element-focus.hook";
 import { QUOTATION_CLONE_STYLES } from "./QuotationCloneForm.style";
-import { quotationMoney } from "../../../utilities/quotation.utility";
-import { buildQuotationPath } from "../../../utilities/route.utility";
+import { BUTTON_TYPES } from "../../../constants/button-type.constant";
 import { quotationService } from "../../../services/quotation.service";
-import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
-import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
+import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
+import type { IQuotation } from "../../../interfaces/quotation.interface";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
-import { AuthorizationContext } from "../../../managers/authorization-context.manager";
-import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ICatalogueItem, IQuotationLine } from "../../../interfaces/quotation.interface";
+import { cloneBrandOptions } from "../../../utilities/quotation-clone.utility";
+import { completeQuotationClone } from "../../../actions/quotation-clone.actions";
+import type { ICloneFailure } from "../../../interfaces/quotation-clone.interface";
+import { useQuotationCloneCommand } from "../../../hooks/quotation-clone-command.hook";
 
-interface ICloneLine {
-  systemType: string;
-  sourceBrand: string;
-  item: IQuotationLine;
+interface ICloneFormProps {
+  sourceId: string;
+  onCancel: () => void;
 }
 
-const isRetiredItem = (error: unknown): boolean =>
-  isAxiosError(error) && error.response?.status === 404;
-
-const CloneLinePicker: FC<{
-  line: ICloneLine;
-  targetBrand: string;
-  selected: ICatalogueItem | null;
-  onChange: (item: ICatalogueItem | null) => void;
-}> = ({ line, targetBrand, selected, onChange }) => {
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
-  const candidates = useQuery({
-    queryKey: ["quotation-clone-candidates", targetBrand, line.item.id, debouncedSearch],
-    enabled: Boolean(targetBrand),
-    queryFn: () =>
-      quotationService.catalogue({
-        brand: targetBrand,
-        systemType: line.systemType,
-        equipmentRole: line.item.equipmentRole,
-        ...(line.item.equipmentType ? { equipmentType: line.item.equipmentType } : {}),
-        ...(line.item.capacityBtu ? { capacityBtu: line.item.capacityBtu } : {}),
-        ...(debouncedSearch.trim() ? { search: debouncedSearch.trim() } : {}),
-        limit: 100,
-      }),
-  });
-  const choices = (candidates.data ?? []).filter(
-    item =>
-      item.brand === targetBrand &&
-      item.status === CATALOGUE_STATUS.ACTIVE &&
-      item.equipmentRole === line.item.equipmentRole &&
-      (!line.item.equipmentType || item.equipmentTypes.includes(line.item.equipmentType)) &&
-      (!item.systemType || item.systemType === line.systemType),
-  );
-  const shownChoices =
-    selected && !choices.some(item => item.id === selected.id) ? [selected, ...choices] : choices;
-  const canSuggest = selected === null && !candidates.isError;
-  const suggested = canSuggest ? (choices[0] ?? null) : null;
-  const showNoMatch = candidates.isSuccess && choices.length === 0 && selected === null;
-  const selectedLabel = selected ? `נבחרה חלופה: ${selected.sku}` : "";
-  const suggestedPrice = suggested ? quotationMoney(suggested.price) : "";
-  const cardLabel = `חלופה לפריט ${line.item.sku}`;
-  return (
-    <Card ariaLabel={cardLabel} sx={QUOTATION_CLONE_STYLES.card}>
-      <Box sx={QUOTATION_CLONE_STYLES.header}>
-        <Box component="h3" sx={QUOTATION_CLONE_STYLES.title}>
-          <Box component="bdi">{line.item.sku}</Box> · {line.item.description}
-        </Box>
-        <Box component="p" sx={QUOTATION_CLONE_STYLES.metadata}>
-          כמות {line.item.quantity} ·{" "}
-          {line.item.capacityBtu ? `${line.item.capacityBtu} BTU · ` : ""}
-          {line.sourceBrand}
-        </Box>
-      </Box>
-      <QuotationInput
-        type="search"
-        value={search}
-        label={`חיפוש חלופה עבור ${line.item.sku}`}
-        placeholder="חיפוש מק״ט או תיאור בחברה החדשה"
-        onChange={event => setSearch(event.target.value)}
-      />
-      <QuotationSelect
-        value={selected?.id ?? ""}
-        label={`חלופה עבור ${line.item.sku}`}
-        onChange={event =>
-          onChange(shownChoices.find(item => item.id === event.target.value) ?? null)
-        }
-        items={[
-          { value: "", label: "בחר חלופה לאחר בדיקה" },
-          ...shownChoices.map(item => ({
-            value: item.id,
-            label: `${item.sku} · ${item.description} · ₪${item.price}${item.capacityBtu ? ` · ${item.capacityBtu} BTU` : ""}`,
-          })),
-        ]}
-      />
-      <Box sx={QUOTATION_CLONE_STYLES.feedback}>
-        {suggested && (
-          <>
-            <Box sx={QUOTATION_CLONE_STYLES.candidate}>
-              <Box component="span" className={styles.muted}>
-                הצעה לבדיקה
-              </Box>
-              <Box component="strong">
-                <Box component="bdi">{suggested.sku}</Box>
-              </Box>
-              <Box component="span">{suggested.description}</Box>
-              <Box component="bdi" sx={QUOTATION_CLONE_STYLES.price}>
-                {suggestedPrice}
-              </Box>
-            </Box>
-            <Button
-              text="אשר חלופה מוצעת"
-              sx={QUOTATION_CLONE_STYLES.action}
-              onClick={() => onChange(suggested)}
-            />
-          </>
-        )}
-        {selected && (
-          <Box role="status" component="p" sx={QUOTATION_CLONE_STYLES.selected}>
-            {selectedLabel}
-          </Box>
-        )}
-        {candidates.isPending && <Box role="status">מחפש חלופות...</Box>}
-        {candidates.isError && (
-          <Box role="alert" className={styles.error}>
-            {getApiErrorMessage(candidates.error)}
-          </Box>
-        )}
-        {showNoMatch && (
-          <Box role="status" className={styles.muted}>
-            לא נמצאה חלופה תואמת. חפש מק״ט אחר או בחר חברה אחרת.
-          </Box>
-        )}
-      </Box>
-    </Card>
-  );
-};
-
-const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
-  sourceId,
-  onCancel,
-}) => {
+const QuotationCloneForm: FC<ICloneFormProps> = ({ sourceId, onCancel }): ReactElement => {
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
-  const [targetBrand, setTargetBrand] = useState("");
-  const [selected, setSelected] = useState<Record<string, ICatalogueItem>>({});
+  const command = useQuotationCloneCommand(sourceId, location.key);
+  const [targetBrand, setTargetBrand] = useState((): string => command.getTargetBrand());
+  const [pending, setPending] = useState(false);
+  const [failure, setFailure] = useState<ICloneFailure | null>(null);
+  const errorRef = useRef<HTMLDivElement>(null);
   const source = useQuery({
     queryKey: ["quotation-clone-source", sourceId],
-    queryFn: () => quotationService.get(sourceId),
+    queryFn: (): Promise<IQuotation> => quotationService.get(sourceId),
   });
-  const brandedLines =
-    source.data?.sections.flatMap(section =>
-      section.brand === null
-        ? []
-        : section.items.map(item => ({
-            item,
-            systemType: section.systemType,
-            sourceBrand: section.brand!,
-          })),
-    ) ?? [];
-  const sourceItems = useQueries({
-    queries: brandedLines.map(line => ({
-      queryKey: ["quotation-clone-source-item", line.item.catalogueItemId],
-      queryFn: () => quotationService.catalogueItem(line.item.catalogueItemId),
-    })),
-  });
-  const lines = brandedLines.filter((_line, index) => sourceItems[index]?.data?.brand !== "");
-  const ready =
-    source.data &&
-    source.data.brands.length === 1 &&
-    sourceItems.every(
-      result => result.isSuccess || (result.isError && isRetiredItem(result.error)),
-    );
-  const failedLookups = sourceItems.filter(
-    result => result.isError && !isRetiredItem(result.error),
-  );
-  const generalCount =
-    source.data?.sections
-      .filter(section => section.brand === null)
-      .reduce((sum, section) => sum + section.items.length, 0) ?? 0;
-  const clone = useMutation({
-    mutationFn: quotationService.clone,
-    onSuccess: async quotation => {
-      const context = new AuthorizationContext();
-      await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
-      context.assertCurrent();
-      navigate(buildQuotationPath(quotation.id));
-    },
-  });
-  if (source.isPending)
+  useElementFocus(errorRef, failure !== null, failure);
+  const retainedCommand = command.getCommand();
+  const canRecover = retainedCommand !== null && retainedCommand.targetBrand === targetBrand;
+  const sourceBrand = source.data?.brands[0] ?? null;
+  const hasSingleSourceBrand = source.isSuccess && source.data.brands.length === 1;
+  const canCreate = hasSingleSourceBrand && targetBrand !== sourceBrand;
+  const brandOptions = cloneBrandOptions(sourceBrand, retainedCommand?.targetBrand ?? null);
+  const hasMissingTarget = !targetBrand;
+  const hasStaleSource = failure?.staleSource === true;
+  const hasUnavailableIntent = !canRecover && !canCreate;
+  const createDisabled = hasMissingTarget || pending || hasStaleSource || hasUnavailableIntent;
+  const idleText = canRecover ? "בדוק תוצאת היצירה" : "צור הצעה חדשה";
+  const createText = pending ? "יוצר הצעה חדשה..." : idleText;
+  const selectorDisabled = pending || (!hasSingleSourceBrand && canRecover);
+  const sourceLabel = source.isSuccess ? source.data.number : "בקשת יצירה קודמת";
+
+  const submit = async (event: FormEvent<HTMLFormElement>): Promise<void> => {
+    event.preventDefault();
+    const sourceVersion = retainedCommand?.sourceVersion ?? source.data?.version ?? null;
+    if (createDisabled || sourceVersion === null) {
+      return;
+    }
+
+    await command.submit({
+      targetBrand,
+      sourceVersion,
+      execute: quotationService.cloneRecommended,
+      onPending: setPending,
+      onFailure: setFailure,
+      onSuccess: (quotation, isCurrent): Promise<void> =>
+        completeQuotationClone({ quotation, queryClient, navigate, isCurrent }),
+    });
+  };
+
+  if (source.isPending && !canRecover) {
     return (
       <Box component="p" role="status">
         טוען הצעת מקור...
       </Box>
     );
-  if (source.isError)
+  }
+
+  if (source.isError && !canRecover) {
     return (
-      <Box role="alert" component="div" className={styles.error}>
-        <Box component="p">{getApiErrorMessage(source.error)}</Box>
-        <Box component="div" className={styles.row}>
-          <Button
-            text="נסה שוב"
-            onClick={async () => {
-              await source.refetch();
-            }}
-          />
-          <Button text="חזרה להצעות מחיר" onClick={() => navigate(ROUTE_PATHS.QUOTATIONS)} />
-        </Box>
-      </Box>
-    );
-  if (source.data.brands.length !== 1)
-    return (
-      <Box role="alert" component="div" className={styles.error}>
-        <Box component="p">אפשר לשכפל רק הצעה עם חברת מיזוג אחת.</Box>
-        <Button onClick={onCancel} text="חזרה להצעת המקור" />
-      </Box>
-    );
-  return (
-    <Box component="div" className={styles.stack}>
-      <Box component="h2">יצירת העתק לחברת מיזוג אחרת · {source.data.number}</Box>
-      <Box component="p" className={styles.muted}>
-        הלקוח, הפרויקט, סוכן המכירות ותנאי התשלום יועתקו. {generalCount} פריטים כלליים יישמרו.
-        התאריך וההנחה יתאפסו בהצעה החדשה.
-      </Box>
-      <QuotationSelect
-        value={targetBrand}
-        label="חברת מיזוג חדשה"
-        onChange={event => {
-          setTargetBrand(event.target.value);
-          setSelected({});
-        }}
-        items={[
-          { value: "", label: "בחר חברה" },
-          ...QUOTATION_BRANDS.filter(brand => brand !== source.data.brands[0]).map(brand => ({
-            value: brand,
-            label: brand,
-          })),
-        ]}
+      <NoticeBanner
+        variant="error"
+        title={getApiErrorMessage(source.error)}
+        actions={
+          <Box className={styles.row}>
+            <Button
+              text="נסה שוב"
+              onClick={async (): Promise<void> => {
+                await source.refetch();
+              }}
+            />
+            <Button text="חזרה להצעת המקור" onClick={onCancel} />
+          </Box>
+        }
       />
-      {sourceItems.some(result => result.isPending) && (
-        <Box component="p" role="status">
-          בודק פריטי מקור...
-        </Box>
-      )}
-      {sourceItems.some(result => result.isError && isRetiredItem(result.error)) && (
-        <Box component="p" className={styles.muted}>
-          חלק מפריטי המקור כבר אינם זמינים בקטלוג. יש לבחור להם חלופה חדשה.
-        </Box>
-      )}
-      {failedLookups.length > 0 && (
-        <Box role="alert" component="div" className={styles.error}>
-          לא ניתן לבדוק את פריטי המקור כעת.
-          <Button
-            text="נסה שוב"
-            onClick={async () => {
-              await Promise.all(failedLookups.map(result => result.refetch()));
-            }}
-          />
-        </Box>
-      )}
-      {targetBrand && ready && (
-        <>
-          <Box component="p">
-            בדוק ובחר חלופה לכל פריט של {source.data.brands[0]}. הבחירה לא משנה את הצעת המקור.
-          </Box>
-          <Box component="div" className={styles.cloneGrid}>
-            {lines.map(line => (
-              <CloneLinePicker
-                line={line}
-                targetBrand={targetBrand}
-                key={`${targetBrand}-${line.item.id}`}
-                selected={selected[line.item.id] ?? null}
-                onChange={item =>
-                  setSelected(current => {
-                    const next = { ...current };
-                    if (item) next[line.item.id] = item;
-                    else delete next[line.item.id];
-                    return next;
-                  })
-                }
-              />
-            ))}
-          </Box>
-          <Box component="p">
-            {lines.filter(line => !selected[line.item.id]).length} שורות ממתינות לבחירת חלופה
-          </Box>
-        </>
-      )}
-      <Box component="div" className={styles.row}>
-        <Button
-          text="צור הצעה חדשה"
-          isLoading={clone.isPending}
-          disabled={
-            !targetBrand || !ready || lines.some(line => !selected[line.item.id]) || clone.isPending
-          }
-          onClick={() =>
-            clone.mutate({
-              sourceId,
-              sourceVersion: source.data.version,
-              targetBrand,
-              mappings: lines.map(line => ({
-                sourceLineId: line.item.id,
-                targetCatalogueItemId: selected[line.item.id].id,
-              })),
-            })
-          }
-        />
-        <Button onClick={onCancel} text="חזרה להצעת המקור" disabled={clone.isPending} />
-      </Box>
-      {clone.isError && (
-        <Box role="alert" component="p" className={styles.error}>
-          {getApiErrorMessage(clone.error)}
-        </Box>
-      )}
+    );
+  }
+
+  if (!hasSingleSourceBrand && !canRecover) {
+    return (
+      <NoticeBanner
+        variant="error"
+        title="אפשר לשכפל רק הצעה עם חברת מיזוג אחת."
+        actions={<Button onClick={onCancel} text="חזרה להצעת המקור" />}
+      />
+    );
+  }
+
+  const staleSourceAction = failure?.staleSource ? (
+    <Button
+      text="רענן הצעת מקור"
+      disabled={source.isFetching}
+      onClick={(): Promise<void> =>
+        command.refreshSource({ refresh: source.refetch, onFailure: setFailure })
+      }
+    />
+  ) : null;
+  const emptyTargetView = targetBrand ? null : (
+    <Box component="p" sx={QUOTATION_CLONE_STYLES.description}>
+      בחר חברה כדי ליצור הצעה חדשה.
     </Box>
+  );
+  const failureView = failure ? (
+    <Box tabIndex={-1} ref={errorRef} sx={QUOTATION_CLONE_STYLES.error}>
+      <NoticeBanner
+        variant="error"
+        title={failure.title}
+        lines={failure.lines}
+        actions={staleSourceAction}
+      />
+    </Box>
+  ) : null;
+  const recoveryNotice =
+    canRecover && !source.isSuccess ? (
+      <NoticeBanner title="ניתן לבדוק את תוצאת בקשת היצירה הקודמת גם כשהצעת המקור אינה זמינה כעת." />
+    ) : null;
+
+  return (
+    <Card sx={QUOTATION_CLONE_STYLES.card} ariaLabel="יצירת העתק לחברת מיזוג אחרת">
+      <Box component="form" onSubmit={submit} aria-busy={pending} sx={QUOTATION_CLONE_STYLES.form}>
+        <Box component="h2" sx={QUOTATION_CLONE_STYLES.title}>
+          יצירת העתק לחברת מיזוג אחרת · <Box component="bdi">{sourceLabel}</Box>
+        </Box>
+        <Box component="p" sx={QUOTATION_CLONE_STYLES.description}>
+          ההצעה החדשה תיווצר עם פריטי הקטלוג המוצעים לחברה שנבחרה, וניתן לערוך אותה לאחר היצירה.
+          הלקוח, הפרויקט, הכמויות והפריטים הכלליים יישמרו. התאריך וההנחה יתאפסו.
+        </Box>
+        <QuotationSelect
+          value={targetBrand}
+          items={brandOptions}
+          label="חברת מיזוג חדשה"
+          disabled={selectorDisabled}
+          onChange={(event): void => {
+            command.reset();
+            setFailure(null);
+            setTargetBrand(event.target.value);
+          }}
+        />
+        {emptyTargetView}
+        {recoveryNotice}
+        {failureView}
+        <Box sx={QUOTATION_CLONE_STYLES.actions}>
+          <Button
+            text={createText}
+            isLoading={pending}
+            disabled={createDisabled}
+            type={BUTTON_TYPES.SUBMIT}
+          />
+          <Button onClick={onCancel} disabled={pending} text="חזרה להצעת המקור" />
+        </Box>
+      </Box>
+    </Card>
   );
 };
 

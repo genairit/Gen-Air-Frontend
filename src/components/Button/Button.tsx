@@ -16,6 +16,7 @@ import { lazy, Suspense, type FC, type MouseEvent } from "react";
 import type { IconNameType } from "../../constants/icon.constant";
 import SmartbaseButton from "../../vendor/smartbase/components/Button/Button";
 import { Box, CircularProgress, type SxProps, type Theme } from "@mui/material";
+import { BUTTON_TYPES, type NativeButtonType } from "../../constants/button-type.constant";
 
 const LoadingAnimation = lazy(() => import("../LoadingAnimation/LoadingAnimation"));
 
@@ -28,12 +29,14 @@ interface IButtonProps {
   sx?: SxProps<Theme>;
   size?: ButtonSizeType;
   shape?: ButtonShapeType;
+  type?: NativeButtonType;
   variant?: ButtonVariantType;
-  onClick: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
 }
 
 const Button: FC<IButtonProps> = ({
   sx,
+  type = BUTTON_TYPES.BUTTON,
   text,
   icon,
   onClick,
@@ -51,6 +54,7 @@ const Button: FC<IButtonProps> = ({
 
   return (
     <SmartbaseButton
+      type={type}
       onClick={onClick}
       disabled={disabled}
       isLoading={isLoading}

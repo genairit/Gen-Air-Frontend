@@ -8,6 +8,7 @@ import { Button as MuiButton } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material";
 import type { FC, MouseEvent, ReactNode } from "react";
 import { mergeSx } from "../../../../utilities/sx.utility";
+import { BUTTON_TYPES, type NativeButtonType } from "../../../../constants/button-type.constant";
 
 interface IButtonProps {
   ariaLabel?: string;
@@ -15,12 +16,14 @@ interface IButtonProps {
   children: ReactNode;
   sx?: SxProps<Theme>;
   isLoading?: boolean;
+  type?: NativeButtonType;
   variant?: TButtonVariant;
-  onClick: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
 }
 
 const Button: FC<IButtonProps> = ({
   sx,
+  type = BUTTON_TYPES.BUTTON,
   children,
   onClick,
   disabled,
@@ -33,6 +36,7 @@ const Button: FC<IButtonProps> = ({
 
   return (
     <MuiButton
+      type={type}
       onClick={onClick}
       aria-busy={isLoading}
       aria-label={ariaLabel}

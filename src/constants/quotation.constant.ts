@@ -150,3 +150,5 @@ export const QUOTATION_ROW_COPY = {
   NO_PROJECT: "לא מקושרת לפרויקט",
   GENERAL: "כללי",
 } as const;
+
+export const QUOTATION_DETAIL_HEADING_ID = "quotation-detail-heading";

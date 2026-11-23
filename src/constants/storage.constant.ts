@@ -4,6 +4,7 @@ export const LOCAL_STORAGE_KEYS = {
 } as const;
 
 export const SESSION_STORAGE_KEYS = {
+  QUOTATION_CLONE: "quotation-clone",
   SESSION: "gen_air_session",
 } as const;
 

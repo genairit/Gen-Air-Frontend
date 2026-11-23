@@ -5,6 +5,7 @@
     "types": ["node", "vite/client"]
   },
   "include": [
+    "testing/quotation-clone.test.tsx",
     "testing/quotation.cancellation.test.tsx",
     "testing/task-quotations.test.tsx",
     "testing/quotation.validation.test.tsx",
