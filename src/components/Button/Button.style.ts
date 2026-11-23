@@ -69,7 +69,7 @@ export const useStyles = () => ({
     ...STYLE_BY_VARIANT[variant],
     ...getShapeStyle({ shape, size, hasIcon }),
     ...(isLoading ? LOADING_OVERLAY_STYLE : {}),
-    "&.Mui-disabled": DISABLED_BUTTON_STYLE,
+    "&.Mui-disabled, &[aria-disabled='true']": DISABLED_BUTTON_STYLE,
   }),
   text: {
     visibility: "hidden",

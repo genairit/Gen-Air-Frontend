@@ -14,11 +14,13 @@ import {
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
-import type { FC } from "react";
+import { useRef, type FC } from "react";
 import Button from "../../../components/Button/Button";
 import { Box, Link, CircularProgress } from "@mui/material";
 import { useStyles } from "./QuotationPublicationNotice.style";
+import { useFocusFallback } from "../../../hooks/focus-fallback.hook";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
+import { SessionRequestManager } from "../../../managers/session-request.manager";
 import type { IQuotationPublicationState } from "../../../interfaces/quotation-publication.interface";
 import { NOTICE_VARIANTS } from "../../../vendor/smartbase/components/NoticeCard/constants/notice-card.constant";
 
@@ -32,6 +34,8 @@ const QuotationPublicationNotice: FC<IQuotationPublicationState> = ({
   retryRequested = false,
 }) => {
   const styles = useStyles();
+  const titleRef = useRef<HTMLElement | null>(null);
+  const retryRef = useRef<HTMLButtonElement | null>(null);
   const state = publication?.state ?? null;
   const isFailed = state === PUBLICATION_STATE.FAILED;
   const isPending = isPublicationPending(state);
@@ -44,6 +48,13 @@ const QuotationPublicationNotice: FC<IQuotationPublicationState> = ({
   const retryDisabled = busy || isPending;
   const canRefresh = error !== null;
   const fileUrl = publication?.fileUrl ?? null;
+  useFocusFallback({
+    source: retryRef,
+    target: titleRef,
+    visible: canRetry,
+    enabled: publication !== null,
+    identity: SessionRequestManager.getAuthorizationGeneration(),
+  });
   if (title === null) {
     return null;
   }
@@ -53,11 +64,14 @@ const QuotationPublicationNotice: FC<IQuotationPublicationState> = ({
       title={title}
       lines={lines}
       variant={variant}
+      titleRef={titleRef}
       actions={
         <Box sx={styles.actions}>
           {isPending && <CircularProgress size={18} sx={styles.progress} aria-label={title} />}
           {canRetry && (
             <Button
+              focusableWhenDisabled
+              buttonRef={retryRef}
               text={PUBLICATION_COPY.RETRY}
               onClick={retry}
               isLoading={busy}

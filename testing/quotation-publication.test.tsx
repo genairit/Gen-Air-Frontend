@@ -25,9 +25,13 @@ import {
   isQuotationPublication,
 } from "../src/utilities/guards/quotation-publication.guard";
 
+import { Box } from "@mui/material";
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
 import { act, create } from "react-test-renderer";
+import { Button as MuiButton } from "@mui/material";
+import { createRef, type ReactElement } from "react";
+import Button from "../src/components/Button/Button";
 import { quotationFixture } from "./quotation.fixture";
 import { renderToStaticMarkup } from "react-dom/server";
 import { setSession } from "../src/store/session.store";
@@ -35,8 +39,10 @@ import { logger } from "../src/utilities/logger.utility";
 import { TIME_UNITS } from "../src/constants/time.constant";
 import { setTimeout as settle } from "node:timers/promises";
 import type { ReactTestRenderer } from "react-test-renderer";
+import { FOCUS_EVENTS } from "../src/constants/focus.constant";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
+import { useFocusFallback } from "../src/hooks/focus-fallback.hook";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { IApiAuthorizedUser } from "../src/interfaces/api.interface";
 import { SessionRequestManager } from "../src/managers/session-request.manager";
@@ -45,6 +51,23 @@ import { quotationLifecycleTimeline } from "../src/utilities/quotation-lifecycle
 import { quotationPublicationService } from "../src/services/quotation-publication.service";
 import { QUOTATION_STATUS, QUOTATION_LIFECYCLE_ACTION } from "../src/constants/quotation.constant";
 import QuotationPublicationNotice from "../src/pages/quotations/components/QuotationPublicationNotice";
+
+interface IFocusMockDocument extends EventTarget {
+  body: object;
+  activeElement: object | null;
+}
+interface IFocusMockNode extends EventTarget {
+  isConnected: boolean;
+  focus: HTMLElement["focus"];
+  ownerDocument: IFocusMockDocument;
+}
+interface IFocusMockProps {
+  "data-focus-mock"?: string;
+}
+interface IFocusFixtureProps {
+  visible: boolean;
+  identity: number;
+}
 
 interface IPublicationTestState {
   state: IQuotationPublicationState | null;
@@ -398,7 +421,7 @@ test("failed retry renders recoverable error and neutral Refresh adopts publishe
     [PUBLICATION_COPY.RETRY, PUBLICATION_COPY.REFRESH].forEach((label): void => {
       const button = buttons.find((match): boolean => (match[2] ?? "").includes(label));
       assert.ok(button, `Expected visible action: ${label}`);
-      assert.doesNotMatch(button[1] ?? "", /\bdisabled(?:=|\s|$)/);
+      assert.doesNotMatch(button[1] ?? "", /(?:^|\s)disabled(?:=|\s|$)/);
     });
     await act(async (): Promise<void> => {
       await mounted.current.state?.refresh();
@@ -472,3 +495,201 @@ test("terminal no-file explanation differs from verified archive in notice and h
   assert.equal(publicationLabel(summary()), PUBLICATION_LABELS[PUBLICATION_STATE.FAILED]);
   assert.ok(publicationDescription(summary()).includes("נדרש תיקון תיקייה"));
 });
+
+test("publication retry remains focusable while busy and blocks repeated button activation", async (): Promise<void> => {
+  const calls = { count: 0, prevented: 0 };
+  const activate = (): void => {
+    calls.count += 1;
+  };
+  const event = {
+    preventDefault: (): void => {
+      calls.prevented += 1;
+    },
+  };
+  const holder: IPublicationTestRenderer = { renderer: null };
+  await act(async (): Promise<void> => {
+    holder.renderer = create(
+      <Button onClick={activate} focusableWhenDisabled text={PUBLICATION_COPY.RETRY} />,
+    );
+  });
+  const renderer = holder.renderer;
+  assert.ok(renderer);
+  try {
+    await act(async (): Promise<void> => {
+      await renderer.root.findByType(MuiButton).props.onClick(event);
+    });
+    assert.equal(calls.count, 1);
+    const host = renderer.root.findByType("button");
+    await act(async (): Promise<void> => {
+      renderer.update(
+        <Button
+          disabled
+          isLoading
+          onClick={activate}
+          focusableWhenDisabled
+          text={PUBLICATION_COPY.RETRY}
+        />,
+      );
+    });
+    const loading = renderer.root.findByType(MuiButton);
+    assert.equal(renderer.root.findByType("button"), host);
+    assert.equal(host.props.tabIndex, 0);
+    assert.equal(loading.props.disabled, false);
+    assert.equal(loading.props["aria-disabled"], true);
+    assert.equal(loading.props["aria-busy"], true);
+    await act(async (): Promise<void> => {
+      await loading.props.onClick(event);
+    });
+    assert.equal(calls.count, 1);
+    assert.equal(calls.prevented, 1);
+    await act(async (): Promise<void> => {
+      renderer.update(
+        <Button disabled onClick={activate} focusableWhenDisabled text={PUBLICATION_COPY.RETRY} />,
+      );
+    });
+    const pending = renderer.root.findByType(MuiButton);
+    assert.equal(renderer.root.findByType("button"), host);
+    assert.equal(host.props.tabIndex, 0);
+    assert.equal(pending.props.disabled, false);
+    assert.equal(pending.props["aria-disabled"], true);
+    assert.equal(pending.props["aria-busy"], false);
+    await act(async (): Promise<void> => {
+      await pending.props.onClick(event);
+    });
+    assert.equal(calls.count, 1);
+    assert.equal(calls.prevented, 2);
+    await act(async (): Promise<void> => {
+      renderer.update(<Button disabled onClick={activate} text={PUBLICATION_COPY.RETRY} />);
+    });
+    assert.equal(renderer.root.findByType(MuiButton).props.disabled, true);
+  } finally {
+    await act(async (): Promise<void> => renderer.unmount());
+  }
+});
+
+const FOCUS_REMOVAL_SCENARIOS = {
+  TERMINAL: {
+    moved: false,
+    changedIdentity: false,
+    visible: false,
+    connected: true,
+    unmount: false,
+    expected: 1,
+  },
+  MOVED: {
+    moved: true,
+    changedIdentity: false,
+    visible: false,
+    connected: true,
+    unmount: false,
+    expected: 0,
+  },
+  IDENTITY: {
+    moved: false,
+    changedIdentity: true,
+    visible: false,
+    connected: true,
+    unmount: false,
+    expected: 0,
+  },
+  PENDING: {
+    moved: false,
+    changedIdentity: false,
+    visible: true,
+    connected: true,
+    unmount: false,
+    expected: 0,
+  },
+  DISCONNECTED: {
+    moved: false,
+    changedIdentity: false,
+    visible: false,
+    connected: false,
+    unmount: false,
+    expected: 0,
+  },
+  UNMOUNT: {
+    moved: false,
+    changedIdentity: false,
+    visible: false,
+    connected: true,
+    unmount: true,
+    expected: 0,
+  },
+} as const;
+for (const [name, scenario] of Object.entries(FOCUS_REMOVAL_SCENARIOS)) {
+  test(`focus fallback preserves ownership and context on removal: ${name}`, async (): Promise<void> => {
+    const source = createRef<HTMLElement>();
+    const target = createRef<HTMLElement>();
+    const document: IFocusMockDocument = Object.assign(new EventTarget(), {
+      body: {},
+      activeElement: null,
+    });
+    const focused = { count: 0 };
+    const sourceNode: IFocusMockNode = Object.assign(new EventTarget(), {
+      isConnected: true,
+      ownerDocument: document,
+      focus: (): void => {
+        document.activeElement = sourceNode;
+        document.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+      },
+    });
+    const targetNode: IFocusMockNode = Object.assign(new EventTarget(), {
+      isConnected: scenario.connected,
+      ownerDocument: document,
+      focus: (): void => {
+        focused.count += 1;
+        document.activeElement = targetNode;
+        document.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+      },
+    });
+    const Fixture = ({ visible, identity }: IFocusFixtureProps): ReactElement => {
+      useFocusFallback({ source, target, visible, identity, enabled: true });
+      return (
+        <>
+          <Box ref={target} data-focus-mock="target" />
+          {visible && <Box ref={source} data-focus-mock="source" />}
+        </>
+      );
+    };
+    const holder: IPublicationTestRenderer = { renderer: null };
+    await act(async (): Promise<void> => {
+      holder.renderer = create(<Fixture visible identity={1} />, {
+        createNodeMock: (element: ReactElement<IFocusMockProps>): IFocusMockNode | null => {
+          if (element.props["data-focus-mock"] === "source") {
+            return sourceNode;
+          }
+
+          return element.props["data-focus-mock"] === "target" ? targetNode : null;
+        },
+      });
+    });
+    const renderer = holder.renderer;
+    assert.ok(renderer);
+    try {
+      sourceNode.focus();
+      if (scenario.moved) {
+        document.activeElement = {};
+        document.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+      }
+
+      if (!scenario.visible && !scenario.moved) {
+        sourceNode.isConnected = false;
+        document.activeElement = document.body;
+      }
+
+      const nextIdentity = scenario.changedIdentity ? 2 : 1;
+      await act(async (): Promise<void> => {
+        if (scenario.unmount) {
+          renderer.unmount();
+          return;
+        }
+
+        renderer.update(<Fixture identity={nextIdentity} visible={scenario.visible} />);
+      });
+      assert.equal(focused.count, scenario.expected);
+    } finally {
+      await act(async (): Promise<void> => renderer.unmount());
+    }
+  });
+}
