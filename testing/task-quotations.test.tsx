@@ -10,7 +10,7 @@ import {
 
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
-import { act, create } from "react-test-renderer";
+import type { ReactElement } from "react";
 import { createTask } from "./project-tasks.fixture";
 import Button from "../src/components/Button/Button";
 import { quotationFixture } from "./quotation.fixture";
@@ -34,6 +34,7 @@ import GenericPopup from "../src/components/GenericPopup/GenericPopup";
 import TaskHeaderCard from "../src/pages/task/components/TaskHeaderCard";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import TaskQuotations from "../src/pages/task/components/TaskQuotations";
+import { act, create, type ReactTestInstance } from "react-test-renderer";
 import { orderTaskQuotations } from "../src/utilities/task-quotation.utility";
 import { TASK_QUOTATION_KEYS } from "../src/constants/task-quotation.constant";
 import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
@@ -612,7 +613,7 @@ for (const statusSucceeds of [true, false]) {
       ],
     }));
     const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
-    const render = (currentTask: typeof task) => (
+    const render = (currentTask: typeof task): ReactElement => (
       <QueryClientProvider client={client}>
         <MemoryRouter>
           <TaskView
@@ -634,7 +635,7 @@ for (const statusSucceeds of [true, false]) {
       await settle();
       assert.ok(state.renderer);
       const renderer = state.renderer;
-      const dialogs = () =>
+      const dialogs = (): ReactTestInstance[] =>
         renderer.root.findAllByType(GenericPopup).filter(dialog => dialog.props.open);
       assert.equal(dialogs().length, 0);
       await act(async () =>
@@ -666,7 +667,7 @@ for (const statusSucceeds of [true, false]) {
       assert.equal(status.mock.callCount(), 1);
       await act(async () => compose.props.onClick());
       await settle();
-      const clickButton = async (text: string) => {
+      const clickButton = async (text: string): Promise<void> => {
         const button = renderer.root.findAllByType(Button).find(item => item.props.text === text);
         assert.ok(button);
         await act(async () => button.props.onClick());
