@@ -20,10 +20,13 @@ import { isQuotation } from "../src/utilities/guards/quotation.guard";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import TaskQuotations from "../src/pages/task/components/TaskQuotations";
+import { orderTaskQuotations } from "../src/utilities/task-quotation.utility";
+import { TASK_QUOTATION_KEYS } from "../src/constants/task-quotation.constant";
 import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
 import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
 import type { ITaskQuotationContext } from "../src/interfaces/task-quotation.interface";
 import QuotationProjectPicker from "../src/pages/quotations/components/QuotationProjectPicker";
+import { AuthorizationContextChangedError } from "../src/managers/authorization-context.manager";
 import QuotationCustomerPicker from "../src/pages/quotations/components/QuotationCustomerPicker";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -81,6 +84,7 @@ const mount = async () => {
   await settle();
   return {
     router,
+    client,
     buttons: () => state.renderer!.root.findAllByType(Button),
     close: async () => {
       await act(async () => {
@@ -398,3 +402,112 @@ test("task quotation services use context-only endpoints and validate server res
     log.mock.restore();
   }
 });
+
+test("quotation ordering puts the primary first without mutating source or secondary order", () => {
+  const quotations = [
+    { id: "clone-first", number: "Q2", status: "draft", isPrimary: false },
+    { id: "primary", number: "Q1", status: "draft", isPrimary: true },
+    { id: "clone-last", number: "Q3", status: "draft", isPrimary: false },
+  ] satisfies ITaskQuotationContext["quotations"];
+  assert.deepEqual(
+    orderTaskQuotations(quotations).map(quotation => quotation.id),
+    ["primary", "clone-first", "clone-last"],
+  );
+  assert.deepEqual(
+    quotations.map(quotation => quotation.id),
+    ["clone-first", "primary", "clone-last"],
+  );
+  assert.deepEqual(orderTaskQuotations([]), []);
+  assert.equal(TASK_QUOTATION_KEYS.context("task", 7)[0], TASK_QUOTATION_KEYS.ROOT);
+});
+
+test("GET failure exposes explicit Retry and recovers without creating a document", async () => {
+  authorize(creator);
+  const responses = [() => Promise.reject(new Error("context unavailable")), async () => context()];
+  const read = mock.method(taskService, "getQuotations", () => responses.shift()!());
+  const createQuote = mock.method(taskService, "createQuotation");
+  const view = await mount();
+  try {
+    assert.deepEqual(
+      view.buttons().map(button => button.props.text),
+      ["ניסיון נוסף"],
+    );
+    await act(async () => {
+      await view.buttons()[0].props.onClick();
+    });
+    await settle();
+    assert.deepEqual(
+      view.buttons().map(button => button.props.text),
+      ["יצירת הצעת מחיר"],
+    );
+    assert.equal(read.mock.callCount(), 2);
+    assert.equal(createQuote.mock.callCount(), 0);
+  } finally {
+    await view.close();
+    read.mock.restore();
+    createQuote.mock.restore();
+  }
+});
+
+test("a GET completed after authorization changes rejects its response before caching document metadata", async () => {
+  authorize(creator);
+  const gate = Promise.withResolvers<ITaskQuotationContext>();
+  const read = mock.method(taskService, "getQuotations", () => gate.promise);
+  const view = await mount();
+  try {
+    await act(async () => {
+      authorize(reader);
+    });
+    await act(async () => {
+      gate.resolve(
+        context({
+          quotations: [{ id: "private", number: "PRIVATE", status: "draft", isPrimary: true }],
+        }),
+      );
+    });
+    await settle();
+    const queries = view.client.getQueryCache().findAll({ queryKey: [TASK_QUOTATION_KEYS.ROOT] });
+    assert.equal(queries.length, 1);
+    assert.equal(queries[0].state.data ?? null, null);
+    assert.ok(queries[0].state.error instanceof AuthorizationContextChangedError);
+    assert.equal(
+      view.buttons().some(button => button.props.text === "פתיחת הצעה"),
+      false,
+    );
+    assert.equal(view.router.state.location.pathname, "/");
+  } finally {
+    await view.close();
+    read.mock.restore();
+  }
+});
+
+for (const isConnected of [true, false]) {
+  test(`failed Create restores focus only to a connected action: ${isConnected}`, async () => {
+    authorize(creator);
+    const read = mock.method(taskService, "getQuotations", async () => context());
+    const createQuote = mock.method(taskService, "createQuotation", async () => {
+      throw new Error("retryable failure");
+    });
+    const log = mock.method(console, "error", () => {});
+    const focus = mock.fn();
+    const action = { isConnected, focus };
+    const view = await mount();
+    try {
+      await act(async () => {
+        await view.buttons()[0].props.onClick({ currentTarget: action });
+      });
+      await settle();
+      assert.equal(focus.mock.callCount(), Number(isConnected));
+      if (isConnected) {
+        assert.deepEqual(focus.mock.calls[0].arguments, [{ preventScroll: true }]);
+      }
+      assert.equal(view.buttons()[0].props.disabled, false);
+      assert.equal(view.router.state.location.pathname, "/");
+    } finally {
+      await view.close();
+      read.mock.restore();
+      createQuote.mock.restore();
+      log.mock.restore();
+    }
+  });
+}

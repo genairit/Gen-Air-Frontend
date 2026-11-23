@@ -10,6 +10,7 @@ import { buildQuotationPath } from "../../../utilities/route.utility";
 import { useTaskQuotations } from "../../../hooks/task-quotation.hook";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { orderTaskQuotations } from "../../../utilities/task-quotation.utility";
 import { QUOTATION_STATUS_LABELS } from "../../../constants/quotation.constant";
 import { TASK_QUOTATION_COPY } from "../../../constants/task-quotation.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
@@ -31,9 +32,7 @@ const TaskQuotations: FC<ITaskQuotationsProps> = ({ taskId }) => {
   const emptyCopy = query.data?.projectId
     ? TASK_QUOTATION_COPY.EMPTY
     : TASK_QUOTATION_COPY.CUSTOMER_ONLY;
-  const orderedQuotations = [...quotations].sort(
-    (first, second) => Number(second.isPrimary) - Number(first.isPrimary),
-  );
+  const orderedQuotations = orderTaskQuotations(quotations);
 
   if (!canRead) {
     return null;

@@ -1,6 +1,6 @@
 export const TASK_QUOTATION_KEYS = {
   ROOT: "task-quotations",
-  context: (taskId: string, generation: number) => ["task-quotations", taskId, generation],
+  context: (taskId: string, generation: number) => [TASK_QUOTATION_KEYS.ROOT, taskId, generation],
 } as const;
 
 export const TASK_QUOTATION_UNAVAILABLE = {
