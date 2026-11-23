@@ -28,6 +28,7 @@
     "test:existing-drive-folder": "node testing/run-existing-drive-folder-tests.mjs",
     "test:payment-configuration": "node testing/run-payment-configuration-tests.mjs",
     "test:contact-directory-search": "node testing/run-contact-directory-search-tests.mjs",
+    "test:task-quotations": "node testing/run-task-quotations-tests.mjs",
     "test:task-sort": "node testing/run-task-sort-tests.mjs"
   },
   "dependencies": {

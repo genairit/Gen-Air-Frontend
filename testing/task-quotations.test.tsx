@@ -1,0 +1,400 @@
+import {
+  isTaskQuotationResult,
+  isTaskQuotationContext,
+} from "../src/utilities/guards/task-quotation.guard";
+
+import { test, mock } from "node:test";
+import assert from "node:assert/strict";
+import { act, create } from "react-test-renderer";
+import Button from "../src/components/Button/Button";
+import { quotationFixture } from "./quotation.fixture";
+import { setSession } from "../src/store/session.store";
+import BackLink from "../src/components/BackLink/BackLink";
+import { taskService } from "../src/services/task.service";
+import { queryClient } from "../src/providers/query-client";
+import { httpClient } from "../src/services/http-client.service";
+import { USER_ROLES } from "../src/constants/user-role.constant";
+import { customerService } from "../src/services/customer.service";
+import { quotationService } from "../src/services/quotation.service";
+import { isQuotation } from "../src/utilities/guards/quotation.guard";
+import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import TaskQuotations from "../src/pages/task/components/TaskQuotations";
+import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
+import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
+import type { ITaskQuotationContext } from "../src/interfaces/task-quotation.interface";
+import QuotationProjectPicker from "../src/pages/quotations/components/QuotationProjectPicker";
+import QuotationCustomerPicker from "../src/pages/quotations/components/QuotationCustomerPicker";
+
+Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+Reflect.set(globalThis, "window", new EventTarget());
+
+const authorize = (permissions: PermissionType[]) =>
+  setSession({
+    accessToken: "task-quotation-test",
+    user: {
+      id: "actor",
+      email: "",
+      phone: "",
+      lastName: "",
+      firstName: "",
+      employeeNumber: "",
+      deletedAt: null,
+      role: USER_ROLES.SECRETARY,
+      assignedRoles: [USER_ROLES.SECRETARY],
+      permissions,
+    },
+  });
+const reader = [PERMISSIONS.TASKS_READ, PERMISSIONS.QUOTATIONS_READ];
+const creator = [...reader, PERMISSIONS.QUOTATIONS_CREATE];
+const context = (changes: Partial<ITaskQuotationContext> = {}): ITaskQuotationContext => ({
+  canCreate: true,
+  projectId: "apartment",
+  customerId: "customer",
+  primaryQuotationId: null,
+  quotations: [],
+  unavailableReason: null,
+  ...changes,
+});
+const settle = async () => {
+  await act(async () => {
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+};
+const mount = async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const router = createMemoryRouter([
+    {
+      path: "/",
+      element: (
+        <QueryClientProvider client={client}>
+          <TaskQuotations taskId="task" />
+        </QueryClientProvider>
+      ),
+    },
+    { path: "/quotations/:quotationId", element: <p>quotation</p> },
+  ]);
+  const state = { renderer: null as ReturnType<typeof create> | null };
+  await act(async () => {
+    state.renderer = create(<RouterProvider router={router} />);
+  });
+  await settle();
+  return {
+    router,
+    buttons: () => state.renderer!.root.findAllByType(Button),
+    close: async () => {
+      await act(async () => {
+        state.renderer?.unmount();
+      });
+      client.clear();
+      queryClient.clear();
+      router.dispose();
+      setSession(null);
+    },
+  };
+};
+
+test("quotation context guards reject malformed summaries, permissions, and create results", () => {
+  assert.equal(
+    isQuotation({
+      ...quotationFixture(),
+      taskContextLocked: true,
+      taskProjectLocked: false,
+      taskLinks: [],
+    }),
+    true,
+  );
+  assert.equal(isQuotation({ ...quotationFixture(), taskContextLocked: "yes" }), false);
+  assert.equal(
+    isQuotation({
+      ...quotationFixture(),
+      taskLinks: [{ taskId: "q", title: null, isPrimary: true }],
+    }),
+    false,
+  );
+  assert.equal(isTaskQuotationContext(context()), true);
+  assert.equal(
+    isTaskQuotationContext(
+      context({ quotations: [{ id: "q", number: "Q1", status: "draft", isPrimary: true }] }),
+    ),
+    true,
+  );
+  assert.equal(isTaskQuotationContext({ ...context(), canCreate: "yes" }), false);
+  assert.equal(
+    isTaskQuotationContext({
+      ...context(),
+      quotations: [{ id: "q", number: "Q1", status: "completed", isPrimary: true }],
+    }),
+    false,
+  );
+  assert.equal(isTaskQuotationResult({ quotationId: "q", created: false }), true);
+  assert.equal(isTaskQuotationResult({ quotationId: null, created: true }), false);
+});
+
+test("no automatic creation; double invocation sends one request and opens the saved quotation", async () => {
+  authorize(creator);
+  const read = mock.method(taskService, "getQuotations", async () => context());
+  const gate = Promise.withResolvers<{ quotationId: string; created: boolean }>();
+  const createQuote = mock.method(taskService, "createQuotation", () => gate.promise);
+  const view = await mount();
+  try {
+    assert.equal(createQuote.mock.callCount(), 0);
+    const button = view.buttons().find(button => button.props.text === "יצירת הצעת מחיר")!;
+    const requests: Promise<void>[] = [];
+    await act(async () => {
+      requests.push(button.props.onClick(), button.props.onClick());
+    });
+    assert.equal(createQuote.mock.callCount(), 1);
+    await settle();
+    assert.equal(view.buttons()[0].props.disabled, true);
+    await act(async () => {
+      gate.resolve({ quotationId: "saved", created: true });
+      await Promise.all(requests);
+    });
+    assert.equal(view.router.state.location.pathname, "/quotations/saved");
+  } finally {
+    await view.close();
+    read.mock.restore();
+    createQuote.mock.restore();
+  }
+});
+
+test("readers open only explicit primary and clone links without Create", async () => {
+  authorize(reader);
+  const read = mock.method(taskService, "getQuotations", async () =>
+    context({
+      canCreate: false,
+      primaryQuotationId: "primary",
+      quotations: [
+        { id: "clone", number: "Q2", status: "review", isPrimary: false },
+        { id: "primary", number: "Q1", status: "draft", isPrimary: true },
+      ],
+    }),
+  );
+  const view = await mount();
+  try {
+    assert.deepEqual(
+      view.buttons().map(button => button.props.ariaLabel),
+      ["פתיחת הצעה Q1", "פתיחת הצעה Q2"],
+    );
+    await act(async () => {
+      await view.buttons()[1].props.onClick();
+    });
+    assert.equal(view.router.state.location.pathname, "/quotations/clone");
+  } finally {
+    await view.close();
+    read.mock.restore();
+  }
+});
+
+test("missing context blocks creation and missing quotation read permission skips the request", async () => {
+  authorize(creator);
+  const read = mock.method(taskService, "getQuotations", async () =>
+    context({ canCreate: false, unavailableReason: "MISSING_CONTEXT" }),
+  );
+  const first = await mount();
+  try {
+    assert.equal(first.buttons().length, 0);
+  } finally {
+    await first.close();
+  }
+  authorize([PERMISSIONS.TASKS_READ]);
+  const previousRequests = read.mock.callCount();
+  const second = await mount();
+  try {
+    assert.equal(second.buttons().length, 0);
+    assert.equal(read.mock.callCount(), previousRequests);
+  } finally {
+    await second.close();
+    read.mock.restore();
+  }
+});
+
+test("an authorization change suppresses stale navigation/cache invalidation", async () => {
+  authorize(creator);
+  const read = mock.method(taskService, "getQuotations", async () => context());
+  const gate = Promise.withResolvers<{ quotationId: string; created: boolean }>();
+  const createQuote = mock.method(taskService, "createQuotation", () => gate.promise);
+  const invalidate = mock.method(queryClient, "invalidateQueries", async () => {});
+  const log = mock.method(console, "error", () => {});
+  const view = await mount();
+  try {
+    const requests: Promise<void>[] = [];
+    await act(async () => {
+      requests.push(view.buttons()[0].props.onClick());
+    });
+    await act(async () => {
+      authorize(reader);
+    });
+    await act(async () => {
+      gate.resolve({ quotationId: "old-account", created: true });
+      await Promise.all(requests);
+    });
+    assert.equal(view.router.state.location.pathname, "/");
+    assert.equal(invalidate.mock.callCount(), 0);
+  } finally {
+    await view.close();
+    read.mock.restore();
+    createQuote.mock.restore();
+    invalidate.mock.restore();
+    log.mock.restore();
+  }
+});
+
+test("a failed response preserves the Create action and retries the same task", async () => {
+  authorize(creator);
+  const read = mock.method(taskService, "getQuotations", async () => context({ projectId: null }));
+  const responses = [
+    () => Promise.reject(new Error("lost response")),
+    async () => ({ quotationId: "saved-after-retry", created: false }),
+  ];
+  const createQuote = mock.method(taskService, "createQuotation", () => responses.shift()!());
+  const log = mock.method(console, "error", () => {});
+  const view = await mount();
+  try {
+    await act(async () => {
+      await view.buttons()[0].props.onClick();
+    });
+    await settle();
+    assert.equal(view.router.state.location.pathname, "/");
+    assert.equal(view.buttons()[0].props.disabled, false);
+    await act(async () => {
+      await view.buttons()[0].props.onClick();
+    });
+    assert.deepEqual(
+      createQuote.mock.calls.map(call => call.arguments),
+      [["task"], ["task"]],
+    );
+    assert.equal(view.router.state.location.pathname, "/quotations/saved-after-retry");
+  } finally {
+    await view.close();
+    read.mock.restore();
+    createQuote.mock.restore();
+    log.mock.restore();
+  }
+});
+
+for (const fixture of [
+  {
+    taskContextLocked: true,
+    taskProjectLocked: true,
+    canReadTasks: true,
+    customerLocked: true,
+    projectLocked: true,
+  },
+  {
+    taskContextLocked: true,
+    taskProjectLocked: false,
+    canReadTasks: true,
+    customerLocked: true,
+    projectLocked: false,
+  },
+  {
+    taskContextLocked: true,
+    taskProjectLocked: true,
+    canReadTasks: false,
+    customerLocked: true,
+    projectLocked: true,
+  },
+  {
+    taskContextLocked: false,
+    taskProjectLocked: false,
+    canReadTasks: true,
+    customerLocked: false,
+    projectLocked: false,
+  },
+]) {
+  test(`builder context locks and saved reverse links ${JSON.stringify(fixture)}`, async () => {
+    const permissions = fixture.canReadTasks ? reader : [PERMISSIONS.QUOTATIONS_READ];
+    authorize(permissions);
+    const base = {
+      ...quotationFixture(),
+      taskContextLocked: fixture.taskContextLocked,
+      taskProjectLocked: fixture.taskProjectLocked,
+      taskLinks: [{ taskId: "saved-task", title: "משימת הצעה", isPrimary: true }],
+    };
+    const customers = mock.method(customerService, "getByFilter", async () => []);
+    const customer = mock.method(customerService, "getById", async () => ({
+      id: base.customerId,
+      name: "customer",
+    }));
+    const projects = mock.method(quotationService, "projectChoices", async () => []);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    const router = createMemoryRouter([
+      {
+        path: "/",
+        element: (
+          <QueryClientProvider client={client}>
+            <QuotationEditor editable initial={base} canExport={false} canApprove={false} />
+          </QueryClientProvider>
+        ),
+      },
+    ]);
+    const state = { renderer: null as ReturnType<typeof create> | null };
+    try {
+      await act(async () => {
+        state.renderer = create(<RouterProvider router={router} />);
+      });
+      const root = state.renderer!.root;
+      assert.equal(
+        Boolean(root.findByType(QuotationCustomerPicker).props.lockedReason),
+        fixture.customerLocked,
+      );
+      assert.equal(
+        Boolean(root.findByType(QuotationProjectPicker).props.lockedReason),
+        fixture.projectLocked,
+      );
+      const links = root.findAllByType(BackLink);
+      assert.equal(links.length, Number(fixture.canReadTasks));
+      if (fixture.canReadTasks) {
+        assert.equal(links[0].props.to, "/tasks/saved-task");
+        assert.equal(links[0].props.label, "משימה: משימת הצעה");
+      }
+    } finally {
+      await act(async () => {
+        state.renderer?.unmount();
+      });
+      client.clear();
+      router.dispose();
+      setSession(null);
+      customers.mock.restore();
+      customer.mock.restore();
+      projects.mock.restore();
+    }
+  });
+}
+
+test("task quotation services use context-only endpoints and validate server responses", async () => {
+  const originalAdapter = httpClient.defaults.adapter;
+  const requests: { url: string | null; method: string | null; data: unknown }[] = [];
+  const responses = [
+    context(),
+    { quotationId: "saved", created: false },
+    { quotationId: null, created: true },
+  ];
+  const log = mock.method(console, "error", () => {});
+  httpClient.defaults.adapter = async config => {
+    requests.push({
+      url: config.url ?? null,
+      method: config.method ?? null,
+      data: config.data ?? null,
+    });
+    return { config, status: 200, statusText: "OK", headers: {}, data: responses.shift() };
+  };
+  try {
+    assert.deepEqual(await taskService.getQuotations("task"), context());
+    assert.deepEqual(await taskService.createQuotation("task"), {
+      quotationId: "saved",
+      created: false,
+    });
+    await assert.rejects(taskService.createQuotation("task"));
+    assert.deepEqual(requests, [
+      { url: "/task/task/quotations", method: "get", data: null },
+      { url: "/task/task/quotation", method: "post", data: "{}" },
+      { url: "/task/task/quotation", method: "post", data: "{}" },
+    ]);
+  } finally {
+    httpClient.defaults.adapter = originalAdapter;
+    log.mock.restore();
+  }
+});

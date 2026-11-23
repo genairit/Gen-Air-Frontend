@@ -41,7 +41,13 @@ import type {
 
 import { isPaymentTerms } from "./api.guard";
 import type { IQuotationStatusCounts } from "../../interfaces/quotation.interface";
+import type { IQuotationTaskLink } from "../../interfaces/task-quotation.interface";
 import type { TQuotationRestorableStatus } from "../../constants/quotation.constant";
+
+const isQuotationTaskLink = (value: unknown): value is IQuotationTaskLink =>
+  isRecord(value) &&
+  hasStringFields(value, ["title", "taskId"]) &&
+  typeof value.isPrimary === "boolean";
 
 const isString = (value: unknown): value is string => typeof value === "string";
 
@@ -192,6 +198,9 @@ export const isQuotation = (value: unknown): value is IQuotation => {
   const sections = Array.isArray(value.sections) && value.sections.every(isQuotationSection);
   const warnings = Array.isArray(value.warnings) && value.warnings.every(isQuotationWarning);
   return (
+    isOptionalOf(isArrayOf(isQuotationTaskLink))(value.taskLinks) &&
+    (value.taskContextLocked == null || typeof value.taskContextLocked === "boolean") &&
+    (value.taskProjectLocked == null || typeof value.taskProjectLocked === "boolean") &&
     hasQuotationIdentity(value) &&
     hasQuotationFinancials(value) &&
     sections &&

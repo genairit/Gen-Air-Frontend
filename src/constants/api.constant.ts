@@ -37,6 +37,8 @@ export const API_ENDPOINTS = {
   quotationSalesAgent: (id: string) => `/quotation/${id}/sales-agent`,
   catalogueById: (id: string) => `/catalogue-item/${id}`,
   customerProjects: (id: string) => `/customer/${id}/projects`,
+  taskQuotations: (id: string) => `/task/${id}/quotations`,
+  taskQuotation: (id: string) => `/task/${id}/quotation`,
   TASKS: "/task",
   MY_TASKS: "/task/my-tasks",
   MY_TASK_COUNTS: "/task/my-tasks/counts",

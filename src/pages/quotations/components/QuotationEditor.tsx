@@ -51,6 +51,7 @@ import QuotationPayments from "./QuotationPayments";
 import QuotationWarnings from "./QuotationWarnings";
 import QuotationDiagnostics from "./QuotationDiagnostics";
 import QuotationDecimalInput from "./QuotationDecimalInput";
+import BackLink from "../../../components/BackLink/BackLink";
 import Timeline from "../../../components/Timeline/Timeline";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import QuotationProjectPicker from "./QuotationProjectPicker";
@@ -58,6 +59,7 @@ import { useSessionUser } from "../../../store/session.store";
 import TextField from "../../../components/TextField/TextField";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
 import ExecutionPlanReviewCard from "./ExecutionPlanReviewCard";
+import { buildTaskPath } from "../../../utilities/route.utility";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { USER_ROLES } from "../../../constants/user-role.constant";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
@@ -73,6 +75,7 @@ import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
 import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
 import QuotationCustomerPaymentDefault from "./QuotationCustomerPaymentDefault";
+import { TASK_QUOTATION_COPY } from "../../../constants/task-quotation.constant";
 import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import QuotationApartmentSharingCard from "./sharing/QuotationApartmentSharingCard";
 import { QUOTATION_SHARING_COPY } from "../../../constants/quotation-sharing.constant";
@@ -147,7 +150,16 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     dirty: editor.dirty,
     updatedAt: quotation.updatedAt,
   });
-  const contextLockedReason = sharing.hasLinks ? QUOTATION_SHARING_COPY.CONTEXT_LOCKED : null;
+  const taskContextLockedReason = quotation.taskContextLocked ? TASK_QUOTATION_COPY.LOCKED : null;
+  const taskProjectLockedReason = quotation.taskProjectLocked ? TASK_QUOTATION_COPY.LOCKED : null;
+  const customerLockedReason = sharing.hasLinks
+    ? QUOTATION_SHARING_COPY.CONTEXT_LOCKED
+    : taskContextLockedReason;
+  const projectLockedReason = sharing.hasLinks
+    ? QUOTATION_SHARING_COPY.CONTEXT_LOCKED
+    : taskProjectLockedReason;
+  const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
+  const taskLinks = canReadTasks ? (quotation.taskLinks ?? []) : [];
   const systems = QUOTATION_SYSTEM_OPTIONS;
   const brandTabs = quotationBrandTabs(quotation, activeTab);
   const openingLine = quotationOpeningLine(quotation);
@@ -302,6 +314,13 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             {statusText}
           </Box>
         </Box>
+        {taskLinks.map(link => (
+          <BackLink
+            key={link.taskId}
+            label={`משימה: ${link.title}`}
+            to={buildTaskPath(link.taskId)}
+          />
+        ))}
         {latestRejection && (
           <NoticeBanner
             title={needsCorrection ? "נדרש תיקון בהצעה" : "הערת בדיקה קודמת"}
@@ -327,7 +346,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           <QuotationCustomerPicker
             disabled={disabled}
             value={quotation.customerId}
-            lockedReason={contextLockedReason}
+            lockedReason={customerLockedReason}
             onChange={customerId => {
               if (customerId) {
                 update({ ...quotation, customerId, projectId: null });
@@ -338,7 +357,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             disabled={disabled}
             value={quotation.projectId}
             customerId={quotation.customerId}
-            lockedReason={contextLockedReason}
+            lockedReason={projectLockedReason}
             selectedName={quotation.projectName}
             onChange={projectId => update({ ...quotation, projectId })}
           />
