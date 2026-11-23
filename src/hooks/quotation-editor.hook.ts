@@ -40,6 +40,8 @@ export const useQuotationEditor = (
   const generation = useRef(0);
   const version = useRef(initial.version);
   const commandPending = useRef(false);
+  const [requiresReload, setRequiresReload] = useState(false);
+  const [commandForbidden, setCommandForbidden] = useState(false);
   const fail = (failure: unknown): void => setError(getApiErrorMessage(failure));
   const cache = async (next: IQuotation, context: AuthorizationContext): Promise<void> => {
     context.assertCurrent();
@@ -102,7 +104,10 @@ export const useQuotationEditor = (
     operation: TQuotationCommand,
     work: () => Promise<IQuotation>,
   ): Promise<boolean> => {
-    if (deleted || commandPending.current || busy) {
+    const isReload = operation === QUOTATION_COMMAND.RELOAD;
+    const isBlockedMutation =
+      !isReload && (dirty || error !== null || requiresReload || commandForbidden);
+    if (deleted || commandPending.current || busy || isBlockedMutation) {
       return false;
     }
     commandPending.current = true;
@@ -117,6 +122,7 @@ export const useQuotationEditor = (
       await accept(await work(), context);
       context.assertCurrent();
       setHasVersionConflict(false);
+      setRequiresReload(false);
       return true;
     } catch (failure) {
       const error = getApiErrorMessage(failure);
@@ -126,6 +132,10 @@ export const useQuotationEditor = (
         error,
       });
       setError(error);
+      const responseStatus = isAxiosError(failure) ? (failure.response?.status ?? null) : null;
+      const requiresAuthoritativeReload = responseStatus !== HTTP_STATUS.BAD_REQUEST;
+      setRequiresReload(requiresAuthoritativeReload);
+      setCommandForbidden(responseStatus === HTTP_STATUS.FORBIDDEN || commandForbidden);
       const isCancellationCommand =
         operation === QUOTATION_COMMAND.CANCEL ||
         operation === QUOTATION_COMMAND.RESTORE ||
@@ -256,9 +266,15 @@ export const useQuotationEditor = (
     dirty,
     error,
     hasVersionConflict,
+    requiresReload,
+    commandForbidden,
     transition,
     acknowledge,
     reload,
-    retry: () => setError(null),
+    retry: (): void => {
+      if (!requiresReload) {
+        setError(null);
+      }
+    },
   };
 };

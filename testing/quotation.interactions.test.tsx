@@ -252,8 +252,11 @@ test("sales-agent updates serialize commands and reject deleted quotations", asy
   }
 });
 
-test("sales-agent update failures are reported and can be retried", async () => {
+test("sales-agent update failures require authoritative reload before retry", async (): Promise<void> => {
   const value = state();
+  const get = mock.method(quotationService, "get", async (): Promise<IQuotation> =>
+    quotationFixture(),
+  );
   const update = mock.method(quotationService, "updateSalesAgent", async () => {
     throw new Error("offline");
   });
@@ -267,6 +270,10 @@ test("sales-agent update failures are reported and can be retried", async () => 
     assert.equal(current(value).commandBusy, false);
     assert.equal(current(value).quotation.salesAgentId, null);
 
+    await act(async (): Promise<void> => {
+      assert.equal(await current(value).updateSalesAgent("agent-1"), false);
+      assert.equal(await current(value).reload(), true);
+    });
     update.mock.mockImplementation(async quotation => ({
       ...quotationFixture(),
       salesAgentId: quotation.salesAgentId,
@@ -279,6 +286,7 @@ test("sales-agent update failures are reported and can be retried", async () => 
     assert.equal(current(value).quotation.salesAgentId, "agent-1");
     assert.equal(current(value).quotation.version, 2);
   } finally {
+    get.mock.restore();
     update.mock.restore();
     await unmount(value);
   }
@@ -354,6 +362,13 @@ test("failed transitions, acknowledgements and reload preserve the quotation and
       status: "review",
       version: 2,
     }));
+    await act(() => current(value).transition("review"));
+    assert.ok(current(value).error);
+    assert.equal(transition.mock.callCount(), 1);
+    get.mock.mockImplementation(async (): Promise<IQuotation> => quotationFixture());
+    await act(async (): Promise<void> => {
+      await current(value).reload();
+    });
     await act(() => current(value).transition("review"));
     assert.equal(current(value).error, null);
     assert.equal(current(value).quotation.version, 2);

@@ -1,6 +1,7 @@
 import type {
   TQuotationStatus,
   TQuotationSystem,
+  TQuotationLifecycleAction,
   TQuotationRestorableStatus,
   TQuotationCancellationKind,
 } from "../constants/quotation.constant";
@@ -10,6 +11,7 @@ import type {
   TQuotationProjectRole,
 } from "../constants/quotation-sharing.constant";
 
+import type { ITimelineEntry } from "./project.interface";
 import type { IQuotationTaskLink } from "./task-quotation.interface";
 import type { IPaymentStage } from "./payment-configuration.interface";
 
@@ -114,6 +116,7 @@ export interface IQuotation {
   targetPretaxAmount: string | null;
   rejectionHistory: IQuotationRejection[];
   apartmentLinks?: IQuotationApartmentLink[];
+  lifecycleHistory?: IQuotationLifecycleEvent[];
   cancellationHistory: IQuotationCancellation[];
   primaryProject?: IQuotationPrimaryProject | null;
   cancelledFromStatus: TQuotationRestorableStatus | null;
@@ -166,6 +169,29 @@ export interface IQuotationListQuery {
   status: TQuotationStatus | null;
 }
 
+export interface IQuotationConfirmationView {
+  title: string;
+  description: string;
+  actionLabel: string;
+}
+
+export interface IQuotationTimelineEntry extends ITimelineEntry {
+  createdAt: string;
+}
+
+export interface IQuotationLifecycleEvent {
+  id: string;
+  actorId: string;
+  actorName: string;
+  occurredAt: string;
+  quotationId: string;
+  reason: string | null;
+  quotationVersion: number;
+  toStatus: TQuotationStatus;
+  fromStatus: TQuotationStatus;
+  action: TQuotationLifecycleAction;
+}
+
 export interface IQuotationEditorState {
   busy: boolean;
   dirty: boolean;
@@ -174,6 +200,8 @@ export interface IQuotationEditorState {
   error: string | null;
   commandBusy: boolean;
   quotation: IQuotation;
+  requiresReload: boolean;
+  commandForbidden: boolean;
   deleteError: string | null;
   hasVersionConflict: boolean;
   remove: () => Promise<void>;

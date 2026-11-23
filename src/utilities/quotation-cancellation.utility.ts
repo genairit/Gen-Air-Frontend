@@ -2,6 +2,7 @@ import type {
   IQuotation,
   IQuotationCancellation,
   TQuotationConfirmation,
+  IQuotationConfirmationView,
 } from "../interfaces/quotation.interface";
 
 import { theme } from "../constants/theme.constants";
@@ -22,24 +23,30 @@ export const quotationCancellationNoun = (quotation: IQuotation): "הזמנה" |
 export const quotationCancellationView = (
   quotation: IQuotation,
   action: TQuotationConfirmation,
-): { title: string; description: string; actionLabel: string } => {
+): IQuotationConfirmationView => {
   const noun = quotationCancellationNoun(quotation);
   const isOrder = noun === "הזמנה";
   const definiteNoun = isOrder ? "ההזמנה" : "ההצעה";
 
-  if (action === QUOTATION_CONFIRMATION.CANCEL) {
-    return {
+  const consequence = isOrder ? " הזמנות רכש ומסמכים שכבר נשלחו לא יבוטלו אוטומטית." : "";
+  const views: Record<TQuotationConfirmation, IQuotationConfirmationView> = {
+    [QUOTATION_CONFIRMATION.RETURN]: {
+      title: "החזרה לעריכה",
+      actionLabel: "החזר לעריכה",
+      description: `המסמך יחזור לטיוטה ויידרש אישור מחדש. היסטוריית המסמך תישמר.${consequence}`,
+    },
+    [QUOTATION_CONFIRMATION.CANCEL]: {
       title: `ביטול ${noun}`,
-      description: `${definiteNoun} תבוטל אך תישמר במערכת. ניתן לשחזר אותה לסטטוס שבו הייתה לפני הביטול.`,
+      description: `${definiteNoun} תבוטל אך תישמר במערכת. שחזור לסטטוס הקודם זמין למנהל מערכת מורשה.${consequence}`,
       actionLabel: `בטל ${noun}`,
-    };
-  }
-
-  return {
-    title: `שחזור ${noun}`,
-    description: `${definiteNoun} תשוחזר לסטטוס שבו הייתה מיד לפני הביטול.`,
-    actionLabel: `שחזר ${noun}`,
+    },
+    [QUOTATION_CONFIRMATION.RESTORE]: {
+      title: `שחזור ${noun}`,
+      description: `${definiteNoun} תשוחזר לסטטוס שבו הייתה מיד לפני הביטול.`,
+      actionLabel: `שחזר ${noun}`,
+    },
   };
+  return views[action];
 };
 
 export const quotationCancellationTimeline = (

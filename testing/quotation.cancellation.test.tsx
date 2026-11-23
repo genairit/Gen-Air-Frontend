@@ -15,6 +15,7 @@ import { quotationFixture } from "./quotation.fixture";
 import { setSession } from "../src/store/session.store";
 import { logger } from "../src/utilities/logger.utility";
 import { HTTP_STATUS } from "../src/constants/api.constant";
+import TextField from "../src/components/TextField/TextField";
 import { API_ENDPOINTS } from "../src/constants/api.constant";
 import { httpClient } from "../src/services/http-client.service";
 import QuotationPage from "../src/pages/quotations/QuotationPage";
@@ -33,6 +34,7 @@ import { USER_ROLES, USER_ROLE_VALUES } from "../src/constants/user-role.constan
 import QuotationSummary from "../src/pages/quotations/components/QuotationSummary";
 import type { TQuotationRestorableStatus } from "../src/constants/quotation.constant";
 import { canCancelQuotation, canRestoreQuotation } from "../src/utilities/permission.utility";
+import ValidationMessageText from "../src/components/ValidationMessageText/ValidationMessageText";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 Reflect.set(globalThis, "window", new EventTarget());
@@ -137,7 +139,10 @@ const mountQuotation = async (initial: IQuotation, user: IApiAuthorizedUser | nu
   return {
     client,
     root,
-    popup: () => root().findByType(GenericPopup),
+    popup: (): ReturnType<typeof root> =>
+      root()
+        .findAllByType(GenericPopup)
+        .find((candidate): boolean => candidate.props.open) ?? root().findByType(GenericPopup),
     button,
     requiredButton,
     quotation: (): IQuotation => root().findByType(QuotationSummary).props.quotation,
@@ -248,9 +253,9 @@ for (const status of restorableStatuses) {
       await act(async () => {
         view
           .root()
-          .findAllByType("textarea")
-          .find(node => node.props.required)
-          ?.props.onChange({ target: { value: "Project withdrawn" } });
+          .findAllByType(TextField)
+          .find((node): boolean => node.props.isRequired)
+          ?.props.onChange("Project withdrawn");
       });
       assert.equal(view.popup().props.buttons.primary.isDisabled, false);
       await act(async () => view.popup().props.buttons.primary.onClick());
@@ -299,7 +304,7 @@ for (const { failureName, failure } of [
   },
 ]) {
   for (const action of [QUOTATION_CONFIRMATION.CANCEL, QUOTATION_CONFIRMATION.RESTORE]) {
-    test(`${action} ${failureName} failure retains the confirmation and quotation; explicit retry succeeds`, async () => {
+    test(`${action} ${failureName} failure retains the confirmation and quotation; reload and explicit reconfirmation succeeds`, async () => {
       const base = { ...quotationFixture(), status: QUOTATION_STATUS.REVIEW };
       const cancelled = cancelledQuotation(base);
       const isCancel = action === QUOTATION_CONFIRMATION.CANCEL;
@@ -319,6 +324,7 @@ for (const { failureName, failure } of [
       const gate = Promise.withResolvers<{ data: IQuotation }>();
       const post = mock.method(httpClient, "post", () => gate.promise);
       const commandLog = mock.method(logger, "error", () => {});
+      const get = mock.method(quotationService, "get", async (): Promise<IQuotation> => initial);
       const view = await mountQuotation(initial, authorizedUser([USER_ROLES.SYSTEM_ADMIN]));
       const actionText = isCancel ? "ביטול הצעה" : "שחזור הצעה";
       const attempt = { promise: null as Promise<void> | null };
@@ -328,9 +334,9 @@ for (const { failureName, failure } of [
           await act(async () => {
             view
               .root()
-              .findAllByType("textarea")
-              .find(node => node.props.required)
-              ?.props.onChange({ target: { value: "Project withdrawn" } });
+              .findAllByType(TextField)
+              .find((node): boolean => node.props.isRequired)
+              ?.props.onChange("Project withdrawn");
           });
         }
         await act(async () => {
@@ -361,8 +367,8 @@ for (const { failureName, failure } of [
           assert.equal(
             view
               .root()
-              .findAllByType("textarea")
-              .find(node => node.props.required)?.props.value,
+              .findAllByType(TextField)
+              .find((node): boolean => node.props.isRequired)?.props.value,
             "Project withdrawn",
           );
         }
@@ -374,11 +380,20 @@ for (const { failureName, failure } of [
           view
             .root()
             .findAllByProps({ role: "alert" })
-            .some(alert => alert.children.includes(getApiErrorMessage(failure))),
+            .some((alert): boolean =>
+              alert
+                .findAllByType(ValidationMessageText)
+                .some((message): boolean => message.props.text === getApiErrorMessage(failure)),
+            ),
         );
         post.mock.mockImplementation(async () => ({ data: next }));
-        await act(async () => view.requiredButton("אפשר ניסיון חוזר").click());
+        await act(async () => view.requiredButton("טען גרסה עדכנית").click());
         assert.equal(post.mock.callCount(), 1);
+        if (failureName === "forbidden") {
+          assert.equal(view.popup().props.buttons.primary.isDisabled, true);
+          assert.equal(post.mock.callCount(), 1);
+          return;
+        }
         assert.equal(view.popup().props.buttons.primary.isDisabled, false);
         await act(async () => view.popup().props.buttons.primary.onClick());
         assert.equal(post.mock.callCount(), 2);
@@ -389,6 +404,7 @@ for (const { failureName, failure } of [
       } finally {
         post.mock.restore();
         commandLog.mock.restore();
+        get.mock.restore();
         await view.dispose();
       }
     });
@@ -436,9 +452,9 @@ for (const action of [QUOTATION_CONFIRMATION.CANCEL, QUOTATION_CONFIRMATION.REST
         await act(async () => {
           view
             .root()
-            .findAllByType("textarea")
-            .find(node => node.props.required)
-            ?.props.onChange({ target: { value: "Project withdrawn" } });
+            .findAllByType(TextField)
+            .find((node): boolean => node.props.isRequired)
+            ?.props.onChange("Project withdrawn");
         });
       }
 
@@ -461,8 +477,8 @@ for (const action of [QUOTATION_CONFIRMATION.CANCEL, QUOTATION_CONFIRMATION.REST
         assert.equal(
           view
             .root()
-            .findAllByType("textarea")
-            .find(node => node.props.required)?.props.value,
+            .findAllByType(TextField)
+            .find((node): boolean => node.props.isRequired)?.props.value,
           "Project withdrawn",
         );
       }
@@ -520,6 +536,130 @@ test("approving a quotation sends a status transition and updates caches", async
     assert.equal(view.client.getQueryState(QUOTATION_COUNTS_KEY)?.isInvalidated, true);
   } finally {
     post.mock.restore();
+    await view.dispose();
+  }
+});
+
+for (const status of [QUOTATION_STATUS.REVIEW, QUOTATION_STATUS.APPROVED]) {
+  test(`reasonless return from ${status} confirms separately and serializes lifecycle commands`, async (): Promise<void> => {
+    const initial = { ...quotationFixture(), status };
+    const user = authorizedUser([USER_ROLES.ENGINEERING_LEAD]);
+    const approvedUser = {
+      ...user,
+      permissions: [...user.permissions, PERMISSIONS.QUOTATIONS_APPROVE],
+    };
+    const next = { ...initial, status: QUOTATION_STATUS.DRAFT, version: initial.version + 1 };
+    const gate = Promise.withResolvers<IQuotation>();
+    const transition = mock.method(
+      quotationService,
+      "transition",
+      (): Promise<IQuotation> => gate.promise,
+    );
+    const cancel = mock.method(quotationService, "cancel", async (): Promise<IQuotation> => next);
+    const view = await mountQuotation(initial, approvedUser);
+    const pending = { promise: null as Promise<void> | null };
+    try {
+      await act(async (): Promise<void> => {
+        await view.requiredButton("החזרה לעריכה").click();
+      });
+      assert.equal(view.popup().props.title, "החזרה לעריכה");
+      assert.equal(view.popup().findAllByType("textarea").length, 0);
+      assert.equal(transition.mock.callCount(), 0);
+      await act(async (): Promise<void> => {
+        pending.promise = view.popup().props.buttons.primary.onClick();
+      });
+      assert.equal(view.popup().props.closeDisabled, true);
+      assert.equal(
+        view.requiredButton("ביטול " + (status === QUOTATION_STATUS.APPROVED ? "הזמנה" : "הצעה"))
+          .disabled,
+        true,
+      );
+      await act(async (): Promise<void> => {
+        await view.popup().props.buttons.primary.onClick();
+      });
+      assert.equal(transition.mock.callCount(), 1);
+      assert.equal(cancel.mock.callCount(), 0);
+      await act(async (): Promise<void> => {
+        gate.resolve(next);
+        await pending.promise;
+      });
+      assert.equal(view.quotation().status, QUOTATION_STATUS.DRAFT);
+      assert.equal(view.popup().props.open, false);
+      assert.deepEqual(transition.mock.calls[0].arguments, [initial, QUOTATION_STATUS.DRAFT]);
+    } finally {
+      transition.mock.restore();
+      cancel.mock.restore();
+      await view.dispose();
+    }
+  });
+}
+
+test("review return and reasoned rejection share the assigned lead authorization boundary", async (): Promise<void> => {
+  const initial = { ...quotationFixture(), status: QUOTATION_STATUS.REVIEW };
+  const user = authorizedUser([USER_ROLES.ENGINEER]);
+  const view = await mountQuotation(initial, {
+    ...user,
+    permissions: [...user.permissions, PERMISSIONS.QUOTATIONS_APPROVE],
+  });
+  try {
+    assert.equal(view.button("החזרה לעריכה"), null);
+    assert.equal(view.button("דחייה עם סיבה"), null);
+    assert.ok(view.button("אישור ההצעה"));
+  } finally {
+    await view.dispose();
+  }
+});
+
+test("reasoned rejection requires a reason and permits correcting deterministic validation without reload", async (): Promise<void> => {
+  const initial = { ...quotationFixture(), status: QUOTATION_STATUS.REVIEW };
+  const user = authorizedUser([USER_ROLES.ENGINEERING_LEAD]);
+  const view = await mountQuotation(initial, {
+    ...user,
+    permissions: [...user.permissions, PERMISSIONS.QUOTATIONS_APPROVE],
+  });
+  const failure = Object.assign(new AxiosError("validation"), {
+    response: { status: HTTP_STATUS.BAD_REQUEST, data: { message: "Invalid reason" } },
+  });
+  const reject = mock.method(quotationService, "reject", async (): Promise<IQuotation> => {
+    throw failure;
+  });
+  const get = mock.method(quotationService, "get", async (): Promise<IQuotation> => initial);
+  const commandLog = mock.method(logger, "error", (): void => {});
+  try {
+    await act(async (): Promise<void> => {
+      await view.requiredButton("דחייה עם סיבה").click();
+    });
+    assert.equal(view.popup().props.title, "דחיית הצעה והחזרה לתיקון");
+    assert.equal(view.popup().props.buttons.primary.isDisabled, true);
+    const field = (): ReturnType<typeof view.root> => view.popup().findByType(TextField);
+    await act(async (): Promise<void> => {
+      field().props.onChange("First reason");
+    });
+    await act(async (): Promise<void> => {
+      await view.popup().props.buttons.primary.onClick();
+    });
+    assert.equal(field().props.value, "First reason");
+    assert.equal(view.popup().props.buttons.primary.isDisabled, true);
+    await act(async (): Promise<void> => {
+      field().props.onChange("Corrected reason");
+    });
+    assert.equal(view.popup().props.buttons.primary.isDisabled, false);
+    assert.equal(get.mock.callCount(), 0);
+    reject.mock.mockImplementation(async (): Promise<IQuotation> => ({
+      ...initial,
+      status: QUOTATION_STATUS.DRAFT,
+      version: initial.version + 1,
+    }));
+    await act(async (): Promise<void> => {
+      await view.popup().props.buttons.primary.onClick();
+    });
+    assert.equal(reject.mock.callCount(), 2);
+    assert.deepEqual(reject.mock.calls[1].arguments, [initial, "Corrected reason"]);
+    assert.equal(view.popup().props.open, false);
+  } finally {
+    reject.mock.restore();
+    get.mock.restore();
+    commandLog.mock.restore();
     await view.dispose();
   }
 });

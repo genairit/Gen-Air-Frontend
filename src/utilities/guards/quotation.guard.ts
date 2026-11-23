@@ -19,6 +19,7 @@ import {
   QUOTATION_STATUS,
   QUOTATION_SYSTEM,
   CATALOGUE_STATUS,
+  QUOTATION_LIFECYCLE_ACTION,
   QUOTATION_CANCELLATION_KIND,
   MAX_QUOTATION_CANCELLATION_REASON_LENGTH,
 } from "../../constants/quotation.constant";
@@ -37,6 +38,7 @@ import type {
   IProjectQuotationPage,
   IQuotationCancellation,
   IQuotationProjectChoice,
+  IQuotationLifecycleEvent,
 } from "../../interfaces/quotation.interface";
 
 import { isPaymentTerms } from "./api.guard";
@@ -68,6 +70,27 @@ const isQuotationCancellation = (value: unknown): value is IQuotationCancellatio
   isNullableString(value.restoredAt) &&
   isNullableString(value.restoredById) &&
   isNullableString(value.restoredByName);
+const isQuotationLifecycleHistory = (value: unknown): value is IQuotationLifecycleEvent[] =>
+  Array.isArray(value) &&
+  value.every((event: unknown): boolean => {
+    if (!isRecord(event)) {
+      return false;
+    }
+    const hasIdentity = hasStringFields(event, [
+      "id",
+      "quotationId",
+      "actorId",
+      "actorName",
+      "occurredAt",
+    ]);
+    const hasAction = Object.values(QUOTATION_LIFECYCLE_ACTION).some(
+      (action): boolean => action === event.action,
+    );
+    const hasStatuses = isQuotationStatus(event.fromStatus) && isQuotationStatus(event.toStatus);
+    const hasVersion =
+      typeof event.quotationVersion === "number" && Number.isSafeInteger(event.quotationVersion);
+    return hasIdentity && hasAction && hasStatuses && hasVersion && isNullableString(event.reason);
+  });
 const isQuotationRejection = (value: unknown): boolean =>
   isRecord(value) &&
   hasStringFields(value, ["reason", "rejectedAt", "rejectedById", "rejectedByName"]) &&
@@ -171,6 +194,7 @@ const hasQuotationIdentity = (value: { [field: string]: unknown }): boolean =>
   value.cancellationHistory.every(isQuotationCancellation) &&
   Array.isArray(value.rejectionHistory) &&
   value.rejectionHistory.every(isQuotationRejection) &&
+  isOptionalOf(isQuotationLifecycleHistory)(value.lifecycleHistory) &&
   isNullableString(value.salesAgentId) &&
   isOptionalOf(isNullableString)(value.salesAgentName) &&
   isOptionalOf(isNullableString)(value.customerName) &&
