@@ -3,31 +3,50 @@ import {
   isTaskQuotationContext,
 } from "../src/utilities/guards/task-quotation.guard";
 
+import {
+  QUOTATION_EMAIL_STATUS,
+  QUOTATION_EMAIL_STEP_ACTION_LABELS,
+} from "../src/constants/quotation-execution-email.constant";
+
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
-import { act, create } from "react-test-renderer";
+import type { ReactElement } from "react";
+import { createTask } from "./project-tasks.fixture";
 import Button from "../src/components/Button/Button";
 import { quotationFixture } from "./quotation.fixture";
 import { setSession } from "../src/store/session.store";
+import CheckBox from "../src/components/CheckBox/CheckBox";
 import BackLink from "../src/components/BackLink/BackLink";
 import { taskService } from "../src/services/task.service";
 import { queryClient } from "../src/providers/query-client";
+import TaskView from "../src/pages/task/components/TaskView";
+import TextField from "../src/components/TextField/TextField";
+import { TASK_STATUSES } from "../src/constants/task.constant";
+import { TASK_TYPES } from "../src/constants/task-type.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { customerService } from "../src/services/customer.service";
+import InlineError from "../src/components/InlineError/InlineError";
 import { quotationService } from "../src/services/quotation.service";
 import { isQuotation } from "../src/utilities/guards/quotation.guard";
-import { createMemoryRouter, RouterProvider } from "react-router-dom";
+import Autocomplete from "../src/components/Autocomplete/Autocomplete";
+import GenericPopup from "../src/components/GenericPopup/GenericPopup";
+import TaskHeaderCard from "../src/pages/task/components/TaskHeaderCard";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import TaskQuotations from "../src/pages/task/components/TaskQuotations";
+import { act, create, type ReactTestInstance } from "react-test-renderer";
 import { orderTaskQuotations } from "../src/utilities/task-quotation.utility";
 import { TASK_QUOTATION_KEYS } from "../src/constants/task-quotation.constant";
 import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
+import { projectActivityService } from "../src/services/project-activity.service";
+import { MemoryRouter, createMemoryRouter, RouterProvider } from "react-router-dom";
+import { QUOTATION_PROJECT_ROLE } from "../src/constants/quotation-sharing.constant";
 import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
 import type { ITaskQuotationContext } from "../src/interfaces/task-quotation.interface";
 import QuotationProjectPicker from "../src/pages/quotations/components/QuotationProjectPicker";
 import { AuthorizationContextChangedError } from "../src/managers/authorization-context.manager";
 import QuotationCustomerPicker from "../src/pages/quotations/components/QuotationCustomerPicker";
+import { quotationExecutionEmailService } from "../src/services/quotation-execution-email.service";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 Reflect.set(globalThis, "window", new EventTarget());
@@ -508,6 +527,198 @@ for (const isConnected of [true, false]) {
       read.mock.restore();
       createQuote.mock.restore();
       log.mock.restore();
+    }
+  });
+}
+
+for (const statusSucceeds of [true, false]) {
+  test(`TaskView status completion never opens email; explicit entry remains available: ${statusSucceeds}`, async () => {
+    authorize([
+      ...reader,
+      PERMISSIONS.TASKS_STATUS_UPDATE,
+      PERMISSIONS.PROJECTS_READ,
+      PERMISSIONS.CUSTOMERS_READ,
+      PERMISSIONS.DRIVE_READ,
+    ]);
+    const task = createTask({ taskType: TASK_TYPES.QUOTATION });
+    const sentTask = { ...task, status: TASK_STATUSES.PROPOSAL_SENT };
+    const read = mock.method(taskService, "getQuotations", async () => context());
+    const history = mock.method(taskService, "getTransitions", async () => []);
+    const status = mock.method(taskService, "updateStatus", async () => {
+      if (!statusSucceeds) {
+        throw new Error("status unavailable");
+      }
+
+      return sentTask;
+    });
+    const emailContext = mock.method(quotationExecutionEmailService, "getContext", async () => ({
+      taskId: task.id,
+      projectId: task.projectId ?? "project",
+      projectName: "project",
+      apartmentNumber: "12",
+      contacts: [
+        { id: "architect", name: "Architect", email: "architect@example.invalid", role: null },
+      ],
+      delivery: null,
+    }));
+    const preview = mock.method(quotationExecutionEmailService, "getPreview", async () => ({
+      subject: "subject",
+      body: "body",
+      senderName: "sender",
+    }));
+    const send = mock.method(quotationExecutionEmailService, "send", async () => ({
+      requestId: "request",
+      updatedAt: task.updatedAt,
+      retryable: false,
+      providerMessageId: "message",
+      status: QUOTATION_EMAIL_STATUS.SENT,
+    }));
+    const drive = mock.method(projectActivityService, "getDriveContents", async () => ({
+      folderId: "folder",
+      folders: [],
+      files: [
+        {
+          id: "plan",
+          name: "plan.pdf",
+          mimeType: "application/pdf",
+          isFolder: false,
+          size: null,
+          webViewLink: null,
+          modifiedTime: null,
+        },
+        {
+          id: "zip",
+          name: "files.zip",
+          mimeType: "application/zip",
+          isFolder: false,
+          size: null,
+          webViewLink: null,
+          modifiedTime: null,
+        },
+      ],
+    }));
+    const quotations = mock.method(quotationService, "projectQuotations", async () => ({
+      total: 1,
+      nextCursor: null,
+      items: [
+        {
+          ...quotationFixture(),
+          id: "quotation",
+          projectId: task.projectId,
+          sharedCount: 0,
+          sharedFromCode: null,
+          sharedApartmentNumbers: [],
+          projectRole: QUOTATION_PROJECT_ROLE.PRIMARY,
+        },
+      ],
+    }));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+    const render = (currentTask: typeof task): ReactElement => (
+      <QueryClientProvider client={client}>
+        <MemoryRouter>
+          <TaskView
+            canChangeStatus
+            canEdit={false}
+            canClaim={false}
+            canAssign={false}
+            task={currentTask}
+            canChangeUrgency={false}
+          />
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+    const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
+    try {
+      await act(async () => {
+        state.renderer = create(render(task));
+      });
+      await settle();
+      assert.ok(state.renderer);
+      const renderer = state.renderer;
+      const dialogs = (): ReactTestInstance[] =>
+        renderer.root.findAllByType(GenericPopup).filter(dialog => dialog.props.open);
+      assert.equal(dialogs().length, 0);
+      await act(async () =>
+        renderer.root.findByType(TaskHeaderCard).props.onStatusChange(TASK_STATUSES.PROPOSAL_SENT),
+      );
+      await settle();
+      assert.deepEqual(status.mock.calls[0].arguments, [task.id, TASK_STATUSES.PROPOSAL_SENT]);
+      assert.equal(dialogs().length, 0);
+      assert.equal(emailContext.mock.callCount(), 0);
+      assert.equal(send.mock.callCount(), 0);
+      assert.equal(renderer.root.findAllByType(InlineError).length, Number(!statusSucceeds));
+      await act(async () => renderer.update(render(sentTask)));
+      assert.equal(dialogs().length, 0);
+      const compose = renderer.root
+        .findAllByType(Button)
+        .find(button => button.props.text === "שליחת תוכנית לביצוע במייל");
+      assert.ok(compose);
+      await act(async () => compose.props.onClick());
+      await settle();
+      assert.equal(dialogs().length, 1);
+      assert.equal(emailContext.mock.callCount(), 1);
+      assert.equal(dialogs()[0].props.buttons.primary.text, QUOTATION_EMAIL_STEP_ACTION_LABELS[1]);
+      assert.equal(dialogs()[0].props.buttons.primary.isDisabled, true);
+      assert.equal(preview.mock.callCount(), 0);
+      assert.equal(send.mock.callCount(), 0);
+      await act(async () => dialogs()[0].props.buttons.secondary.onClick());
+      assert.equal(dialogs().length, 0);
+      assert.equal(send.mock.callCount(), 0);
+      assert.equal(status.mock.callCount(), 1);
+      await act(async () => compose.props.onClick());
+      await settle();
+      const clickButton = async (text: string): Promise<void> => {
+        const button = renderer.root.findAllByType(Button).find(item => item.props.text === text);
+        assert.ok(button);
+        await act(async () => button.props.onClick());
+      };
+      await act(async () => renderer.root.findByType(CheckBox).props.onChange(true));
+      await clickButton("סמן כאדריכל");
+      await act(async () =>
+        renderer.root
+          .findAllByType(Autocomplete)
+          .find(item => item.props.title === "הצעת מחיר לתוכנית")!
+          .props.onChange("quotation"),
+      );
+      await act(async () =>
+        renderer.root
+          .findAllByType(TextField)
+          .find(item => item.props.title === "גרסת התוכנית")!
+          .props.onChange("03"),
+      );
+      assert.equal(dialogs()[0].props.buttons.primary.isDisabled, false);
+      await act(async () => dialogs()[0].props.buttons.primary.onClick());
+      await settle();
+      await clickButton("תוכנית: plan.pdf");
+      await clickButton("ZIP: files.zip");
+      assert.equal(preview.mock.callCount(), 1);
+      assert.equal(send.mock.callCount(), 0);
+      assert.equal(dialogs()[0].props.buttons.primary.isDisabled, false);
+      await act(async () => dialogs()[0].props.buttons.primary.onClick());
+      await settle();
+      assert.equal(send.mock.callCount(), 1);
+      const [sentTaskId, payload] = send.mock.calls[0].arguments;
+      assert.equal(sentTaskId, task.id);
+      assert.ok(payload);
+      assert.deepEqual(payload, {
+        quotationId: "quotation",
+        requestId: payload.requestId,
+        recipientContactIds: ["architect"],
+        architectContactId: "architect",
+        planVersion: "03",
+        planFileId: "plan",
+        zipFileId: "zip",
+      });
+      assert.equal(status.mock.callCount(), 1);
+      assert.equal(dialogs()[0].props.buttons.primary.text, "סגירה");
+    } finally {
+      await act(async () => state.renderer?.unmount());
+      client.clear();
+      queryClient.clear();
+      setSession(null);
+      [read, history, status, emailContext, preview, send, quotations, drive].forEach(stub =>
+        stub.mock.restore(),
+      );
     }
   });
 }
