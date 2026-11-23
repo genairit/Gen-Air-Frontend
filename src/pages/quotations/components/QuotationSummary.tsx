@@ -46,6 +46,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
   const isReview = quotation.status === QUOTATION_STATUS.REVIEW;
   const isApproved = quotation.status === QUOTATION_STATUS.APPROVED;
   const isCancelled = quotation.status === QUOTATION_STATUS.CANCELLED;
+  const showApprovedReturn = isApproved && onReturn != null;
   const amounts = [
     { label: "סכום השורות", value: totals.subtotal },
     { label: "הנחה / התאמה ליעד", value: totals.discount },
@@ -141,7 +142,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
                 )}
               </>
             )}
-            {isApproved && onReturn && (
+            {showApprovedReturn && (
               <Button
                 disabled={blocked}
                 onClick={onReturn}

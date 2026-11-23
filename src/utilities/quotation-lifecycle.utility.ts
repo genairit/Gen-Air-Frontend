@@ -8,7 +8,9 @@ import { theme } from "../constants/theme.constants";
 import { DATE_FORMAT } from "../constants/date.constants";
 import { formatDate, normalizeDate } from "./date.utility";
 import type { ITimelineEntry } from "../interfaces/project.interface";
+import { QUOTATION_LIFECYCLE_COPY } from "../constants/quotation.constant";
 import { QUOTATION_LIFECYCLE_ACTION } from "../constants/quotation.constant";
+import type { IQuotationActionAvailability } from "../interfaces/quotation.interface";
 import type { IQuotation, IQuotationTimelineEntry } from "../interfaces/quotation.interface";
 
 export const quotationLifecycleTimeline = (quotation: IQuotation): ITimelineEntry[] => {
@@ -17,7 +19,7 @@ export const quotationLifecycleTimeline = (quotation: IQuotation): ITimelineEntr
       const cancellation = {
         createdAt: record.cancelledAt,
         id: `legacy-cancel-${index}`,
-        label: "ביטול",
+        label: QUOTATION_LIFECYCLE_LABELS[QUOTATION_LIFECYCLE_ACTION.CANCEL],
         date: formatDate(normalizeDate(record.cancelledAt), DATE_FORMAT.FULL_DATE),
         author: `${record.cancelledByName} · סיבה: ${record.reason}`,
         dotColor: theme.palette.danger,
@@ -30,7 +32,7 @@ export const quotationLifecycleTimeline = (quotation: IQuotation): ITimelineEntr
         {
           createdAt: record.restoredAt,
           id: `legacy-restore-${index}`,
-          label: "שחזור",
+          label: QUOTATION_LIFECYCLE_LABELS[QUOTATION_LIFECYCLE_ACTION.RESTORE],
           date: formatDate(normalizeDate(record.restoredAt), DATE_FORMAT.FULL_DATE),
           author: record.restoredByName ?? record.restoredById ?? "",
           dotColor: theme.palette.statusBlue,
@@ -42,7 +44,7 @@ export const quotationLifecycleTimeline = (quotation: IQuotation): ITimelineEntr
     (record, index): IQuotationTimelineEntry => ({
       createdAt: record.rejectedAt,
       id: `legacy-reject-${index}`,
-      label: "דחייה עם סיבה",
+      label: QUOTATION_LIFECYCLE_LABELS[QUOTATION_LIFECYCLE_ACTION.REJECT],
       date: formatDate(normalizeDate(record.rejectedAt), DATE_FORMAT.FULL_DATE),
       author: `${record.rejectedByName} · סיבה: ${record.reason}`,
       dotColor: theme.palette.danger,
@@ -68,4 +70,17 @@ export const quotationLifecycleTimeline = (quotation: IQuotation): ITimelineEntr
       };
     });
   return sortByNewest([...legacyCancellations, ...legacyRejections, ...lifecycle]).reverse();
+};
+
+export const quotationActionAvailabilityMessage = ({
+  available,
+  forbidden,
+}: IQuotationActionAvailability): string | null => {
+  if (forbidden) {
+    return QUOTATION_LIFECYCLE_COPY.FORBIDDEN;
+  }
+  if (!available) {
+    return QUOTATION_LIFECYCLE_COPY.SOURCE_CHANGED;
+  }
+  return null;
 };

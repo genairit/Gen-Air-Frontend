@@ -303,3 +303,8 @@ export interface IRecommendedCloneCommand {
   sourceVersion: number;
   idempotencyKey: string;
 }
+
+export interface IQuotationActionAvailability {
+  available: boolean;
+  forbidden: boolean;
+}

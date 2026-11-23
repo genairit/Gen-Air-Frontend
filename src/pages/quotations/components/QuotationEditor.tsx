@@ -76,6 +76,7 @@ import { useHashTargetFocus } from "../../../hooks/hash-target-focus.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
 import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
 import QuotationCustomerPaymentDefault from "./QuotationCustomerPaymentDefault";
+import { QUOTATION_LIFECYCLE_COPY } from "../../../constants/quotation.constant";
 import { TASK_QUOTATION_COPY } from "../../../constants/task-quotation.constant";
 import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import { QUOTATION_DETAIL_HEADING_ID } from "../../../constants/quotation.constant";
@@ -90,6 +91,7 @@ import { quotationLifecycleTimeline } from "../../../utilities/quotation-lifecyc
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
 import { useQuotationApartmentSharing } from "../../../hooks/quotation-apartment-sharing.hook";
 import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-navigation.hook";
+import { quotationActionAvailabilityMessage } from "../../../utilities/quotation-lifecycle.utility";
 import ValidationMessageText from "../../../components/ValidationMessageText/ValidationMessageText";
 import { NOTICE_VARIANTS } from "../../../vendor/smartbase/components/NoticeCard/constants/notice-card.constant";
 
@@ -151,7 +153,12 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     quotation.status === QUOTATION_STATUS.APPROVED ||
     quotation.status === QUOTATION_STATUS.CANCELLED;
   const blocked =
-    editor.busy || editor.dirty || rebrand.busy || editor.error !== null || editor.commandForbidden;
+    editor.busy ||
+    editor.dirty ||
+    rebrand.busy ||
+    editor.error !== null ||
+    editor.requiresReload ||
+    editor.commandForbidden;
   const navigationPending = !editor.deleted && (editor.dirty || editor.busy || rebrand.busy);
   const blocker = useUnsavedChangesNavigation(navigationPending);
   useQuotationDeletedNavigation(editor.deleted, quotation.id);
@@ -207,6 +214,19 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     [QUOTATION_CONFIRMATION.RETURN]: canReturn,
   };
   const requestedActionAvailable = confirmation !== null && availableActions[confirmation];
+  const rejectionAvailabilityMessage = quotationActionAvailabilityMessage({
+    available: rejectionAvailable,
+    forbidden: editor.commandForbidden,
+  });
+  const confirmationAvailabilityMessage = quotationActionAvailabilityMessage({
+    available: requestedActionAvailable,
+    forbidden: editor.commandForbidden,
+  });
+  const rejectionReasonMissing = !rejectionReason.trim();
+  const cancellationReasonMissing =
+    confirmation === QUOTATION_CONFIRMATION.CANCEL && !cancellationReason.trim();
+  const rejectionConfirmDisabled = blocked || !rejectionAvailable || rejectionReasonMissing;
+  const confirmationDisabled = blocked || !requestedActionAvailable || cancellationReasonMissing;
   const confirmationActions: Record<TQuotationConfirmation, () => Promise<boolean>> = {
     [QUOTATION_CONFIRMATION.CANCEL]: (): Promise<boolean> => editor.cancel(cancellationReason),
     [QUOTATION_CONFIRMATION.RESTORE]: editor.restore,
@@ -397,9 +417,15 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             </Box>
           </Box>
         )}
+        {editor.requiresReload && (
+          <Box role="status">
+            <ValidationMessageText text={QUOTATION_LIFECYCLE_COPY.RELOAD_REQUIRED} />
+            <Button text="טען גרסה עדכנית" onClick={reloadConflict} disabled={editor.commandBusy} />
+          </Box>
+        )}
         {editor.commandForbidden && (
           <Box component="p" role="status">
-            אין הרשאה לביצוע הפעולה. אפשר לסגור את החלון או לטעון את פרטי המסמך מחדש.
+            {QUOTATION_LIFECYCLE_COPY.FORBIDDEN}
           </Box>
         )}
         {pdf.error && (
@@ -704,7 +730,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           buttons={{
             primary: {
               text: "דחה והחזר לתיקון",
-              isDisabled: blocked || !rejectionAvailable || !rejectionReason.trim(),
+              isDisabled: rejectionConfirmDisabled,
               onClick: rejectQuotation,
             },
             secondary: {
@@ -733,6 +759,21 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                   הגרסה העדכנית נטענה. בדקו את הפרטים לפני אישור מחדש.
                 </Box>
               )}
+              {rejectionAvailabilityMessage && (
+                <Box role="status">
+                  <ValidationMessageText text={rejectionAvailabilityMessage} />
+                  <Button
+                    text="טען פרטי מסמך מחדש"
+                    onClick={reloadConflict}
+                    disabled={editor.commandBusy}
+                  />
+                </Box>
+              )}
+              {editor.requiresReload && (
+                <Box role="status">
+                  <ValidationMessageText text={QUOTATION_LIFECYCLE_COPY.RELOAD_REQUIRED} />
+                </Box>
+              )}
               {editor.error && (
                 <Box component="div" role="alert" className={styles.error}>
                   <ValidationMessageText text={editor.error} />
@@ -753,10 +794,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         buttons={{
           primary: {
             text: confirmationActionLabel,
-            isDisabled:
-              blocked ||
-              !requestedActionAvailable ||
-              (confirmation === QUOTATION_CONFIRMATION.CANCEL && !cancellationReason.trim()),
+            isDisabled: confirmationDisabled,
             onClick: confirmQuotationAction,
           },
           secondary: {
@@ -786,6 +824,21 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                 maxLength={MAX_QUOTATION_CANCELLATION_REASON_LENGTH}
                 onChange={changeCancellationReason}
               />
+            )}
+            {confirmationAvailabilityMessage && (
+              <Box role="status">
+                <ValidationMessageText text={confirmationAvailabilityMessage} />
+                <Button
+                  text="טען פרטי מסמך מחדש"
+                  onClick={reloadConflict}
+                  disabled={editor.commandBusy}
+                />
+              </Box>
+            )}
+            {editor.requiresReload && (
+              <Box role="status">
+                <ValidationMessageText text={QUOTATION_LIFECYCLE_COPY.RELOAD_REQUIRED} />
+              </Box>
             )}
             {showConfirmationError && (
               <Box component="div" role="alert" className={styles.error}>

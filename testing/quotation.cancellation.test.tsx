@@ -7,6 +7,12 @@ import {
   QUOTATION_CONFIRMATION,
 } from "../src/constants/quotation.constant";
 
+import {
+  QUOTATION_AUTOSAVE_MS,
+  QUOTATION_LIFECYCLE_COPY,
+  QUOTATION_LIFECYCLE_ACTION,
+} from "../src/constants/quotation.constant";
+
 import { AxiosError } from "axios";
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
@@ -14,6 +20,8 @@ import { act, create } from "react-test-renderer";
 import { quotationFixture } from "./quotation.fixture";
 import { setSession } from "../src/store/session.store";
 import { logger } from "../src/utilities/logger.utility";
+import { setTimeout as settle } from "node:timers/promises";
+import { TIME_UNITS } from "../src/constants/time.constant";
 import { HTTP_STATUS } from "../src/constants/api.constant";
 import TextField from "../src/components/TextField/TextField";
 import { API_ENDPOINTS } from "../src/constants/api.constant";
@@ -391,6 +399,13 @@ for (const { failureName, failure } of [
         assert.equal(post.mock.callCount(), 1);
         if (failureName === "forbidden") {
           assert.equal(view.popup().props.buttons.primary.isDisabled, true);
+          assert.ok(
+            view
+              .popup()
+              .findAllByType(ValidationMessageText)
+              .some((node): boolean => node.props.text === QUOTATION_LIFECYCLE_COPY.FORBIDDEN),
+          );
+          assert.equal(view.popup().props.buttons.secondary.isDisabled, false);
           assert.equal(post.mock.callCount(), 1);
           return;
         }
@@ -663,3 +678,149 @@ test("reasoned rejection requires a reason and permits correcting deterministic 
     await view.dispose();
   }
 });
+
+test("uncertain outcome remains visibly blocked after closing, editing and autosaving until authoritative reload and explicit reconfirmation", async (): Promise<void> => {
+  const initial = { ...quotationFixture(), status: QUOTATION_STATUS.REVIEW };
+  const user = authorizedUser([USER_ROLES.ENGINEERING_LEAD]);
+  const latest = {
+    ...initial,
+    internalNotes: "Edited after failure",
+    version: initial.version + 1,
+  };
+  const next = { ...latest, status: QUOTATION_STATUS.DRAFT, version: latest.version + 1 };
+  const transition = mock.method(quotationService, "transition", async (): Promise<IQuotation> => {
+    throw new Error("uncertain outcome");
+  });
+  const save = mock.method(quotationService, "save", async (): Promise<IQuotation> => latest);
+  const get = mock.method(quotationService, "get", async (): Promise<IQuotation> => latest);
+  const commandLog = mock.method(logger, "error", (): void => {});
+  const view = await mountQuotation(initial, {
+    ...user,
+    permissions: [...user.permissions, PERMISSIONS.QUOTATIONS_APPROVE],
+  });
+  try {
+    await act(async (): Promise<void> => {
+      await view.requiredButton("החזרה לעריכה").click();
+    });
+    await act(async (): Promise<void> => {
+      await view.popup().props.buttons.primary.onClick();
+    });
+    await act(async (): Promise<void> => {
+      view.popup().props.onClose();
+    });
+    await act(async (): Promise<void> => {
+      view
+        .root()
+        .findByType(QuotationSummary)
+        .props.onChange({ ...initial, internalNotes: latest.internalNotes });
+    });
+    await act(async (): Promise<void> => {
+      await settle(QUOTATION_AUTOSAVE_MS + TIME_UNITS.SECOND_MS);
+    });
+    assert.equal(save.mock.callCount(), 1);
+    assert.equal(view.requiredButton("החזרה לעריכה").disabled, true);
+    assert.ok(
+      view
+        .root()
+        .findAllByType(ValidationMessageText)
+        .some((node): boolean => node.props.text === QUOTATION_LIFECYCLE_COPY.RELOAD_REQUIRED),
+    );
+    assert.equal(transition.mock.callCount(), 1);
+    await act(async (): Promise<void> => {
+      await view.requiredButton("טען גרסה עדכנית").click();
+    });
+    assert.equal(get.mock.callCount(), 1);
+    assert.equal(transition.mock.callCount(), 1);
+    assert.equal(view.requiredButton("החזרה לעריכה").disabled, false);
+    transition.mock.mockImplementation(async (): Promise<IQuotation> => next);
+    await act(async (): Promise<void> => {
+      await view.requiredButton("החזרה לעריכה").click();
+    });
+    assert.equal(transition.mock.callCount(), 1);
+    await act(async (): Promise<void> => {
+      await view.popup().props.buttons.primary.onClick();
+    });
+    assert.deepEqual(transition.mock.calls[1].arguments, [latest, QUOTATION_STATUS.DRAFT]);
+  } finally {
+    transition.mock.restore();
+    save.mock.restore();
+    get.mock.restore();
+    commandLog.mock.restore();
+    await view.dispose();
+  }
+});
+
+for (const responseStatus of [HTTP_STATUS.CONFLICT, HTTP_STATUS.FORBIDDEN]) {
+  for (const action of [QUOTATION_LIFECYCLE_ACTION.RETURN, QUOTATION_LIFECYCLE_ACTION.REJECT]) {
+    test(`${action} explains unavailable action inside its dialog after ${responseStatus} reload`, async (): Promise<void> => {
+      const initial = { ...quotationFixture(), status: QUOTATION_STATUS.REVIEW };
+      const user = authorizedUser([USER_ROLES.ENGINEERING_LEAD]);
+      const latest = cancelledQuotation(initial);
+      const failure = Object.assign(new AxiosError("conflict"), {
+        response: { status: responseStatus, data: { message: "source changed" } },
+      });
+      const transition = mock.method(
+        quotationService,
+        "transition",
+        async (): Promise<IQuotation> => {
+          throw failure;
+        },
+      );
+      const reject = mock.method(quotationService, "reject", async (): Promise<IQuotation> => {
+        throw failure;
+      });
+      const get = mock.method(quotationService, "get", async (): Promise<IQuotation> => latest);
+      const commandLog = mock.method(logger, "error", (): void => {});
+      const view = await mountQuotation(initial, {
+        ...user,
+        permissions: [...user.permissions, PERMISSIONS.QUOTATIONS_APPROVE],
+      });
+      const expectedExplanation =
+        responseStatus === HTTP_STATUS.FORBIDDEN
+          ? QUOTATION_LIFECYCLE_COPY.FORBIDDEN
+          : QUOTATION_LIFECYCLE_COPY.SOURCE_CHANGED;
+      const actionLabel =
+        action === QUOTATION_LIFECYCLE_ACTION.RETURN ? "החזרה לעריכה" : "דחייה עם סיבה";
+      try {
+        await act(async (): Promise<void> => {
+          await view.requiredButton(actionLabel).click();
+        });
+        if (action === QUOTATION_LIFECYCLE_ACTION.REJECT) {
+          await act(async (): Promise<void> => {
+            view.popup().findByType(TextField).props.onChange("Keep this reason");
+          });
+        }
+        await act(async (): Promise<void> => {
+          await view.popup().props.buttons.primary.onClick();
+        });
+        await act(async (): Promise<void> => {
+          await view.requiredButton("טען גרסה עדכנית").click();
+        });
+        assert.equal(view.popup().props.buttons.primary.isDisabled, true);
+        assert.ok(
+          view
+            .popup()
+            .findAllByType(ValidationMessageText)
+            .some((node): boolean => node.props.text === expectedExplanation),
+        );
+        assert.ok(
+          view
+            .popup()
+            .findAllByType(QuotationButton)
+            .some((node): boolean => node.props.text === "טען פרטי מסמך מחדש"),
+        );
+        assert.equal(view.popup().props.buttons.secondary.isDisabled, false);
+        if (action === QUOTATION_LIFECYCLE_ACTION.REJECT) {
+          assert.equal(view.popup().findByType(TextField).props.value, "Keep this reason");
+        }
+        assert.equal(transition.mock.callCount() + reject.mock.callCount(), 1);
+      } finally {
+        transition.mock.restore();
+        reject.mock.restore();
+        get.mock.restore();
+        commandLog.mock.restore();
+        await view.dispose();
+      }
+    });
+  }
+}

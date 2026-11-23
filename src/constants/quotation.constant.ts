@@ -175,3 +175,11 @@ export const QUOTATION_ROW_COPY = {
 export const QUOTATION_DETAIL_HEADING_ID = "quotation-detail-heading";
 
 export const QUOTATION_LIFECYCLE_BUTTON_SX = { minHeight: 44 } as const;
+
+export const QUOTATION_LIFECYCLE_COPY = {
+  RELOAD_REQUIRED:
+    "תוצאת הפעולה אינה ודאית. יש לטעון גרסה עדכנית לפני ביצוע פעולה נוספת ולאשר אותה מחדש.",
+  FORBIDDEN: "אין הרשאה לביצוע הפעולה. אפשר לסגור את החלון או לטעון את פרטי המסמך מחדש.",
+  SOURCE_CHANGED:
+    "מצב המסמך השתנה והפעולה אינה זמינה עוד. אפשר לסגור את החלון או לטעון את פרטי המסמך מחדש.",
+} as const;
