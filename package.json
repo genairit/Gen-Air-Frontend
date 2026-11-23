@@ -30,7 +30,8 @@
     "test:contact-directory-search": "node testing/run-contact-directory-search-tests.mjs",
     "test:task-quotations": "node testing/run-task-quotations-tests.mjs",
     "test:quotation-clone": "node testing/run-quotation-clone-tests.mjs",
-    "test:task-sort": "node testing/run-task-sort-tests.mjs"
+    "test:task-sort": "node testing/run-task-sort-tests.mjs",
+    "test:popup-focus": "node testing/run-popup-focus-tests.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

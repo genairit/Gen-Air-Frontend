@@ -34,7 +34,9 @@ import {
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { quotationFixture, catalogueFixture } from "./quotation.fixture";
+import { QUOTATION_LIFECYCLE_ACTION } from "../src/constants/quotation.constant";
 import { quotationNeedsCorrection } from "../src/utilities/quotation-rejection.utility";
+import { quotationLifecycleTimeline } from "../src/utilities/quotation-lifecycle.utility";
 import { quotationReviewSections } from "../src/utilities/quotation-presentation.utility";
 import type { IQuotation, IQuotationStatusCounts } from "../src/interfaces/quotation.interface";
 import { selectPaymentConfigurationStages } from "../src/utilities/payment-configuration.utility";
@@ -577,4 +579,51 @@ test("payment row derivation rounds exact amounts and leaves schedule entries un
   ]);
   assert.equal(quotationPaymentTotal(quotation), "10.1");
   assert.deepEqual(quotation, before);
+});
+
+test("retained legacy rejection reasons remain chronological beside new lifecycle returns without duplicate reasoned events", (): void => {
+  const quotation = quotationFixture();
+  quotation.rejectionHistory = [
+    {
+      reason: "Fix total",
+      rejectedAt: "2026-11-17T00:00:00.000Z",
+      rejectedById: "lead",
+      rejectedByName: "Lead",
+      resubmittedAt: null,
+      resubmittedById: null,
+    },
+  ];
+  const event = {
+    id: "return",
+    quotationId: quotation.id,
+    action: QUOTATION_LIFECYCLE_ACTION.RETURN,
+    fromStatus: QUOTATION_STATUS.REVIEW,
+    toStatus: QUOTATION_STATUS.DRAFT,
+    actorId: "lead",
+    actorName: "Lead",
+    occurredAt: "2026-11-19T00:00:00.000Z",
+    quotationVersion: 3,
+    reason: null,
+  };
+  quotation.lifecycleHistory = [
+    event,
+    {
+      ...event,
+      id: "reject",
+      action: QUOTATION_LIFECYCLE_ACTION.REJECT,
+      reason: "Fix total",
+      quotationVersion: 2,
+      occurredAt: "2026-11-17T00:00:00.001Z",
+    },
+  ];
+  const entries = quotationLifecycleTimeline(quotation);
+  assert.equal(entries.length, 2);
+  assert.equal(entries[0].id, "legacy-reject-0");
+  assert.match(entries[0].author, /Fix total/);
+  assert.equal(entries[1].id, "return");
+  assert.match(entries[1].label, /החזרה לעריכה/);
+  assert.equal(
+    isQuotation({ ...quotation, lifecycleHistory: [{ ...event, action: "invalid" }] }),
+    false,
+  );
 });

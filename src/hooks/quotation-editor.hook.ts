@@ -21,6 +21,7 @@ import { HTTP_STATUS } from "../constants/api.constant";
 import { useDelayedAsyncTask } from "./delayed-async-task.hook";
 import { quotationService } from "../services/quotation.service";
 import { getApiErrorMessage } from "../utilities/api-error.utility";
+import { validateQuotationReason } from "../utilities/quotation-reason.utility";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
 
 export const useQuotationEditor = (
@@ -40,6 +41,8 @@ export const useQuotationEditor = (
   const generation = useRef(0);
   const version = useRef(initial.version);
   const commandPending = useRef(false);
+  const [requiresReload, setRequiresReload] = useState(false);
+  const [commandForbidden, setCommandForbidden] = useState(false);
   const fail = (failure: unknown): void => setError(getApiErrorMessage(failure));
   const cache = async (next: IQuotation, context: AuthorizationContext): Promise<void> => {
     context.assertCurrent();
@@ -102,7 +105,10 @@ export const useQuotationEditor = (
     operation: TQuotationCommand,
     work: () => Promise<IQuotation>,
   ): Promise<boolean> => {
-    if (deleted || commandPending.current || busy) {
+    const isReload = operation === QUOTATION_COMMAND.RELOAD;
+    const isBlockedMutation =
+      !isReload && (dirty || error !== null || requiresReload || commandForbidden);
+    if (deleted || commandPending.current || busy || isBlockedMutation) {
       return false;
     }
     commandPending.current = true;
@@ -117,6 +123,7 @@ export const useQuotationEditor = (
       await accept(await work(), context);
       context.assertCurrent();
       setHasVersionConflict(false);
+      setRequiresReload(false);
       return true;
     } catch (failure) {
       const error = getApiErrorMessage(failure);
@@ -126,6 +133,10 @@ export const useQuotationEditor = (
         error,
       });
       setError(error);
+      const responseStatus = isAxiosError(failure) ? (failure.response?.status ?? null) : null;
+      const requiresAuthoritativeReload = responseStatus !== HTTP_STATUS.BAD_REQUEST;
+      setRequiresReload(requiresAuthoritativeReload);
+      setCommandForbidden(responseStatus === HTTP_STATUS.FORBIDDEN || commandForbidden);
       const isCancellationCommand =
         operation === QUOTATION_COMMAND.CANCEL ||
         operation === QUOTATION_COMMAND.RESTORE ||
@@ -184,7 +195,7 @@ export const useQuotationEditor = (
   };
   const cancel = async (reason: string): Promise<boolean> => {
     const normalizedReason = reason.trim();
-    if (dirty || !normalizedReason) {
+    if (dirty || !validateQuotationReason(reason).isValid) {
       return false;
     }
 
@@ -202,7 +213,7 @@ export const useQuotationEditor = (
     );
   };
   const reject = async (reason: string): Promise<boolean> => {
-    if (dirty || !reason.trim()) {
+    if (dirty || !validateQuotationReason(reason).isValid) {
       return false;
     }
     return command(QUOTATION_COMMAND.TRANSITION, () =>
@@ -256,9 +267,15 @@ export const useQuotationEditor = (
     dirty,
     error,
     hasVersionConflict,
+    requiresReload,
+    commandForbidden,
     transition,
     acknowledge,
     reload,
-    retry: () => setError(null),
+    retry: (): void => {
+      if (!requiresReload) {
+        setError(null);
+      }
+    },
   };
 };

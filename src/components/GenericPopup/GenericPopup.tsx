@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 
 import Button from "../Button/Button";
+import type { RefObject } from "react";
 import { Close } from "@mui/icons-material";
 import { useStyles } from "./GenericPopup.style";
 import type { SxProps, Theme } from "@mui/material";
@@ -18,6 +19,7 @@ import { logger } from "../../utilities/logger.utility";
 import UltraSignature from "../UltraSignature/UltraSignature";
 import type { TPopUpIcons } from "./constants/icons.constants";
 import { renderPopupIcon } from "./utilities/renderIcon.utility";
+import { focusConnectedElement } from "../../utilities/focus.utility";
 import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
 import { type FC, type MouseEvent, type ReactNode, useState } from "react";
 import type { TextDirectionType } from "../../constants/direction.constant";
@@ -47,6 +49,8 @@ export interface IGenericPopupProps {
   closeAfterAction?: boolean;
   maxWidth?: "sm" | "md" | "lg";
   icon?: TPopUpIcons | ReactNode;
+  titleRef?: RefObject<HTMLElement | null> | null;
+  initialFocusRef?: RefObject<HTMLElement | null> | null;
   buttons: {
     primary: IPopupButton;
     secondary?: Partial<IPopupButton>;
@@ -65,6 +69,8 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   header,
   signature,
   guidelines,
+  initialFocusRef,
+  titleRef,
   closeDisabled = false,
   align = "left",
   maxWidth = "sm",
@@ -77,6 +83,12 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   const [primaryButtonLoading, setPrimaryButtonLoading] = useState(false);
   const [secondaryButtonLoading, setSecondaryButtonLoading] = useState(false);
 
+  const focusInitialElement = (): void => {
+    if (!open) {
+      return;
+    }
+    focusConnectedElement(initialFocusRef?.current ?? null);
+  };
   const needToSign = Boolean(signature) && !isSigned;
   const handleClose = () => {
     if (!closeDisabled) {
@@ -123,7 +135,9 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   const popupHeader = header ?? (
     <>
       <Box sx={styles.headerContainer}>
-        <DialogTitle sx={styles.title}>{title ?? ""}</DialogTitle>
+        <DialogTitle tabIndex={-1} ref={titleRef} sx={styles.title}>
+          {title ?? ""}
+        </DialogTitle>
         <IconButton size="small" aria-label="סגירה" onClick={handleClose} disabled={closeDisabled}>
           <Close />
         </IconButton>
@@ -141,6 +155,7 @@ const GenericPopup: FC<IGenericPopupProps> = ({
       maxWidth={maxWidth}
       onClose={handleClose}
       sx={mergeSx(styles.root, sx ?? null)}
+      slotProps={{ transition: { onEntered: focusInitialElement } }}
     >
       {popupHeader}
       <DialogContent sx={styles.contentContainer}>

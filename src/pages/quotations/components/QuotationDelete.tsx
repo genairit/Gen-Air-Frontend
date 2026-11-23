@@ -4,11 +4,13 @@ import {
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
+import { Box } from "@mui/material";
 import Button from "./QuotationButton";
 import { useState, type FC } from "react";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
+import ValidationMessageText from "../../../components/ValidationMessageText/ValidationMessageText";
 
 interface IQuotationDeleteProps {
   number: string;
@@ -47,17 +49,6 @@ const QuotationDelete: FC<IQuotationDeleteProps> = ({
           closeAfterAction={false}
           dir={TEXT_DIRECTIONS.RTL}
           onClose={() => setOpen(false)}
-          content={
-            <>
-              <p>למחוק את {number}? אי אפשר לשחזר דרך האפליקציה.</p>
-              {error && (
-                <div role="alert">
-                  {error}
-                  <Button text="טען גרסה עדכנית" onClick={onReload} disabled={pending} />
-                </div>
-              )}
-            </>
-          }
           buttons={{
             primary: {
               text: pending ? "מוחק..." : "מחק הצעה",
@@ -66,6 +57,17 @@ const QuotationDelete: FC<IQuotationDeleteProps> = ({
             },
             secondary: { text: "חזרה", isDisabled: pending, onClick: () => setOpen(false) },
           }}
+          content={
+            <>
+              <Box component="p">למחוק את {number}? אי אפשר לשחזר דרך האפליקציה.</Box>
+              {error && (
+                <Box role="alert">
+                  <ValidationMessageText text={error} />
+                  <Button text="טען גרסה עדכנית" onClick={onReload} disabled={pending} />
+                </Box>
+              )}
+            </>
+          }
         />
       )}
     </>

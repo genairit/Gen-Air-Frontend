@@ -19,3 +19,9 @@ export const focusAddedInput = (input: HTMLInputElement): void => {
 export const focusActiveTab = (tabList: HTMLElement | null): void => {
   tabList?.querySelector<HTMLElement>(ACTIVE_TAB_SELECTOR)?.focus();
 };
+
+export const focusConnectedElement = (element: HTMLElement | null): void => {
+  if (element?.isConnected) {
+    element.focus({ preventScroll: true });
+  }
+};
