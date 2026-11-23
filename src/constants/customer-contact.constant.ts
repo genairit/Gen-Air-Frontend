@@ -58,7 +58,7 @@ export const CUSTOMER_CONTACT_FIELDS = [
 export const CUSTOMER_CONTACT_ROLE_SUGGESTIONS = [
   "מנהל פרויקט",
   "קבלן ראשי",
-  "מהנדס",
+  "עובד הנדסי",
   "בעל הבית",
   "מנהל אחזקה",
 ] as const;

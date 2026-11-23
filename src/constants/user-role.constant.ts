@@ -41,7 +41,7 @@ export type ProjectMemberRoleType = (typeof PROJECT_MEMBER_ROLES)[number];
 
 export const USER_ROLE_LABELS: Record<UserRoleType, string> = {
   finance: "מחלקת כספים",
-  engineer: "עובד הנדסה",
+  engineer: "עובד הנדסי",
   engineering_lead: "ראש צוות הנדסה",
   installer: "מתקין",
   sales_agent: "תפקיד ישן: סוכן מכירות",
@@ -53,7 +53,7 @@ export const USER_ROLE_LABELS: Record<UserRoleType, string> = {
 
 export const USER_ROLE_PLURAL_LABELS: Record<UserRoleType, string> = {
   finance: "כספים",
-  engineer: "הנדסה",
+  engineer: "עובדים הנדסיים",
   engineering_lead: "ראשי צוות הנדסה",
   installer: "מתקינים",
   sales_agent: "תפקיד ישן",

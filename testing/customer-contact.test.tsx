@@ -97,6 +97,26 @@ test("name is required; optional contact fields serialize to null", () => {
   assert.equal(validateCustomerContactDraft(toCustomerContactDraft(null)).length, 1);
 });
 
+test("editing preserves legacy contact roles while allowing the new engineering wording", () => {
+  const savedContact = { ...contact, role: "מהנדס" };
+  const draft = toCustomerContactDraft(savedContact);
+  const markup = renderToStaticMarkup(
+    <CustomerContactEditor
+      busy={false}
+      error={null}
+      onSave={noop}
+      values={draft}
+      onCancel={noop}
+      onChange={noop}
+    />,
+  );
+
+  assert.match(markup, /value="מהנדס"/);
+  assert.match(markup, /עובד הנדסי/);
+  assert.equal(toCustomerContactInput(draft).role, "מהנדס");
+  assert.equal(toCustomerContactInput({ ...draft, role: "עובד הנדסי" }).role, "עובד הנדסי");
+});
+
 test("a failed project link retries the created contact without directory edit permission", async () => {
   const originalCreate = contactDirectoryService.create;
   const originalUpdate = contactDirectoryService.update;
