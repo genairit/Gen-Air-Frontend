@@ -22,10 +22,17 @@ export const isPublicationPending = (state: PublicationStateType | null): boolea
   ];
   return pendingStates.includes(state);
 };
+export const publicationLabel = (
+  publication: Pick<IQuotationPublication, "state" | "reason">,
+): string => {
+  const archiveReason =
+    publication.state === PUBLICATION_STATE.ARCHIVED ? publication.reason : null;
+  return archiveReason ?? PUBLICATION_LABELS[publication.state];
+};
 export const publicationDescription = (
   publication: Pick<
     IQuotationPublication,
-    "documentKind" | "sourceVersion" | "destinationLabel" | "reason"
+    "state" | "documentKind" | "sourceVersion" | "destinationLabel" | "reason"
   >,
 ): string[] => {
   const kind =
@@ -34,12 +41,11 @@ export const publicationDescription = (
   const document = [kind, revision, publication.destinationLabel]
     .filter((value): value is string => value !== null)
     .join(" · ");
-  return [document, publication.reason].filter(
-    (value): value is string => value !== null && value.length > 0,
-  );
+  const reason = publication.state === PUBLICATION_STATE.ARCHIVED ? null : publication.reason;
+  return [document, reason].filter((value): value is string => value !== null && value.length > 0);
 };
 export const publicationHistoryDescription = (stage: IQuotationPublicationStage): string =>
-  [PUBLICATION_LABELS[stage.state], ...publicationDescription(stage)].join(" · ");
+  [publicationLabel(stage), ...publicationDescription(stage)].join(" · ");
 
 export const publicationPollInterval = (
   state: PublicationStateType | null,

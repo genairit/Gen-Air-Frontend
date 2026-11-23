@@ -1,6 +1,9 @@
 import {
+  publicationLabel,
   isPublicationPending,
+  publicationDescription,
   publicationPollInterval,
+  publicationHistoryDescription,
 } from "../src/utilities/quotation-publication.utility";
 
 import {
@@ -8,10 +11,12 @@ import {
   PUBLICATION_POLL,
   PUBLICATION_KIND,
   PUBLICATION_STATE,
+  PUBLICATION_LABELS,
 } from "../src/constants/quotation-publication.constant";
 
 import type {
   IQuotationPublication,
+  IQuotationPublicationStage,
   IQuotationPublicationState,
 } from "../src/interfaces/quotation-publication.interface";
 
@@ -413,4 +418,57 @@ test("failed retry renders recoverable error and neutral Refresh adopts publishe
   } finally {
     await cleanup(mounted.renderer, mounted.client);
   }
+});
+
+test("terminal no-file explanation differs from verified archive in notice and history", (): void => {
+  const reason = "ההפקה בוטלה לפני יצירת קובץ";
+  const stage: IQuotationPublicationStage = {
+    cycleId: "cycle",
+    generation: 1,
+    documentKind: PUBLICATION_KIND.QUOTATION,
+    sourceVersion: 2,
+    state: PUBLICATION_STATE.ARCHIVED,
+    reason,
+    updatedAt: "2026-11-23T12:00:00Z",
+    destinationLabel: null,
+    fileUrl: null,
+    lifecycleEventId: "event",
+  };
+  const cancelled = summary({
+    state: PUBLICATION_STATE.ARCHIVED,
+    reason,
+    fileUrl: null,
+    canRetry: false,
+    history: [stage],
+  });
+  const archived = { ...cancelled, reason: null, history: [{ ...stage, reason: null }] };
+  const notice = (publication: IQuotationPublication): string =>
+    renderToStaticMarkup(
+      <QuotationPublicationNotice
+        busy={false}
+        error={null}
+        refreshing={false}
+        publication={publication}
+        retry={async (): Promise<void> => {}}
+        refresh={async (): Promise<void> => {}}
+      />,
+    );
+  assert.equal(publicationLabel(cancelled), reason);
+  assert.equal(publicationLabel(archived), PUBLICATION_LABELS[PUBLICATION_STATE.ARCHIVED]);
+  assert.ok(notice(cancelled).includes(reason));
+  assert.equal(notice(cancelled).includes(PUBLICATION_LABELS[PUBLICATION_STATE.ARCHIVED]), false);
+  assert.ok(notice(archived).includes(PUBLICATION_LABELS[PUBLICATION_STATE.ARCHIVED]));
+  assert.ok(publicationHistoryDescription(stage).includes(reason));
+  assert.equal(
+    publicationHistoryDescription(stage).includes(PUBLICATION_LABELS[PUBLICATION_STATE.ARCHIVED]),
+    false,
+  );
+  assert.ok(
+    publicationHistoryDescription({ ...stage, reason: null }).includes(
+      PUBLICATION_LABELS[PUBLICATION_STATE.ARCHIVED],
+    ),
+  );
+  assert.equal(publicationDescription(cancelled).includes(reason), false);
+  assert.equal(publicationLabel(summary()), PUBLICATION_LABELS[PUBLICATION_STATE.FAILED]);
+  assert.ok(publicationDescription(summary()).includes("נדרש תיקון תיקייה"));
 });

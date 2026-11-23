@@ -1,4 +1,5 @@
 import {
+  publicationLabel,
   isPublicationPending,
   publicationDescription,
 } from "../../../utilities/quotation-publication.utility";
@@ -6,7 +7,6 @@ import {
 import {
   PUBLICATION_COPY,
   PUBLICATION_STATE,
-  PUBLICATION_LABELS,
 } from "../../../constants/quotation-publication.constant";
 
 import {
@@ -35,7 +35,8 @@ const QuotationPublicationNotice: FC<IQuotationPublicationState> = ({
   const state = publication?.state ?? null;
   const isFailed = state === PUBLICATION_STATE.FAILED;
   const isPending = isPublicationPending(state);
-  const title = error ?? (state === null ? null : PUBLICATION_LABELS[state]);
+  const publicationTitle = publication === null ? null : publicationLabel(publication);
+  const title = error ?? publicationTitle;
   const variant = isFailed || error !== null ? NOTICE_VARIANTS.warning : NOTICE_VARIANTS.info;
   const lines = publication === null ? [] : publicationDescription(publication);
   const keepRetryFocused = retryRequested && isPending;
