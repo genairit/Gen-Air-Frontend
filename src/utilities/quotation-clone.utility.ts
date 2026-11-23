@@ -2,8 +2,8 @@ import { isAxiosError } from "axios";
 import { isRecord } from "./guards/primitive.guard";
 import { getApiErrorMessage } from "./api-error.utility";
 import { QUOTATION_BRANDS } from "../constants/quotation.constant";
-import type { ICloneFailure } from "../interfaces/quotation-clone.interface";
 import { CLONE_RECOVERY_BY_STATUS } from "../constants/quotation-clone.constant";
+import type { ICloneFailure, ICloneBrandOption } from "../interfaces/quotation-clone.interface";
 
 export const cloneFailure = (error: unknown): ICloneFailure => {
   const status = isAxiosError(error) ? error.response?.status : null;
@@ -33,7 +33,7 @@ export const cloneFailure = (error: unknown): ICloneFailure => {
   const lines = Array.isArray(issues)
     ? issues
         .filter(isRecord)
-        .flatMap(issue =>
+        .flatMap((issue): string[] =>
           typeof issue.sku === "string" &&
           typeof issue.description === "string" &&
           typeof issue.reason === "string"
@@ -52,12 +52,12 @@ export const cloneFailure = (error: unknown): ICloneFailure => {
   };
 };
 
-export const cloneBrandOptions = (
-  sourceBrand: string | null,
-): { value: string; label: string }[] => [
+export const cloneBrandOptions = (sourceBrand: string | null): ICloneBrandOption[] => [
   { value: "", label: "בחר חברה" },
-  ...QUOTATION_BRANDS.filter(brand => brand !== sourceBrand).map(brand => ({
-    value: brand,
-    label: brand,
-  })),
+  ...QUOTATION_BRANDS.filter((brand): boolean => brand !== sourceBrand).map(
+    (brand): ICloneBrandOption => ({
+      value: brand,
+      label: brand,
+    }),
+  ),
 ];

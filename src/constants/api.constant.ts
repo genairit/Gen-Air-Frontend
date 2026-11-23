@@ -23,7 +23,7 @@ export const API_ENDPOINTS = {
   QUOTATION_SALES_AGENTS: "/quotation/sales-agents",
   CATALOGUE: "/catalogue-item",
   quotationById: (id: string) => `/quotation/${id}`,
-  quotationCloneRecommended: (id: string) => `/quotation/${id}/clone-recommended`,
+  quotationCloneRecommended: (id: string): string => `/quotation/${id}/clone-recommended`,
   quotationClone: (id: string) => `/quotation/${id}/clone`,
   quotationPdf: (id: string) => `/quotation/${id}/pdf`,
   quotationReview: (id: string) => `/quotation/${id}/review`,

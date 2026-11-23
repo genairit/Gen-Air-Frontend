@@ -1,37 +1,41 @@
 import { Box } from "@mui/material";
 import Button from "./QuotationButton";
 import { useRef, useState } from "react";
-import type { FC, FormEvent } from "react";
 import styles from "../quotation.module.css";
 import QuotationSelect from "./QuotationSelect";
 import Card from "../../../components/Card/Card";
+import type { FC, FormEvent, ReactElement } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useElementFocus } from "../../../hooks/element-focus.hook";
 import { QUOTATION_CLONE_STYLES } from "./QuotationCloneForm.style";
+import { BUTTON_TYPES } from "../../../constants/button-type.constant";
 import { quotationService } from "../../../services/quotation.service";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
+import type { IQuotation } from "../../../interfaces/quotation.interface";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { cloneBrandOptions } from "../../../utilities/quotation-clone.utility";
 import { completeQuotationClone } from "../../../actions/quotation-clone.actions";
 import type { ICloneFailure } from "../../../interfaces/quotation-clone.interface";
 import { useQuotationCloneCommand } from "../../../hooks/quotation-clone-command.hook";
 
-const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
-  sourceId,
-  onCancel,
-}) => {
+interface ICloneFormProps {
+  sourceId: string;
+  onCancel: () => void;
+}
+
+const QuotationCloneForm: FC<ICloneFormProps> = ({ sourceId, onCancel }): ReactElement => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
   const command = useQuotationCloneCommand(sourceId, location.key);
-  const [targetBrand, setTargetBrand] = useState(() => command.getTargetBrand());
+  const [targetBrand, setTargetBrand] = useState((): string => command.getTargetBrand());
   const [pending, setPending] = useState(false);
   const [failure, setFailure] = useState<ICloneFailure | null>(null);
   const errorRef = useRef<HTMLDivElement>(null);
   const source = useQuery({
     queryKey: ["quotation-clone-source", sourceId],
-    queryFn: () => quotationService.get(sourceId),
+    queryFn: (): Promise<IQuotation> => quotationService.get(sourceId),
   });
   useElementFocus(errorRef, failure !== null, failure);
   const brandOptions = cloneBrandOptions(source.data?.brands[0] ?? null);
@@ -50,7 +54,7 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
       execute: quotationService.cloneRecommended,
       onPending: setPending,
       onFailure: setFailure,
-      onSuccess: (quotation, isCurrent) =>
+      onSuccess: (quotation, isCurrent): Promise<void> =>
         completeQuotationClone({ quotation, queryClient, navigate, isCurrent }),
     });
   };
@@ -72,7 +76,7 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
           <Box className={styles.row}>
             <Button
               text="נסה שוב"
-              onClick={async () => {
+              onClick={async (): Promise<void> => {
                 await source.refetch();
               }}
             />
@@ -108,7 +112,7 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
           value={targetBrand}
           items={brandOptions}
           label="חברת מיזוג חדשה"
-          onChange={event => {
+          onChange={(event): void => {
             command.reset();
             setFailure(null);
             setTargetBrand(event.target.value);
@@ -130,7 +134,7 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
                   <Button
                     text="רענן הצעת מקור"
                     disabled={source.isFetching}
-                    onClick={() =>
+                    onClick={(): Promise<void> =>
                       command.refreshSource({ refresh: source.refetch, onFailure: setFailure })
                     }
                   />
@@ -140,7 +144,12 @@ const QuotationCloneForm: FC<{ sourceId: string; onCancel: () => void }> = ({
           </Box>
         )}
         <Box sx={QUOTATION_CLONE_STYLES.actions}>
-          <Button type="submit" text={createText} isLoading={pending} disabled={createDisabled} />
+          <Button
+            text={createText}
+            isLoading={pending}
+            disabled={createDisabled}
+            type={BUTTON_TYPES.SUBMIT}
+          />
           <Button onClick={onCancel} disabled={pending} text="חזרה להצעת המקור" />
         </Box>
       </Box>

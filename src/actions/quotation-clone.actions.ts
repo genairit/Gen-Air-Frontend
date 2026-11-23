@@ -1,11 +1,12 @@
+import type {
+  ICloneRefreshInput,
+  ICloneCompletionInput,
+} from "../interfaces/quotation-clone.interface";
+
 import { logger } from "../utilities/logger.utility";
-import type { QueryClient } from "@tanstack/react-query";
-import type { NavigateFunction } from "react-router-dom";
 import { buildQuotationPath } from "../utilities/route.utility";
-import type { IQuotation } from "../interfaces/quotation.interface";
 import { cloneFailure } from "../utilities/quotation-clone.utility";
 import { TASK_QUOTATION_KEYS } from "../constants/task-quotation.constant";
-import type { ICloneFailure } from "../interfaces/quotation-clone.interface";
 import { CommandIdentityManager } from "../managers/command-identity.manager";
 import type { ICloneExecution } from "../interfaces/quotation-clone.interface";
 import { QUOTATION_SHARING_KEYS } from "../constants/quotation-sharing.constant";
@@ -42,10 +43,7 @@ export class QuotationCloneCommand {
     this.active = false;
   }
 
-  async refreshSource(input: {
-    refresh: () => Promise<{ isSuccess: boolean }>;
-    onFailure: (failure: ICloneFailure | null) => void;
-  }): Promise<void> {
+  async refreshSource(input: ICloneRefreshInput): Promise<void> {
     const context = new AuthorizationContext();
     const result = await input.refresh();
     if (!result.isSuccess || !this.isCurrent(context)) {
@@ -105,7 +103,7 @@ export class QuotationCloneCommand {
 
       QuotationCloneStorageManager.clear(this.storageKey);
       this.completed = true;
-      await input.onSuccess(quotation, () => this.isCurrent(context));
+      await input.onSuccess(quotation, (): boolean => this.isCurrent(context));
     } catch (error: unknown) {
       logger.error("Recommended quotation clone failed", {});
       if (!this.isCurrent(context)) {
@@ -122,12 +120,7 @@ export class QuotationCloneCommand {
   }
 }
 
-export const completeQuotationClone = async (input: {
-  quotation: IQuotation;
-  queryClient: QueryClient;
-  navigate: NavigateFunction;
-  isCurrent: () => boolean;
-}): Promise<void> => {
+export const completeQuotationClone = async (input: ICloneCompletionInput): Promise<void> => {
   await Promise.all([
     input.queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY }),
     input.queryClient.invalidateQueries({ queryKey: [TASK_QUOTATION_KEYS.ROOT] }),

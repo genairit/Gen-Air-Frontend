@@ -1,15 +1,20 @@
 import { useLayoutEffect, useMemo } from "react";
 import { QuotationCloneCommand } from "../actions/quotation-clone.actions";
 
+interface ICloneCommandScope {
+  routeKey: string;
+  command: QuotationCloneCommand;
+}
+
 export const useQuotationCloneCommand = (
   sourceId: string,
   routeKey: string,
 ): QuotationCloneCommand => {
   const { command } = useMemo(
-    () => ({ routeKey, command: new QuotationCloneCommand(sourceId) }),
+    (): ICloneCommandScope => ({ routeKey, command: new QuotationCloneCommand(sourceId) }),
     [sourceId, routeKey],
   );
-  useLayoutEffect(() => {
+  useLayoutEffect((): (() => void) => {
     command.activate();
     return (): void => command.deactivate();
   }, [command]);

@@ -10,6 +10,7 @@ import { AxiosError, AxiosHeaders } from "axios";
 import { quotationFixture } from "./quotation.fixture";
 import { setTimeout as settle } from "node:timers/promises";
 import { httpClient } from "../src/services/http-client.service";
+import { BUTTON_TYPES } from "../src/constants/button-type.constant";
 import { quotationService } from "../src/services/quotation.service";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { cloneFailure } from "../src/utilities/quotation-clone.utility";
@@ -22,6 +23,15 @@ import type { ICloneExecution } from "../src/interfaces/quotation-clone.interfac
 import { AuthorizationContext } from "../src/managers/authorization-context.manager";
 import type { IRecommendedCloneCommand } from "../src/interfaces/quotation.interface";
 import QuotationCloneForm from "../src/pages/quotations/components/QuotationCloneForm";
+
+interface ITestRendererState {
+  current: ReactTestRenderer | null;
+}
+
+interface ITestFocusableNode {
+  focus: () => void;
+  isConnected: boolean;
+}
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 Reflect.set(globalThis, "window", new EventTarget());
@@ -144,7 +154,7 @@ test("real form submits one recommended command, no catalogue grid, preserves ta
     { initialEntries: ["/quotations?cloneFrom=quote1"] },
   );
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const renderer: { current: ReactTestRenderer | null } = { current: null };
+  const renderer: ITestRendererState = { current: null };
   await act(async (): Promise<void> => {
     renderer.current = create(
       <QueryClientProvider client={client}>
@@ -164,7 +174,7 @@ test("real form submits one recommended command, no catalogue grid, preserves ta
     view.root.findByType(QuotationSelect).props.onChange({ target: { value: "תדיראן" } });
   });
   const form = (): ReturnType<typeof view.root.find> =>
-    view.root.find(node => node.props.component === "form");
+    view.root.find((node): boolean => node.props.component === "form");
   await act(async (): Promise<void> => {
     form().props.onSubmit({ preventDefault: (): void => {} });
     await settle(5);
@@ -246,7 +256,7 @@ test("multi-brand and General-only sources expose no create action", async (): P
       { path: "*", element: <QuotationCloneForm sourceId={source.id} onCancel={(): void => {}} /> },
     ]);
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const renderer: { current: ReactTestRenderer | null } = { current: null };
+    const renderer: ITestRendererState = { current: null };
     await act(async (): Promise<void> => {
       renderer.current = create(
         <QueryClientProvider client={client}>
@@ -262,7 +272,9 @@ test("multi-brand and General-only sources expose no create action", async (): P
     assert.ok(view);
     assert.equal(view.root.findAllByType(QuotationSelect).length, 0);
     assert.equal(
-      view.root.findAllByType(QuotationButton).some(node => node.props.text === "צור הצעה חדשה"),
+      view.root
+        .findAllByType(QuotationButton)
+        .some((node): boolean => node.props.text === "צור הצעה חדשה"),
       false,
     );
     await act(async (): Promise<void> => {
@@ -275,24 +287,24 @@ test("multi-brand and General-only sources expose no create action", async (): P
 
 test("shared button bridges native default/submit types, one click, and disabled state", async (): Promise<void> => {
   const clicked = mock.fn((): void => {});
-  const renderer: { current: ReactTestRenderer | null } = { current: null };
+  const renderer: ITestRendererState = { current: null };
   await act(async (): Promise<void> => {
     renderer.current = create(<QuotationButton text="ordinary" onClick={clicked} />);
   });
   const view = renderer.current;
   assert.ok(view);
   const ordinary = view.root.findByType("button");
-  assert.equal(ordinary.props.type, "button");
+  assert.equal(ordinary.props.type, BUTTON_TYPES.BUTTON);
   await act(async (): Promise<void> => {
     ordinary.props.onClick({});
   });
   assert.equal(clicked.mock.callCount(), 1);
   await act(async (): Promise<void> => {
-    view.update(<QuotationButton text="submit" type="submit" />);
+    view.update(<QuotationButton text="submit" type={BUTTON_TYPES.SUBMIT} />);
   });
-  assert.equal(view.root.findByType("button").props.type, "submit");
+  assert.equal(view.root.findByType("button").props.type, BUTTON_TYPES.SUBMIT);
   await act(async (): Promise<void> => {
-    view.update(<QuotationButton disabled text="submit" type="submit" />);
+    view.update(<QuotationButton disabled text="submit" type={BUTTON_TYPES.SUBMIT} />);
   });
   assert.equal(view.root.findByType("button").props.disabled, true);
   await act(async (): Promise<void> => {
@@ -346,14 +358,14 @@ test("real form disables pending controls, focuses stale error, keeps selection,
     { path: "*", element: <QuotationCloneForm sourceId={source.id} onCancel={(): void => {}} /> },
   ]);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const renderer: { current: ReactTestRenderer | null } = { current: null };
+  const renderer: ITestRendererState = { current: null };
   await act(async (): Promise<void> => {
     renderer.current = create(
       <QueryClientProvider client={client}>
         <RouterProvider router={router} />
       </QueryClientProvider>,
       {
-        createNodeMock: (): { isConnected: boolean; focus: () => void } => ({
+        createNodeMock: (): ITestFocusableNode => ({
           isConnected: true,
           focus: focused,
         }),
@@ -371,7 +383,7 @@ test("real form disables pending controls, focuses stale error, keeps selection,
   });
   const submit = (): void =>
     view.root
-      .find(node => node.props.component === "form")
+      .find((node): boolean => node.props.component === "form")
       .props.onSubmit({ preventDefault: (): void => {} });
   await act(async (): Promise<void> => {
     submit();
@@ -380,7 +392,7 @@ test("real form disables pending controls, focuses stale error, keeps selection,
   assert.equal(requests.length, 1);
   assert.equal(view.root.findByType(QuotationSelect).props.disabled, true);
   assert.equal(
-    view.root.findAllByType(QuotationButton).every(node => node.props.disabled),
+    view.root.findAllByType(QuotationButton).every((node): boolean => node.props.disabled === true),
     true,
   );
   await act(async (): Promise<void> => {
@@ -390,15 +402,16 @@ test("real form disables pending controls, focuses stale error, keeps selection,
   assert.equal(view.root.findByType(QuotationSelect).props.value, "תדיראן");
   assert.equal(focused.mock.callCount() > 0, true);
   assert.equal(
-    view.root.findAllByType(QuotationButton).find(node => node.props.type === "submit")?.props
-      .disabled,
+    view.root
+      .findAllByType(QuotationButton)
+      .find((node): boolean => node.props.type === BUTTON_TYPES.SUBMIT)?.props.disabled,
     true,
   );
   source.version = 2;
   await act(async (): Promise<void> => {
     await view.root
       .findAllByType(QuotationButton)
-      .find(node => node.props.text === "רענן הצעת מקור")
+      .find((node): boolean => node.props.text === "רענן הצעת מקור")
       ?.props.onClick();
     await settle(5);
   });
