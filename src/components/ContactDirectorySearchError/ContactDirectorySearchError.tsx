@@ -20,7 +20,7 @@ const ContactDirectorySearchError: FC<IContactDirectorySearchErrorProps> = ({
   const styles = usePageStyles();
 
   return (
-    <Box sx={styles.stack({ gap: "8px" })}>
+    <Box sx={[styles.stack({ gap: "8px" }), styles.wrappingText]}>
       <InlineError message={message} />
       <Button
         disabled={busy}

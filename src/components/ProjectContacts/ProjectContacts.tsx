@@ -50,6 +50,7 @@ interface IProjectContactsProps {
 const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
   const styles = usePageStyles();
   const user = useSessionUser();
+  const queryClient = useQueryClient();
   const canEditContactDetails = hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
   const [search, setSearch] = useState("");
   const [editorContact, setEditorContact] = useState<ICustomerContact | null>(null);
@@ -57,7 +58,6 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
   const [createdContactId, setCreatedContactId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ICustomerContactDraft>(toCustomerContactDraft(null));
   const [roleDrafts, setRoleDrafts] = useState<Record<string, string>>({});
-  const queryClient = useQueryClient();
   const linksQuery = useQuery({
     queryKey: ["project-contacts", projectId],
     queryFn: () => projectContactService.list(projectId),

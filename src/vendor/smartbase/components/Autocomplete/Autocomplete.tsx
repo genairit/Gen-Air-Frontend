@@ -19,6 +19,7 @@ import SearchField from "./components/SearchField/SearchField";
 import { Box, InputBase, ClickAwayListener } from "@mui/material";
 import { useGeneratedId } from "../../hooks/use-generated-id.hook";
 import { useKeyboardInset } from "../../hooks/use-keyboard-inset.hook";
+import { hasRenderableChildren } from "../../utilities/react-node.utility";
 import { useAutocompleteSearch } from "./hooks/use-autocomplete-search.hook";
 import SearchModeOverlay from "./components/SearchModeOverlay/SearchModeOverlay";
 import { type IAutocompleteProps } from "../../interfaces/autocomplete.interface";
@@ -96,13 +97,13 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   const activeOptionId = search.activeOption
     ? getOptionId(listId, search.activeOption.value)
     : null;
-  const hasEmptyFeedback = Boolean(emptyFeedback);
+  const hasEmptyFeedback = hasRenderableChildren(emptyFeedback);
   const showEmptyMessage = search.isEmpty && !hasEmptyFeedback;
-  const currentEmptyFeedback = search.isEmpty ? emptyFeedback : null;
+  const showEmptyFeedback = search.isEmpty && hasEmptyFeedback;
   const feedbackInputRef = isSearchMode ? search.searchInputRef : search.inputRef;
   const focusFeedbackInput = (): void => feedbackInputRef.current?.focus();
-  const feedback = currentEmptyFeedback ? (
-    <Box onClickCapture={focusFeedbackInput}>{currentEmptyFeedback}</Box>
+  const feedback = showEmptyFeedback ? (
+    <Box onClickCapture={focusFeedbackInput}>{emptyFeedback}</Box>
   ) : null;
 
   const comboboxAriaProps = getComboboxAriaProps({
