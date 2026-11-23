@@ -1,6 +1,7 @@
 import type { QueryKey } from "@tanstack/react-query";
 import type { TaskStatusType } from "../constants/task.constant";
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { TaskSortType } from "../constants/task-sort.constant";
 import type { TaskType, ProtectedTaskType } from "../constants/task-type.constant";
 import type { IApiUser, IApiProjectReference, IApiCustomerReference } from "./api.interface";
 
@@ -48,12 +49,30 @@ export interface IProtectedTaskSlot {
 
 export interface ITaskQuery {
   search?: string;
+  sort?: TaskSortType;
   projectId?: string | null;
   isUrgent?: boolean | null;
   customerId?: string | null;
   assigneeId?: string | null;
   unassigned?: boolean | null;
   status?: TaskStatusType | null;
+}
+
+export interface ITaskTableQuery {
+  search: string;
+  filterId: string;
+  sort: TaskSortType;
+}
+
+export interface ITaskSummary {
+  total: number;
+  visible: number;
+  sort?: TaskSortType;
+}
+
+export interface ITaskQueryRetry {
+  refetchTasks: () => Promise<unknown>;
+  refetchCounts: () => Promise<unknown>;
 }
 
 export type TTaskStatusCounts = Record<TaskStatusType, number>;

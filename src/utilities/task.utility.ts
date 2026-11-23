@@ -19,6 +19,8 @@ import type {
   IApiTask,
   ITaskQuery,
   ITaskCounts,
+  ITaskSummary,
+  ITaskTableQuery,
   TTaskFormErrors,
   ITaskFormValues,
   ITaskLinkReader,
@@ -39,6 +41,7 @@ import { hasEngineeringRole } from "./user-role.utility";
 import { DATE_FORMAT } from "../constants/date.constants";
 import type { ITabItem } from "../interfaces/tab-item.interface";
 import { buildCustomerPath, buildProjectPath } from "./route.utility";
+import { TASK_SORTS, TASK_SORT_NOTES } from "../constants/task-sort.constant";
 import { USER_ROLES, USER_ROLE_LABELS } from "../constants/user-role.constant";
 import type { IApiUser, IApiProject, IApiCustomerReference } from "../interfaces/api.interface";
 
@@ -205,8 +208,18 @@ export const toTaskQuery = (filterId: string, search: string): ITaskQuery => ({
   status: isTaskStatus(filterId) ? filterId : null,
 });
 
-export const formatTaskSummary = ({ visible, total }: { visible: number; total: number }) =>
-  `מציג ${visible} מתוך ${total} משימות · ${TASKS_PAGE_COPY.ORDER_NOTE}`;
+export const toSortedTaskQuery = ({ filterId, search, sort }: ITaskTableQuery): ITaskQuery => ({
+  ...toTaskQuery(filterId, search.trim()),
+  sort,
+});
+
+export const getTaskId = (task: IApiTask): string => task.id;
+
+export const formatTaskSummary = ({
+  visible,
+  total,
+  sort = TASK_SORTS.DEFAULT,
+}: ITaskSummary): string => `מציג ${visible} מתוך ${total} משימות · ${TASK_SORT_NOTES[sort]}`;
 
 export const formatProjectTasksSubtitle = (count: number) => `${count} משימות`;
 
