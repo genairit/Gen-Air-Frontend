@@ -1,6 +1,7 @@
 import {
   toExistingDriveFolder,
   existingDriveFolderPayload,
+  formatMissingTemplateFolders,
 } from "../src/utilities/existing-drive-folder.utility";
 
 import {
@@ -71,6 +72,10 @@ test("existing folder preview validates identity, name and required missing-fold
 });
 
 test("new mode omits existing-folder payload and stale previews cannot authorize submission", () => {
+  assert.equal(
+    formatMissingTemplateFolders(["private-path-A", "private-path-B"]),
+    "חסרות 2 תיקיות מהתבנית",
+  );
   assert.deepEqual(existingDriveFolderPayload(null), {});
   assert.deepEqual(existingDriveFolderPayload(folder.id), { existingDriveFolder: folder.id });
   assert.equal(
@@ -159,16 +164,20 @@ test("debounced preview blocks empty, pending, stale and failed selection then r
     async (reference, buildingId) => {
       assert.equal(buildingId, "building-1");
       calls.push(reference);
-      if (reference === "folder-A") {
-        return first.promise;
-      }
-      if (reference === "folder-B") {
-        return stale.promise;
-      }
-      if (calls.filter(call => call === "folder-C").length === 1) {
-        throw new Error("No folder access");
-      }
-      return { ...folder, id: "folder-C" };
+      const responses: Record<string, () => Promise<IExistingDriveFolderPreview>> = {
+        "folder-A": async () => first.promise,
+        "folder-B": async () => stale.promise,
+        "folder-C": async () => {
+          if (calls.filter(call => call === "folder-C").length === 1) {
+            throw new Error("No folder access");
+          }
+
+          return { ...folder, id: "folder-C" };
+        },
+      };
+      const respond = responses[reference];
+      assert.ok(respond);
+      return respond();
     },
   );
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });

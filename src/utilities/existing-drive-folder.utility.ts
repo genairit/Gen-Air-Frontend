@@ -22,4 +22,4 @@ export const existingDriveFolderPayload = (
 ): { existingDriveFolder?: string } => (folderId ? { existingDriveFolder: folderId } : {});
 
 export const formatMissingTemplateFolders = (folders: readonly string[]): string =>
-  `תיקיות חסרות (${folders.length}): ${folders.join(" · ")}`;
+  `חסרות ${folders.length} תיקיות מהתבנית`;
