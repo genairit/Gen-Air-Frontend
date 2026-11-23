@@ -6,6 +6,7 @@ import Card from "../../../components/Card/Card";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
 import { quotationCircuits } from "../../../utilities/quotation-presentation.utility";
+import ValidationMessageText from "../../../components/ValidationMessageText/ValidationMessageText";
 
 interface IQuotationDiagnosticsProps {
   quotation: IQuotation;
@@ -32,7 +33,7 @@ const QuotationDiagnostics: FC<IQuotationDiagnosticsProps> = ({ quotation }) => 
         {circuits.map(circuit => (
           <Box component="div" key={circuit.id} className={styles.circuit}>
             <Box component="b">
-              מעגל {circuit.key} · יחס {circuit.ratio ?? "—"}
+              <ValidationMessageText text={`מעגל ${circuit.key} · יחס ${circuit.ratio ?? "—"}`} />
             </Box>
             <Box component="span">
               פנים{" "}
