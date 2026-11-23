@@ -16,6 +16,11 @@ import {
   SHARED_DOCUMENT_STATUS,
 } from "../../../constants/shared-document.constant";
 
+import {
+  getProjectMutationError,
+  isExistingDriveFolderError,
+} from "../../../utilities/existing-drive-folder-error.utility";
+
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import DriveFolderList from "./DriveFolderList";
@@ -38,6 +43,7 @@ import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { DRIVE_FILE_COPY } from "../../../constants/drive-file.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import DriveTemplateCompletionNotice from "./DriveTemplateCompletionNotice";
 import { useDriveFeedbackStore } from "../../../store/drive-feedback.store";
 import { useProjectDriveQuery } from "../../../hooks/queries/project.query";
 import { useSharedDocumentQuery } from "../../../hooks/queries/project.query";
@@ -45,6 +51,7 @@ import { DRIVE_STATUS_BADGE_SIZES } from "../../../constants/drive-folder.consta
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { toProjectFile, toProjectFolder } from "../../../utilities/mappers/project.mapper";
 import { useSelectSharedDocumentMutation } from "../../../hooks/mutations/project.mutation";
+import { EXISTING_DRIVE_FOLDER_COPY } from "../../../constants/existing-drive-folder.constant";
 import { NOTICE_VARIANTS } from "../../../vendor/smartbase/components/NoticeCard/constants/notice-card.constant";
 
 interface IProjectDriveCardProps {
@@ -84,12 +91,16 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({
     ? NOTICE_VARIANTS.warning
     : NOTICE_VARIANTS.info;
 
+  const missingFolders = rootQuery.data?.missingTemplateFolders ?? [];
+  const hasMissingTemplateFolders = missingFolders.length > 0;
+  const isLinkedFolder = rootQuery.data?.missingTemplateFolders != null;
   const folders = (rootQuery.data?.folders ?? []).map(toProjectFolder);
   const rootFiles = (rootQuery.data?.files ?? []).filter(item => !item.isFolder).map(toProjectFile);
   const isEmpty = rootQuery.isSuccess && folders.length === 0 && rootFiles.length === 0;
   const isRefreshing = rootQuery.isSuccess && rootQuery.isFetching;
-  const isDriveUnavailable = isDriveUnavailableError(rootQuery.error);
-  const isMissingFolder = isDriveFolderMissingError(rootQuery.error);
+  const hasLinkedFolderError = isExistingDriveFolderError(rootQuery.error);
+  const isDriveUnavailable = isDriveUnavailableError(rootQuery.error) && !hasLinkedFolderError;
+  const isMissingFolder = isDriveFolderMissingError(rootQuery.error) && !hasLinkedFolderError;
   const hasOtherError = rootQuery.isError && !isDriveUnavailable && !isMissingFolder;
   const showUnavailableBanner = isDriveUnavailable || hasUnknownFolder(folders);
 
@@ -113,6 +124,10 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({
               )
             }
           />
+          {isLinkedFolder && <Box sx={styles.caption}>{EXISTING_DRIVE_FOLDER_COPY.LINKED}</Box>}
+          {hasMissingTemplateFolders && (
+            <DriveTemplateCompletionNotice projectId={projectId} missingFolders={missingFolders} />
+          )}
           {showFeedback && (
             <NoticeBanner title={feedback.message} variant={NOTICE_VARIANTS.success} />
           )}
@@ -140,7 +155,16 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({
           {rootQuery.isPending && <LoadingState label={PROJECT_PAGE_STATUS_COPY.LOADING_FILES} />}
           {showUnavailableBanner && <DriveUnavailableBanner onRetry={rootQuery.refetch} />}
           {isMissingFolder && <DriveProvisioningNotice projectId={projectId} />}
-          {hasOtherError && <InlineError message={getApiErrorMessage(rootQuery.error)} />}
+          {hasOtherError && <InlineError message={getProjectMutationError(rootQuery.error)} />}
+          {hasLinkedFolderError && (
+            <Button
+              variant={BUTTON_VARIANTS.NEUTRAL}
+              text={EXISTING_DRIVE_FOLDER_COPY.RETRY}
+              onClick={async () => {
+                await rootQuery.refetch();
+              }}
+            />
+          )}
           {isEmpty && (
             <Box component="span" sx={styles.caption}>
               {PROJECT_PAGE_STATUS_COPY.NO_FOLDERS}

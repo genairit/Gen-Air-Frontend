@@ -74,6 +74,9 @@ export const API_ENDPOINTS = {
   projectDriveFiles: (projectId: string) => `/project-drive/${projectId}/files`,
   projectDriveFile: (projectId: string, fileId: string) =>
     `/project-drive/${projectId}/files/${encodeURIComponent(fileId)}`,
+  EXISTING_DRIVE_FOLDER_PREVIEW: "/project-drive/existing-folder/preview",
+  projectDriveCompleteTemplate: (projectId: string) =>
+    `/project-drive/${projectId}/complete-template`,
   DRIVE_UPLOAD_POLICY: "/project-drive/upload-policy",
   ADDRESS_SUGGESTIONS: "/address/suggestions",
   addressPlace: (placeId: string) => `/address/places/${encodeURIComponent(placeId)}`,

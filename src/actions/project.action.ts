@@ -6,6 +6,7 @@ import { toProjectPayload } from "../utilities/project.utility";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
 import { toAuthorizedProjectUpdate } from "../utilities/project-permission.utility";
 import type { IStageMove, IProjectSubmission } from "../interfaces/project.interface";
+import { existingDriveFolderPayload } from "../utilities/existing-drive-folder.utility";
 
 const invalidateProjectQueries = () =>
   Promise.all([
@@ -32,6 +33,7 @@ export const createProjectAction = async (submission: IProjectSubmission): Promi
   const project = await projectService.create({
     ...requirePayload(submission),
     contacts: submission.contacts ?? [],
+    ...existingDriveFolderPayload(submission.existingDriveFolder),
   });
   context.assertCurrent();
 

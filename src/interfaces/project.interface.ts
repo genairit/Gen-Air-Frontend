@@ -61,6 +61,7 @@ export interface IProjectSubmission {
   values: IProjectFormValues;
   canHaveApartments: boolean;
   originalStageId?: string | null;
+  existingDriveFolder?: string | null;
   fieldSet: ProjectDetailFieldSetType | null;
   originalIntake: IProjectIntakeValues | null;
   contacts?: { contactId: string; role: string | null; isPrimary: boolean }[];

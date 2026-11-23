@@ -119,6 +119,7 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   customerId: string | null;
   priorityId: string | null;
   parentNotes?: string | null;
+  driveFolderLinked?: boolean;
   driveFolderId: string | null;
   waitingReason?: string | null;
   projectType?: IApiProjectType;
@@ -173,6 +174,7 @@ export interface IApiDriveContents {
   folderId: string;
   files: IApiDriveItem[];
   folders: IApiDriveFolder[];
+  missingTemplateFolders?: string[];
 }
 
 export interface IApiSharedDocument {

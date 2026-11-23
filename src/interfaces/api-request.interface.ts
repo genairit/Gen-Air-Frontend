@@ -33,6 +33,7 @@ export interface IProjectPayload
   customerId: string;
   notes: string | null;
   projectTypeId: string;
+  existingDriveFolder?: string;
   members: IProjectMemberAssignment[];
   hasGeneralLightingCeilingLowering?: boolean;
   generalLightingCeilingLoweringHeight?: number | null;
@@ -94,6 +95,7 @@ export interface IApartmentPayload {
   customerFloor: number;
   hasOwnLighting?: boolean;
   customerApartment: string;
+  existingDriveFolder?: string;
   engineerUserId?: string | null;
   contacts?: IProjectContactInput[];
   members?: IProjectMemberAssignment[];
