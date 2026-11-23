@@ -12,6 +12,7 @@ interface IProjectRoleContactsCardProps {
   disabled: boolean;
   children?: ReactNode;
   canEditDetails: boolean;
+  canCreateContact?: boolean;
   contacts: TProjectRoleContacts;
   onActivityChange?: (role: ProjectContactRoleType, active: boolean) => void;
   onChange: (role: ProjectContactRoleType, contact: ICustomerContact | null) => void;
@@ -20,6 +21,7 @@ const ProjectRoleContactsCard: FC<IProjectRoleContactsCardProps> = ({
   contacts,
   disabled,
   canEditDetails,
+  canCreateContact = false,
   onChange,
   children,
   onActivityChange,
@@ -32,6 +34,7 @@ const ProjectRoleContactsCard: FC<IProjectRoleContactsCardProps> = ({
       contacts={contacts}
       onChange={onChange}
       canEditDetails={canEditDetails}
+      canCreateContact={canCreateContact}
       onActivityChange={onActivityChange}
     />
     {children}

@@ -222,6 +222,7 @@ test("inline editor keeps the containing form blocked until save completes or th
           role: PROJECT_CONTACT_ROLES.ARCHITECT,
           contact: null,
           canEdit: true,
+          canCreateContact: true,
           canEditDetails: true,
           disabled: false,
           onSelect: async () => {},

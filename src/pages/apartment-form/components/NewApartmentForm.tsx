@@ -70,6 +70,7 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const changeRoleActivity = (role: ProjectContactRoleType, active: boolean) =>
     setRoleActivity(current => ({ ...current, [role]: active }));
 
+  const canCreateContact = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canEditContactDetails = hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_UPDATE);
   const changeRoleContact = (role: ProjectContactRoleType, contact: ICustomerContact | null) => {
     const next = setProjectRoleContact(roleContacts, role, contact);
@@ -144,6 +145,7 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
         contacts={roleContacts}
         onChange={changeRoleContact}
         disabled={createMutation.isPending}
+        canCreateContact={canCreateContact}
         onActivityChange={changeRoleActivity}
         canEditDetails={canEditContactDetails}
       />

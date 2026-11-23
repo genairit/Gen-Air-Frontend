@@ -220,6 +220,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     setRoleContacts(next);
   };
 
+  const canCreateContact = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canEditContactDetails = hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_UPDATE);
 
   const handleRetryNameCheck = async () => {
@@ -309,6 +310,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       disabled={isSaving}
       contacts={roleContacts}
       onChange={changeRoleContact}
+      canCreateContact={canCreateContact}
       onActivityChange={changeRoleActivity}
       canEditDetails={canEditContactDetails}
     >

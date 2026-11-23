@@ -143,6 +143,7 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
         canEdit={canEdit}
         contacts={roleContacts}
         onChange={setRoleContact}
+        canCreateContact={canEdit}
         canEditDetails={canEditContactDetails}
         disabled={linksQuery.isPending || linksQuery.isError}
       />

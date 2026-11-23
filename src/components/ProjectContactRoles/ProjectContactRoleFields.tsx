@@ -11,6 +11,7 @@ interface IProjectContactRoleFieldsProps {
   canEdit: boolean;
   disabled: boolean;
   canEditDetails: boolean;
+  canCreateContact?: boolean;
   contacts: TProjectRoleContacts;
   onActivityChange?: (role: ProjectContactRoleType, active: boolean) => void;
   onChange: (
@@ -23,6 +24,7 @@ const ProjectContactRoleFields: FC<IProjectContactRoleFieldsProps> = ({
   canEdit,
   disabled,
   canEditDetails,
+  canCreateContact = false,
   onChange,
   onActivityChange,
 }) => {
@@ -37,6 +39,7 @@ const ProjectContactRoleFields: FC<IProjectContactRoleFieldsProps> = ({
           disabled={disabled}
           contact={contacts[role]}
           canEditDetails={canEditDetails}
+          canCreateContact={canCreateContact}
           onSelect={contact => onChange(role, contact)}
           onActivityChange={active => onActivityChange?.(role, active)}
         />

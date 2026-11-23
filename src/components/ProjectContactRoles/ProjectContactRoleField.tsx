@@ -27,6 +27,7 @@ interface IProjectContactRoleFieldProps {
   canEdit: boolean;
   disabled: boolean;
   canEditDetails: boolean;
+  canCreateContact?: boolean;
   role: ProjectContactRoleType;
   contact: ICustomerContact | null;
   onActivityChange?: (active: boolean) => void;
@@ -38,6 +39,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
   contact,
   canEdit,
   canEditDetails,
+  canCreateContact = false,
   disabled,
   onSelect,
   onActivityChange,
@@ -89,6 +91,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
   const errorMessage = error ? getApiErrorMessage(error) : null;
   const searchError = directoryQuery.isError ? getApiErrorMessage(directoryQuery.error) : null;
   const editorError = saveMutation.isError ? getApiErrorMessage(saveMutation.error) : null;
+  const showCreateAction = canEdit && canCreateContact;
   const showContactActions = canEdit && contact !== null;
   const showContactEditorAction = showContactActions && canEditDetails;
   const freezeCreatedDetails = createdContact !== null && !canEditDetails;
@@ -160,13 +163,15 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
       )}
       {canEdit && (
         <Box sx={styles.row({ gap: "8px" })}>
-          <Button
-            text={addLabel}
-            disabled={isBusy}
-            size={BUTTON_SIZES.COMPACT}
-            variant={BUTTON_VARIANTS.NEUTRAL}
-            onClick={() => startEditor(null)}
-          />
+          {showCreateAction && (
+            <Button
+              text={addLabel}
+              disabled={isBusy}
+              size={BUTTON_SIZES.COMPACT}
+              variant={BUTTON_VARIANTS.NEUTRAL}
+              onClick={() => startEditor(null)}
+            />
+          )}
           {showContactEditorAction && (
             <Button
               text={editLabel}
