@@ -4,6 +4,7 @@ import {
 } from "../src/utilities/quotation-publication.utility";
 
 import {
+  PUBLICATION_COPY,
   PUBLICATION_POLL,
   PUBLICATION_KIND,
   PUBLICATION_STATE,
@@ -23,8 +24,10 @@ import { test, mock } from "node:test";
 import assert from "node:assert/strict";
 import { act, create } from "react-test-renderer";
 import { quotationFixture } from "./quotation.fixture";
+import { renderToStaticMarkup } from "react-dom/server";
 import { setSession } from "../src/store/session.store";
 import { logger } from "../src/utilities/logger.utility";
+import { TIME_UNITS } from "../src/constants/time.constant";
 import { setTimeout as settle } from "node:timers/promises";
 import type { ReactTestRenderer } from "react-test-renderer";
 import { USER_ROLES } from "../src/constants/user-role.constant";
@@ -36,6 +39,7 @@ import { useQuotationPublication } from "../src/hooks/quotation-publication.hook
 import { quotationLifecycleTimeline } from "../src/utilities/quotation-lifecycle.utility";
 import { quotationPublicationService } from "../src/services/quotation-publication.service";
 import { QUOTATION_STATUS, QUOTATION_LIFECYCLE_ACTION } from "../src/constants/quotation.constant";
+import QuotationPublicationNotice from "../src/pages/quotations/components/QuotationPublicationNotice";
 
 interface IPublicationTestState {
   state: IQuotationPublicationState | null;
@@ -51,6 +55,8 @@ interface IPublicationTestRenderer {
 interface IDeferredPublication {
   resolve: ((value: IQuotationPublication) => void) | null;
 }
+
+const PUBLICATION_TEST_SETTLEMENT_MS = 0.001 * TIME_UNITS.SECOND_MS;
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 const user: IApiAuthorizedUser = {
@@ -95,10 +101,10 @@ const mount = async (): Promise<IPublicationTestMount> => {
         <Capture />
       </QueryClientProvider>,
     );
-    await settle(1);
+    await settle(PUBLICATION_TEST_SETTLEMENT_MS);
   });
   await act(async (): Promise<void> => {
-    await settle(1);
+    await settle(PUBLICATION_TEST_SETTLEMENT_MS);
   });
   assert.ok(holder.renderer);
   return { renderer: holder.renderer, client, current };
@@ -191,7 +197,7 @@ test("retry sends only expected cycle and generation and suppresses duplicate cl
     await act(async (): Promise<void> => {
       const first = mounted.current.state?.retry();
       const second = mounted.current.state?.retry();
-      await settle(1);
+      await settle(PUBLICATION_TEST_SETTLEMENT_MS);
       assert.equal(retry.mock.callCount(), 1);
       assert.deepEqual(retry.mock.calls[0]?.arguments, [
         "quotation",
@@ -202,7 +208,7 @@ test("retry sends only expected cycle and generation and suppresses duplicate cl
       await second;
     });
     await act(async (): Promise<void> => {
-      await settle(1);
+      await settle(PUBLICATION_TEST_SETTLEMENT_MS);
     });
     assert.equal(mounted.current.state?.publication?.state, PUBLICATION_STATE.PUBLISHED);
   } finally {
@@ -233,7 +239,7 @@ test("authorization switch discards stale summary and disables retained retry ha
       SessionRequestManager.invalidateAuthorization();
       setSession(null);
       deferred.resolve?.(summary());
-      await settle(1);
+      await settle(PUBLICATION_TEST_SETTLEMENT_MS);
     });
     await retainedRetry?.();
     assert.equal(mounted.current.state?.publication, null);
@@ -296,7 +302,7 @@ test("initial read failure can be refreshed without mutation permission", async 
     assert.ok(mounted.current.state?.error);
     await act(async (): Promise<void> => {
       await mounted.current.state?.refresh();
-      await settle(1);
+      await settle(PUBLICATION_TEST_SETTLEMENT_MS);
     });
     assert.equal(mounted.current.state?.error, null);
     assert.equal(mounted.current.state?.publication?.canRetry, false);
@@ -325,7 +331,7 @@ test("authorization switch rejects in-flight retry result adoption", async (): P
   try {
     await act(async (): Promise<void> => {
       const pending = mounted.current.state?.retry();
-      await settle(1);
+      await settle(PUBLICATION_TEST_SETTLEMENT_MS);
       SessionRequestManager.invalidateAuthorization();
       setSession(null);
       deferred.resolve?.(
@@ -337,6 +343,71 @@ test("authorization switch rejects in-flight retry result adoption", async (): P
       await pending;
     });
     assert.equal(mounted.current.state?.publication, null);
+  } finally {
+    await cleanup(mounted.renderer, mounted.client);
+  }
+});
+
+test("failed retry renders recoverable error and neutral Refresh adopts published state", async (): Promise<void> => {
+  setSession({
+    user: { ...user, permissions: [...user.permissions, PERMISSIONS.QUOTATIONS_UPDATE] },
+    accessToken: "local-mutation-token",
+  });
+  mock.method(logger, "error", (): void => {});
+  const reads = { count: 0 };
+  mock.method(quotationPublicationService, "get", async (): Promise<IQuotationPublication> => {
+    reads.count += 1;
+    if (reads.count === 1) {
+      return summary();
+    }
+    return summary({
+      state: PUBLICATION_STATE.PUBLISHED,
+      canRetry: false,
+      reason: null,
+      fileUrl: "https://drive.google.com/file/d/id/view",
+    });
+  });
+  const retry = mock.method(
+    quotationPublicationService,
+    "retry",
+    async (): Promise<IQuotationPublication> => {
+      throw new Error("local rejected retry");
+    },
+  );
+  const mounted = await mount();
+  try {
+    await act(async (): Promise<void> => {
+      await mounted.current.state?.retry();
+      await settle(PUBLICATION_TEST_SETTLEMENT_MS);
+    });
+    const failedState = mounted.current.state;
+    assert.ok(failedState);
+    assert.equal(failedState.error, PUBLICATION_COPY.RETRY_ERROR);
+    assert.equal(failedState.busy, false);
+    assert.equal(failedState.refreshing, false);
+    const failedMarkup = renderToStaticMarkup(<QuotationPublicationNotice {...failedState} />);
+    assert.ok(failedMarkup.includes(PUBLICATION_COPY.RETRY_ERROR));
+    const buttons = [...failedMarkup.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)];
+    [PUBLICATION_COPY.RETRY, PUBLICATION_COPY.REFRESH].forEach((label): void => {
+      const button = buttons.find((match): boolean => (match[2] ?? "").includes(label));
+      assert.ok(button, `Expected visible action: ${label}`);
+      assert.doesNotMatch(button[1] ?? "", /\bdisabled(?:=|\s|$)/);
+    });
+    await act(async (): Promise<void> => {
+      await mounted.current.state?.refresh();
+      await settle(PUBLICATION_TEST_SETTLEMENT_MS);
+    });
+    const recoveredState = mounted.current.state;
+    assert.ok(recoveredState);
+    assert.equal(recoveredState.error, null);
+    assert.equal(recoveredState.publication?.state, PUBLICATION_STATE.PUBLISHED);
+    const recoveredMarkup = renderToStaticMarkup(
+      <QuotationPublicationNotice {...recoveredState} />,
+    );
+    assert.equal(recoveredMarkup.includes(PUBLICATION_COPY.RETRY_ERROR), false);
+    assert.ok(recoveredMarkup.includes(PUBLICATION_COPY.OPEN));
+    assert.equal(retry.mock.callCount(), 1);
+    assert.equal(reads.count, 2);
   } finally {
     await cleanup(mounted.renderer, mounted.client);
   }

@@ -16,10 +16,17 @@ export const isPublicationState = (value: unknown): value is PublicationStateTyp
   Object.values(PUBLICATION_STATE).some((state): boolean => state === value);
 export const isPublicationKind = (value: unknown): value is PublicationKindType =>
   Object.values(PUBLICATION_KIND).some((kind): boolean => kind === value);
-export const isPublicationUrl = (value: unknown): value is string | null =>
-  value === null ||
-  (typeof value === "string" &&
-    /^https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/view(?:\?[^#]*)?$/.test(value));
+export const isPublicationUrl = (value: unknown): value is string | null => {
+  if (value === null) {
+    return true;
+  }
+  if (typeof value !== "string") {
+    return false;
+  }
+  const isDriveFilePath =
+    /^https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/view(?:\?[^#]*)?$/.test(value);
+  return isDriveFilePath;
+};
 const hasPublicationFields = (value: Record<string, unknown>): boolean => {
   const hasState = isPublicationState(value.state);
   const hasDescription = isNullableString(value.reason) && isNullableString(value.destinationLabel);
