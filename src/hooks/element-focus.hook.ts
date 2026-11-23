@@ -1,10 +1,5 @@
 import { useEffect, type RefObject } from "react";
-
-const focusConnectedElement = (element: HTMLElement | null) => {
-  if (element?.isConnected) {
-    element.focus({ preventScroll: true });
-  }
-};
+import { focusConnectedElement } from "../utilities/focus.utility";
 
 export const useElementFocus = (
   element: RefObject<HTMLElement | null>,

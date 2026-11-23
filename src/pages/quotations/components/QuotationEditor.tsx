@@ -123,6 +123,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   });
   const sessionUser = useSessionUser();
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const rejectionInputRef = useRef<HTMLTextAreaElement>(null);
+  const cancellationInputRef = useRef<HTMLTextAreaElement>(null);
+  const confirmationTitleRef = useRef<HTMLHeadingElement>(null);
   const [focusVersion, setFocusVersion] = useState(0);
   const [originalCustomerId] = useState(initial.customerId);
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
@@ -203,6 +206,10 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const confirmationView =
     confirmation === null ? null : quotationCancellationView(quotation, confirmation);
   const isConfirmationOpen = confirmationView !== null;
+  const isCancellationConfirmation = confirmation === QUOTATION_CONFIRMATION.CANCEL;
+  const confirmationFocusRef = isCancellationConfirmation
+    ? cancellationInputRef
+    : confirmationTitleRef;
   const confirmationTitle = confirmationView?.title ?? "";
   const confirmationActionLabel = confirmationView?.actionLabel ?? "";
   const confirmationDescription = confirmationView?.description ?? "";
@@ -726,6 +733,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           dir={TEXT_DIRECTIONS.RTL}
           title="דחיית הצעה והחזרה לתיקון"
           closeDisabled={editor.commandBusy}
+          initialFocusRef={rejectionInputRef}
           onClose={() => setRejecting(false)}
           buttons={{
             primary: {
@@ -746,9 +754,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                 multiline
                 minRows={3}
                 isRequired
-                autoFocus
                 type={FIELD_TYPES.TEXT}
                 title="סיבת דחייה"
+                inputRef={rejectionInputRef}
                 value={rejectionReason}
                 disabled={editor.commandBusy}
                 maxLength={MAX_QUOTATION_CANCELLATION_REASON_LENGTH}
@@ -789,8 +797,10 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         dir={TEXT_DIRECTIONS.RTL}
         open={isConfirmationOpen}
         title={confirmationTitle}
+        titleRef={confirmationTitleRef}
         closeDisabled={editor.commandBusy}
         onClose={() => setConfirmation(null)}
+        initialFocusRef={confirmationFocusRef}
         buttons={{
           primary: {
             text: confirmationActionLabel,
@@ -816,8 +826,8 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                 multiline
                 minRows={3}
                 isRequired
-                autoFocus
                 type={FIELD_TYPES.TEXT}
+                inputRef={cancellationInputRef}
                 value={cancellationReason}
                 disabled={editor.commandBusy}
                 title="סיבת ביטול"
