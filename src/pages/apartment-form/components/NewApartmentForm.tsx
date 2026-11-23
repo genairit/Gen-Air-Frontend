@@ -32,8 +32,8 @@ import { hasPermission } from "../../../utilities/permission.utility";
 import ApartmentLightingDraftCard from "./ApartmentLightingDraftCard";
 import InlineError from "../../../components/InlineError/InlineError";
 import { useCustomerQuery } from "../../../hooks/queries/customer.query";
-import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { isCustomerSelectable } from "../../../utilities/customer.utility";
+import { useExistingDriveFolder } from "../../../hooks/existing-drive-folder.hook";
 import type { IApartmentFormValues } from "../../../interfaces/apartment.interface";
 import { formatApartmentValidationCount } from "../../../utilities/apartment.utility";
 import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
@@ -41,7 +41,9 @@ import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.con
 import { useCreateApartmentMutation } from "../../../hooks/mutations/apartment.mutation";
 import type { ProjectContactRoleType } from "../../../constants/project-contact-role.constant";
 import ProjectCustomerPickerCard from "../../project-form/components/ProjectCustomerPickerCard";
+import { getProjectMutationError } from "../../../utilities/existing-drive-folder-error.utility";
 import ProjectRoleContactsCard from "../../../components/ProjectContactRoles/ProjectRoleContactsCard";
+import ExistingDriveFolderField from "../../../components/ExistingDriveFolderField/ExistingDriveFolderField";
 
 interface INewApartmentFormProps {
   building: IApiProject;
@@ -57,6 +59,7 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const [roleContacts, setRoleContacts] = useState(emptyProjectRoleContacts);
   const [values, setValues] = useState<IApartmentFormValues>(EMPTY_APARTMENT_FORM);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
+  const driveFolder = useExistingDriveFolder(building.id);
   const createMutation = useCreateApartmentMutation();
   const customerQuery = useCustomerQuery(values.customerId);
 
@@ -66,7 +69,8 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const showFieldErrors = isSubmitAttempted && invalidFieldCount > 0;
 
   const hasUnfinishedRoleContact = Object.values(roleActivity).some(active => active);
-  const isSubmitDisabled = createMutation.isPending || hasUnfinishedRoleContact;
+  const isSubmitDisabled =
+    createMutation.isPending || hasUnfinishedRoleContact || !driveFolder.canSubmit;
   const changeRoleActivity = (role: ProjectContactRoleType, active: boolean) =>
     setRoleActivity(current => ({ ...current, [role]: active }));
 
@@ -88,7 +92,12 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
     }
 
     createMutation.mutate(
-      { buildingId: building.id, values, contacts: projectRoleContactInputs(roleContacts) },
+      {
+        buildingId: building.id,
+        values,
+        contacts: projectRoleContactInputs(roleContacts),
+        existingDriveFolder: driveFolder.existingDriveFolder,
+      },
       { onSuccess: () => navigate(buildProjectPath(building.id)) },
     );
   };
@@ -116,7 +125,13 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
           fields={APARTMENT_UNIT_FIELDS}
           title={ADD_APARTMENT_COPY.UNIT_TITLE}
           isSubmitAttempted={isSubmitAttempted}
-        />
+        >
+          <ExistingDriveFolderField
+            isApartment
+            state={driveFolder}
+            disabled={createMutation.isPending}
+          />
+        </ApartmentFieldsCard>
         <ProjectCustomerPickerCard
           isApartment
           customerId={values.customerId}
@@ -154,7 +169,9 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
       {showFieldErrors && (
         <InlineError message={formatApartmentValidationCount(invalidFieldCount)} />
       )}
-      {createMutation.isError && <InlineError message={getApiErrorMessage(createMutation.error)} />}
+      {createMutation.isError && (
+        <InlineError message={getProjectMutationError(createMutation.error)} />
+      )}
 
       <Box sx={styles.endRow}>
         <Button
