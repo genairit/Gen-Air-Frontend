@@ -18,18 +18,20 @@ import {
 
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
-import { act, create } from "react-test-renderer";
 import Button from "../src/components/Button/Button";
 import { quotationFixture } from "./quotation.fixture";
+import { TextField as MuiTextField } from "@mui/material";
 import { setTimeout as settle } from "node:timers/promises";
 import { TIME_UNITS } from "../src/constants/time.constant";
 import ChoiceRow from "../src/components/ChoiceRow/ChoiceRow";
 import TextField from "../src/components/TextField/TextField";
+import FieldLabel from "../src/components/FieldLabel/FieldLabel";
 import { isApiCustomer } from "../src/utilities/guards/api.guard";
 import { customerService } from "../src/services/customer.service";
 import type { IApiCustomer } from "../src/interfaces/api.interface";
 import { PAYMENT_TERMS } from "../src/constants/payment-terms.constant";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, create, type ReactTestInstance } from "react-test-renderer";
 import { PAYMENT_STAGE_LIMITS } from "../src/constants/payment-configuration.constant";
 import { quotationPaymentConfiguration } from "../src/utilities/quotation-payment.utility";
 import type { IPaymentConfiguration } from "../src/interfaces/payment-configuration.interface";
@@ -550,5 +552,101 @@ test("no-preference customers and read-only quotations expose no payment replace
     await act(async () => state.renderer?.unmount());
     client.clear();
     request.mock.restore();
+  }
+});
+
+test("rendered stage fields accept decimal percentages and long technical milestones without generic-validator errors", async () => {
+  const configuration: IPaymentConfiguration = {
+    paymentTerms: null,
+    paymentSchedule: [
+      {
+        percent: "33.3333",
+        text: "Duct balancing and HVAC commissioning ".padEnd(PAYMENT_STAGE_LIMITS.TEXT, "X"),
+      },
+      { percent: "33.3333", text: "Equipment delivery" },
+      { percent: "33.3334", text: "Final handover" },
+    ],
+  };
+  const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
+  try {
+    await act(async () => {
+      state.renderer = create(
+        <PaymentConfigurationEditor onChange={() => {}} value={configuration} />,
+      );
+    });
+    const renderer = state.renderer;
+    assert.ok(renderer);
+    const fields = renderer.root.findAllByType(MuiTextField);
+    assert.equal(fields[0].props.value, "33.3333");
+    assert.equal(fields[1].props.value.length, PAYMENT_STAGE_LIMITS.TEXT);
+    assert.ok(fields.every(field => field.props.helperText === ""));
+    assert.ok(fields.every(field => field.props.error === false));
+    assert.ok(
+      renderer.root.findAllByType("input").every(input => input.props["aria-invalid"] === false),
+    );
+    assert.ok(
+      renderer.root.findAllByType(FieldLabel).every(label => label.props.hasError === false),
+    );
+    assert.equal(getCustomerPaymentConfigurationError(configuration), null);
+    const zeroStage = {
+      paymentTerms: null,
+      paymentSchedule: [
+        { percent: "0", text: "No deposit" },
+        { percent: "100", text: "At completion" },
+      ],
+    };
+    await act(async () =>
+      renderer.update(<PaymentConfigurationEditor value={zeroStage} onChange={() => {}} />),
+    );
+    assert.ok(
+      renderer.root.findAllByType(MuiTextField).every(field => field.props.helperText === ""),
+    );
+    assert.equal(getCustomerPaymentConfigurationError(zeroStage), null);
+  } finally {
+    await act(async () => state.renderer?.unmount());
+  }
+});
+
+test("rendered stage fields consistently explain invalid percentage precision/range and blank or oversized milestones", async () => {
+  const cases = [
+    { percent: "100.00001", text: "At delivery", invalidField: 0 },
+    { percent: "101", text: "At delivery", invalidField: 0 },
+    { percent: "-1", text: "At delivery", invalidField: 0 },
+    { percent: "", text: "At delivery", invalidField: 0 },
+    { percent: "100", text: " ", invalidField: 1 },
+    { percent: "100", text: "X".repeat(PAYMENT_STAGE_LIMITS.TEXT + 1), invalidField: 1 },
+  ];
+  const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
+  try {
+    await act(async () => {
+      state.renderer = create(<PaymentConfigurationEditor value={custom} onChange={() => {}} />);
+    });
+    const renderer = state.renderer;
+    assert.ok(renderer);
+    for (const scenario of cases) {
+      const configuration: IPaymentConfiguration = {
+        paymentTerms: null,
+        paymentSchedule: [{ percent: scenario.percent, text: scenario.text }],
+      };
+      await act(async () =>
+        renderer.update(<PaymentConfigurationEditor onChange={() => {}} value={configuration} />),
+      );
+      const field: ReactTestInstance =
+        renderer.root.findAllByType(MuiTextField)[scenario.invalidField];
+      assert.equal(typeof field.props.helperText, "string");
+      assert.ok(field.props.helperText.length > 0, JSON.stringify(scenario));
+      assert.equal(field.props.error, true);
+      assert.equal(
+        renderer.root.findAllByType("input")[scenario.invalidField].props["aria-invalid"],
+        true,
+      );
+      assert.equal(
+        renderer.root.findAllByType(FieldLabel)[scenario.invalidField].props.hasError,
+        true,
+      );
+      assert.notEqual(getCustomerPaymentConfigurationError(configuration), null);
+    }
+  } finally {
+    await act(async () => state.renderer?.unmount());
   }
 });

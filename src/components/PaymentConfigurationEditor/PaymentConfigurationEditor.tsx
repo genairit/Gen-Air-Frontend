@@ -9,7 +9,10 @@ import {
   addPaymentStage,
   changePaymentStage,
   removePaymentStage,
-  paymentScheduleTotal,
+  validatePaymentPercent,
+  validatePaymentMilestone,
+  paymentScheduleTotalLabel,
+  paymentStageValidationRows,
   paymentConfigurationChoices,
   getCustomerPaymentConfigurationError,
 } from "../../utilities/payment-configuration.utility";
@@ -61,10 +64,13 @@ const PaymentConfigurationEditor: FC<IPaymentConfigurationEditorProps> = ({
   const hasAmount = amounts.length > 0;
   const canAdd = schedule.length < PAYMENT_STAGE_LIMITS.COUNT;
   const choices = paymentConfigurationChoices({ value, allowUnset, customLabel, termsOptions });
-  const selectedIndex = Math.max(
-    0,
-    choices.findIndex(choice => choice.selected),
-  );
+  const rows = paymentStageValidationRows(schedule);
+  const totalLabel = paymentScheduleTotalLabel(value);
+  const pendingConfirmationLabel =
+    pending?.paymentTerms === null
+      ? PAYMENT_CONFIGURATION_COPY.CONFIRM_CLEAR
+      : PAYMENT_CONFIGURATION_COPY.CONFIRM;
+
   const select = (next: IPaymentConfiguration): void => {
     const wouldDiscardStages = hasStages && next.paymentSchedule.length === 0;
     if (wouldDiscardStages) {
@@ -86,14 +92,14 @@ const PaymentConfigurationEditor: FC<IPaymentConfigurationEditorProps> = ({
   return (
     <Box sx={styles.root}>
       <Box role="radiogroup" sx={styles.choices} aria-label={PAYMENT_CONFIGURATION_COPY.LABEL}>
-        {choices.map((choice, index) => (
+        {choices.map(choice => (
           <ChoiceRow
             role="radio"
             key={choice.id}
             sx={styles.choice}
             disabled={disabled}
+            tabIndex={choice.tabIndex}
             aria-checked={choice.selected}
-            tabIndex={index === selectedIndex ? 0 : -1}
             onKeyDown={RadioChoiceNavigation.handleKey}
             onClick={() => select(choice.configuration)}
           >
@@ -111,15 +117,7 @@ const PaymentConfigurationEditor: FC<IPaymentConfigurationEditorProps> = ({
         <Box sx={styles.root}>
           <Box sx={styles.caption}>{PAYMENT_CONFIGURATION_COPY.CONFIRM_MESSAGE}</Box>
           <Box sx={styles.row}>
-            <Button
-              onClick={confirm}
-              disabled={disabled}
-              text={
-                pending.paymentTerms === null
-                  ? PAYMENT_CONFIGURATION_COPY.CONFIRM_CLEAR
-                  : PAYMENT_CONFIGURATION_COPY.CONFIRM
-              }
-            />
+            <Button onClick={confirm} disabled={disabled} text={pendingConfirmationLabel} />
             <Button
               disabled={disabled}
               onClick={() => setPending(null)}
@@ -129,7 +127,7 @@ const PaymentConfigurationEditor: FC<IPaymentConfigurationEditorProps> = ({
           </Box>
         </Box>
       )}
-      {schedule.map((stage, index) => (
+      {rows.map((stage, index) => (
         <Box key={index} sx={styles.stage({ hasAmount })}>
           <TextField
             isLtr
@@ -137,6 +135,8 @@ const PaymentConfigurationEditor: FC<IPaymentConfigurationEditorProps> = ({
             disabled={disabled}
             value={stage.percent}
             type={FIELD_TYPES.NUMBER}
+            validator={validatePaymentPercent}
+            error={!stage.percentValidation.isValid}
             title={PAYMENT_CONFIGURATION_COPY.PERCENT}
             onChange={percent =>
               onChange(changePaymentStage({ configuration: value, index, changes: { percent } }))
@@ -157,6 +157,8 @@ const PaymentConfigurationEditor: FC<IPaymentConfigurationEditorProps> = ({
               value={stage.text}
               disabled={disabled}
               type={FIELD_TYPES.TEXT}
+              validator={validatePaymentMilestone}
+              error={!stage.textValidation.isValid}
               maxLength={PAYMENT_STAGE_LIMITS.TEXT}
               title={PAYMENT_CONFIGURATION_COPY.MILESTONE}
               onChange={text =>
@@ -190,7 +192,7 @@ const PaymentConfigurationEditor: FC<IPaymentConfigurationEditorProps> = ({
         </Box>
       ))}
       <Box sx={styles.row}>
-        <Box sx={styles.caption}>סה״כ {paymentScheduleTotal(value)}%</Box>
+        <Box sx={styles.caption}>{totalLabel}</Box>
         {!disabled && (
           <Button
             disabled={!canAdd}

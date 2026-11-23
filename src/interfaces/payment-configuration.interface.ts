@@ -1,3 +1,4 @@
+import type { IValidationResult } from "./validation-result.interface";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 
 export interface IPaymentStage {
@@ -21,6 +22,7 @@ export interface IPaymentStageChange {
 export interface IPaymentConfigurationChoice {
   id: string;
   label: string;
+  tabIndex: number;
   selected: boolean;
   configuration: IPaymentConfiguration;
 }
@@ -29,4 +31,9 @@ export interface IPaymentConfigurationChoiceOptions {
   customLabel: string;
   value: IPaymentConfiguration;
   termsOptions: PaymentTermsType[];
+}
+
+export interface IPaymentStageValidationRow extends IPaymentStage {
+  textValidation: IValidationResult;
+  percentValidation: IValidationResult;
 }

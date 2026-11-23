@@ -27,7 +27,7 @@ export const useStyles = () =>
       alignItems: "center",
       minWidth: 0,
       "@media (max-width:600px)": {
-        gridTemplateColumns: hasAmount ? "80px minmax(0, 1fr) 40px" : "80px minmax(0, 1fr) 40px",
+        gridTemplateColumns: "80px minmax(0, 1fr) 40px",
       },
     }),
     description: { minWidth: 0 },

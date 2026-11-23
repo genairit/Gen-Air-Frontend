@@ -13,8 +13,10 @@ import {
 } from "../constants/payment-configuration.constant";
 
 import type {
+  IPaymentStage,
   IPaymentStageChange,
   IPaymentConfiguration,
+  IPaymentStageValidationRow,
   IPaymentConfigurationChoice,
   IPaymentConfigurationSource,
   IPaymentConfigurationChoiceOptions,
@@ -22,6 +24,7 @@ import type {
 
 import type { IApiCustomer } from "../interfaces/api.interface";
 import type { IQuotation } from "../interfaces/quotation.interface";
+import type { IValidationResult } from "../interfaces/validation-result.interface";
 
 export const customerPaymentConfiguration = (
   source: IPaymentConfigurationSource,
@@ -50,16 +53,12 @@ export const getCustomerPaymentConfigurationError = (
   if (schedule.length === 0) {
     return null;
   }
-  const hasInvalidStage = schedule.some(stage => {
-    const hasValidPercent = PAYMENT_PERCENT_PATTERN.test(stage.percent);
-    const hasValidText =
-      stage.text.trim().length > 0 && stage.text.length <= PAYMENT_STAGE_LIMITS.TEXT;
-    if (!hasValidPercent || !hasValidText) {
-      return true;
-    }
-    const percent = new PAYMENT_DECIMAL(stage.percent);
-    return percent.lessThan(0) || percent.greaterThan(100);
-  });
+
+  const hasInvalidStage = schedule.some(
+    stage =>
+      !validatePaymentPercent(stage.percent).isValid ||
+      !validatePaymentMilestone(stage.text).isValid,
+  );
   const hasInvalidCount = schedule.length > PAYMENT_STAGE_LIMITS.COUNT;
   const hasInvalidTotal = paymentScheduleTotal(configuration) !== "100";
   return hasInvalidStage || hasInvalidCount || hasInvalidTotal
@@ -85,6 +84,7 @@ export const applyCustomerPaymentDefault = (
   if (customer?.id !== quotation.customerId) {
     return quotation;
   }
+
   const configuration = configuredCustomerPaymentDefault(customer);
   return configuration ? { ...quotation, ...configuration } : quotation;
 };
@@ -131,7 +131,7 @@ export const paymentConfigurationChoices = ({
   const isUnset = value.paymentTerms === null && !hasStages;
   const isCustom = value.paymentTerms === null && hasStages;
   const isLegacyOther = allowUnset && value.paymentTerms === PAYMENT_TERMS.OTHER && !hasStages;
-  return [
+  const choices = [
     ...termsOptions.map(term => ({
       id: term,
       label: PAYMENT_TERMS_LABELS[term].title,
@@ -155,6 +155,14 @@ export const paymentConfigurationChoices = ({
         ]
       : []),
   ];
+  const selectedIndex = Math.max(
+    0,
+    choices.findIndex(choice => choice.selected),
+  );
+  return choices.map((choice, index) => ({
+    ...choice,
+    tabIndex: index === selectedIndex ? 0 : -1,
+  }));
 };
 export const paymentConfigurationSummary = (source: IPaymentConfigurationSource): string => {
   const configuration = customerPaymentConfiguration(source);
@@ -172,3 +180,26 @@ export const paymentConfigurationSummary = (source: IPaymentConfigurationSource)
     ? PAYMENT_TERMS_LABELS[configuration.paymentTerms].title
     : PAYMENT_CONFIGURATION_COPY.NONE;
 };
+
+export const validatePaymentPercent = (value: string): IValidationResult => {
+  if (!PAYMENT_PERCENT_PATTERN.test(value)) {
+    return { isValid: false, errorText: PAYMENT_CONFIGURATION_COPY.PERCENT_ERROR };
+  }
+
+  const percent = new PAYMENT_DECIMAL(value);
+  const isValid = percent.greaterThanOrEqualTo(0) && percent.lessThanOrEqualTo(100);
+  return { isValid, errorText: isValid ? "" : PAYMENT_CONFIGURATION_COPY.PERCENT_ERROR };
+};
+export const validatePaymentMilestone = (value: string): IValidationResult => {
+  const isValid = value.trim().length > 0 && value.length <= PAYMENT_STAGE_LIMITS.TEXT;
+  return { isValid, errorText: isValid ? "" : PAYMENT_CONFIGURATION_COPY.TEXT_ERROR };
+};
+export const paymentStageValidationRows = (stages: IPaymentStage[]): IPaymentStageValidationRow[] =>
+  stages.map(stage => ({
+    ...stage,
+    percentValidation: validatePaymentPercent(stage.percent),
+    textValidation: validatePaymentMilestone(stage.text),
+  }));
+export const paymentScheduleTotalLabel = (
+  configuration: Pick<IPaymentConfiguration, "paymentSchedule">,
+): string => `${PAYMENT_CONFIGURATION_COPY.TOTAL} ${paymentScheduleTotal(configuration)}%`;

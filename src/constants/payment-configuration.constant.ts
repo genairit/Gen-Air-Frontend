@@ -3,12 +3,17 @@ import { PAYMENT_TERMS, PAYMENT_TERMS_VALUES } from "./payment-terms.constant";
 
 export const PAYMENT_DECIMAL = Decimal.clone({ precision: 50, rounding: Decimal.ROUND_HALF_UP });
 export const PAYMENT_STAGE_LIMITS = { COUNT: 30, TEXT: 300, PERCENT_DECIMALS: 4 } as const;
-export const PAYMENT_PERCENT_PATTERN = /^\d+(?:\.\d{1,4})?$/;
+export const PAYMENT_PERCENT_PATTERN = new RegExp(
+  `^\\d+(?:\\.\\d{1,${PAYMENT_STAGE_LIMITS.PERCENT_DECIMALS}})?$`,
+);
 export const CUSTOMER_PAYMENT_TERMS_VALUES = PAYMENT_TERMS_VALUES.filter(
   value => value !== PAYMENT_TERMS.OTHER,
 );
 export const PAYMENT_CONFIGURATION_COPY = {
   LABEL: "תנאי תשלום",
+  TOTAL: "סה״כ",
+  PERCENT_ERROR: `יש להזין אחוז בין 0 ל־100, עד ${PAYMENT_STAGE_LIMITS.PERCENT_DECIMALS} ספרות אחרי הנקודה.`,
+  TEXT_ERROR: `יש לתאר את מועד התשלום בטקסט של עד ${PAYMENT_STAGE_LIMITS.TEXT} תווים.`,
   NONE: "ללא ברירת מחדל",
   CUSTOM: "מותאם אישית",
   PERCENT: "אחוז מהסכום",

@@ -34,6 +34,9 @@ const QuotationCustomerPaymentDefault: FC<IQuotationCustomerPaymentDefaultProps>
   const changed = originalCustomerId !== quotation.customerId;
   const ready = loaded !== null && !customer.isError && !customer.isFetching;
   const applicableConfiguration = ready ? configuration : null;
+  const notice = changed
+    ? PAYMENT_CONFIGURATION_COPY.CHANGED
+    : PAYMENT_CONFIGURATION_COPY.DEFAULT_AVAILABLE;
   const showNoDefault = ready && configuration === null;
   if (disabled) {
     return null;
@@ -42,9 +45,7 @@ const QuotationCustomerPaymentDefault: FC<IQuotationCustomerPaymentDefaultProps>
   return (
     <Box sx={styles.root}>
       <Box component="p" role="status">
-        {changed
-          ? PAYMENT_CONFIGURATION_COPY.CHANGED
-          : PAYMENT_CONFIGURATION_COPY.DEFAULT_AVAILABLE}
+        {notice}
       </Box>
       {customer.isFetching && <Box role="status">{PAYMENT_CONFIGURATION_COPY.LOADING}</Box>}
       {customer.isError && (
