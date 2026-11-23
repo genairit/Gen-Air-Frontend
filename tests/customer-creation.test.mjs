@@ -96,7 +96,7 @@ test("customer form trims every text field and sends no Priority-controlled fiel
     priorityId: "forged",
     prioritySyncStatus: "synced",
   });
-  assert.deepEqual(normalized, { ...payload, paymentTerms: null });
+  assert.deepEqual(normalized, { ...payload, paymentTerms: null, paymentSchedule: [] });
   assert.equal(padded.name.startsWith("  "), true);
   assert.deepEqual(getCustomerFormErrors(padded), {});
 });

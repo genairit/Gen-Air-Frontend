@@ -1,9 +1,3 @@
-import {
-  PAYMENT_TERMS,
-  PAYMENT_TERMS_LABELS,
-  CUSTOMER_PAYMENT_DEFAULT_COPY,
-} from "../src/constants/payment-terms.constant";
-
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { MemoryRouter } from "react-router-dom";
@@ -17,8 +11,8 @@ import { PERMISSIONS } from "../src/constants/permission.constant";
 import InlineError from "../src/components/InlineError/InlineError";
 import type { IApiCustomer } from "../src/interfaces/api.interface";
 import { MOBILE_LAYOUT_QUERY } from "../src/constants/layout.constant";
-import Autocomplete from "../src/components/Autocomplete/Autocomplete";
 import { getApiErrorMessage } from "../src/utilities/api-error.utility";
+import { PAYMENT_TERMS } from "../src/constants/payment-terms.constant";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BUILDING_PAGE_COPY } from "../src/constants/apartment.constant";
 import { PROJECT_FORM_COPY } from "../src/constants/project-form.constant";
@@ -28,9 +22,11 @@ import { useStyles as getTabStyles } from "../src/components/Tabs/Tabs.style";
 import { PROJECT_INTAKE_COPY } from "../src/constants/project-intake.constant";
 import NewCustomerForm from "../src/pages/customer-form/components/NewCustomerForm";
 import CustomerFieldsCard from "../src/pages/customer-form/components/CustomerFieldsCard";
+import { PAYMENT_CONFIGURATION_COPY } from "../src/constants/payment-configuration.constant";
 import { useStyles as getHeaderStyles } from "../src/components/CardHeader/CardHeader.style";
 import CustomerPaymentDefault from "../src/components/CustomerPaymentDefault/CustomerPaymentDefault";
 import { useStyles as getDriveStyles } from "../src/pages/project/components/ProjectDriveActions.style";
+import PaymentConfigurationEditor from "../src/components/PaymentConfigurationEditor/PaymentConfigurationEditor";
 
 const customer: IApiCustomer = {
   id: "customer-payment",
@@ -47,7 +43,8 @@ const customer: IApiCustomer = {
   prioritySyncStatus: "pending",
   prioritySyncAttempts: 0,
   prioritySyncError: null,
-  createdById: "test-admin",
+  createdAt: "2026-11-23T00:00:00.000Z",
+  paymentSchedule: [],
 };
 
 test("responsive shell geometry changes together through CSS without a media-query render", () => {
@@ -111,13 +108,15 @@ test("project and apartment copy never promises retired payment storage or inher
   assert.match(BUILDING_PAGE_COPY.EMPTY_DESCRIPTION, /סוג הפרויקט, הכתובת וההערות/);
 });
 
-test("customer creation and editing select a default and explicitly clear it to null", async () => {
+test("customer creation and editing save complete independent payment configurations and preserve failed edits", async () => {
   Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
   const previousWindow = Reflect.get(globalThis, "window");
   const previousDocument = Reflect.get(globalThis, "document");
   Reflect.set(globalThis, "window", Object.assign(new EventTarget(), { setTimeout, clearTimeout }));
   Reflect.set(globalThis, "document", new EventTarget());
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   const adapter = httpClient.defaults.adapter;
   const payloads: unknown[] = [];
   const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
@@ -132,49 +131,50 @@ test("customer creation and editing select a default and explicitly clear it to 
       employeeNumber: "",
       deletedAt: null,
       role: USER_ROLES.SYSTEM_ADMIN,
+      assignedRoles: [USER_ROLES.SYSTEM_ADMIN],
       permissions: [PERMISSIONS.CUSTOMERS_CREATE, PERMISSIONS.CUSTOMERS_UPDATE],
     },
   });
   httpClient.defaults.adapter = async config => {
     const payload: unknown = JSON.parse(config.data);
+    assert.ok(payload !== null && typeof payload === "object" && !Array.isArray(payload));
     payloads.push(payload);
-    return { data: customer, status: 200, statusText: "OK", headers: {}, config };
+    return {
+      data: { ...customer, ...payload },
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config,
+    };
   };
+  const custom = { paymentTerms: null, paymentSchedule: [{ percent: "100", text: "מסירה" }] };
   try {
     await act(async () => {
       state.renderer = create(
         <QueryClientProvider client={client}>
           <MemoryRouter>
-            <NewCustomerForm creatorName="Test" />
+            <NewCustomerForm creatorName="Test" onCancel={() => {}} onCreated={() => {}} />
           </MemoryRouter>
         </QueryClientProvider>,
       );
     });
     const creation = state.renderer;
     assert.ok(creation);
-    const createSelector = () =>
-      creation.root
-        .findAllByType(Autocomplete)
-        .find(control => control.props.title === "תנאי תשלום כברירת מחדל");
-    const initialSelector = createSelector();
-    assert.ok(initialSelector);
-    assert.ok(initialSelector.props.options.includes(CUSTOMER_PAYMENT_DEFAULT_COPY.NONE));
-    assert.equal(initialSelector.props.value, CUSTOMER_PAYMENT_DEFAULT_COPY.NONE);
+    const createEditor = () => creation.root.findByType(PaymentConfigurationEditor);
+    assert.equal(createEditor().props.allowUnset, true);
+    assert.deepEqual(createEditor().props.value.paymentSchedule, []);
+    assert.equal(createEditor().props.customLabel, PAYMENT_CONFIGURATION_COPY.CUSTOM);
     await act(async () =>
       creation.root.findAllByType(CustomerFieldsCard)[0].props.onChange({
         name: customer.name,
         taxId: customer.taxId,
         address: customer.address,
-        contactName: customer.contactName,
         phone: customer.phone,
         email: customer.email,
       }),
     );
-    await act(async () =>
-      initialSelector.props.onChange(PAYMENT_TERMS_LABELS[PAYMENT_TERMS.PREPAID].title),
-    );
-    assert.equal(createSelector()?.props.value, PAYMENT_TERMS_LABELS[PAYMENT_TERMS.PREPAID].title);
-    await act(async () => createSelector()?.props.onChange(CUSTOMER_PAYMENT_DEFAULT_COPY.NONE));
+    await act(async () => createEditor().props.onChange(custom));
+    assert.deepEqual(createEditor().props.value.paymentSchedule, custom.paymentSchedule);
     await act(async () => {
       creation.root
         .findAllByType(Button)
@@ -182,8 +182,9 @@ test("customer creation and editing select a default and explicitly clear it to 
         ?.props.onClick();
       await new Promise(resolve => setImmediate(resolve));
     });
-    assert.ok(payloads.length === 1, "valid customer creation must reach the API");
+    assert.equal(payloads.length, 1, "valid customer creation must reach the API");
     assert.equal(Reflect.get(Object(payloads[0]), "paymentTerms"), null);
+    assert.deepEqual(Reflect.get(Object(payloads[0]), "paymentSchedule"), custom.paymentSchedule);
     assert.equal(Reflect.has(Object(payloads[0]), "paymentTermsNote"), false);
     await act(async () => creation.unmount());
     await act(async () => {
@@ -195,33 +196,50 @@ test("customer creation and editing select a default and explicitly clear it to 
     });
     const editing = state.renderer;
     assert.ok(editing);
-    const editSelector = () => editing.root.findByType(Autocomplete);
-    assert.equal(editSelector().props.value, PAYMENT_TERMS_LABELS[PAYMENT_TERMS.PREPAID].title);
-    await act(async () => editSelector().props.onChange(CUSTOMER_PAYMENT_DEFAULT_COPY.NONE));
-    assert.equal(editSelector().props.value, CUSTOMER_PAYMENT_DEFAULT_COPY.NONE);
+    const editEditor = () => editing.root.findByType(PaymentConfigurationEditor);
+    const save = () => {
+      const result = editing.root
+        .findAllByType(Button)
+        .find(button => button.props.text === PAYMENT_CONFIGURATION_COPY.SAVE_DEFAULT);
+      assert.ok(result);
+      return result;
+    };
+    assert.equal(editEditor().props.value.paymentTerms, PAYMENT_TERMS.PREPAID);
+    await act(async () => editEditor().props.onChange({ paymentTerms: null, paymentSchedule: [] }));
     await act(async () => {
-      editing.root.findByType(Button).props.onClick();
+      save().props.onClick();
       await new Promise(resolve => setImmediate(resolve));
     });
-    assert.deepEqual(payloads[1], { paymentTerms: null });
+    assert.deepEqual(payloads[1], { paymentTerms: null, paymentSchedule: [] });
     await act(async () =>
-      editSelector().props.onChange(PAYMENT_TERMS_LABELS[PAYMENT_TERMS.PREPAID].title),
+      editEditor().props.onChange({
+        paymentTerms: null,
+        paymentSchedule: [{ percent: "50", text: "מסירה" }],
+      }),
     );
+    assert.equal(save().props.disabled, true);
+    await act(async () => editEditor().props.onChange(custom));
+    assert.equal(save().props.disabled, false);
     await act(async () => {
-      editing.root.findByType(Button).props.onClick();
+      save().props.onClick();
       await new Promise(resolve => setImmediate(resolve));
     });
-    assert.deepEqual(payloads[2], { paymentTerms: PAYMENT_TERMS.PREPAID });
+    assert.deepEqual(payloads[2], custom);
     const saveError = new Error("Payment default could not be saved");
     httpClient.defaults.adapter = async () => {
       throw saveError;
     };
+    const failed = {
+      paymentTerms: null,
+      paymentSchedule: [{ percent: "100", text: "טיוטה שלא נשמרה" }],
+    };
+    await act(async () => editEditor().props.onChange(failed));
     await act(async () => {
-      editing.root.findByType(Button).props.onClick();
+      save().props.onClick();
       await new Promise(resolve => setImmediate(resolve));
     });
     assert.equal(editing.root.findByType(InlineError).props.message, getApiErrorMessage(saveError));
-    assert.equal(editSelector().props.value, PAYMENT_TERMS_LABELS[PAYMENT_TERMS.PREPAID].title);
+    assert.deepEqual(editEditor().props.value, failed);
   } finally {
     await act(async () => state.renderer?.unmount());
     client.clear();

@@ -1,4 +1,5 @@
 import type { IApiCustomer } from "./api.interface";
+import type { IPaymentStage } from "./payment-configuration.interface";
 import type { IValidationResult } from "./validation-result.interface";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
@@ -31,6 +32,7 @@ export interface ICreateCustomerPayload {
   phone: string;
   email: string;
   address: string;
+  paymentSchedule?: IPaymentStage[];
   paymentTerms?: PaymentTermsType | null;
   customerType: ProjectDetailFieldSetType;
 }
@@ -44,7 +46,7 @@ export type ICustomerCreateRequest = Omit<ICreateCustomerPayload, "phone" | "ema
 
 export type CustomerFormFieldType = Exclude<
   keyof ICreateCustomerPayload,
-  "customerType" | "paymentTerms"
+  "customerType" | "paymentTerms" | "paymentSchedule"
 >;
 
 export type TCustomerFormErrors = Partial<Record<keyof ICreateCustomerPayload, string>>;

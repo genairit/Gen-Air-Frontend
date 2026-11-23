@@ -8,10 +8,10 @@ import type { IApiCustomer } from "../interfaces/api.interface";
 import { httpClient, ensureResponse } from "./http-client.service";
 import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
 import type { ICustomerQuery } from "../interfaces/api-request.interface";
-import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { ICustomerCreateRequest } from "../interfaces/customer.interface";
 import type { ICustomerOwnContactInput } from "../interfaces/customer.interface";
 import { isLinkableProjectList } from "../utilities/customer-project-link.utility";
+import type { IPaymentConfiguration } from "../interfaces/payment-configuration.interface";
 import type { ICustomerProjectLinkInput } from "../interfaces/customer-project-link.interface";
 
 class CustomerService {
@@ -36,10 +36,10 @@ class CustomerService {
 
   async updatePaymentDefault(
     customerId: string,
-    paymentTerms: PaymentTermsType | null,
+    configuration: IPaymentConfiguration,
   ): Promise<IApiCustomer> {
     const endpoint = API_ENDPOINTS.customerById(customerId);
-    const response = await httpClient.patch<unknown>(endpoint, { paymentTerms });
+    const response = await httpClient.patch<unknown>(endpoint, configuration);
     return ensureResponse(endpoint, response.data, isApiCustomer);
   }
 

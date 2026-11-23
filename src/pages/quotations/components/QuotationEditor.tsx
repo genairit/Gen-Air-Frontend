@@ -72,6 +72,7 @@ import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
 import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
+import QuotationCustomerPaymentDefault from "./QuotationCustomerPaymentDefault";
 import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import QuotationApartmentSharingCard from "./sharing/QuotationApartmentSharingCard";
 import { QUOTATION_SHARING_COPY } from "../../../constants/quotation-sharing.constant";
@@ -106,6 +107,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
 }: IQuotationEditorProps) => {
   const navigate = useNavigate();
   const sessionUser = useSessionUser();
+  const [originalCustomerId] = useState(initial.customerId);
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
   const [confirmation, setConfirmation] = useState<TQuotationConfirmation | null>(null);
   const [cancellationReason, setCancellationReason] = useState("");
@@ -575,7 +577,19 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         </Card>
       )}
       {isEditorVisible && (
-        <QuotationPayments onChange={update} disabled={disabled} quotation={quotation} />
+        <QuotationPayments
+          onChange={update}
+          disabled={disabled}
+          quotation={quotation}
+          customerDefault={
+            <QuotationCustomerPaymentDefault
+              quotation={quotation}
+              disabled={disabled}
+              onChange={update}
+              originalCustomerId={originalCustomerId}
+            />
+          }
+        />
       )}
       <QuotationSummary
         blocked={blocked}
