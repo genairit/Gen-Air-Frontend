@@ -50,6 +50,7 @@ export const useQuotationPublication = (
       ) {
         return;
       }
+
       queryClient.setQueryData(startedKey, publication);
     },
   });
@@ -73,6 +74,7 @@ export const useQuotationPublication = (
     ) {
       return;
     }
+
     inFlight.current = true;
     try {
       await mutation.mutateAsync({ cycleId, generation: expectedGeneration });
@@ -90,6 +92,7 @@ export const useQuotationPublication = (
     if (!canRead || !isCurrentAuthorization || query.isFetching) {
       return;
     }
+
     mutation.reset();
     await query.refetch();
   };

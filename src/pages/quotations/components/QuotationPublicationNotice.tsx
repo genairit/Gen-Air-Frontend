@@ -46,6 +46,7 @@ const QuotationPublicationNotice: FC<IQuotationPublicationState> = ({
   if (title === null) {
     return null;
   }
+
   return (
     <NoticeBanner
       title={title}

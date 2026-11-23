@@ -20,9 +20,11 @@ export const isPublicationUrl = (value: unknown): value is string | null => {
   if (value === null) {
     return true;
   }
+
   if (typeof value !== "string") {
     return false;
   }
+
   const isDriveFilePath =
     /^https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/view(?:\?[^#]*)?$/.test(value);
   return isDriveFilePath;
@@ -38,6 +40,7 @@ const isPublicationStage = (value: unknown): value is IQuotationPublicationStage
   if (!isRecord(value)) {
     return false;
   }
+
   const hasIdentity = typeof value.cycleId === "string" && isNumber(value.generation);
   const hasSource = isNumber(value.sourceVersion) && isPublicationKind(value.documentKind);
   const hasCorrelation = isNullableString(value.lifecycleEventId);
@@ -47,6 +50,7 @@ export const isQuotationPublication = (value: unknown): value is IQuotationPubli
   if (!isRecord(value)) {
     return false;
   }
+
   const hasRetry = typeof value.canRetry === "boolean";
   const hasIdentity = isNullableString(value.cycleId) && isNullableNumber(value.generation);
   const hasSourceKind = value.documentKind === null || isPublicationKind(value.documentKind);

@@ -48,5 +48,6 @@ export const publicationPollInterval = (
   if (!isPublicationPending(state)) {
     return false;
   }
+
   return hasError ? PUBLICATION_POLL.RECOVERY_INTERVAL_MS : PUBLICATION_POLL.INTERVAL_MS;
 };

@@ -295,6 +295,7 @@ test("initial read failure can be refreshed without mutation permission", async 
     if (calls.count === 1) {
       throw new Error("local read failure");
     }
+
     return summary({ canRetry: false });
   });
   const mounted = await mount();
@@ -360,6 +361,7 @@ test("failed retry renders recoverable error and neutral Refresh adopts publishe
     if (reads.count === 1) {
       return summary();
     }
+
     return summary({
       state: PUBLICATION_STATE.PUBLISHED,
       canRetry: false,
