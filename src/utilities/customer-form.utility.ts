@@ -1,3 +1,8 @@
+import {
+  customerPaymentConfiguration,
+  getCustomerPaymentConfigurationError,
+} from "./payment-configuration.utility";
+
 import type {
   TCustomerFormErrors,
   ICreateCustomerPayload,
@@ -8,7 +13,7 @@ import { CUSTOMER_FORM_COPY, CUSTOMER_FORM_FIELDS } from "../constants/customer-
 import { PROJECT_DETAIL_FIELD_SET_VALUES } from "../constants/project-detail-field-set.constant";
 
 export const normalizeCustomerForm = (values: ICreateCustomerPayload): ICustomerCreateRequest => ({
-  paymentTerms: values.paymentTerms ?? null,
+  ...customerPaymentConfiguration(values),
   name: values.name.trim(),
   taxId: values.taxId.trim(),
   address: values.address.trim(),
@@ -40,7 +45,9 @@ export const getCustomerFormErrors = (values: ICreateCustomerPayload): TCustomer
   const typeErrors = PROJECT_DETAIL_FIELD_SET_VALUES.includes(values.customerType)
     ? []
     : [["customerType", CUSTOMER_FORM_COPY.REQUIRED_TYPE]];
-  return Object.fromEntries([...fieldErrors, ...typeErrors]);
+  const paymentError = getCustomerPaymentConfigurationError(customerPaymentConfiguration(values));
+  const paymentErrors = paymentError ? [["paymentSchedule", paymentError]] : [];
+  return Object.fromEntries([...fieldErrors, ...typeErrors, ...paymentErrors]);
 };
 
 export const countCustomerFormErrors = (values: ICreateCustomerPayload) =>

@@ -19,11 +19,9 @@ import {
 } from "../../../constants/customer-form.constant";
 
 import {
-  PAYMENT_TERMS_VALUES,
-  PAYMENT_TERMS_LABELS,
-  CUSTOMER_PAYMENT_DEFAULT_COPY,
-  CUSTOMER_PAYMENT_DEFAULT_LABELS,
-} from "../../../constants/payment-terms.constant";
+  PAYMENT_CONFIGURATION_COPY,
+  CUSTOMER_PAYMENT_TERMS_VALUES,
+} from "../../../constants/payment-configuration.constant";
 
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
@@ -42,6 +40,8 @@ import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { ICreateCustomerPayload } from "../../../interfaces/customer.interface";
 import { useCreateCustomerMutation } from "../../../hooks/mutations/customer.mutation";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { customerPaymentConfiguration } from "../../../utilities/payment-configuration.utility";
+import PaymentConfigurationEditor from "../../../components/PaymentConfigurationEditor/PaymentConfigurationEditor";
 
 interface INewCustomerFormProps {
   creatorName: string;
@@ -58,9 +58,6 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
 
   const errors = isSubmitAttempted ? getCustomerFormErrors(values) : {};
   const errorCount = isSubmitAttempted ? countCustomerFormErrors(values) : 0;
-  const paymentTermsLabel = values.paymentTerms
-    ? PAYMENT_TERMS_LABELS[values.paymentTerms].title
-    : CUSTOMER_PAYMENT_DEFAULT_COPY.NONE;
 
   const updateValues = (changes: Partial<ICreateCustomerPayload>) =>
     setValues(current => ({ ...current, ...changes }));
@@ -74,12 +71,6 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
 
     updateValues({ customerType });
   };
-
-  const changePaymentTerms = (label: string | null) =>
-    updateValues({
-      paymentTerms:
-        PAYMENT_TERMS_VALUES.find(value => PAYMENT_TERMS_LABELS[value].title === label) ?? null,
-    });
 
   const save = () => {
     setIsSubmitAttempted(true);
@@ -129,13 +120,14 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
       />
       <Box sx={formStyles.summaryRow}>
         <Card>
-          <Autocomplete
-            isAutocomplete={false}
-            value={paymentTermsLabel}
+          <Box component="h2">{PAYMENT_CONFIGURATION_COPY.DEFAULT_TITLE}</Box>
+          <PaymentConfigurationEditor
+            allowUnset
+            onChange={updateValues}
             disabled={mutation.isPending}
-            onChange={changePaymentTerms}
-            title="תנאי תשלום כברירת מחדל"
-            options={CUSTOMER_PAYMENT_DEFAULT_LABELS}
+            value={customerPaymentConfiguration(values)}
+            termsOptions={CUSTOMER_PAYMENT_TERMS_VALUES}
+            customLabel={PAYMENT_CONFIGURATION_COPY.CUSTOM}
           />
         </Card>
         <CustomerSaveSummaryCard creatorName={creatorName} />

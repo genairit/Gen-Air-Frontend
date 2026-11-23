@@ -10,6 +10,8 @@ import type {
   TQuotationProjectRole,
 } from "../constants/quotation-sharing.constant";
 
+import type { IPaymentStage } from "./payment-configuration.interface";
+
 export type {
   TQuotationStatus,
   TQuotationSystem,
@@ -104,15 +106,12 @@ export interface IQuotation {
   sections: IQuotationSection[];
   warnings: IQuotationWarning[];
   salesAgentName?: string | null;
+  paymentSchedule: IPaymentStage[];
   targetPretaxAmount: string | null;
   rejectionHistory: IQuotationRejection[];
   apartmentLinks?: IQuotationApartmentLink[];
   cancellationHistory: IQuotationCancellation[];
   primaryProject?: IQuotationPrimaryProject | null;
-  paymentSchedule: {
-    text: string;
-    percent: string;
-  }[];
   cancelledFromStatus: TQuotationRestorableStatus | null;
   totals: {
     vat: string;

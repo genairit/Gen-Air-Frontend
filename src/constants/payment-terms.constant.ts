@@ -26,17 +26,3 @@ export const PAYMENT_TERMS_LABELS: Record<PaymentTermsType, IPaymentTermsCopy> =
     subtitle: "תשלום לפי התקדמות הפרויקט",
   },
 };
-
-export const CUSTOMER_PAYMENT_DEFAULT_OPTIONS = PAYMENT_TERMS_VALUES.map(value => ({
-  value,
-  label: PAYMENT_TERMS_LABELS[value].title,
-}));
-
-export const CUSTOMER_PAYMENT_DEFAULT_COPY = {
-  NONE: "ללא ברירת מחדל",
-} as const;
-
-export const CUSTOMER_PAYMENT_DEFAULT_LABELS = [
-  CUSTOMER_PAYMENT_DEFAULT_COPY.NONE,
-  ...CUSTOMER_PAYMENT_DEFAULT_OPTIONS.map(option => option.label),
-];

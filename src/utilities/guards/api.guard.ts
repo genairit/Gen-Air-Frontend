@@ -340,6 +340,13 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
   const hasValidCreator = isOptionalOf(isApiUser)(value.createdBy);
   const hasPaymentDefault =
     !("paymentTerms" in value) || value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
+  const hasPaymentSchedule =
+    !("paymentSchedule" in value) ||
+    (Array.isArray(value.paymentSchedule) &&
+      value.paymentSchedule.every(
+        stage =>
+          isRecord(stage) && typeof stage.percent === "string" && typeof stage.text === "string",
+      ));
   const hasValidPrimary = isOptionalOf(isCustomerContact)(value.primaryContact);
 
   return (
@@ -350,6 +357,7 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     hasSyncDetails &&
     hasValidCreator &&
     hasPaymentDefault &&
+    hasPaymentSchedule &&
     hasValidPrimary
   );
 };

@@ -1,69 +1,75 @@
 import {
-  PAYMENT_TERMS_VALUES,
-  PAYMENT_TERMS_LABELS,
-  CUSTOMER_PAYMENT_DEFAULT_COPY,
-  CUSTOMER_PAYMENT_DEFAULT_LABELS,
-} from "../../constants/payment-terms.constant";
+  paymentConfigurationSummary,
+  customerPaymentConfiguration,
+  getCustomerPaymentConfigurationError,
+} from "../../utilities/payment-configuration.utility";
 
-import type { FC } from "react";
+import {
+  PAYMENT_CONFIGURATION_COPY,
+  CUSTOMER_PAYMENT_TERMS_VALUES,
+} from "../../constants/payment-configuration.constant";
+
 import Card from "../Card/Card";
-import { useState } from "react";
 import { Box } from "@mui/material";
 import Button from "../Button/Button";
+import { useState, type FC } from "react";
 import InlineError from "../InlineError/InlineError";
-import Autocomplete from "../Autocomplete/Autocomplete";
 import { useSessionUser } from "../../store/session.store";
 import { PERMISSIONS } from "../../constants/permission.constant";
-import { isPaymentTerms } from "../../utilities/guards/api.guard";
 import { hasPermission } from "../../utilities/permission.utility";
 import type { IApiCustomer } from "../../interfaces/api.interface";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import type { IPaymentConfiguration } from "../../interfaces/payment-configuration.interface";
+import PaymentConfigurationEditor from "../PaymentConfigurationEditor/PaymentConfigurationEditor";
 import { useCustomerPaymentDefaultMutation } from "../../hooks/mutations/customer-payment-default.mutation";
 
 interface ICustomerPaymentDefaultProps {
   customer: IApiCustomer;
 }
-const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({
-  customer,
-}: ICustomerPaymentDefaultProps) => {
+const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({ customer }) => {
   const user = useSessionUser();
-  const [selected, setSelected] = useState(customer.paymentTerms ?? null);
+  const [configuration, setConfiguration] = useState(() => customerPaymentConfiguration(customer));
   const update = useCustomerPaymentDefaultMutation(customer.id);
   const editable = hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
-  const label = selected
-    ? PAYMENT_TERMS_LABELS[selected].title
-    : CUSTOMER_PAYMENT_DEFAULT_COPY.NONE;
-  const options = CUSTOMER_PAYMENT_DEFAULT_LABELS;
-  const change = (label: string | null) => {
-    const key =
-      PAYMENT_TERMS_VALUES.find(value => PAYMENT_TERMS_LABELS[value].title === label) ?? null;
-    if (key === null || isPaymentTerms(key)) {
-      setSelected(key);
-    }
+  const disabled = !editable || update.isPending;
+  const validation = getCustomerPaymentConfigurationError(configuration);
+  const saveDisabled = disabled || validation !== null;
+  const change = (next: IPaymentConfiguration): void => {
+    update.reset();
+    setConfiguration(next);
   };
   return (
     <Card>
-      <Box component="h2">תנאי תשלום כברירת מחדל</Box>
-      <Box component="p">יועתקו להצעות מחיר חדשות בלבד. הערות לתשלום נשמרות בהצעה עצמה.</Box>
-      <Autocomplete
-        value={label}
-        options={options}
-        onChange={change}
-        title="תנאי תשלום"
-        isAutocomplete={false}
-        disabled={!editable || update.isPending}
-      />
+      <Box component="h2">{PAYMENT_CONFIGURATION_COPY.DEFAULT_TITLE}</Box>
+      <Box component="p">{PAYMENT_CONFIGURATION_COPY.CUSTOMER_HELP}</Box>
+      {editable ? (
+        <PaymentConfigurationEditor
+          allowUnset
+          onChange={change}
+          disabled={disabled}
+          value={configuration}
+          termsOptions={CUSTOMER_PAYMENT_TERMS_VALUES}
+          customLabel={PAYMENT_CONFIGURATION_COPY.CUSTOM}
+        />
+      ) : (
+        <Box component="p">{paymentConfigurationSummary(customer)}</Box>
+      )}
       {editable && (
         <Button
-          text="שמירת ברירת מחדל"
+          disabled={saveDisabled}
           isLoading={update.isPending}
-          onClick={() => update.mutate(selected)}
+          text={PAYMENT_CONFIGURATION_COPY.SAVE_DEFAULT}
+          onClick={() =>
+            update.mutate(configuration, {
+              onSuccess: saved => setConfiguration(customerPaymentConfiguration(saved)),
+            })
+          }
         />
-      )}{" "}
+      )}
       {update.isError && <InlineError message={getApiErrorMessage(update.error)} />}
       {update.isSuccess && (
         <Box component="p" role="status">
-          ברירת המחדל נשמרה
+          {PAYMENT_CONFIGURATION_COPY.SAVED}
         </Box>
       )}
     </Card>

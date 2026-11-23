@@ -3,10 +3,13 @@ import assert from "node:assert/strict";
 import { act, create } from "react-test-renderer";
 import { quotationFixture } from "./quotation.fixture";
 import { setSession } from "../src/store/session.store";
+import SharedButton from "../src/components/Button/Button";
 import { setTimeout as settle } from "node:timers/promises";
+import ChoiceRow from "../src/components/ChoiceRow/ChoiceRow";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import { customerService } from "../src/services/customer.service";
+import InlineError from "../src/components/InlineError/InlineError";
 import { quotationService } from "../src/services/quotation.service";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { getActiveNavigationId } from "../src/utilities/route.utility";
@@ -392,16 +395,16 @@ test("payment stages resolve conflicting terms and fixed terms require confirmat
     const root = () => renderer.value!.root;
     const group = root().findByProps({ role: "radiogroup" });
     assert.equal(group.props["aria-label"], "תנאי תשלום");
-    const radios = () => root().findAllByProps({ role: "radio" });
+    const radios = () => root().findAllByType(ChoiceRow);
     const radio = (label: string) => {
-      const choice = radios().find(current => current.children.includes(label));
+      const choice = radios().find(current => current.props.children === label);
       assert.ok(choice, `Missing payment choice: ${label}`);
       return choice;
     };
     const stages = () => radio("לפי שלבי תשלום");
     const prepaid = () => radio("תשלום מראש");
     assert.equal(radios().filter(radio => radio.props["aria-checked"]).length, 0);
-    assert.equal(root().findAllByProps({ role: "alert" }).length, 1);
+    assert.equal(root().findAllByType(InlineError).length, 1);
     await act(async () => {
       stages().props.onClick();
     });
@@ -417,7 +420,7 @@ test("payment stages resolve conflicting terms and fixed terms require confirmat
     });
     assert.equal(updates.length, 1);
     const cancel = root()
-      .findAllByType(QuotationButton)
+      .findAllByType(SharedButton)
       .find(button => button.props.text === "ביטול");
     assert.ok(cancel);
     await act(async () => cancel.props.onClick());
@@ -425,7 +428,7 @@ test("payment stages resolve conflicting terms and fixed terms require confirmat
     assert.equal(stages().props["aria-checked"], true);
     await act(async () => prepaid().props.onClick());
     const confirm = root()
-      .findAllByType(QuotationButton)
+      .findAllByType(SharedButton)
       .find(button => button.props.text === "מחק שלבים ובחר תנאים");
     assert.ok(confirm);
     await act(async () => confirm.props.onClick());
@@ -458,8 +461,8 @@ test("a fixed term changes directly without stages, then adding a stage replaces
       );
     });
     const other = renderer
-      .value!.root.findAllByProps({ role: "radio" })
-      .find(radio => radio.children.includes("אחר"));
+      .value!.root.findAllByType(ChoiceRow)
+      .find(radio => radio.props.children === "אחר");
     assert.ok(other);
     await act(async () => other.props.onClick());
     assert.equal(updates[0].paymentTerms, "other");
@@ -474,7 +477,7 @@ test("a fixed term changes directly without stages, then adding a stage replaces
       );
     });
     const add = renderer
-      .value!.root.findAllByType(QuotationButton)
+      .value!.root.findAllByType(SharedButton)
       .find(button => button.props.text === "+ שלב תשלום");
     assert.ok(add);
     await act(async () => add.props.onClick());
@@ -490,8 +493,8 @@ test("a fixed term changes directly without stages, then adding a stage replaces
       );
     });
     const remove = renderer
-      .value!.root.findAllByType(QuotationButton)
-      .find(button => button.props.ariaLabel === "הסר שלב");
+      .value!.root.findAllByType(SharedButton)
+      .find(button => button.props.ariaLabel === "הסר שלב 1");
     assert.ok(remove);
     await act(async () => remove.props.onClick());
     assert.equal(updates[2].paymentTerms, null);

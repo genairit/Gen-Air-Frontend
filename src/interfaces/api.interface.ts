@@ -1,5 +1,6 @@
 import type { UserRoleType } from "../constants/user-role.constant";
 import type { ICustomerContact } from "./customer-contact.interface";
+import type { IPaymentStage } from "./payment-configuration.interface";
 import type { PermissionType } from "../constants/permission.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { FolderContentStatusType } from "../constants/drive-folder.constant";
@@ -212,6 +213,7 @@ export interface IApiCustomer {
   prioritySyncedAt: string | null;
   primaryContactId?: string | null;
   prioritySyncError: string | null;
+  paymentSchedule?: IPaymentStage[];
   paymentTerms?: PaymentTermsType | null;
   customerType: ProjectDetailFieldSetType;
   primaryContact?: ICustomerContact | null;

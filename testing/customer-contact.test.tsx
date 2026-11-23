@@ -68,6 +68,7 @@ test("optional customer contact stays null without dummy values", () => {
   assert.deepEqual(normalizeCustomerForm(values), {
     ...values,
     paymentTerms: null,
+    paymentSchedule: [],
     phone: null,
     email: null,
   });

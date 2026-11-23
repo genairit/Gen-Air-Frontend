@@ -23,8 +23,7 @@ import {
 import {
   quotationPaymentLabel,
   quotationHasPaymentConflict,
-  selectQuotationPaymentStages,
-  changeQuotationPaymentSchedule,
+  quotationPaymentConfiguration,
 } from "../src/utilities/quotation-payment.utility";
 
 import {
@@ -38,6 +37,7 @@ import { quotationFixture, catalogueFixture } from "./quotation.fixture";
 import { quotationNeedsCorrection } from "../src/utilities/quotation-rejection.utility";
 import { quotationReviewSections } from "../src/utilities/quotation-presentation.utility";
 import type { IQuotation, IQuotationStatusCounts } from "../src/interfaces/quotation.interface";
+import { selectPaymentConfigurationStages } from "../src/utilities/payment-configuration.utility";
 
 test("a rejected draft needs correction until it is resubmitted", () => {
   const quotation = quotationFixture();
@@ -148,7 +148,10 @@ test("quotation cancellation history and status counts are validated", () => {
 });
 test("payment stages replace a copied fixed term without losing the quotation note", () => {
   const quotation = { ...quotationFixture(), paymentTermsNote: "Keep this note" };
-  const staged = selectQuotationPaymentStages(quotation);
+  const staged = {
+    ...quotation,
+    ...selectPaymentConfigurationStages(quotationPaymentConfiguration(quotation)),
+  };
   assert.equal(staged.paymentTerms, null);
   assert.equal(staged.paymentTermsNote, "Keep this note");
   assert.deepEqual(staged.paymentSchedule, [{ percent: "0", text: "" }]);
@@ -157,7 +160,7 @@ test("payment stages replace a copied fixed term without losing the quotation no
   assert.equal(quotationHasPaymentConflict(conflicted), true);
   assert.equal(quotationPaymentLabel(conflicted), "יש לבחור בין תנאי תשלום קבועים לשלבי תשלום");
   assert.equal(
-    changeQuotationPaymentSchedule(conflicted, staged.paymentSchedule).paymentTerms,
+    selectPaymentConfigurationStages(quotationPaymentConfiguration(conflicted)).paymentTerms,
     null,
   );
 });
