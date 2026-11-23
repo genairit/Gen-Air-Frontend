@@ -69,16 +69,7 @@ const TaskView: FC<ITaskViewProps> = ({
       PERMISSIONS.DRIVE_READ,
     ].every(permission => hasPermission(sessionUser, permission));
   const changeStatus = (status: typeof task.status) =>
-    statusMutation.mutate(
-      { taskId: task.id, status },
-      {
-        onSuccess: () => {
-          if (status === TASK_STATUSES.PROPOSAL_SENT && canPrepareEmail) {
-            setEmailOpen(true);
-          }
-        },
-      },
-    );
+    statusMutation.mutate({ taskId: task.id, status });
 
   const mutationError =
     statusMutation.error ?? urgencyMutation.error ?? updateMutation.error ?? claimMutation.error;
