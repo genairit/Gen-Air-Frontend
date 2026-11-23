@@ -23,7 +23,7 @@ export const TASK_STATUS_LABELS: Record<TaskStatusType, string> = {
   not_started: "טרם בעבודה",
   in_progress: "בעבודה",
   in_review: "בבדיקה",
-  proposal_sent: "נשלחה הצעה",
+  proposal_sent: "נשלח",
 };
 
 export const TASK_STATUS_DOT_COLORS: Record<TaskStatusType, string> = {
