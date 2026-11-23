@@ -49,6 +49,7 @@ export interface IAutocompleteProps {
   isSearchMode?: boolean;
   maxVisibleRows?: number;
   onLoadMore?: () => void;
+  emptyFeedback?: ReactNode;
   isInputReadOnly?: boolean;
   isClientFiltered?: boolean;
   isSearchIconShown?: boolean;

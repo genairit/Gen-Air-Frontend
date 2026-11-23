@@ -30,6 +30,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   colors,
   options,
   selectedItem = null,
+  emptyFeedback = null,
   onChange,
   onSearch,
   disabled = false,
@@ -95,6 +96,14 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   const activeOptionId = search.activeOption
     ? getOptionId(listId, search.activeOption.value)
     : null;
+  const hasEmptyFeedback = Boolean(emptyFeedback);
+  const showEmptyMessage = search.isEmpty && !hasEmptyFeedback;
+  const currentEmptyFeedback = search.isEmpty ? emptyFeedback : null;
+  const feedbackInputRef = isSearchMode ? search.searchInputRef : search.inputRef;
+  const focusFeedbackInput = (): void => feedbackInputRef.current?.focus();
+  const feedback = currentEmptyFeedback ? (
+    <Box onClickCapture={focusFeedbackInput}>{currentEmptyFeedback}</Box>
+  ) : null;
 
   const comboboxAriaProps = getComboboxAriaProps({
     listId,
@@ -131,8 +140,8 @@ const Autocomplete: FC<IAutocompleteProps> = ({
       emptyText={emptyText}
       isLoading={isLoading}
       listRef={search.listRef}
-      isEmpty={search.isEmpty}
       loadingText={loadingText}
+      isEmpty={showEmptyMessage}
       onSelect={search.selectOption}
       maxVisibleRows={maxVisibleRows}
       options={search.visibleOptions}
@@ -208,6 +217,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
         {dropDownPresence.isDisplayed && (
           <Box sx={[styles.dropDown, dropDownPresence.isExiting && styles.dropDownExit]}>
             {optionList}
+            {feedback}
           </Box>
         )}
         {searchModePresence.isDisplayed && (
@@ -224,6 +234,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
             isExiting={searchModePresence.isExiting}
           >
             {optionList}
+            {feedback}
           </SearchModeOverlay>
         )}
         {hint && (

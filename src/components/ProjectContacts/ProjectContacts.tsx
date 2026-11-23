@@ -24,22 +24,23 @@ import { usePageStyles } from "../../pages/page.style";
 import LoadingState from "../LoadingState/LoadingState";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import { useSessionUser } from "../../store/session.store";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { toTelephoneHref } from "../../utilities/phone.utility";
+import { QUERY_ROOTS } from "../../constants/query-key.constant";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import { hasPermission } from "../../utilities/permission.utility";
-import { useDebouncedValue } from "../../hooks/debounced-value.hook";
-import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
 import { FIELD_TYPES } from "../TextField/constants/textfield.constants";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import CustomerContactEditor from "../CustomerContacts/CustomerContactEditor";
 import { projectContactService } from "../../services/project-contact.service";
 import { saveProjectContactAction } from "../../actions/contact-directory.action";
 import { toCustomerContactDraft } from "../../utilities/customer-contact.utility";
-import { contactDirectoryService } from "../../services/contact-directory.service";
 import ProjectContactRoleFields from "../ProjectContactRoles/ProjectContactRoleFields";
+import { useContactDirectorySearch } from "../../hooks/queries/contact-directory.query";
 import type { ProjectContactRoleType } from "../../constants/project-contact-role.constant";
+import { CONTACT_DIRECTORY_SEARCH_COPY } from "../../constants/contact-directory-search.constant";
+import ContactDirectorySearchError from "../ContactDirectorySearchError/ContactDirectorySearchError";
 
 interface IProjectContactsProps {
   canEdit: boolean;
@@ -56,15 +57,10 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
   const [createdContactId, setCreatedContactId] = useState<string | null>(null);
   const [draft, setDraft] = useState<ICustomerContactDraft>(toCustomerContactDraft(null));
   const [roleDrafts, setRoleDrafts] = useState<Record<string, string>>({});
-  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
+  const queryClient = useQueryClient();
   const linksQuery = useQuery({
     queryKey: ["project-contacts", projectId],
     queryFn: () => projectContactService.list(projectId),
-  });
-  const directoryQuery = useQuery({
-    enabled: canEdit,
-    queryKey: ["contact-directory", debouncedSearch],
-    queryFn: () => contactDirectoryService.search(debouncedSearch),
   });
   const linkMutation = useMutation({
     mutationFn: (input: IProjectContactInput) => projectContactService.link(projectId, input),
@@ -88,15 +84,22 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
       setIsCreating(false);
       setEditorContact(null);
       setCreatedContactId(null);
-      await Promise.all([linksQuery.refetch(), directoryQuery.refetch()]);
+      await Promise.all([
+        linksQuery.refetch(),
+        queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.CONTACT_DIRECTORY] }),
+      ]);
     },
   });
+  const isMutating = linkMutation.isPending || unlinkMutation.isPending || saveMutation.isPending;
+  const searchDisabled = isCreating || isMutating || linksQuery.isPending || linksQuery.isError;
+  const directoryQuery = useContactDirectorySearch({ search, enabled: canEdit && !searchDisabled });
   const links = linksQuery.data ?? [];
   const roleContacts = projectRoleContactsFromLinks(links);
   const additionalLinks = links.filter(link => !isProjectContactRole(link.role));
-  const available = (directoryQuery.data ?? []).filter(
+  const available = directoryQuery.contacts.filter(
     contact => !links.some(link => link.contactId === contact.id),
   );
+  const showEmpty = directoryQuery.isReady && !directoryQuery.isLoading && available.length === 0;
   const startEditing = (contact: ICustomerContact | null) => {
     setEditorContact(contact);
     setDraft(toCustomerContactDraft(contact));
@@ -208,15 +211,26 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
           <TextField
             value={search}
             onChange={setSearch}
+            disabled={searchDisabled}
             type={FIELD_TYPES.SEARCH}
             startIcon={ICON_NAMES.SEARCH}
             placeholder="שם, טלפון או דוא״ל"
             title="חיפוש איש קשר קיים במדריך"
           />
-          {directoryQuery.isPending && <LoadingState label="מחפש אנשי קשר" />}
-          {directoryQuery.isError && (
-            <InlineError message={getApiErrorMessage(directoryQuery.error)} />
+          {directoryQuery.showPrompt && (
+            <Box role="status">{CONTACT_DIRECTORY_SEARCH_COPY.PROMPT}</Box>
           )}
+          {directoryQuery.isLoading && (
+            <LoadingState label={CONTACT_DIRECTORY_SEARCH_COPY.LOADING} />
+          )}
+          {directoryQuery.errorMessage && (
+            <ContactDirectorySearchError
+              busy={directoryQuery.isLoading}
+              onRetry={directoryQuery.refresh}
+              message={directoryQuery.errorMessage}
+            />
+          )}
+          {showEmpty && <Box role="status">{CONTACT_DIRECTORY_SEARCH_COPY.EMPTY}</Box>}
           {available.map(contact => (
             <Box key={contact.id} sx={styles.spacedRow}>
               <Box sx={styles.wrappingText}>

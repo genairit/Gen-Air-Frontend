@@ -6,22 +6,22 @@ import {
 import { Box } from "@mui/material";
 import Button from "../Button/Button";
 import { type FC, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import InlineError from "../InlineError/InlineError";
 import { usePageStyles } from "../../pages/page.style";
 import Autocomplete from "../Autocomplete/Autocomplete";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { toTelephoneHref } from "../../utilities/phone.utility";
-import { useDebouncedValue } from "../../hooks/debounced-value.hook";
-import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import CustomerContactEditor from "../CustomerContacts/CustomerContactEditor";
 import { toCustomerContactDraft } from "../../utilities/customer-contact.utility";
 import { saveRoleContactAction } from "../../actions/project-contact-role.action";
-import { contactDirectoryService } from "../../services/contact-directory.service";
 import type { ICustomerContact } from "../../interfaces/customer-contact.interface";
 import { BUTTON_VARIANTS, BUTTON_SIZES } from "../Button/constants/button.constants";
 import { contactAutocompleteItem } from "../../utilities/project-contact-role.utility";
+import { useContactDirectorySearch } from "../../hooks/queries/contact-directory.query";
 import type { ProjectContactRoleType } from "../../constants/project-contact-role.constant";
+import { CONTACT_DIRECTORY_SEARCH_COPY } from "../../constants/contact-directory-search.constant";
+import ContactDirectorySearchError from "../ContactDirectorySearchError/ContactDirectorySearchError";
 
 interface IProjectContactRoleFieldProps {
   canEdit: boolean;
@@ -51,14 +51,6 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
   const [editedContact, setEditedContact] = useState<ICustomerContact | null>(null);
   const [createdContact, setCreatedContact] = useState<ICustomerContact | null>(null);
   const [draft, setDraft] = useState(toCustomerContactDraft(null));
-  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
-  const hasQuery = search.trim().length > 0;
-  const isCurrentQuery = search === debouncedSearch;
-  const directoryQuery = useQuery({
-    enabled: canEdit && hasQuery && isCurrentQuery,
-    queryKey: ["contact-directory", debouncedSearch],
-    queryFn: () => contactDirectoryService.search(debouncedSearch),
-  });
   const selectMutation = useMutation({
     onMutate: () => onActivityChange?.(true),
     onSettled: () => onActivityChange?.(isEditing),
@@ -82,14 +74,27 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
       onActivityChange?.(false);
     },
   });
-  const available = isCurrentQuery && hasQuery ? (directoryQuery.data ?? []) : [];
+  const isBusy = disabled || selectMutation.isPending || saveMutation.isPending;
+  const selectionDisabled = isBusy || isEditing;
+  const directoryQuery = useContactDirectorySearch({
+    search,
+    enabled: canEdit && !selectionDisabled,
+  });
+  const available = directoryQuery.contacts;
   const options = available.map(contactAutocompleteItem);
   const selectedItem = contact ? contactAutocompleteItem(contact) : null;
-  const isBusy = disabled || selectMutation.isPending || saveMutation.isPending;
-  const loading = hasQuery && (!isCurrentQuery || directoryQuery.isFetching);
+  const noOptionsText = directoryQuery.showPrompt
+    ? CONTACT_DIRECTORY_SEARCH_COPY.PROMPT
+    : CONTACT_DIRECTORY_SEARCH_COPY.EMPTY;
+  const searchFeedback = directoryQuery.errorMessage ? (
+    <ContactDirectorySearchError
+      busy={directoryQuery.isLoading}
+      onRetry={directoryQuery.refresh}
+      message={directoryQuery.errorMessage}
+    />
+  ) : null;
   const error = selectMutation.error ?? saveMutation.error;
   const errorMessage = error ? getApiErrorMessage(error) : null;
-  const searchError = directoryQuery.isError ? getApiErrorMessage(directoryQuery.error) : null;
   const editorError = saveMutation.isError ? getApiErrorMessage(saveMutation.error) : null;
   const showCreateAction = canEdit && canCreateContact;
   const showContactActions = canEdit && contact !== null;
@@ -111,9 +116,12 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
     setIsEditing(false);
     onActivityChange?.(false);
   };
-  const selectionDisabled = isBusy || isEditing;
   const selectContact = (id: string | null) => {
     const selected = available.find(item => item.id === id) ?? null;
+    if (!selected || selectionDisabled) {
+      return;
+    }
+
     selectMutation.mutate(selected);
     setSearch("");
   };
@@ -124,13 +132,15 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
           title={title}
           items={options}
           isClearable={false}
-          isLoading={loading}
           onSearch={setSearch}
           onChange={selectContact}
           isClientFiltered={false}
           value={contact?.id ?? null}
           selectedItem={selectedItem}
           disabled={selectionDisabled}
+          noOptionsText={noOptionsText}
+          emptyFeedback={searchFeedback}
+          isLoading={directoryQuery.isLoading}
           placeholder={PROJECT_CONTACT_ROLE_COPY.SEARCH}
         />
       ) : (
@@ -184,7 +194,6 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
         </Box>
       )}
       {errorMessage && <InlineError message={errorMessage} />}
-      {searchError && <InlineError message={searchError} />}
       {showCreatedPendingNotice && <Box>{PROJECT_CONTACT_ROLE_COPY.CREATED_PENDING}</Box>}
       {isEditing && (
         <>
