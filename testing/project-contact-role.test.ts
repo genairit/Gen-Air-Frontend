@@ -7,6 +7,7 @@ import {
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { TIME_UNITS } from "../src/constants/time.constant";
 import { saveRoleContactAction } from "../src/actions/project-contact-role.action";
 import { contactDirectoryService } from "../src/services/contact-directory.service";
 import type { ICustomerContact } from "../src/interfaces/customer-contact.interface";
@@ -252,7 +253,7 @@ test("inline editor keeps the containing form blocked until save completes or th
       await pending.promise;
     });
     await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise(resolve => setTimeout(resolve, TIME_UNITS.SECOND_MS / 100));
     });
     assert.equal(events.at(-1), false);
     await act(async () => add.props.onClick());
