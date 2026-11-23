@@ -19,6 +19,7 @@ import SearchField from "./components/SearchField/SearchField";
 import { Box, InputBase, ClickAwayListener } from "@mui/material";
 import { useGeneratedId } from "../../hooks/use-generated-id.hook";
 import { useKeyboardInset } from "../../hooks/use-keyboard-inset.hook";
+import { hasRenderableChildren } from "../../utilities/react-node.utility";
 import { useAutocompleteSearch } from "./hooks/use-autocomplete-search.hook";
 import SearchModeOverlay from "./components/SearchModeOverlay/SearchModeOverlay";
 import { type IAutocompleteProps } from "../../interfaces/autocomplete.interface";
@@ -30,6 +31,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   colors,
   options,
   selectedItem = null,
+  emptyFeedback = null,
   onChange,
   onSearch,
   disabled = false,
@@ -95,6 +97,14 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   const activeOptionId = search.activeOption
     ? getOptionId(listId, search.activeOption.value)
     : null;
+  const hasEmptyFeedback = hasRenderableChildren(emptyFeedback);
+  const showEmptyMessage = search.isEmpty && !hasEmptyFeedback;
+  const showEmptyFeedback = search.isEmpty && hasEmptyFeedback;
+  const feedbackInputRef = isSearchMode ? search.searchInputRef : search.inputRef;
+  const focusFeedbackInput = (): void => feedbackInputRef.current?.focus();
+  const feedback = showEmptyFeedback ? (
+    <Box onClickCapture={focusFeedbackInput}>{emptyFeedback}</Box>
+  ) : null;
 
   const comboboxAriaProps = getComboboxAriaProps({
     listId,
@@ -131,8 +141,8 @@ const Autocomplete: FC<IAutocompleteProps> = ({
       emptyText={emptyText}
       isLoading={isLoading}
       listRef={search.listRef}
-      isEmpty={search.isEmpty}
       loadingText={loadingText}
+      isEmpty={showEmptyMessage}
       onSelect={search.selectOption}
       maxVisibleRows={maxVisibleRows}
       options={search.visibleOptions}
@@ -208,6 +218,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
         {dropDownPresence.isDisplayed && (
           <Box sx={[styles.dropDown, dropDownPresence.isExiting && styles.dropDownExit]}>
             {optionList}
+            {feedback}
           </Box>
         )}
         {searchModePresence.isDisplayed && (
@@ -224,6 +235,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
             isExiting={searchModePresence.isExiting}
           >
             {optionList}
+            {feedback}
           </SearchModeOverlay>
         )}
         {hint && (
