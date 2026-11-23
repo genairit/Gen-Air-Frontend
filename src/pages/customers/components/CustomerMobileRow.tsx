@@ -5,7 +5,7 @@ import type { IApiCustomer } from "../../../interfaces/api.interface";
 import { formatPriorityId } from "../../../utilities/customer.utility";
 import { CUSTOMER_COLUMN_STYLES } from "../columns/customer-columns.style";
 import CustomerSyncChip from "../../../components/CustomerSyncChip/CustomerSyncChip";
-import { formatCustomerPrimaryContact } from "../../../utilities/customer-contact.utility";
+import { formatCustomerContactDetails } from "../../../utilities/customer-contact.utility";
 
 interface ICustomerMobileRowProps {
   customer: IApiCustomer;
@@ -17,11 +17,8 @@ const CustomerMobileRow: FC<ICustomerMobileRowProps> = ({ customer, onOpen }) =>
     <Box component="b" sx={CUSTOMER_COLUMN_STYLES.name}>
       {customer.name}
     </Box>
-    <Box component="span" sx={CUSTOMER_COLUMN_STYLES.caption}>
-      {formatCustomerPrimaryContact(customer.primaryContact ?? null)}
-      <Box dir="ltr" component="bdi">
-        {customer.primaryContact?.phone ?? customer.primaryContact?.email}
-      </Box>
+    <Box dir="ltr" component="bdi" sx={CUSTOMER_COLUMN_STYLES.caption}>
+      {formatCustomerContactDetails(customer.primaryContact ?? null)}
     </Box>
     <Box sx={CUSTOMER_COLUMN_STYLES.syncRow}>
       <CustomerSyncChip status={customer.prioritySyncStatus} />

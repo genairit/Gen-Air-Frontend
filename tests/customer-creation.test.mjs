@@ -43,7 +43,8 @@ registerHooks({
 const { normalizeCustomerForm, getCustomerFormErrors, countCustomerFormErrors } =
   await import("../src/utilities/customer-form.utility.ts");
 const { customerService } = await import("../src/services/customer.service.ts");
-const { createCustomerAction } = await import("../src/actions/customer.action.ts");
+const { createCustomerAction, updateCustomerOwnContactAction } =
+  await import("../src/actions/customer.action.ts");
 const { httpClient } = await import("../src/services/http-client.service.ts");
 const { queryClient } = await import("../src/providers/query-client.ts");
 const { QUERY_KEYS, QUERY_ROOTS } = await import("../src/constants/query-key.constant.ts");
@@ -53,13 +54,13 @@ const payload = {
   name: "לקוח לבדיקה",
   taxId: "123456782",
   address: "רחוב הרצל 1 תל אביב",
-  contactName: "ישראל ישראלי",
   phone: "052-1234567",
   email: "customer@example.com",
   customerType: "company",
 };
 const customer = {
   ...payload,
+  contactName: null,
   id: "new-customer",
   createdAt: "2026-10-17T00:00:00Z",
   priorityId: null,
@@ -95,13 +96,13 @@ test("customer form trims every text field and sends no Priority-controlled fiel
     priorityId: "forged",
     prioritySyncStatus: "synced",
   });
-  assert.deepEqual(normalized, payload);
+  assert.deepEqual(normalized, { ...payload, paymentTerms: null });
   assert.equal(padded.name.startsWith("  "), true);
   assert.deepEqual(getCustomerFormErrors(padded), {});
 });
 
-test("every identity and contact field is required and every supported customer type is valid", () => {
-  const requiredFields = ["name", "taxId", "address", "contactName", "phone", "email"];
+test("identity fields are required while own contact details are optional and every supported customer type is valid", () => {
+  const requiredFields = ["name", "taxId", "address"];
   for (const field of requiredFields) {
     const errors = getCustomerFormErrors({ ...payload, [field]: "   " });
     assert.deepEqual(Object.keys(errors), [field]);
@@ -123,11 +124,10 @@ test("error count drives the fields-to-fix banner and is zero for a valid form",
     name: "",
     taxId: "",
     address: "",
-    contactName: "",
     phone: "",
     email: "",
   };
-  assert.equal(countCustomerFormErrors(emptyForm), 6);
+  assert.equal(countCustomerFormErrors(emptyForm), 3);
   assert.equal(countCustomerFormErrors({ ...payload, phone: "123" }), 1);
   assert.equal(countCustomerFormErrors(payload), 0);
 });
@@ -155,7 +155,6 @@ test("form rejects overlong identity and contact inputs", () => {
   const oversized = {
     name: "א".repeat(201),
     address: "א".repeat(201),
-    contactName: "א".repeat(121),
     email: `${"a".repeat(243)}@example.com`,
     phone: "0".repeat(21),
   };
@@ -221,4 +220,40 @@ test("customer creation requires its grant and pending CRM customers remain sele
   assert.equal(isCustomerSelectable(), false);
   assert.equal(isCustomerSelectable(customer), true);
   assert.equal(isCustomerSelectable({ ...customer, prioritySyncStatus: "failed" }), false);
+});
+
+test("own customer details PATCH clears one field and refreshes customer and linked views", async () => {
+  fixture.invalidations.length = 0;
+  fixture.response = { ...customer, primaryContact: null };
+  const details = { phone: null, email: "own@example.com" };
+  assert.deepEqual(await updateCustomerOwnContactAction(customer.id, details), fixture.response);
+  assert.deepEqual(fixture.requests.at(-1), {
+    url: `/customer/${customer.id}`,
+    method: "patch",
+    payload: details,
+  });
+  assert.deepEqual(queryClient.getQueryData(QUERY_KEYS.customer(customer.id)), fixture.response);
+  assert.deepEqual(fixture.invalidations, [
+    [QUERY_ROOTS.CUSTOMERS],
+    [QUERY_ROOTS.PROJECT],
+    [QUERY_ROOTS.APARTMENTS],
+  ]);
+  fixture.response = customer;
+});
+
+test("failed own-details updates preserve cached customer and propagate the failure", async () => {
+  const cached = { ...customer, name: "Persisted customer" };
+  queryClient.setQueryData(QUERY_KEYS.customer(customer.id), cached);
+  fixture.error = new Error("temporary update failure");
+  fixture.invalidations.length = 0;
+  try {
+    await assert.rejects(
+      updateCustomerOwnContactAction(customer.id, { phone: null, email: null }),
+      /temporary update failure/,
+    );
+    assert.deepEqual(queryClient.getQueryData(QUERY_KEYS.customer(customer.id)), cached);
+    assert.deepEqual(fixture.invalidations, []);
+  } finally {
+    fixture.error = null;
+  }
 });

@@ -10,13 +10,17 @@ import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
 import type { ICustomerQuery } from "../interfaces/api-request.interface";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { ICustomerCreateRequest } from "../interfaces/customer.interface";
+import type { ICustomerOwnContactInput } from "../interfaces/customer.interface";
 import { isLinkableProjectList } from "../utilities/customer-project-link.utility";
 import type { ICustomerProjectLinkInput } from "../interfaces/customer-project-link.interface";
 
 class CustomerService {
-  async setPrimaryContact(customerId: string, contactId: string | null): Promise<IApiCustomer> {
-    const endpoint = `${API_ENDPOINTS.customerById(customerId)}/primary-contact`;
-    const response = await httpClient.patch<unknown>(endpoint, { contactId });
+  async updateOwnContact(
+    customerId: string,
+    details: ICustomerOwnContactInput,
+  ): Promise<IApiCustomer> {
+    const endpoint = API_ENDPOINTS.customerById(customerId);
+    const response = await httpClient.patch<unknown>(endpoint, details);
     return ensureResponse(endpoint, response.data, isApiCustomer);
   }
 
