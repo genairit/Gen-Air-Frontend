@@ -177,6 +177,8 @@ export const QUOTATION_DETAIL_HEADING_ID = "quotation-detail-heading";
 export const QUOTATION_LIFECYCLE_BUTTON_SX = { minHeight: 44 } as const;
 
 export const QUOTATION_LIFECYCLE_COPY = {
+  REASON_REQUIRED: "יש להזין סיבה.",
+  REASON_TOO_LONG: `הסיבה יכולה להכיל עד ${MAX_QUOTATION_CANCELLATION_REASON_LENGTH} תווים.`,
   RELOAD_REQUIRED:
     "תוצאת הפעולה אינה ודאית. יש לטעון גרסה עדכנית לפני ביצוע פעולה נוספת ולאשר אותה מחדש.",
   FORBIDDEN: "אין הרשאה לביצוע הפעולה. אפשר לסגור את החלון או לטעון את פרטי המסמך מחדש.",

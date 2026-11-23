@@ -81,6 +81,7 @@ import { TASK_QUOTATION_COPY } from "../../../constants/task-quotation.constant"
 import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
 import { QUOTATION_DETAIL_HEADING_ID } from "../../../constants/quotation.constant";
 import QuotationApartmentSharingCard from "./sharing/QuotationApartmentSharingCard";
+import { validateQuotationReason } from "../../../utilities/quotation-reason.utility";
 import { QUOTATION_LIFECYCLE_BUTTON_SX } from "../../../constants/quotation.constant";
 import { QUOTATION_SHARING_COPY } from "../../../constants/quotation-sharing.constant";
 import { quotationSaveLabel } from "../../../utilities/quotation-presentation.utility";
@@ -229,11 +230,11 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     available: requestedActionAvailable,
     forbidden: editor.commandForbidden,
   });
-  const rejectionReasonMissing = !rejectionReason.trim();
-  const cancellationReasonMissing =
-    confirmation === QUOTATION_CONFIRMATION.CANCEL && !cancellationReason.trim();
-  const rejectionConfirmDisabled = blocked || !rejectionAvailable || rejectionReasonMissing;
-  const confirmationDisabled = blocked || !requestedActionAvailable || cancellationReasonMissing;
+  const rejectionReasonInvalid = !validateQuotationReason(rejectionReason).isValid;
+  const cancellationReasonInvalid =
+    isCancellationConfirmation && !validateQuotationReason(cancellationReason).isValid;
+  const rejectionConfirmDisabled = blocked || !rejectionAvailable || rejectionReasonInvalid;
+  const confirmationDisabled = blocked || !requestedActionAvailable || cancellationReasonInvalid;
   const confirmationActions: Record<TQuotationConfirmation, () => Promise<boolean>> = {
     [QUOTATION_CONFIRMATION.CANCEL]: (): Promise<boolean> => editor.cancel(cancellationReason),
     [QUOTATION_CONFIRMATION.RESTORE]: editor.restore,
@@ -292,7 +293,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     }
   };
   const rejectQuotation = async (): Promise<void> => {
-    if (!rejectionReason.trim()) {
+    if (!validateQuotationReason(rejectionReason).isValid) {
       return;
     }
     const accepted = await editor.reject(rejectionReason);
@@ -756,6 +757,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                 isRequired
                 type={FIELD_TYPES.TEXT}
                 title="סיבת דחייה"
+                validator={validateQuotationReason}
                 inputRef={rejectionInputRef}
                 value={rejectionReason}
                 disabled={editor.commandBusy}
@@ -831,6 +833,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                 value={cancellationReason}
                 disabled={editor.commandBusy}
                 title="סיבת ביטול"
+                validator={validateQuotationReason}
                 maxLength={MAX_QUOTATION_CANCELLATION_REASON_LENGTH}
                 onChange={changeCancellationReason}
               />

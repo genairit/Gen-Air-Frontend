@@ -21,6 +21,7 @@ import { HTTP_STATUS } from "../constants/api.constant";
 import { useDelayedAsyncTask } from "./delayed-async-task.hook";
 import { quotationService } from "../services/quotation.service";
 import { getApiErrorMessage } from "../utilities/api-error.utility";
+import { validateQuotationReason } from "../utilities/quotation-reason.utility";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
 
 export const useQuotationEditor = (
@@ -194,7 +195,7 @@ export const useQuotationEditor = (
   };
   const cancel = async (reason: string): Promise<boolean> => {
     const normalizedReason = reason.trim();
-    if (dirty || !normalizedReason) {
+    if (dirty || !validateQuotationReason(reason).isValid) {
       return false;
     }
 
@@ -212,7 +213,7 @@ export const useQuotationEditor = (
     );
   };
   const reject = async (reason: string): Promise<boolean> => {
-    if (dirty || !reason.trim()) {
+    if (dirty || !validateQuotationReason(reason).isValid) {
       return false;
     }
     return command(QUOTATION_COMMAND.TRANSITION, () =>

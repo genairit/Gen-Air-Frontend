@@ -20,11 +20,13 @@ import { act, create } from "react-test-renderer";
 import { quotationFixture } from "./quotation.fixture";
 import { setSession } from "../src/store/session.store";
 import { logger } from "../src/utilities/logger.utility";
+import { TextField as MuiTextField } from "@mui/material";
 import { setTimeout as settle } from "node:timers/promises";
 import { TIME_UNITS } from "../src/constants/time.constant";
 import { HTTP_STATUS } from "../src/constants/api.constant";
 import TextField from "../src/components/TextField/TextField";
 import { API_ENDPOINTS } from "../src/constants/api.constant";
+import FieldLabel from "../src/components/FieldLabel/FieldLabel";
 import { httpClient } from "../src/services/http-client.service";
 import QuotationPage from "../src/pages/quotations/QuotationPage";
 import { PERMISSIONS } from "../src/constants/permission.constant";
@@ -42,6 +44,7 @@ import { USER_ROLES, USER_ROLE_VALUES } from "../src/constants/user-role.constan
 import QuotationSummary from "../src/pages/quotations/components/QuotationSummary";
 import type { TQuotationRestorableStatus } from "../src/constants/quotation.constant";
 import { canCancelQuotation, canRestoreQuotation } from "../src/utilities/permission.utility";
+import { MAX_QUOTATION_CANCELLATION_REASON_LENGTH } from "../src/constants/quotation.constant";
 import ValidationMessageText from "../src/components/ValidationMessageText/ValidationMessageText";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -823,4 +826,51 @@ for (const responseStatus of [HTTP_STATUS.CONFLICT, HTTP_STATUS.FORBIDDEN]) {
       }
     });
   }
+}
+
+const REASON_VALIDATION_SCENARIOS = {
+  MULTILINGUAL: {
+    value: "נדרש תיקון AC123: 24,000 BTU, מחיר 12.50 ₪! (בדיקה)\n".repeat(15),
+    valid: true,
+    error: "",
+  },
+  MAXIMUM: { value: "א".repeat(MAX_QUOTATION_CANCELLATION_REASON_LENGTH), valid: true, error: "" },
+  EMPTY: { value: "   ", valid: false, error: QUOTATION_LIFECYCLE_COPY.REASON_REQUIRED },
+  TOO_LONG: {
+    value: "א".repeat(MAX_QUOTATION_CANCELLATION_REASON_LENGTH + 1),
+    valid: false,
+    error: QUOTATION_LIFECYCLE_COPY.REASON_TOO_LONG,
+  },
+} as const;
+
+for (const action of [QUOTATION_LIFECYCLE_ACTION.CANCEL, QUOTATION_LIFECYCLE_ACTION.REJECT]) {
+  test(`${action} free reason validation accepts long multilingual punctuation and blocks empty or oversized input consistently`, async (): Promise<void> => {
+    const initial = { ...quotationFixture(), status: QUOTATION_STATUS.REVIEW };
+    const user = authorizedUser([USER_ROLES.ENGINEERING_LEAD]);
+    const view = await mountQuotation(initial, {
+      ...user,
+      permissions: [...user.permissions, PERMISSIONS.QUOTATIONS_APPROVE],
+    });
+    const actionLabel =
+      action === QUOTATION_LIFECYCLE_ACTION.CANCEL ? "ביטול הצעה" : "דחייה עם סיבה";
+    try {
+      await act(async (): Promise<void> => {
+        await view.requiredButton(actionLabel).click();
+      });
+      for (const scenario of Object.values(REASON_VALIDATION_SCENARIOS)) {
+        await act(async (): Promise<void> => {
+          view.popup().findByType(TextField).props.onChange(scenario.value);
+        });
+        const field = view.popup().findByType(TextField);
+        assert.equal(field.props.value, scenario.value);
+        assert.equal(field.props.validator(scenario.value).isValid, scenario.valid);
+        assert.equal(field.findByType(MuiTextField).props.helperText, scenario.error);
+        assert.equal(field.findByType(FieldLabel).props.hasError, !scenario.valid);
+        assert.equal(field.props.maxLength, MAX_QUOTATION_CANCELLATION_REASON_LENGTH);
+        assert.equal(view.popup().props.buttons.primary.isDisabled, !scenario.valid);
+      }
+    } finally {
+      await view.dispose();
+    }
+  });
 }
