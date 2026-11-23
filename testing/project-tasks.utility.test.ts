@@ -123,7 +123,7 @@ test("apartment task options recommend its engineer and resolve urgent recipient
   };
   const options = toProjectTaskAssigneeOptions([], apartment);
   assert.equal(options[0].id, engineer.id);
-  assert.match(options[0].label, /עובד ההנדסה של הדירה/);
+  assert.match(options[0].label, /העובד ההנדסי של הדירה/);
   assert.equal(findTaskAssignee([], apartment, engineer.id)?.id, engineer.id);
 });
 
@@ -245,7 +245,7 @@ test("task history displays recorded role snapshots and omits unknown legacy rol
     createdAt: "2026-10-14T10:00:00.000Z",
   };
 
-  assert.equal(formatTransitionAuthor(transition), "Rina Example (עובד הנדסה)");
+  assert.equal(formatTransitionAuthor(transition), "Rina Example (עובד הנדסי)");
   assert.equal(formatTransitionAuthor({ ...transition, changedBy: null }), "—");
   assert.equal(formatTransitionAuthor({ ...transition, changedByRole: null }), "Rina Example");
   assert.equal(isApiTaskTransition({ ...transition, changedByRole: null }), true);
