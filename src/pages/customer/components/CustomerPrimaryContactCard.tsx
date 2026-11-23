@@ -35,6 +35,7 @@ const CustomerPrimaryContactCard: FC<ICustomerPrimaryContactCardProps> = ({ cust
   const update = useUpdateCustomerOwnContactMutation(customer.id);
   const canEdit = hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
   const showEditor = canEdit && isEditing;
+  const showEditAction = canEdit && !isEditing;
   const primary = customer.primaryContact;
   const phone = primary?.phone ?? null;
   const email = primary?.email ?? null;
@@ -94,7 +95,7 @@ const CustomerPrimaryContactCard: FC<ICustomerPrimaryContactCardProps> = ({ cust
           />
         </Box>
       )}
-      {canEdit && !isEditing && (
+      {showEditAction && (
         <Box sx={styles.row({ gap: "8px" })}>
           <Button
             onClick={beginEditing}

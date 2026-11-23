@@ -24,12 +24,6 @@ class CustomerService {
     return ensureResponse(endpoint, response.data, isApiCustomer);
   }
 
-  async setPrimaryContact(customerId: string, contactId: string | null): Promise<IApiCustomer> {
-    const endpoint = `${API_ENDPOINTS.customerById(customerId)}/primary-contact`;
-    const response = await httpClient.patch<unknown>(endpoint, { contactId });
-    return ensureResponse(endpoint, response.data, isApiCustomer);
-  }
-
   async getLinkableProjects(customerId: string, search: string) {
     const endpoint = API_ENDPOINTS.customerLinkableProjects(customerId);
     const response = await httpClient.get<unknown>(endpoint, { params: { search } });

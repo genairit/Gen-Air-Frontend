@@ -2,6 +2,7 @@ import type {
   ICustomerContact,
   ICustomerContactDraft,
   ICustomerContactInput,
+  ICustomerContactSummary,
 } from "../interfaces/customer-contact.interface";
 
 import { isEmail } from "class-validator";
@@ -68,3 +69,10 @@ export const validateCustomerContactDraft = (draft: ICustomerContactDraft): stri
 
 export const formatCustomerContactDetails = (contact: ICustomerContact | null): string =>
   [contact?.phone, contact?.email].filter(Boolean).join(" · ") || CUSTOMER_OWN_CONTACT_COPY.EMPTY;
+
+export const toCustomerContactSummary = (contact: ICustomerContact): ICustomerContactSummary => ({
+  id: contact.id,
+  phone: contact.phone,
+  email: contact.email,
+  isEmpty: !contact.phone && !contact.email,
+});
