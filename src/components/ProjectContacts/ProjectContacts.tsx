@@ -8,6 +8,11 @@ import type {
   ICustomerContactDraft,
 } from "../../interfaces/customer-contact.interface";
 
+import {
+  isProjectContactRole,
+  projectRoleContactsFromLinks,
+} from "../../utilities/project-contact-role.utility";
+
 import Card from "../Card/Card";
 import { Box } from "@mui/material";
 import Button from "../Button/Button";
@@ -35,10 +40,6 @@ import { toCustomerContactDraft } from "../../utilities/customer-contact.utility
 import { contactDirectoryService } from "../../services/contact-directory.service";
 import ProjectContactRoleFields from "../ProjectContactRoles/ProjectContactRoleFields";
 import type { ProjectContactRoleType } from "../../constants/project-contact-role.constant";
-import {
-  isProjectContactRole,
-  projectRoleContactsFromLinks,
-} from "../../utilities/project-contact-role.utility";
 
 interface IProjectContactsProps {
   canEdit: boolean;

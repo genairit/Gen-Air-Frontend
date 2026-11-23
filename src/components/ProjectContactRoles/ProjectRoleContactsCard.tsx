@@ -13,6 +13,7 @@ interface IProjectRoleContactsCardProps {
   children?: ReactNode;
   canEditDetails: boolean;
   contacts: TProjectRoleContacts;
+  onActivityChange?: (role: ProjectContactRoleType, active: boolean) => void;
   onChange: (role: ProjectContactRoleType, contact: ICustomerContact | null) => void;
 }
 const ProjectRoleContactsCard: FC<IProjectRoleContactsCardProps> = ({
@@ -21,6 +22,7 @@ const ProjectRoleContactsCard: FC<IProjectRoleContactsCardProps> = ({
   canEditDetails,
   onChange,
   children,
+  onActivityChange,
 }) => (
   <Card>
     <CardHeader icon={ICON_NAMES.CONTACTS} title={PROJECT_CONTACT_ROLE_COPY.TITLE} />
@@ -30,6 +32,7 @@ const ProjectRoleContactsCard: FC<IProjectRoleContactsCardProps> = ({
       contacts={contacts}
       onChange={onChange}
       canEditDetails={canEditDetails}
+      onActivityChange={onActivityChange}
     />
     {children}
   </Card>

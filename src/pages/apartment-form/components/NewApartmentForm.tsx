@@ -9,6 +9,12 @@ import {
   APARTMENT_UNIT_FIELDS,
 } from "../../../constants/apartment.constant";
 
+import {
+  setProjectRoleContact,
+  emptyProjectRoleContacts,
+  projectRoleContactInputs,
+} from "../../../utilities/project-contact-role.utility";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -36,11 +42,6 @@ import { useCreateApartmentMutation } from "../../../hooks/mutations/apartment.m
 import type { ProjectContactRoleType } from "../../../constants/project-contact-role.constant";
 import ProjectCustomerPickerCard from "../../project-form/components/ProjectCustomerPickerCard";
 import ProjectRoleContactsCard from "../../../components/ProjectContactRoles/ProjectRoleContactsCard";
-import {
-  emptyProjectRoleContacts,
-  setProjectRoleContact,
-  projectRoleContactInputs,
-} from "../../../utilities/project-contact-role.utility";
 
 interface INewApartmentFormProps {
   building: IApiProject;
@@ -50,6 +51,9 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const styles = usePageStyles();
   const navigate = useNavigate();
   const sessionUser = useSessionUser();
+  const [roleActivity, setRoleActivity] = useState<
+    Partial<Record<ProjectContactRoleType, boolean>>
+  >({});
   const [roleContacts, setRoleContacts] = useState(emptyProjectRoleContacts);
   const [values, setValues] = useState<IApartmentFormValues>(EMPTY_APARTMENT_FORM);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
@@ -60,6 +64,11 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const invalidSelectedCustomerCount = Number(Boolean(values.customerId) && !isCustomerReady);
   const invalidFieldCount = countInvalidApartmentFields(values) + invalidSelectedCustomerCount;
   const showFieldErrors = isSubmitAttempted && invalidFieldCount > 0;
+
+  const hasUnfinishedRoleContact = Object.values(roleActivity).some(active => active);
+  const isSubmitDisabled = createMutation.isPending || hasUnfinishedRoleContact;
+  const changeRoleActivity = (role: ProjectContactRoleType, active: boolean) =>
+    setRoleActivity(current => ({ ...current, [role]: active }));
 
   const canEditContactDetails = hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_UPDATE);
   const changeRoleContact = (role: ProjectContactRoleType, contact: ICustomerContact | null) => {
@@ -73,7 +82,7 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const handleSubmit = () => {
     setIsSubmitAttempted(true);
 
-    if (invalidFieldCount > 0 || createMutation.isPending) {
+    if (invalidFieldCount > 0 || isSubmitDisabled) {
       return;
     }
 
@@ -135,6 +144,7 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
         contacts={roleContacts}
         onChange={changeRoleContact}
         disabled={createMutation.isPending}
+        onActivityChange={changeRoleActivity}
         canEditDetails={canEditContactDetails}
       />
       <InheritedPreviewCard building={building} />
@@ -154,6 +164,7 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
         <Button
           icon={ICON_NAMES.ADD}
           onClick={handleSubmit}
+          disabled={isSubmitDisabled}
           text={ADD_APARTMENT_COPY.SUBMIT}
           isLoading={createMutation.isPending}
         />

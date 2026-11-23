@@ -29,6 +29,7 @@ interface IProjectContactRoleFieldProps {
   canEditDetails: boolean;
   role: ProjectContactRoleType;
   contact: ICustomerContact | null;
+  onActivityChange?: (active: boolean) => void;
   onSelect: (contact: ICustomerContact | null) => void | Promise<void>;
 }
 
@@ -39,6 +40,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
   canEditDetails,
   disabled,
   onSelect,
+  onActivityChange,
 }) => {
   const title = PROJECT_CONTACT_ROLE_LABELS[role];
   const styles = usePageStyles();
@@ -56,6 +58,8 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
     queryFn: () => contactDirectoryService.search(debouncedSearch),
   });
   const selectMutation = useMutation({
+    onMutate: () => onActivityChange?.(true),
+    onSettled: () => onActivityChange?.(isEditing),
     mutationFn: async (selected: ICustomerContact | null): Promise<void> => {
       await onSelect(selected);
     },
@@ -67,11 +71,13 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
         existing: editedContact,
         created: createdContact,
         onCreated: setCreatedContact,
+        canEditCreated: canEditDetails,
         onSelect,
       }),
     onSuccess: () => {
       setIsEditing(false);
       setCreatedContact(null);
+      onActivityChange?.(false);
     },
   });
   const available = isCurrentQuery && hasQuery ? (directoryQuery.data ?? []) : [];
@@ -83,6 +89,10 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
   const errorMessage = error ? getApiErrorMessage(error) : null;
   const searchError = directoryQuery.isError ? getApiErrorMessage(directoryQuery.error) : null;
   const editorError = saveMutation.isError ? getApiErrorMessage(saveMutation.error) : null;
+  const showContactActions = canEdit && contact !== null;
+  const showContactEditorAction = showContactActions && canEditDetails;
+  const freezeCreatedDetails = createdContact !== null && !canEditDetails;
+  const showCreatedPendingNotice = isEditing && freezeCreatedDetails;
   const addLabel = `הוסף ${title}`;
   const removeLabel = `הסר מהתפקיד ${title}`;
   const editLabel = `ערוך פרטי ${title}`;
@@ -91,8 +101,14 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
     setCreatedContact(null);
     setDraft(toCustomerContactDraft(selected));
     setIsEditing(true);
+    onActivityChange?.(true);
     saveMutation.reset();
   };
+  const cancelEditor = () => {
+    setIsEditing(false);
+    onActivityChange?.(false);
+  };
+  const selectionDisabled = isBusy || isEditing;
   const selectContact = (id: string | null) => {
     const selected = available.find(item => item.id === id) ?? null;
     selectMutation.mutate(selected);
@@ -104,7 +120,6 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
         <Autocomplete
           title={title}
           items={options}
-          disabled={isBusy}
           isClearable={false}
           isLoading={loading}
           onSearch={setSearch}
@@ -112,6 +127,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
           isClientFiltered={false}
           value={contact?.id ?? null}
           selectedItem={selectedItem}
+          disabled={selectionDisabled}
           placeholder={PROJECT_CONTACT_ROLE_COPY.SEARCH}
         />
       ) : (
@@ -130,7 +146,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
           {contact.email}
         </Box>
       )}
-      {canEdit && contact && (
+      {showContactActions && (
         <Button
           disabled={isBusy}
           text={removeLabel}
@@ -139,7 +155,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
           onClick={() => selectMutation.mutate(null)}
         />
       )}
-      {canEdit && contact && (
+      {showContactActions && (
         <Box>הסרה מהתפקיד אינה מוחקת את איש הקשר; הוא עשוי להישאר ברשימת אנשי הקשר הנוספים.</Box>
       )}
       {canEdit && (
@@ -151,7 +167,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
             variant={BUTTON_VARIANTS.NEUTRAL}
             onClick={() => startEditor(null)}
           />
-          {contact && canEditDetails && (
+          {showContactEditorAction && (
             <Button
               text={editLabel}
               disabled={isBusy}
@@ -164,6 +180,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
       )}
       {errorMessage && <InlineError message={errorMessage} />}
       {searchError && <InlineError message={searchError} />}
+      {showCreatedPendingNotice && <Box>{PROJECT_CONTACT_ROLE_COPY.CREATED_PENDING}</Box>}
       {isEditing && (
         <>
           {editedContact && <Box>{PROJECT_CONTACT_ROLE_COPY.SHARED_EDIT}</Box>}
@@ -172,8 +189,9 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
             values={draft}
             onChange={setDraft}
             error={editorError}
+            onCancel={cancelEditor}
             onSave={() => saveMutation.mutate()}
-            onCancel={() => setIsEditing(false)}
+            fieldsDisabled={freezeCreatedDetails}
           />
         </>
       )}

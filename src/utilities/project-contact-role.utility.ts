@@ -1,11 +1,13 @@
-import type { ICustomerContact } from "../interfaces/customer-contact.interface";
-import { PROJECT_CONTACT_ROLES } from "../constants/project-contact-role.constant";
-import type { ProjectContactRoleType } from "../constants/project-contact-role.constant";
-import type { TProjectRoleContacts } from "../interfaces/project-contact-role.interface";
 import type {
   IProjectContactLink,
   IProjectContactInput,
 } from "../interfaces/project-contact.interface";
+
+import type { ICustomerContact } from "../interfaces/customer-contact.interface";
+import { PROJECT_CONTACT_ROLES } from "../constants/project-contact-role.constant";
+import type { ICustomerContactInput } from "../interfaces/customer-contact.interface";
+import type { ProjectContactRoleType } from "../constants/project-contact-role.constant";
+import type { TProjectRoleContacts } from "../interfaces/project-contact-role.interface";
 
 export const isProjectContactRole = (role: string | null): role is ProjectContactRoleType =>
   Object.values(PROJECT_CONTACT_ROLES).some(value => value === role);
@@ -63,3 +65,12 @@ export const projectContactCreationInputs = (
     .map((contact, index) => ({ contactId: contact.id, role: null, isPrimary: index === 0 }));
   return [...roleInputs, ...additionalInputs];
 };
+
+export const isContactInputEqual = (
+  contact: ICustomerContactInput,
+  input: ICustomerContactInput,
+): boolean =>
+  contact.name === input.name &&
+  contact.phone === input.phone &&
+  contact.email === input.email &&
+  contact.role === input.role;

@@ -12,6 +12,7 @@ interface IProjectContactRoleFieldsProps {
   disabled: boolean;
   canEditDetails: boolean;
   contacts: TProjectRoleContacts;
+  onActivityChange?: (role: ProjectContactRoleType, active: boolean) => void;
   onChange: (
     role: ProjectContactRoleType,
     contact: ICustomerContact | null,
@@ -23,6 +24,7 @@ const ProjectContactRoleFields: FC<IProjectContactRoleFieldsProps> = ({
   disabled,
   canEditDetails,
   onChange,
+  onActivityChange,
 }) => {
   const styles = usePageStyles();
   return (
@@ -36,6 +38,7 @@ const ProjectContactRoleFields: FC<IProjectContactRoleFieldsProps> = ({
           contact={contacts[role]}
           canEditDetails={canEditDetails}
           onSelect={contact => onChange(role, contact)}
+          onActivityChange={active => onActivityChange?.(role, active)}
         />
       ))}
     </Box>

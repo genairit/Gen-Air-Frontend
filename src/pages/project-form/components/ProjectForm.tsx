@@ -84,6 +84,7 @@ import type { ProjectMemberRoleType } from "../../../constants/user-role.constan
 import { useProjectNameAvailability } from "../../../hooks/queries/project-name.query";
 import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { PROJECT_CONTACT_ROLE_COPY } from "../../../constants/project-contact-role.constant";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
 import type { ProjectContactRoleType } from "../../../constants/project-contact-role.constant";
@@ -117,10 +118,14 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     setTypeSwitch(null);
     setIsSubmitAttempted(false);
     setRoleContacts(emptyProjectRoleContacts());
+    setRoleActivity({});
     setSelectedContacts([]);
   };
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
+  const [roleActivity, setRoleActivity] = useState<
+    Partial<Record<ProjectContactRoleType, boolean>>
+  >({});
   const [roleContacts, setRoleContacts] = useState(emptyProjectRoleContacts);
   const [selectedContacts, setSelectedContacts] = useState<ICustomerContact[]>([]);
 
@@ -164,7 +169,9 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     isTaken: isNameTaken,
     isCheckFailed: nameAvailability.isError,
   });
+  const hasUnfinishedRoleContact = Object.values(roleActivity).some(active => active);
   const isSubmitDisabled =
+    hasUnfinishedRoleContact ||
     !canSubmitProjectForm(values) ||
     nameAvailability.isPending ||
     nameAvailability.isError ||
@@ -204,6 +211,9 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         { onSuccess: openProject },
       ),
   };
+
+  const changeRoleActivity = (role: ProjectContactRoleType, active: boolean) =>
+    setRoleActivity(current => ({ ...current, [role]: active }));
 
   const changeRoleContact = (role: ProjectContactRoleType, contact: ICustomerContact | null) => {
     const next = setProjectRoleContact(roleContacts, role, contact);
@@ -299,6 +309,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       disabled={isSaving}
       contacts={roleContacts}
       onChange={changeRoleContact}
+      onActivityChange={changeRoleActivity}
       canEditDetails={canEditContactDetails}
     >
       <DirectoryContactPicker
@@ -331,6 +342,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           actions={
             <Button
               text={PROJECT_FORM_COPY.DISCARD_DRAFT}
+              disabled={hasUnfinishedRoleContact || isSaving}
               onClick={discardDraft}
               variant={BUTTON_VARIANTS.NEUTRAL}
             />
@@ -384,7 +396,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       )}
       {isEditMode && projectId && (
         <>
-          <Box>שינוי שיוך או פרטי איש קשר נשמר מיד, בנפרד משמירת הפרויקט.</Box>
+          <Box>{PROJECT_CONTACT_ROLE_COPY.INSTANT_SAVE}</Box>
           <ProjectContacts canEdit projectId={projectId} />
         </>
       )}
