@@ -1,4 +1,5 @@
 import type { UserRoleType } from "../constants/user-role.constant";
+import type { IProjectContactInput } from "./project-contact.interface";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
 import type { IApiProjectIntake, IApiProjectCustomerDetails } from "./api.interface";
 
@@ -94,6 +95,7 @@ export interface IApartmentPayload {
   hasOwnLighting?: boolean;
   customerApartment: string;
   engineerUserId?: string | null;
+  contacts?: IProjectContactInput[];
   members?: IProjectMemberAssignment[];
   hasGeneralLightingCeilingLowering?: boolean;
   generalLightingCeilingLoweringHeight?: number | null;

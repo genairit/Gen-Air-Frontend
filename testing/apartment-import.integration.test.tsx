@@ -18,14 +18,13 @@ import { AxiosError, AxiosHeaders } from "axios";
 import { act, create } from "react-test-renderer";
 import { setSession } from "../src/store/session.store";
 import { queryClient } from "../src/providers/query-client";
-import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import { useApartmentImport } from "../src/hooks/apartment-import.hook";
 import { FileDownloadManager } from "../src/managers/file-download.manager";
+import { QUERY_KEYS, QUERY_ROOTS } from "../src/constants/query-key.constant";
 import { apartmentImportService } from "../src/services/apartment-import.service";
 import { USER_ROLES, USER_ROLE_VALUES } from "../src/constants/user-role.constant";
-import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
 import type { TApartmentImportView } from "../src/interfaces/apartment-import.interface";
 import { canImportApartments } from "../src/utilities/apartment-import-permission.utility";
 import { isApartmentImportResponse } from "../src/utilities/guards/apartment-import.guard";
@@ -385,15 +384,20 @@ test("known import API errors are localized without exposing server messages", a
   assert.equal(views.at(-1)?.failure?.code, "APARTMENT_IMPORT_BUILDING_NOT_FOUND");
 });
 
-test("import completion invalidates cached customer details and contacts", async () => {
-  const contactKey = [CUSTOMER_CONTACT_QUERY_ROOT, "cached-customer"];
-  const customerKey = QUERY_KEYS.customer("cached-customer");
-  queryClient.setQueryData(contactKey, [{ id: "old-contact" }]);
-  queryClient.setQueryData(customerKey, { id: "cached-customer" });
-  assert.equal(queryClient.getQueryState(contactKey)?.isInvalidated, false);
+test("import completion invalidates customer details, customer lists and linked project queries", async () => {
+  const keys = [
+    QUERY_KEYS.customer("cached-customer"),
+    [QUERY_ROOTS.CUSTOMERS, "cached-list"],
+    [QUERY_ROOTS.CUSTOMER_PROJECTS, "cached-customer"],
+  ];
+  for (const key of keys) {
+    queryClient.setQueryData(key, { id: "cached-customer", primaryContact: { id: "own-contact" } });
+    assert.equal(queryClient.getQueryState(key)?.isInvalidated, false);
+  }
+
   await refreshImportedApartmentsAction("building-1");
-  assert.equal(queryClient.getQueryState(contactKey)?.isInvalidated, true);
-  assert.equal(queryClient.getQueryState(customerKey)?.isInvalidated, true);
-  queryClient.removeQueries({ queryKey: contactKey });
-  queryClient.removeQueries({ queryKey: customerKey });
+  for (const key of keys) {
+    assert.equal(queryClient.getQueryState(key)?.isInvalidated, true);
+    queryClient.removeQueries({ queryKey: key });
+  }
 });
