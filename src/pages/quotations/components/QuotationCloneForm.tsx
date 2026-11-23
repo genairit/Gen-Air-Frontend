@@ -44,8 +44,10 @@ const QuotationCloneForm: FC<ICloneFormProps> = ({ sourceId, onCancel }): ReactE
   const hasSingleSourceBrand = source.isSuccess && source.data.brands.length === 1;
   const canCreate = hasSingleSourceBrand && targetBrand !== sourceBrand;
   const brandOptions = cloneBrandOptions(sourceBrand, retainedCommand?.targetBrand ?? null);
-  const createDisabled =
-    !targetBrand || pending || failure?.staleSource === true || (!canRecover && !canCreate);
+  const hasMissingTarget = !targetBrand;
+  const hasStaleSource = failure?.staleSource === true;
+  const hasUnavailableIntent = !canRecover && !canCreate;
+  const createDisabled = hasMissingTarget || pending || hasStaleSource || hasUnavailableIntent;
   const idleText = canRecover ? "בדוק תוצאת היצירה" : "צור הצעה חדשה";
   const createText = pending ? "יוצר הצעה חדשה..." : idleText;
   const selectorDisabled = pending || (!hasSingleSourceBrand && canRecover);

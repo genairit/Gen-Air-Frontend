@@ -3,6 +3,12 @@ import {
   completeQuotationClone,
 } from "../src/actions/quotation-clone.actions";
 
+import {
+  CLONE_ERROR_CODES,
+  CLONE_DIAGNOSTIC_CAUSES,
+  CLONE_DIAGNOSTIC_CLASSIFICATIONS,
+} from "../src/constants/quotation-clone.constant";
+
 import type {
   ICloneExecution,
   ICloneBrandOption,
@@ -26,7 +32,6 @@ import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { cloneFailure } from "../src/utilities/quotation-clone.utility";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
-import { CLONE_ERROR_CODES } from "../src/constants/quotation-clone.constant";
 import QuotationSelect from "../src/pages/quotations/components/QuotationSelect";
 import QuotationButton from "../src/pages/quotations/components/QuotationButton";
 import { CommandIdentityManager } from "../src/managers/command-identity.manager";
@@ -35,6 +40,12 @@ import { AuthorizationContext } from "../src/managers/authorization-context.mana
 import type { IRecommendedCloneCommand } from "../src/interfaces/quotation.interface";
 import QuotationCloneForm from "../src/pages/quotations/components/QuotationCloneForm";
 import { QuotationCloneStorageManager } from "../src/managers/quotation-clone-storage.manager";
+
+interface IRecoveryScenario {
+  name: string;
+  brands: string[];
+  failure: number | null;
+}
 
 interface ITestRendererState {
   current: ReactTestRenderer | null;
@@ -476,12 +487,6 @@ test("navigation waits for invalidation and is suppressed if route or account ch
   client.clear();
 });
 
-interface IRecoveryScenario {
-  name: string;
-  brands: string[];
-  failure: number | null;
-}
-
 const RECOVERY_SCENARIOS: IRecoveryScenario[] = [
   { name: "multi-brand", brands: ["אלקטרה", "תדיראן"], failure: null },
   { name: "General-only", brands: [], failure: null },
@@ -764,11 +769,13 @@ test("command and storage failures log allowlisted diagnostics without response 
     const diagnostic = failures.mock.calls.at(-1)?.arguments[1];
     assert.equal(diagnostic?.status, 400);
     assert.equal(diagnostic?.code, CLONE_ERROR_CODES.MAPPING_FAILED);
-    assert.equal(typeof diagnostic?.classification, "string");
+    assert.equal(diagnostic?.classification, CLONE_DIAGNOSTIC_CLASSIFICATIONS.HTTP_OR_TRANSPORT);
     assert.equal(JSON.stringify(failures.mock.calls).includes("SECRET"), false);
     assert.equal(JSON.stringify(warnings.mock.calls).includes("SECRET"), false);
     assert.equal(
-      warnings.mock.calls.some((call): boolean => call.arguments[1]?.cause === "invalid-json"),
+      warnings.mock.calls.some(
+        (call): boolean => call.arguments[1]?.cause === CLONE_DIAGNOSTIC_CAUSES.INVALID_JSON,
+      ),
       true,
     );
   } finally {

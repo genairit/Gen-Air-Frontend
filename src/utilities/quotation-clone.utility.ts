@@ -1,7 +1,11 @@
 import {
   CLONE_ERROR_CODES,
+  CLONE_DIAGNOSTIC_CAUSES,
   CLONE_RECOVERY_BY_STATUS,
   CLONE_COMMAND_UUID_PATTERN,
+  type CloneDiagnosticCauseType,
+  CLONE_DIAGNOSTIC_CLASSIFICATIONS,
+  type CloneDiagnosticClassificationType,
 } from "../constants/quotation-clone.constant";
 
 import { isAxiosError } from "axios";
@@ -95,7 +99,12 @@ export const safeCloneDiagnostics = (error: unknown): Record<string, unknown> =>
   const code =
     Object.values(CLONE_ERROR_CODES).find((candidate): boolean => candidate === receivedCode) ??
     null;
-  const classification = isAxiosError(error) ? "http-or-transport" : "platform-or-client";
-  const cause = error instanceof SyntaxError ? "invalid-json" : "request-or-storage-failure";
+  const classification: CloneDiagnosticClassificationType = isAxiosError(error)
+    ? CLONE_DIAGNOSTIC_CLASSIFICATIONS.HTTP_OR_TRANSPORT
+    : CLONE_DIAGNOSTIC_CLASSIFICATIONS.PLATFORM_OR_CLIENT;
+  const cause: CloneDiagnosticCauseType =
+    error instanceof SyntaxError
+      ? CLONE_DIAGNOSTIC_CAUSES.INVALID_JSON
+      : CLONE_DIAGNOSTIC_CAUSES.REQUEST_OR_STORAGE_FAILURE;
   return { classification, status, code, cause };
 };
