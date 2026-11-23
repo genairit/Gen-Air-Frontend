@@ -16,8 +16,8 @@ export const CUSTOMER_PAGE_SIZE = 7;
 export const CUSTOMERS_COPY = {
   TITLE: "לקוחות",
   EYEBROW: "לקוחות · ניהול ב-CRM",
-  DESCRIPTION: "ניהול לקוחות ואנשי הקשר שלהם, לשיוך לפרויקטים, לבניינים ולדירות.",
-  SEARCH_PLACEHOLDER: "חיפוש לפי שם, ח.פ, איש קשר, טלפון או מזהה Priority...",
+  DESCRIPTION: "ניהול לקוחות ופרטי הקשר שלהם, לשיוך לפרויקטים, לבניינים ולדירות.",
+  SEARCH_PLACEHOLDER: "חיפוש לפי שם, ח.פ, טלפון, דוא״ל או מזהה Priority...",
   LOADING: "טוען לקוחות...",
   EMPTY: "לא נמצאו לקוחות שמתאימים לחיפוש או לסינון",
   NO_PRIORITY_ID: "ללא מזהה Priority",
@@ -27,7 +27,7 @@ export const CUSTOMERS_COPY = {
 
 export const CUSTOMER_TABLE_HEADERS = {
   CUSTOMER: "לקוח",
-  CONTACT: "אנשי קשר",
+  CONTACT: "פרטי קשר של הלקוח",
   SYNC: "סנכרון Priority",
 } as const;
 
@@ -61,7 +61,7 @@ export const CUSTOMER_PAGE_COPY = {
   NOT_FOUND_TITLE: "הלקוח לא נמצא",
   CREATED_BY: "נוצר ע״י",
   DETAILS_TITLE: "פרטי הלקוח",
-  DETAILS_SUBTITLE: "שדות הזהות של הלקוח. אנשי הקשר מנוהלים בכרטיס נפרד",
+  DETAILS_SUBTITLE: "שדות הזהות של הלקוח. פרטי הקשר הראשיים מנוהלים בכרטיס נפרד",
   SYNC_TITLE: "סנכרון עם Priority",
   PRIORITY_ID: "מזהה Priority",
   LAST_SYNCED: "סונכרן לאחרונה",
@@ -99,7 +99,7 @@ export const CUSTOMER_PICKER_RESULT_LIMIT = 5;
 export const CUSTOMER_PICKER_COPY = {
   TITLE: "לקוח הפרויקט",
   SUBTITLE: "בחירת לקוח קיים. הפרטים נשמרים בכרטיס הלקוח ולא מוקלדים מחדש",
-  SEARCH_PLACEHOLDER: "חיפוש לקוח לפי שם, ח.פ, איש קשר או טלפון...",
+  SEARCH_PLACEHOLDER: "חיפוש לקוח לפי שם, ח.פ, טלפון או דוא״ל...",
   RECENT: "לקוחות אחרונים",
   RESULTS: "תוצאות חיפוש",
   NO_RESULTS: "לא נמצא לקוח שמתאים לחיפוש",

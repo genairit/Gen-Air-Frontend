@@ -9,6 +9,7 @@ import { toDialablePhone } from "./phone.utility";
 import { isRecord, isNullableString } from "./guards/primitive.guard";
 import { FIELD_INPUT_LIMITS } from "../constants/field-validation.constant";
 import { CUSTOMER_CONTACT_COPY } from "../constants/customer-contact.constant";
+import { CUSTOMER_OWN_CONTACT_COPY } from "../constants/customer-own-contact.constant";
 
 export const isCustomerContact = (value: unknown): value is ICustomerContact => {
   if (!isRecord(value)) {
@@ -65,5 +66,5 @@ export const getCustomerContactFieldErrors = (draft: ICustomerContactDraft) => {
 export const validateCustomerContactDraft = (draft: ICustomerContactDraft): string[] =>
   Object.values(getCustomerContactFieldErrors(draft)).filter(error => error !== null);
 
-export const formatCustomerPrimaryContact = (contact: ICustomerContact | null) =>
-  contact?.name ?? CUSTOMER_CONTACT_COPY.EMPTY;
+export const formatCustomerContactDetails = (contact: ICustomerContact | null): string =>
+  [contact?.phone, contact?.email].filter(Boolean).join(" · ") || CUSTOMER_OWN_CONTACT_COPY.EMPTY;

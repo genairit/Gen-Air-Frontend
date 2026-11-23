@@ -41,9 +41,7 @@ import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { ICreateCustomerPayload } from "../../../interfaces/customer.interface";
 import { useCreateCustomerMutation } from "../../../hooks/mutations/customer.mutation";
-import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
-import DirectoryContactPicker from "../../../components/DirectoryContactPicker/DirectoryContactPicker";
 
 interface INewCustomerFormProps {
   creatorName: string;
@@ -55,7 +53,6 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
   const styles = usePageStyles();
   const formStyles = useStyles();
   const [values, setValues] = useState<ICreateCustomerPayload>(EMPTY_CUSTOMER_FORM);
-  const [selectedContact, setSelectedContact] = useState<ICustomerContact[]>([]);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const mutation = useCreateCustomerMutation();
 
@@ -91,15 +88,9 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
       return;
     }
 
-    mutation.mutate(
-      {
-        ...normalizeCustomerForm(values),
-        primaryContactId: selectedContact[0]?.id ?? null,
-      },
-      {
-        onSuccess: onCreated,
-      },
-    );
+    mutation.mutate(normalizeCustomerForm(values), {
+      onSuccess: onCreated,
+    });
   };
 
   return (
@@ -125,33 +116,17 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
           value={findOptionLabelById(CUSTOMER_TYPE_OPTIONS, values.customerType)}
         />
       </CustomerFieldsCard>
-      <Box sx={formStyles.contactRow}>
-        <DirectoryContactPicker
-          title="בחר איש קשר קיים"
-          selected={selectedContact}
-          disabled={mutation.isPending}
-          subtitle="אפשר לבחור איש קשר מהמדריך, להזין חדש או להשאיר ריק."
-          onChange={contacts => {
-            setSelectedContact(contacts);
-            if (contacts.length) {
-              updateValues({ contactName: "", phone: "", email: "" });
-            }
-          }}
-        />
-        {!selectedContact.length && (
-          <CustomerFieldsCard
-            errors={errors}
-            values={values}
-            minColumnWidth={210}
-            onChange={updateValues}
-            icon={ICON_NAMES.CONTACTS}
-            disabled={mutation.isPending}
-            fields={CUSTOMER_CONTACT_FIELDS}
-            title={CUSTOMER_FORM_COPY.CONTACT}
-            subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
-          />
-        )}
-      </Box>
+      <CustomerFieldsCard
+        errors={errors}
+        values={values}
+        minColumnWidth={250}
+        onChange={updateValues}
+        icon={ICON_NAMES.CONTACTS}
+        disabled={mutation.isPending}
+        fields={CUSTOMER_CONTACT_FIELDS}
+        title={CUSTOMER_FORM_COPY.CONTACT}
+        subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
+      />
       <Box sx={formStyles.summaryRow}>
         <Card>
           <Autocomplete

@@ -1,15 +1,9 @@
-import {
-  validateContactName,
-  validateRequiredText,
-  validateIsraeliPhone,
-  validateRequiredEmail,
-  validateCompanyNumber,
-} from "../utilities/validators";
-
 import { FIELD_INPUT_LIMITS } from "./field-validation.constant";
 import type { ICustomerFormField } from "../interfaces/customer.interface";
+import { CUSTOMER_OWN_CONTACT_FIELDS } from "./customer-own-contact.constant";
 import { PROJECT_DETAIL_FIELD_SETS } from "./project-detail-field-set.constant";
 import { FIELD_TYPES } from "../components/TextField/constants/textfield.constants";
+import { validateRequiredText, validateCompanyNumber } from "../utilities/validators";
 
 export const CUSTOMER_FORM_COPY = {
   EYEBROW: "לקוחות",
@@ -19,17 +13,16 @@ export const CUSTOMER_FORM_COPY = {
   CANCEL: "ביטול",
   TYPE: "סוג הלקוח",
   IDENTITY: "זהות הלקוח",
-  CONTACT: "איש קשר של הלקוח (לא חובה)",
+  CONTACT: "פרטי קשר של הלקוח (לא חובה)",
   TOO_LONG: "הערך ארוך מדי",
   REQUIRED_TYPE: "בחר סוג לקוח",
-  CONTACT_NAME_REQUIRED: "יש להזין שם איש קשר כאשר ניתנו פרטי קשר",
   SUMMARY: "מה יישמר",
   BACK_TO_CUSTOMERS: "חזרה ללקוחות",
   DENIED_TITLE: "אין הרשאה ליצירת לקוחות",
   SUMMARY_SUBTITLE: "שדות המערכת נוצרים אוטומטית",
   IDENTITY_SUBTITLE: "סוג, שם, מספר רישום וכתובת",
   MANAGERS_ONLY: "רק מנהלים עם הרשאת ניהול לקוחות יכולים ליצור לקוחות",
-  CONTACT_SUBTITLE: "אפשר להשאיר ריק. איש קשר שנבחר נשמר גם במדריך אנשי הקשר.",
+  CONTACT_SUBTITLE: "הטלפון והדוא״ל הראשיים של הלקוח. אפשר להשאיר ריק.",
   DENIED_DESCRIPTION: "רק מנהלים עם הרשאת ניהול לקוחות יכולים ליצור לקוחות חדשים.",
   DESCRIPTION: "הלקוח נשמר ב-CRM וזמין מיד לשיוך לפרויקטים. סנכרון עם Priority יתווסף בהמשך.",
 } as const;
@@ -52,7 +45,6 @@ export const EMPTY_CUSTOMER_FORM = {
   name: "",
   taxId: "",
   address: "",
-  contactName: "",
   phone: "",
   email: "",
   customerType: PROJECT_DETAIL_FIELD_SETS.COMPANY,
@@ -90,36 +82,5 @@ export const CUSTOMER_IDENTITY_FIELDS: ICustomerFormField[] = [
     isLtr: false,
   },
 ];
-export const CUSTOMER_CONTACT_FIELDS: ICustomerFormField[] = [
-  {
-    field: "contactName",
-    label: "שם איש הקשר",
-    placeholder: "ישראל ישראלי",
-    hint: null,
-    maxLength: 120,
-    inputType: FIELD_TYPES.TEXT,
-    validator: validateContactName,
-    isLtr: false,
-  },
-  {
-    field: "phone",
-    label: "טלפון",
-    placeholder: "+44 20 7183 8750",
-    hint: "מספר ישראלי מקומי או מספר בינלאומי עם + וקידומת מדינה",
-    maxLength: FIELD_INPUT_LIMITS.PHONE_CHARACTERS,
-    inputType: FIELD_TYPES.PHONE,
-    validator: validateIsraeliPhone,
-    isLtr: true,
-  },
-  {
-    field: "email",
-    label: "דוא״ל",
-    placeholder: "name@company.co.il",
-    hint: null,
-    maxLength: 254,
-    inputType: FIELD_TYPES.EMAIL,
-    validator: validateRequiredEmail,
-    isLtr: true,
-  },
-];
+export const CUSTOMER_CONTACT_FIELDS: ICustomerFormField[] = [...CUSTOMER_OWN_CONTACT_FIELDS];
 export const CUSTOMER_FORM_FIELDS = [...CUSTOMER_IDENTITY_FIELDS, ...CUSTOMER_CONTACT_FIELDS];

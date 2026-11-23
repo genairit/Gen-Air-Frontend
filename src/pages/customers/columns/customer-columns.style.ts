@@ -15,7 +15,7 @@ export const CUSTOMER_COLUMN_STYLES = createStyles({
     fontWeight: 700,
     color: theme.palette.charcoal,
   },
-  contactName: {
+  contactDetails: {
     fontSize: 14,
     fontWeight: 600,
   },

@@ -21,18 +21,20 @@ const CustomerContactSummary: FC<ICustomerContactSummaryProps> = ({ contacts }) 
       <Box sx={styles.chips}>
         {contacts.map(contact => (
           <Box component="span" key={contact.id} sx={styles.chip}>
-            <Box component="b">{contact.name}</Box>
-            {contact.role && (
-              <Box component="span" sx={styles.caption}>
-                {contact.role}
-              </Box>
-            )}
-            {contact.phone ? (
+            {contact.phone && (
               <Box component="a" sx={styles.summaryLink} href={toTelephoneHref(contact.phone)}>
                 <Box component="bdi">{contact.phone}</Box>
               </Box>
-            ) : (
-              <Box component="bdi">{contact.email}</Box>
+            )}
+            {contact.email && (
+              <Box component="a" sx={styles.summaryLink} href={`mailto:${contact.email}`}>
+                <Box component="bdi">{contact.email}</Box>
+              </Box>
+            )}
+            {!contact.phone && !contact.email && (
+              <Box component="span" sx={styles.caption}>
+                {CUSTOMER_CONTACT_COPY.SUMMARY_EMPTY}
+              </Box>
             )}
           </Box>
         ))}
