@@ -44,6 +44,12 @@ import {
   getLightingHeightError,
 } from "../../../utilities/project-constraints.utility";
 
+import {
+  setProjectRoleContact,
+  emptyProjectRoleContacts,
+  projectContactCreationInputs,
+} from "../../../utilities/project-contact-role.utility";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -73,14 +79,17 @@ import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { countStageNoteErrors } from "../../../utilities/stage-reason.utility";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
+import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
 import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
 import { useProjectNameAvailability } from "../../../hooks/queries/project-name.query";
 import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
+import type { ProjectContactRoleType } from "../../../constants/project-contact-role.constant";
 import { readProjectDraft, clearProjectDraft } from "../../../utilities/project-draft.utility";
 import { useProjectStagesQuery, useProjectTypesQuery } from "../../../hooks/queries/project.query";
+import ProjectRoleContactsCard from "../../../components/ProjectContactRoles/ProjectRoleContactsCard";
 import DirectoryContactPicker from "../../../components/DirectoryContactPicker/DirectoryContactPicker";
 
 interface IProjectFormProps {
@@ -107,9 +116,12 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     setWasDraftRestored(false);
     setTypeSwitch(null);
     setIsSubmitAttempted(false);
+    setRoleContacts(emptyProjectRoleContacts());
+    setSelectedContacts([]);
   };
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
+  const [roleContacts, setRoleContacts] = useState(emptyProjectRoleContacts);
   const [selectedContacts, setSelectedContacts] = useState<ICustomerContact[]>([]);
 
   useProjectDraft(draftUserId, values);
@@ -175,11 +187,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           fieldSet,
           originalIntake,
           canHaveApartments,
-          contacts: selectedContacts.map((contact, index) => ({
-            contactId: contact.id,
-            role: null,
-            isPrimary: index === 0,
-          })),
+          contacts: projectContactCreationInputs(roleContacts, selectedContacts),
         },
         { onSuccess: openProject },
       ),
@@ -196,6 +204,13 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         { onSuccess: openProject },
       ),
   };
+
+  const changeRoleContact = (role: ProjectContactRoleType, contact: ICustomerContact | null) => {
+    const next = setProjectRoleContact(roleContacts, role, contact);
+    setRoleContacts(next);
+  };
+
+  const canEditContactDetails = hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_UPDATE);
 
   const handleRetryNameCheck = async () => {
     await nameAvailability.retry();
@@ -280,14 +295,22 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     />
   );
   const contactPicker = !isEditMode && (
-    <DirectoryContactPicker
-      multiple
+    <ProjectRoleContactsCard
       disabled={isSaving}
-      title="אנשי קשר לפרויקט"
-      selected={selectedContacts}
-      onChange={setSelectedContacts}
-      subtitle="חפש ובחר אנשי קשר קיימים. הראשון שנבחר יהיה איש הקשר הראשי."
-    />
+      contacts={roleContacts}
+      onChange={changeRoleContact}
+      canEditDetails={canEditContactDetails}
+    >
+      <DirectoryContactPicker
+        embedded
+        multiple
+        disabled={isSaving}
+        title="אנשי קשר נוספים"
+        selected={selectedContacts}
+        onChange={setSelectedContacts}
+        subtitle="חפש ובחר אנשי קשר נוספים. הראשון שנבחר יהיה איש הקשר הראשי."
+      />
+    </ProjectRoleContactsCard>
   );
 
   return (
@@ -357,6 +380,12 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         <>
           {contactPicker}
           {siteDetailsCard}
+        </>
+      )}
+      {isEditMode && projectId && (
+        <>
+          <Box>שינוי שיוך או פרטי איש קשר נשמר מיד, בנפרד משמירת הפרויקט.</Box>
+          <ProjectContacts canEdit projectId={projectId} />
         </>
       )}
       {canHaveApartments && (

@@ -33,6 +33,12 @@ import { projectContactService } from "../../services/project-contact.service";
 import { saveProjectContactAction } from "../../actions/contact-directory.action";
 import { toCustomerContactDraft } from "../../utilities/customer-contact.utility";
 import { contactDirectoryService } from "../../services/contact-directory.service";
+import ProjectContactRoleFields from "../ProjectContactRoles/ProjectContactRoleFields";
+import type { ProjectContactRoleType } from "../../constants/project-contact-role.constant";
+import {
+  isProjectContactRole,
+  projectRoleContactsFromLinks,
+} from "../../utilities/project-contact-role.utility";
 
 interface IProjectContactsProps {
   canEdit: boolean;
@@ -85,6 +91,8 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
     },
   });
   const links = linksQuery.data ?? [];
+  const roleContacts = projectRoleContactsFromLinks(links);
+  const additionalLinks = links.filter(link => !isProjectContactRole(link.role));
   const available = (directoryQuery.data ?? []).filter(
     contact => !links.some(link => link.contactId === contact.id),
   );
@@ -116,6 +124,11 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
       isPrimary: links.length === 0,
     });
 
+  const setRoleContact = async (role: ProjectContactRoleType, contact: ICustomerContact | null) => {
+    await projectContactService.setRole(projectId, role, contact?.id ?? null);
+    await linksQuery.refetch();
+  };
+
   return (
     <Card gap="18px" padding="24px">
       <CardHeader
@@ -125,9 +138,15 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
       />
       {linksQuery.isPending && <LoadingState label="טוען אנשי קשר" />}
       {linksQuery.isError && <InlineError message={getApiErrorMessage(linksQuery.error)} />}
-      {linksQuery.isSuccess && links.length === 0 && <Box role="status">לא שויכו אנשי קשר</Box>}
+      <ProjectContactRoleFields
+        canEdit={canEdit}
+        contacts={roleContacts}
+        onChange={setRoleContact}
+        canEditDetails={canEditContactDetails}
+        disabled={linksQuery.isPending || linksQuery.isError}
+      />
       <Box sx={styles.stack({ gap: "12px" })}>
-        {links.map(link => (
+        {additionalLinks.map(link => (
           <Box key={link.contactId} sx={styles.stack({ gap: "8px" })}>
             <Box sx={styles.spacedRow}>
               <Box component="b" sx={styles.wrappingText}>

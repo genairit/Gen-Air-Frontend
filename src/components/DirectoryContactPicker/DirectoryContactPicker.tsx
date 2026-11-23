@@ -1,10 +1,10 @@
 import Card from "../Card/Card";
 import { Box } from "@mui/material";
 import Button from "../Button/Button";
-import { type FC, useState } from "react";
 import TextField from "../TextField/TextField";
 import { useQuery } from "@tanstack/react-query";
 import CardHeader from "../CardHeader/CardHeader";
+import { Fragment, type FC, useState } from "react";
 import InlineError from "../InlineError/InlineError";
 import { usePageStyles } from "../../pages/page.style";
 import LoadingState from "../LoadingState/LoadingState";
@@ -21,6 +21,7 @@ interface IDirectoryContactPickerProps {
   title: string;
   subtitle: string;
   disabled?: boolean;
+  embedded?: boolean;
   multiple?: boolean;
   selected: ICustomerContact[];
   onChange: (contacts: ICustomerContact[]) => void;
@@ -33,7 +34,9 @@ const DirectoryContactPicker: FC<IDirectoryContactPickerProps> = ({
   onChange,
   disabled = false,
   multiple = false,
+  embedded = false,
 }) => {
+  const Wrapper = embedded ? Fragment : Card;
   const styles = usePageStyles();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
@@ -47,7 +50,7 @@ const DirectoryContactPicker: FC<IDirectoryContactPickerProps> = ({
   );
 
   return (
-    <Card gap="18px">
+    <Wrapper>
       <CardHeader title={title} subtitle={subtitle} icon={ICON_NAMES.CONTACTS} />
       {selected.map(contact => (
         <Box key={contact.id} sx={styles.spacedRow}>
@@ -121,7 +124,7 @@ const DirectoryContactPicker: FC<IDirectoryContactPickerProps> = ({
           ))}
         </>
       )}
-    </Card>
+    </Wrapper>
   );
 };
 
