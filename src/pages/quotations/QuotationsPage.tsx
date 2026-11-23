@@ -43,7 +43,8 @@ import type { IExecutionPlanSubmission } from "../../interfaces/execution-plan.i
 const QuotationsPage: FC = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const searchParams = new URLSearchParams(useLocation().search);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
   const cloneFrom = searchParams.get("cloneFrom");
   const user = useSessionUser();
   const [search, setSearch] = useState("");
@@ -147,6 +148,7 @@ const QuotationsPage: FC = () => {
           <QuotationCloneForm
             sourceId={cloneFrom}
             onCancel={() => navigate(buildQuotationPath(cloneFrom))}
+            key={`${location.key}:${cloneFrom}:${user?.id}:${user?.role}:${user?.permissions.join(",")}`}
           />
         )}
         {cloneFrom && !canClone && (

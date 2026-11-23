@@ -72,11 +72,13 @@ import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
+import { useHashTargetFocus } from "../../../hooks/hash-target-focus.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
 import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
 import QuotationCustomerPaymentDefault from "./QuotationCustomerPaymentDefault";
 import { TASK_QUOTATION_COPY } from "../../../constants/task-quotation.constant";
 import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
+import { QUOTATION_DETAIL_HEADING_ID } from "../../../constants/quotation.constant";
 import QuotationApartmentSharingCard from "./sharing/QuotationApartmentSharingCard";
 import { QUOTATION_SHARING_COPY } from "../../../constants/quotation-sharing.constant";
 import { quotationSaveLabel } from "../../../utilities/quotation-presentation.utility";
@@ -110,6 +112,11 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   canClone = false,
 }: IQuotationEditorProps) => {
   const navigate = useNavigate();
+  useHashTargetFocus({
+    ready: true,
+    targetId: QUOTATION_DETAIL_HEADING_ID,
+    focusId: QUOTATION_DETAIL_HEADING_ID,
+  });
   const sessionUser = useSessionUser();
   const [originalCustomerId] = useState(initial.customerId);
   const [editingStatus, setEditingStatus] = useState<TQuotationStatus | null>(null);
@@ -251,7 +258,12 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         <Box component="div" className={styles.quotationHeader}>
           <Box component="div" className={styles.quotationHeaderTop}>
             <Box component="div" className={styles.quotationIdentity}>
-              <Box component="h1" className={styles.heading}>
+              <Box
+                tabIndex={-1}
+                component="h1"
+                className={styles.heading}
+                id={QUOTATION_DETAIL_HEADING_ID}
+              >
                 {quotation.number}
               </Box>
               <Box

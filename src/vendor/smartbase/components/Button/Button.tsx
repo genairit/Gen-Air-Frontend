@@ -16,11 +16,13 @@ interface IButtonProps {
   sx?: SxProps<Theme>;
   isLoading?: boolean;
   variant?: TButtonVariant;
-  onClick: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
+  type?: "button" | "submit" | "reset";
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
 }
 
 const Button: FC<IButtonProps> = ({
   sx,
+  type = "button",
   children,
   onClick,
   disabled,
@@ -33,6 +35,7 @@ const Button: FC<IButtonProps> = ({
 
   return (
     <MuiButton
+      type={type}
       onClick={onClick}
       aria-busy={isLoading}
       aria-label={ariaLabel}

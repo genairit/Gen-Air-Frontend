@@ -29,11 +29,13 @@ interface IButtonProps {
   size?: ButtonSizeType;
   shape?: ButtonShapeType;
   variant?: ButtonVariantType;
-  onClick: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
+  type?: "button" | "submit" | "reset";
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
 }
 
 const Button: FC<IButtonProps> = ({
   sx,
+  type = "button",
   text,
   icon,
   onClick,
@@ -51,6 +53,7 @@ const Button: FC<IButtonProps> = ({
 
   return (
     <SmartbaseButton
+      type={type}
       onClick={onClick}
       disabled={disabled}
       isLoading={isLoading}

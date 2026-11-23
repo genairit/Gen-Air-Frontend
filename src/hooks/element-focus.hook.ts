@@ -6,10 +6,14 @@ const focusConnectedElement = (element: HTMLElement | null) => {
   }
 };
 
-export const useElementFocus = (element: RefObject<HTMLElement | null>, enabled: boolean) => {
+export const useElementFocus = (
+  element: RefObject<HTMLElement | null>,
+  enabled: boolean,
+  trigger: unknown = enabled,
+): void => {
   useEffect(() => {
     if (enabled) {
       focusConnectedElement(element.current);
     }
-  }, [element, enabled]);
+  }, [element, enabled, trigger]);
 };
