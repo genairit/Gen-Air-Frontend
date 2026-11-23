@@ -2,6 +2,7 @@ import type { FC } from "react";
 import { Box } from "@mui/material";
 import styles from "../quotation.module.css";
 import CheckBox from "../../../components/CheckBox/CheckBox";
+import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
 import ValidationMessageText from "../../../components/ValidationMessageText/ValidationMessageText";
@@ -31,7 +32,7 @@ const QuotationWarnings: FC<IQuotationWarningsProps> = ({
       checked ? [...acknowledged, key] : acknowledged.filter(current => current !== key),
     );
   return quotation.warnings.map(warning => (
-    <Box dir="rtl" key={warning.key} className={styles.warning}>
+    <Box key={warning.key} dir={TEXT_DIRECTIONS.RTL} className={styles.warning}>
       <CheckBox
         disabled={disabled}
         value={warning.acknowledged}

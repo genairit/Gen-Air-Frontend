@@ -1,8 +1,8 @@
-import { VALIDATION_MESSAGE_PATTERNS } from "../constants/validation-message.constant";
+import { VALIDATION_MESSAGE_REGEX } from "../constants/validation-message.constant";
 import type { IValidationMessageSegment } from "../interfaces/validation-message.interface";
 
 export const segmentValidationMessage = (text: string): IValidationMessageSegment[] => {
-  const matches = [...text.matchAll(VALIDATION_MESSAGE_PATTERNS.TECHNICAL)];
+  const matches = [...text.matchAll(VALIDATION_MESSAGE_REGEX.TECHNICAL)];
   const segments = matches.flatMap((match, index) => {
     const previous = matches[index - 1];
     const start = previous ? previous.index + previous[0].length : 0;
