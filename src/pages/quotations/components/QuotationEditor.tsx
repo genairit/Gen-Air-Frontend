@@ -86,6 +86,7 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 import { useUnsavedChangesNavigation } from "../../../hooks/unsaved-changes-navigation.hook";
 import { useQuotationApartmentSharing } from "../../../hooks/quotation-apartment-sharing.hook";
 import { useQuotationDeletedNavigation } from "../../../hooks/quotation-deleted-navigation.hook";
+import ValidationMessageText from "../../../components/ValidationMessageText/ValidationMessageText";
 import { NOTICE_VARIANTS } from "../../../vendor/smartbase/components/NoticeCard/constants/notice-card.constant";
 
 interface IQuotationEditorProps {
@@ -181,6 +182,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const confirmationTitle = confirmationView?.title ?? "";
   const confirmationActionLabel = confirmationView?.actionLabel ?? "";
   const confirmationDescription = confirmationView?.description ?? "";
+  const confirmationError = editor.error ?? "";
   const showConfirmationError = isConfirmationOpen && editor.error !== null;
   const requestedActionAvailable =
     confirmation === QUOTATION_CONFIRMATION.CANCEL ? canCancelQuotation : canRestoreQuotation;
@@ -330,7 +332,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         )}
         {editor.error && (
           <Box role="alert" component="div" className={styles.error}>
-            {editor.error}
+            <ValidationMessageText text={editor.error} />
             <Box component="div" className={styles.row}>
               <Button text="נסה לשמור שוב" onClick={editor.retry} />
               <Button text="טען גרסה מהשרת" onClick={reloadQuotation} />
@@ -339,7 +341,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         )}
         {pdf.error && (
           <Box role="alert" component="div" className={styles.error}>
-            {pdf.error}
+            <ValidationMessageText text={pdf.error} />
           </Box>
         )}
         <Box component="div" className={styles.metadata}>
@@ -432,7 +434,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
         </Accordion>
         {rebrand.error && (
           <Box role="alert" component="p" className={styles.error}>
-            {rebrand.error}
+            <ValidationMessageText text={rebrand.error} />
           </Box>
         )}
         {rebrand.pendingBrand !== null && (
@@ -659,7 +661,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               />
               {editor.error && (
                 <Box component="div" role="alert" className={styles.error}>
-                  {editor.error}
+                  <ValidationMessageText text={editor.error} />
                   <Button
                     text={editor.hasVersionConflict ? "טען גרסה עדכנית" : "נסה שוב"}
                     onClick={editor.hasVersionConflict ? reloadConflict : editor.retry}
@@ -715,7 +717,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             )}
             {showConfirmationError && (
               <Box component="div" role="alert" className={styles.error}>
-                {editor.error}
+                <ValidationMessageText text={confirmationError} />
                 <Button
                   text={editor.hasVersionConflict ? "טען גרסה עדכנית" : "אפשר ניסיון חוזר"}
                   onClick={editor.hasVersionConflict ? reloadConflict : editor.retry}
