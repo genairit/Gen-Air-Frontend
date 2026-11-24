@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { registerEventListener } from "../utilities/event-listener.utility";
 import { type IUseEventListenerOptions } from "../interfaces/event-listener.interface";
 
 export const useEventListener = ({
@@ -9,21 +10,24 @@ export const useEventListener = ({
 }: IUseEventListenerOptions): void => {
   const listenerRef = useRef(listener);
 
-  useEffect(() => {
+  useEffect((): void => {
     listenerRef.current = listener;
   }, [listener]);
 
-  useEffect(() => {
+  useEffect((): (() => void) | void => {
     if (!isEnabled || !target) {
       return;
     }
 
     const controller = new AbortController();
 
-    target.addEventListener(type, event => listenerRef.current(event), {
-      signal: controller.signal,
+    registerEventListener({
+      type,
+      target,
+      listener: (event: Event): void => listenerRef.current(event),
+      options: { signal: controller.signal },
     });
 
-    return () => controller.abort();
+    return (): void => controller.abort();
   }, [type, target, isEnabled]);
 };

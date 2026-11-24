@@ -5,6 +5,7 @@ import type {
 
 import { FOCUS_EVENTS } from "../constants/focus.constant";
 import { ACTIVE_TAB_SELECTOR } from "../constants/tabs.constant";
+import { registerEventListener } from "../vendor/smartbase/utilities/event-listener.utility";
 
 export const focusAddedInput = (input: HTMLInputElement): void => {
   input.focus({ preventScroll: true });
@@ -46,16 +47,31 @@ export const observeElementFocus = ({
 
   const controller = new AbortController();
   const recordFocus = (): void => {
+    if (source.current !== element) {
+      return;
+    }
+
     record.identity = identity;
     record.focused = ownerDocument.activeElement === source.current;
   };
   const recordDeparture = (): void => {
-    if (element.isConnected) {
+    const isObservedSource = source.current === element;
+    if (isObservedSource && element.isConnected) {
       record.focused = false;
     }
   };
-  ownerDocument.addEventListener(FOCUS_EVENTS.ENTER, recordFocus, { signal: controller.signal });
-  element.addEventListener(FOCUS_EVENTS.LEAVE, recordDeparture, { signal: controller.signal });
+  registerEventListener({
+    target: ownerDocument,
+    type: FOCUS_EVENTS.ENTER,
+    listener: recordFocus,
+    options: { signal: controller.signal },
+  });
+  registerEventListener({
+    target: element,
+    type: FOCUS_EVENTS.LEAVE,
+    listener: recordDeparture,
+    options: { signal: controller.signal },
+  });
   recordFocus();
   return (): void => controller.abort();
 };

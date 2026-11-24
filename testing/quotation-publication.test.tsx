@@ -28,6 +28,7 @@ import {
 import { Box } from "@mui/material";
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
+import { getEventListeners } from "node:events";
 import { act, create } from "react-test-renderer";
 import { Button as MuiButton } from "@mui/material";
 import { createRef, type ReactElement } from "react";
@@ -47,11 +48,18 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { IApiAuthorizedUser } from "../src/interfaces/api.interface";
 import { SessionRequestManager } from "../src/managers/session-request.manager";
 import { useQuotationPublication } from "../src/hooks/quotation-publication.hook";
+import { useEventListener } from "../src/vendor/smartbase/hooks/use-event-listener.hook";
 import { quotationLifecycleTimeline } from "../src/utilities/quotation-lifecycle.utility";
 import { quotationPublicationService } from "../src/services/quotation-publication.service";
+import { registerEventListener } from "../src/vendor/smartbase/utilities/event-listener.utility";
 import { QUOTATION_STATUS, QUOTATION_LIFECYCLE_ACTION } from "../src/constants/quotation.constant";
 import QuotationPublicationNotice from "../src/pages/quotations/components/QuotationPublicationNotice";
 
+interface IEventListenerFixture {
+  enabled: boolean;
+  target: EventTarget;
+  listener: (event: Event) => void;
+}
 interface IFocusMockDocument extends EventTarget {
   body: object;
   activeElement: object | null;
@@ -574,6 +582,8 @@ const FOCUS_REMOVAL_SCENARIOS = {
     visible: false,
     connected: true,
     unmount: false,
+    detachedRef: false,
+    departed: false,
     expected: 1,
   },
   MOVED: {
@@ -582,6 +592,8 @@ const FOCUS_REMOVAL_SCENARIOS = {
     visible: false,
     connected: true,
     unmount: false,
+    detachedRef: false,
+    departed: false,
     expected: 0,
   },
   IDENTITY: {
@@ -590,6 +602,8 @@ const FOCUS_REMOVAL_SCENARIOS = {
     visible: false,
     connected: true,
     unmount: false,
+    detachedRef: false,
+    departed: false,
     expected: 0,
   },
   PENDING: {
@@ -598,6 +612,8 @@ const FOCUS_REMOVAL_SCENARIOS = {
     visible: true,
     connected: true,
     unmount: false,
+    detachedRef: false,
+    departed: false,
     expected: 0,
   },
   DISCONNECTED: {
@@ -606,6 +622,8 @@ const FOCUS_REMOVAL_SCENARIOS = {
     visible: false,
     connected: false,
     unmount: false,
+    detachedRef: false,
+    departed: false,
     expected: 0,
   },
   UNMOUNT: {
@@ -614,6 +632,28 @@ const FOCUS_REMOVAL_SCENARIOS = {
     visible: false,
     connected: true,
     unmount: true,
+    detachedRef: false,
+    departed: false,
+    expected: 0,
+  },
+  NATIVE_REMOVAL: {
+    moved: false,
+    changedIdentity: false,
+    visible: false,
+    connected: true,
+    unmount: false,
+    detachedRef: true,
+    departed: false,
+    expected: 1,
+  },
+  USER_BLUR: {
+    moved: false,
+    changedIdentity: false,
+    visible: false,
+    connected: true,
+    unmount: false,
+    detachedRef: false,
+    departed: true,
     expected: 0,
   },
 } as const;
@@ -673,6 +713,18 @@ for (const [name, scenario] of Object.entries(FOCUS_REMOVAL_SCENARIOS)) {
         document.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
       }
 
+      if (scenario.detachedRef) {
+        source.current = null;
+        sourceNode.dispatchEvent(new Event(FOCUS_EVENTS.LEAVE));
+        document.activeElement = document.body;
+        document.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+      }
+
+      if (scenario.departed) {
+        document.activeElement = document.body;
+        sourceNode.dispatchEvent(new Event(FOCUS_EVENTS.LEAVE));
+      }
+
       if (!scenario.visible && !scenario.moved) {
         sourceNode.isConnected = false;
         document.activeElement = document.body;
@@ -690,6 +742,92 @@ for (const [name, scenario] of Object.entries(FOCUS_REMOVAL_SCENARIOS)) {
       assert.equal(focused.count, scenario.expected);
     } finally {
       await act(async (): Promise<void> => renderer.unmount());
+      assert.equal(getEventListeners(document, FOCUS_EVENTS.ENTER).length, 0);
+      assert.equal(getEventListeners(sourceNode, FOCUS_EVENTS.LEAVE).length, 0);
     }
   });
 }
+
+test("shared listener registration forwards options and shared abort disposes both captured targets", (): void => {
+  const first = new EventTarget();
+  const second = new EventTarget();
+  const controller = new AbortController();
+  const options: AddEventListenerOptions = {
+    signal: controller.signal,
+    capture: true,
+    once: false,
+    passive: true,
+  };
+  const calls = { count: 0 };
+  const listener = (): void => {
+    calls.count += 1;
+  };
+  const registration = mock.method(first, "addEventListener");
+  try {
+    registerEventListener({ target: first, type: FOCUS_EVENTS.ENTER, listener, options });
+    registerEventListener({ target: second, type: FOCUS_EVENTS.LEAVE, listener, options });
+    assert.equal(registration.mock.calls[0]?.arguments[2], options);
+    first.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+    second.dispatchEvent(new Event(FOCUS_EVENTS.LEAVE));
+    assert.equal(calls.count, 2);
+    controller.abort();
+    assert.equal(getEventListeners(first, FOCUS_EVENTS.ENTER).length, 0);
+    assert.equal(getEventListeners(second, FOCUS_EVENTS.LEAVE).length, 0);
+    first.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+    second.dispatchEvent(new Event(FOCUS_EVENTS.LEAVE));
+    assert.equal(calls.count, 2);
+  } finally {
+    controller.abort();
+    registration.mock.restore();
+  }
+});
+test("shared listener hook keeps latest callback and cleans captured target on replacement disable and unmount", async (): Promise<void> => {
+  const first = new EventTarget();
+  const second = new EventTarget();
+  const calls = { first: 0, second: 0 };
+  const initial = (): void => {
+    calls.first += 1;
+  };
+  const updated = (): void => {
+    calls.second += 1;
+  };
+  const Fixture = ({ target, listener, enabled }: IEventListenerFixture): null => {
+    useEventListener({ target, listener, type: FOCUS_EVENTS.ENTER, isEnabled: enabled });
+    return null;
+  };
+  const holder: IPublicationTestRenderer = { renderer: null };
+  await act(async (): Promise<void> => {
+    holder.renderer = create(<Fixture enabled target={first} listener={initial} />);
+  });
+  const renderer = holder.renderer;
+  assert.ok(renderer);
+  try {
+    first.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+    assert.equal(calls.first, 1);
+    await act(async (): Promise<void> => {
+      renderer.update(<Fixture enabled target={first} listener={updated} />);
+    });
+    first.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+    assert.equal(calls.second, 1);
+    assert.equal(getEventListeners(first, FOCUS_EVENTS.ENTER).length, 1);
+    await act(async (): Promise<void> => {
+      renderer.update(<Fixture enabled target={second} listener={updated} />);
+    });
+    assert.equal(getEventListeners(first, FOCUS_EVENTS.ENTER).length, 0);
+    second.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+    assert.equal(calls.second, 2);
+    await act(async (): Promise<void> => {
+      renderer.update(<Fixture enabled={false} target={second} listener={updated} />);
+    });
+    assert.equal(getEventListeners(second, FOCUS_EVENTS.ENTER).length, 0);
+    second.dispatchEvent(new Event(FOCUS_EVENTS.ENTER));
+    assert.equal(calls.second, 2);
+    await act(async (): Promise<void> => {
+      renderer.update(<Fixture enabled target={second} listener={updated} />);
+    });
+    assert.equal(getEventListeners(second, FOCUS_EVENTS.ENTER).length, 1);
+  } finally {
+    await act(async (): Promise<void> => renderer.unmount());
+    assert.equal(getEventListeners(second, FOCUS_EVENTS.ENTER).length, 0);
+  }
+});
