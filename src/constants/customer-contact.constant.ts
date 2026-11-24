@@ -2,12 +2,11 @@ import { FIELD_INPUT_LIMITS } from "./field-validation.constant";
 import { FIELD_TYPES } from "../components/TextField/constants/textfield.constants";
 
 export const CUSTOMER_CONTACT_COPY = {
-  SUMMARY_LABEL: "איש הקשר של הלקוח",
-  SUMMARY_EMPTY: "לא הוגדר איש קשר ללקוח.",
+  SUMMARY_LABEL: "פרטי קשר של הלקוח",
+  SUMMARY_EMPTY: "לא הוגדרו פרטי קשר ללקוח.",
   NO_ROLE: "ללא תפקיד",
   COMMON_ROLES: "תפקידים נפוצים:",
   EDITOR_TITLE: "פרטי איש קשר",
-  EMPTY: "אין איש קשר ראשי",
   LOADING: "טוען אנשי קשר...",
   ADD: "הוספת איש קשר",
   EDIT: "עריכה",
@@ -58,7 +57,7 @@ export const CUSTOMER_CONTACT_FIELDS = [
 export const CUSTOMER_CONTACT_ROLE_SUGGESTIONS = [
   "מנהל פרויקט",
   "קבלן ראשי",
-  "מהנדס",
+  "עובד הנדסי",
   "בעל הבית",
   "מנהל אחזקה",
 ] as const;

@@ -6,6 +6,7 @@ import type {
   IQuotationListQuery,
   IQuotationSalesAgent,
   IProjectQuotationPage,
+  IRecommendedCloneCommand,
   IQuotationApartmentOptions,
 } from "../interfaces/quotation.interface";
 
@@ -92,6 +93,15 @@ export const quotationService = {
   async create(input: { customerId: string; salesAgentId: string | null }): Promise<IQuotation> {
     const response = await httpClient.post<unknown>(API_ENDPOINTS.QUOTATIONS, input);
     return ensureResponse(API_ENDPOINTS.QUOTATIONS, response.data, isQuotation);
+  },
+  async cloneRecommended(input: IRecommendedCloneCommand): Promise<IQuotation> {
+    const endpoint = API_ENDPOINTS.quotationCloneRecommended(input.sourceId);
+    const response = await httpClient.post<unknown>(endpoint, {
+      sourceVersion: input.sourceVersion,
+      targetBrand: input.targetBrand,
+      idempotencyKey: input.idempotencyKey,
+    });
+    return ensureResponse(endpoint, response.data, isQuotation);
   },
   async clone(input: {
     sourceId: string;

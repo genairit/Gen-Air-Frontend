@@ -58,7 +58,7 @@ const CustomerPage = () => {
       <CustomerHeaderCard customer={customer} />
       <Box sx={styles.grid({ minColumnWidth: 500 })}>
         <CustomerDetailsCard customer={customer} />
-        <CustomerPrimaryContactCard customer={customer} />
+        <CustomerPrimaryContactCard customer={customer} key={`customer-contact:${customer.id}`} />
       </Box>
       <Box sx={styles.grid({ minColumnWidth: 500 })}>
         <CustomerSyncCard customer={customer} />

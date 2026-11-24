@@ -19,11 +19,9 @@ import {
 } from "../../../constants/customer-form.constant";
 
 import {
-  PAYMENT_TERMS_VALUES,
-  PAYMENT_TERMS_LABELS,
-  CUSTOMER_PAYMENT_DEFAULT_COPY,
-  CUSTOMER_PAYMENT_DEFAULT_LABELS,
-} from "../../../constants/payment-terms.constant";
+  PAYMENT_CONFIGURATION_COPY,
+  CUSTOMER_PAYMENT_TERMS_VALUES,
+} from "../../../constants/payment-configuration.constant";
 
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
@@ -41,9 +39,9 @@ import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { ICreateCustomerPayload } from "../../../interfaces/customer.interface";
 import { useCreateCustomerMutation } from "../../../hooks/mutations/customer.mutation";
-import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
-import DirectoryContactPicker from "../../../components/DirectoryContactPicker/DirectoryContactPicker";
+import { customerPaymentConfiguration } from "../../../utilities/payment-configuration.utility";
+import PaymentConfigurationEditor from "../../../components/PaymentConfigurationEditor/PaymentConfigurationEditor";
 
 interface INewCustomerFormProps {
   creatorName: string;
@@ -55,15 +53,11 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
   const styles = usePageStyles();
   const formStyles = useStyles();
   const [values, setValues] = useState<ICreateCustomerPayload>(EMPTY_CUSTOMER_FORM);
-  const [selectedContact, setSelectedContact] = useState<ICustomerContact[]>([]);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
   const mutation = useCreateCustomerMutation();
 
   const errors = isSubmitAttempted ? getCustomerFormErrors(values) : {};
   const errorCount = isSubmitAttempted ? countCustomerFormErrors(values) : 0;
-  const paymentTermsLabel = values.paymentTerms
-    ? PAYMENT_TERMS_LABELS[values.paymentTerms].title
-    : CUSTOMER_PAYMENT_DEFAULT_COPY.NONE;
 
   const updateValues = (changes: Partial<ICreateCustomerPayload>) =>
     setValues(current => ({ ...current, ...changes }));
@@ -78,12 +72,6 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
     updateValues({ customerType });
   };
 
-  const changePaymentTerms = (label: string | null) =>
-    updateValues({
-      paymentTerms:
-        PAYMENT_TERMS_VALUES.find(value => PAYMENT_TERMS_LABELS[value].title === label) ?? null,
-    });
-
   const save = () => {
     setIsSubmitAttempted(true);
 
@@ -91,15 +79,9 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
       return;
     }
 
-    mutation.mutate(
-      {
-        ...normalizeCustomerForm(values),
-        primaryContactId: selectedContact[0]?.id ?? null,
-      },
-      {
-        onSuccess: onCreated,
-      },
-    );
+    mutation.mutate(normalizeCustomerForm(values), {
+      onSuccess: onCreated,
+    });
   };
 
   return (
@@ -125,42 +107,27 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
           value={findOptionLabelById(CUSTOMER_TYPE_OPTIONS, values.customerType)}
         />
       </CustomerFieldsCard>
-      <Box sx={formStyles.contactRow}>
-        <DirectoryContactPicker
-          title="בחר איש קשר קיים"
-          selected={selectedContact}
-          disabled={mutation.isPending}
-          subtitle="אפשר לבחור איש קשר מהמדריך, להזין חדש או להשאיר ריק."
-          onChange={contacts => {
-            setSelectedContact(contacts);
-            if (contacts.length) {
-              updateValues({ contactName: "", phone: "", email: "" });
-            }
-          }}
-        />
-        {!selectedContact.length && (
-          <CustomerFieldsCard
-            errors={errors}
-            values={values}
-            minColumnWidth={210}
-            onChange={updateValues}
-            icon={ICON_NAMES.CONTACTS}
-            disabled={mutation.isPending}
-            fields={CUSTOMER_CONTACT_FIELDS}
-            title={CUSTOMER_FORM_COPY.CONTACT}
-            subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
-          />
-        )}
-      </Box>
+      <CustomerFieldsCard
+        errors={errors}
+        values={values}
+        minColumnWidth={250}
+        onChange={updateValues}
+        icon={ICON_NAMES.CONTACTS}
+        disabled={mutation.isPending}
+        fields={CUSTOMER_CONTACT_FIELDS}
+        title={CUSTOMER_FORM_COPY.CONTACT}
+        subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
+      />
       <Box sx={formStyles.summaryRow}>
         <Card>
-          <Autocomplete
-            isAutocomplete={false}
-            value={paymentTermsLabel}
+          <Box component="h2">{PAYMENT_CONFIGURATION_COPY.DEFAULT_TITLE}</Box>
+          <PaymentConfigurationEditor
+            allowUnset
+            onChange={updateValues}
             disabled={mutation.isPending}
-            onChange={changePaymentTerms}
-            title="תנאי תשלום כברירת מחדל"
-            options={CUSTOMER_PAYMENT_DEFAULT_LABELS}
+            value={customerPaymentConfiguration(values)}
+            termsOptions={CUSTOMER_PAYMENT_TERMS_VALUES}
+            customLabel={PAYMENT_CONFIGURATION_COPY.CUSTOM}
           />
         </Card>
         <CustomerSaveSummaryCard creatorName={creatorName} />

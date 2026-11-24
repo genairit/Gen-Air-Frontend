@@ -12,6 +12,7 @@ import {
 } from "../../../hooks/mutations/task.mutation";
 
 import { Box } from "@mui/material";
+import TaskQuotations from "./TaskQuotations";
 import TaskHeaderCard from "./TaskHeaderCard";
 import TaskUrgencyCard from "./TaskUrgencyCard";
 import TaskDetailsCard from "./TaskDetailsCard";
@@ -68,16 +69,7 @@ const TaskView: FC<ITaskViewProps> = ({
       PERMISSIONS.DRIVE_READ,
     ].every(permission => hasPermission(sessionUser, permission));
   const changeStatus = (status: typeof task.status) =>
-    statusMutation.mutate(
-      { taskId: task.id, status },
-      {
-        onSuccess: () => {
-          if (status === TASK_STATUSES.PROPOSAL_SENT && canPrepareEmail) {
-            setEmailOpen(true);
-          }
-        },
-      },
-    );
+    statusMutation.mutate({ taskId: task.id, status });
 
   const mutationError =
     statusMutation.error ?? urgencyMutation.error ?? updateMutation.error ?? claimMutation.error;
@@ -99,6 +91,7 @@ const TaskView: FC<ITaskViewProps> = ({
   return (
     <Box sx={styles.page}>
       <TaskHeaderCard task={task} onStatusChange={changeStatus} canChangeStatus={canChangeStatus} />
+      {task.taskType === TASK_TYPES.QUOTATION && <TaskQuotations taskId={task.id} />}
       {canPrepareEmail && task.status === TASK_STATUSES.PROPOSAL_SENT && (
         <Button text="שליחת תוכנית לביצוע במייל" onClick={() => setEmailOpen(true)} />
       )}

@@ -7,12 +7,6 @@ export const useStyles = () =>
       maxWidth: 1440,
       marginInline: "auto",
     },
-    contactRow: {
-      gap: "24px",
-      display: "grid",
-      alignItems: "start",
-      gridTemplateColumns: "repeat(auto-fit, minmax(min(560px, 100%), 1fr))",
-    },
     summaryRow: {
       gap: "24px",
       display: "grid",

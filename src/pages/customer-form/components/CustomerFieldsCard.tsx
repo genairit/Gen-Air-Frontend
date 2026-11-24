@@ -53,9 +53,9 @@ const CustomerFieldsCard: FC<ICustomerFieldsCardProps> = ({
             isLtr={field.isLtr}
             disabled={disabled}
             type={field.inputType}
-            value={values[field.field]}
             maxLength={field.maxLength}
             infoText={field.hint ?? ""}
+            value={values[field.field]}
             placeholder={field.placeholder}
             validator={toErrorValidator(errors[field.field])}
             onChange={value => onChange({ [field.field]: value })}

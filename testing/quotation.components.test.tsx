@@ -1,12 +1,17 @@
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
+import type { ComponentProps } from "react";
 import { act, create } from "react-test-renderer";
 import { quotationFixture } from "./quotation.fixture";
 import { setSession } from "../src/store/session.store";
+import CheckBox from "../src/components/CheckBox/CheckBox";
+import SharedButton from "../src/components/Button/Button";
 import { setTimeout as settle } from "node:timers/promises";
+import ChoiceRow from "../src/components/ChoiceRow/ChoiceRow";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import { customerService } from "../src/services/customer.service";
+import InlineError from "../src/components/InlineError/InlineError";
 import { quotationService } from "../src/services/quotation.service";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import { getActiveNavigationId } from "../src/utilities/route.utility";
@@ -16,6 +21,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { QUOTATION_DETAIL_KEY } from "../src/constants/quotation.constant";
 import { QUOTATION_AUTOSAVE_MS } from "../src/constants/quotation.constant";
 import QuotationInput from "../src/pages/quotations/components/QuotationInput";
+import QuotationSelect from "../src/pages/quotations/components/QuotationSelect";
 import { QUOTATION_SALES_AGENTS_KEY } from "../src/constants/quotation.constant";
 import QuotationDelete from "../src/pages/quotations/components/QuotationDelete";
 import QuotationButton from "../src/pages/quotations/components/QuotationButton";
@@ -27,6 +33,7 @@ import type { IQuotation, IQuotationLine } from "../src/interfaces/quotation.int
 import QuotationDecimalInput from "../src/pages/quotations/components/QuotationDecimalInput";
 import QuotationProjectPicker from "../src/pages/quotations/components/QuotationProjectPicker";
 import QuotationCustomerPicker from "../src/pages/quotations/components/QuotationCustomerPicker";
+import ValidationMessageText from "../src/components/ValidationMessageText/ValidationMessageText";
 import QuotationCataloguePicker from "../src/pages/quotations/components/QuotationCataloguePicker";
 import QuotationSalesAgentPicker from "../src/pages/quotations/components/QuotationSalesAgentPicker";
 
@@ -392,16 +399,16 @@ test("payment stages resolve conflicting terms and fixed terms require confirmat
     const root = () => renderer.value!.root;
     const group = root().findByProps({ role: "radiogroup" });
     assert.equal(group.props["aria-label"], "תנאי תשלום");
-    const radios = () => root().findAllByProps({ role: "radio" });
+    const radios = () => root().findAllByType(ChoiceRow);
     const radio = (label: string) => {
-      const choice = radios().find(current => current.children.includes(label));
+      const choice = radios().find(current => current.props.children === label);
       assert.ok(choice, `Missing payment choice: ${label}`);
       return choice;
     };
     const stages = () => radio("לפי שלבי תשלום");
     const prepaid = () => radio("תשלום מראש");
     assert.equal(radios().filter(radio => radio.props["aria-checked"]).length, 0);
-    assert.equal(root().findAllByProps({ role: "alert" }).length, 1);
+    assert.equal(root().findAllByType(InlineError).length, 1);
     await act(async () => {
       stages().props.onClick();
     });
@@ -417,7 +424,7 @@ test("payment stages resolve conflicting terms and fixed terms require confirmat
     });
     assert.equal(updates.length, 1);
     const cancel = root()
-      .findAllByType(QuotationButton)
+      .findAllByType(SharedButton)
       .find(button => button.props.text === "ביטול");
     assert.ok(cancel);
     await act(async () => cancel.props.onClick());
@@ -425,7 +432,7 @@ test("payment stages resolve conflicting terms and fixed terms require confirmat
     assert.equal(stages().props["aria-checked"], true);
     await act(async () => prepaid().props.onClick());
     const confirm = root()
-      .findAllByType(QuotationButton)
+      .findAllByType(SharedButton)
       .find(button => button.props.text === "מחק שלבים ובחר תנאים");
     assert.ok(confirm);
     await act(async () => confirm.props.onClick());
@@ -458,8 +465,8 @@ test("a fixed term changes directly without stages, then adding a stage replaces
       );
     });
     const other = renderer
-      .value!.root.findAllByProps({ role: "radio" })
-      .find(radio => radio.children.includes("אחר"));
+      .value!.root.findAllByType(ChoiceRow)
+      .find(radio => radio.props.children === "אחר");
     assert.ok(other);
     await act(async () => other.props.onClick());
     assert.equal(updates[0].paymentTerms, "other");
@@ -474,7 +481,7 @@ test("a fixed term changes directly without stages, then adding a stage replaces
       );
     });
     const add = renderer
-      .value!.root.findAllByType(QuotationButton)
+      .value!.root.findAllByType(SharedButton)
       .find(button => button.props.text === "+ שלב תשלום");
     assert.ok(add);
     await act(async () => add.props.onClick());
@@ -490,8 +497,8 @@ test("a fixed term changes directly without stages, then adding a stage replaces
       );
     });
     const remove = renderer
-      .value!.root.findAllByType(QuotationButton)
-      .find(button => button.props.ariaLabel === "הסר שלב");
+      .value!.root.findAllByType(SharedButton)
+      .find(button => button.props.ariaLabel === "הסר שלב 1");
     assert.ok(remove);
     await act(async () => remove.props.onClick());
     assert.equal(updates[2].paymentTerms, null);
@@ -719,10 +726,13 @@ test("linked controller reassignment inherits parent quantity and removal stays 
     const toggle = root.find(node => node.type === "input" && node.props.type === "checkbox");
     assert.equal(toggle.props.checked, true);
     assert.equal(toggle.props["aria-label"], "הסר שלט");
-    const select = root.findByType("select");
-    assert.equal(select.props["aria-label"], "בקר עבור יחידה");
+    const select = root.findByType(QuotationSelect);
+    assert.equal(select.props.label, "בקר עבור יחידה");
     assert.deepEqual(
-      select.findAllByType("option").map(option => option.props.value),
+      select.props.items.map(
+        (option: Pick<ComponentProps<typeof QuotationSelect>["items"][number], "value">): string =>
+          option.value,
+      ),
       ["", first.id, second.id],
     );
     await act(async () => {
@@ -749,7 +759,7 @@ test("linked controller reassignment inherits parent quantity and removal stays 
     assert.deepEqual(updates[3], { ...line, quotedPrice: "12.3400" });
     assert.equal(removed.mock.callCount(), 0);
     await act(async () => {
-      toggle.props.onChange();
+      root.findByType(CheckBox).props.onChange(false);
     });
     assert.equal(removed.mock.callCount(), 1);
     assert.deepEqual(line, before);
@@ -765,7 +775,7 @@ test("linked controller reassignment inherits parent quantity and removal stays 
       );
     });
     assert.ok(root.findAllByType("input").every(input => input.props.disabled));
-    assert.equal(root.findByType("select").props.disabled, true);
+    assert.equal(root.findByType(QuotationSelect).props.disabled, true);
     assert.equal(
       root.find(node => node.type === "input" && node.props.type === "checkbox").props.checked,
       true,
@@ -1140,7 +1150,8 @@ test("delete confirmation supports cancel, retry and reload while blocking pendi
     await act(async () => buttons()[0].props.onClick());
     await act(async () => state.renderer!.update(<QuotationDelete {...props} error="Conflict" />));
     assert.equal(
-      state.renderer!.root.findByProps({ role: "alert" }).children.includes("Conflict"),
+      state.renderer!.root.findByProps({ role: "alert" }).findByType(ValidationMessageText).props
+        .text === "Conflict",
       true,
     );
     await act(async () => popup().props.buttons.primary.onClick());
@@ -1319,7 +1330,13 @@ test("approved quotation assignment and clearing use the agent-only update", asy
       state.renderer!.root.findAllByType(QuotationInput).every(input => input.props.disabled),
       true,
     );
-    assert.equal(state.renderer!.root.findByType("textarea").props.disabled, true);
+    assert.equal(
+      state
+        .renderer!.root.findAllByType("textarea")
+        .filter((node): boolean => !node.props["aria-hidden"])
+        .every((node): boolean => node.props.disabled),
+      true,
+    );
     assert.equal(state.renderer!.root.findByType(QuotationSummary).props.disabled, true);
     const agentPicker = () =>
       state.renderer!.root.findByType(QuotationSalesAgentPicker).findByType(Autocomplete);

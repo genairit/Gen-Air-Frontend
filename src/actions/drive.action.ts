@@ -35,6 +35,14 @@ export const provisionProjectDriveAction = async (projectId: string): Promise<vo
   context.assertCurrent();
 };
 
+export const completeProjectDriveTemplateAction = async (projectId: string): Promise<void> => {
+  const context = new AuthorizationContext();
+  await projectActivityService.completeDriveTemplate(projectId);
+  context.assertCurrent();
+  await queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT_DRIVE, projectId] });
+  context.assertCurrent();
+};
+
 export const moveProjectDriveFileAction = async ({
   projectId,
   fileId,

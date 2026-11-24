@@ -1,26 +1,24 @@
 import Card from "../Card/Card";
 import { Box } from "@mui/material";
 import Button from "../Button/Button";
-import { type FC, useState } from "react";
 import TextField from "../TextField/TextField";
-import { useQuery } from "@tanstack/react-query";
 import CardHeader from "../CardHeader/CardHeader";
-import InlineError from "../InlineError/InlineError";
+import { Fragment, type FC, useState } from "react";
 import { usePageStyles } from "../../pages/page.style";
 import LoadingState from "../LoadingState/LoadingState";
 import { ICON_NAMES } from "../../constants/icon.constant";
-import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
-import { useDebouncedValue } from "../../hooks/debounced-value.hook";
-import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
 import { FIELD_TYPES } from "../TextField/constants/textfield.constants";
-import { contactDirectoryService } from "../../services/contact-directory.service";
 import type { ICustomerContact } from "../../interfaces/customer-contact.interface";
+import { useContactDirectorySearch } from "../../hooks/queries/contact-directory.query";
+import { CONTACT_DIRECTORY_SEARCH_COPY } from "../../constants/contact-directory-search.constant";
+import ContactDirectorySearchError from "../ContactDirectorySearchError/ContactDirectorySearchError";
 
 interface IDirectoryContactPickerProps {
   title: string;
   subtitle: string;
   disabled?: boolean;
+  embedded?: boolean;
   multiple?: boolean;
   selected: ICustomerContact[];
   onChange: (contacts: ICustomerContact[]) => void;
@@ -33,21 +31,24 @@ const DirectoryContactPicker: FC<IDirectoryContactPickerProps> = ({
   onChange,
   disabled = false,
   multiple = false,
+  embedded = false,
 }) => {
+  const Wrapper = embedded ? Fragment : Card;
   const styles = usePageStyles();
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
-  const directoryQuery = useQuery({
-    enabled: debouncedSearch.trim().length > 0,
-    queryKey: ["contact-directory", debouncedSearch],
-    queryFn: () => contactDirectoryService.search(debouncedSearch),
+  const showSearch = selected.length === 0 || multiple;
+  const directoryQuery = useContactDirectorySearch({
+    search,
+    enabled: !disabled && showSearch,
   });
-  const available = (directoryQuery.data ?? []).filter(
+  const available = directoryQuery.contacts.filter(
     contact => !selected.some(item => item.id === contact.id),
   );
 
+  const showEmpty = directoryQuery.isReady && !directoryQuery.isLoading && available.length === 0;
+
   return (
-    <Card gap="18px">
+    <Wrapper>
       <CardHeader title={title} subtitle={subtitle} icon={ICON_NAMES.CONTACTS} />
       {selected.map(contact => (
         <Box key={contact.id} sx={styles.spacedRow}>
@@ -73,7 +74,7 @@ const DirectoryContactPicker: FC<IDirectoryContactPickerProps> = ({
           />
         </Box>
       ))}
-      {(!selected.length || multiple) && (
+      {showSearch && (
         <>
           <TextField
             value={search}
@@ -84,26 +85,21 @@ const DirectoryContactPicker: FC<IDirectoryContactPickerProps> = ({
             placeholder="שם, טלפון או דוא״ל"
             title="חיפוש איש קשר קיים במדריך"
           />
-          {search && (search !== debouncedSearch || directoryQuery.isPending) && (
-            <LoadingState label="מחפש אנשי קשר" />
+          {directoryQuery.showPrompt && (
+            <Box role="status">{CONTACT_DIRECTORY_SEARCH_COPY.PROMPT}</Box>
           )}
-          {directoryQuery.isError && (
-            <Box sx={styles.stack({ gap: "8px" })}>
-              <InlineError message={getApiErrorMessage(directoryQuery.error)} />
-              <Button
-                text="נסה שוב"
-                disabled={disabled}
-                variant={BUTTON_VARIANTS.NEUTRAL}
-                onClick={async () => {
-                  await directoryQuery.refetch();
-                }}
-              />
-            </Box>
+          {directoryQuery.isLoading && (
+            <LoadingState label={CONTACT_DIRECTORY_SEARCH_COPY.LOADING} />
           )}
-          {search === debouncedSearch && directoryQuery.isSuccess && available.length === 0 && (
-            <Box role="status">לא נמצאו אנשי קשר מתאימים</Box>
+          {directoryQuery.errorMessage && (
+            <ContactDirectorySearchError
+              busy={directoryQuery.isLoading}
+              onRetry={directoryQuery.refresh}
+              message={directoryQuery.errorMessage}
+            />
           )}
-          {(search === debouncedSearch ? available : []).map(contact => (
+          {showEmpty && <Box role="status">{CONTACT_DIRECTORY_SEARCH_COPY.EMPTY}</Box>}
+          {available.map(contact => (
             <Box key={contact.id} sx={styles.spacedRow}>
               <Box>
                 {contact.name} · {contact.phone ?? contact.email ?? ""}
@@ -121,7 +117,7 @@ const DirectoryContactPicker: FC<IDirectoryContactPickerProps> = ({
           ))}
         </>
       )}
-    </Card>
+    </Wrapper>
   );
 };
 

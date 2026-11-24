@@ -5,9 +5,9 @@ import type {
 } from "../../../interfaces/apartment.interface";
 
 import { Box } from "@mui/material";
-import { type FC, useState } from "react";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
+import { type FC, type ReactNode, useState } from "react";
 import TextField from "../../../components/TextField/TextField";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import { getFieldFeedback } from "../../../utilities/field-feedback.utility";
@@ -17,6 +17,7 @@ interface IApartmentFieldsCardProps {
   title: string;
   subtitle?: string;
   icon?: IconNameType;
+  children?: ReactNode;
   minColumnWidth: number;
   isSubmitAttempted: boolean;
   values: IApartmentFormValues;
@@ -26,6 +27,7 @@ interface IApartmentFieldsCardProps {
 
 const ApartmentFieldsCard: FC<IApartmentFieldsCardProps> = ({
   title,
+  children,
   fields,
   values,
   subtitle,
@@ -68,6 +70,7 @@ const ApartmentFieldsCard: FC<IApartmentFieldsCardProps> = ({
     <Card gap="22px" padding="24px">
       <CardHeader icon={icon} title={title} subtitle={subtitle} />
       <Box sx={styles.grid({ minColumnWidth, gap: "16px" })}>{fields.map(renderField)}</Box>
+      {children}
     </Card>
   );
 };

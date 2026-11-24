@@ -61,6 +61,7 @@ export interface IProjectSubmission {
   values: IProjectFormValues;
   canHaveApartments: boolean;
   originalStageId?: string | null;
+  existingDriveFolder?: string | null;
   fieldSet: ProjectDetailFieldSetType | null;
   originalIntake: IProjectIntakeValues | null;
   contacts?: { contactId: string; role: string | null; isPrimary: boolean }[];
@@ -80,6 +81,11 @@ export interface IProjectFile {
   icon?: IconNameType;
 }
 
+export interface ITimelineFileLink {
+  href: string;
+  label: string;
+}
+
 export interface ITimelineEntry {
   id: string;
   date: string;
@@ -88,7 +94,9 @@ export interface ITimelineEntry {
   dotColor: string;
   badge?: ReactNode;
   note?: string | null;
+  detail?: string | null;
   isHighlighted?: boolean;
+  fileLink?: ITimelineFileLink | null;
 }
 
 export interface IStageMove {

@@ -26,3 +26,7 @@ export interface ICustomerContactSave {
   customerId: string;
   editor: ICustomerContactEditor;
 }
+
+export interface ICustomerContactSummary extends Pick<ICustomerContact, "id" | "phone" | "email"> {
+  isEmpty: boolean;
+}

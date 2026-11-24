@@ -101,7 +101,7 @@ export const APARTMENT_PAGE_COPY = {
   NO_END_CUSTOMER: "לא שויך לקוח קצה לדירה זו",
   PARENT_CUSTOMER_NOTE: "לקוח הפרויקט האב אינו לקוח הקצה של הדירה ואינו עובר אליה.",
   CONTACT_TITLE: "צוות הדירה",
-  CONTACT_SUBTITLE: "המהנדס וחברי הצוות נקבעים לכל דירה בנפרד",
+  CONTACT_SUBTITLE: "העובד ההנדסי וחברי הצוות נקבעים לכל דירה בנפרד",
   INHERITED_TITLE: "נתונים מהפרויקט האב",
   INHERITED_SUBTITLE: "סוג הפרויקט והכתובת מתעדכנים עם פרויקט האב",
   PROJECT_TYPE: "סוג פרויקט",
@@ -148,9 +148,9 @@ export const ADD_APARTMENT_COPY = {
 
 export const APARTMENT_TEAM_COPY = {
   TITLE: "צוות הדירה",
-  DESCRIPTION: "עובד ההנדסה נקבע לדירה. שאר הצוות עובר מהבניין עד לשינוי בדירה.",
-  ENGINEER: "עובד הנדסה בדירה",
-  NO_ENGINEER: "ללא עובד הנדסה",
+  DESCRIPTION: "העובד ההנדסי נקבע לדירה. שאר הצוות עובר מהבניין עד לשינוי בדירה.",
+  ENGINEER: "עובד הנדסי בדירה",
+  NO_ENGINEER: "ללא עובד הנדסי",
   OTHER_TEAM: "שאר צוות הדירה",
   INHERITED: "עובר מהבניין",
   OWN: "שונה בדירה זו",

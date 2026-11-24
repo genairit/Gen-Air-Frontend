@@ -4,5 +4,13 @@
     "lib": ["ES2024", "DOM"],
     "types": ["node", "vite/client"]
   },
-  "include": ["testing/quotation.cancellation.test.tsx", "testing/external-modules.d.ts"]
+  "include": [
+    "testing/quotation-clone.test.tsx",
+    "testing/quotation.cancellation.test.tsx",
+    "testing/task-quotations.test.tsx",
+    "testing/quotation.validation.test.tsx",
+    "testing/external-modules.d.ts",
+    "testing/popup-focus.test.tsx",
+    "testing/quotation-publication.test.tsx"
+  ]
 }

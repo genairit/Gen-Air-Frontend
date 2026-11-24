@@ -1,3 +1,8 @@
+import {
+  customerPaymentConfiguration,
+  getCustomerPaymentConfigurationError,
+} from "./payment-configuration.utility";
+
 import type {
   TCustomerFormErrors,
   ICreateCustomerPayload,
@@ -8,25 +13,20 @@ import { CUSTOMER_FORM_COPY, CUSTOMER_FORM_FIELDS } from "../constants/customer-
 import { PROJECT_DETAIL_FIELD_SET_VALUES } from "../constants/project-detail-field-set.constant";
 
 export const normalizeCustomerForm = (values: ICreateCustomerPayload): ICustomerCreateRequest => ({
-  paymentTerms: values.paymentTerms ?? null,
+  ...customerPaymentConfiguration(values),
   name: values.name.trim(),
   taxId: values.taxId.trim(),
   address: values.address.trim(),
-  contactName: values.contactName.trim() || null,
   phone: values.phone.trim() || null,
   email: values.email.trim() || null,
   customerType: values.customerType,
 });
 
 export const getCustomerFormErrors = (values: ICreateCustomerPayload): TCustomerFormErrors => {
-  const payload = normalizeCustomerForm(values);
   const fieldErrors = CUSTOMER_FORM_FIELDS.flatMap(field => {
     const value = values[field.field].trim();
     const isOptionalContactDetail = field.field === "phone" || field.field === "email";
-    const isEmptyOptionalContact =
-      !value &&
-      (isOptionalContactDetail ||
-        (field.field === "contactName" && !payload.phone && !payload.email));
+    const isEmptyOptionalContact = !value && isOptionalContactDetail;
     if (isEmptyOptionalContact) {
       return [];
     }
@@ -42,14 +42,12 @@ export const getCustomerFormErrors = (values: ICreateCustomerPayload): TCustomer
 
     return [];
   });
-  const typeErrors = PROJECT_DETAIL_FIELD_SET_VALUES.includes(payload.customerType)
+  const typeErrors = PROJECT_DETAIL_FIELD_SET_VALUES.includes(values.customerType)
     ? []
     : [["customerType", CUSTOMER_FORM_COPY.REQUIRED_TYPE]];
-  const contactNameErrors =
-    !payload.contactName && (payload.phone || payload.email)
-      ? [["contactName", CUSTOMER_FORM_COPY.CONTACT_NAME_REQUIRED]]
-      : [];
-  return Object.fromEntries([...fieldErrors, ...typeErrors, ...contactNameErrors]);
+  const paymentError = getCustomerPaymentConfigurationError(customerPaymentConfiguration(values));
+  const paymentErrors = paymentError ? [["paymentSchedule", paymentError]] : [];
+  return Object.fromEntries([...fieldErrors, ...typeErrors, ...paymentErrors]);
 };
 
 export const countCustomerFormErrors = (values: ICreateCustomerPayload) =>

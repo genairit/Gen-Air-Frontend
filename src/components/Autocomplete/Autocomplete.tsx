@@ -1,5 +1,5 @@
-import type { FC } from "react";
 import Icon from "../Icon/Icon";
+import type { FC, ReactNode } from "react";
 import type { IconNameType } from "../../constants/icon.constant";
 import SmartbaseAutocomplete from "../../vendor/smartbase/components/Autocomplete/Autocomplete";
 import type { IAutocompleteOption } from "../../vendor/smartbase/interfaces/autocomplete.interface";
@@ -16,6 +16,7 @@ interface IAutocompleteProps {
   noOptionsText?: string;
   startIcon?: IconNameType;
   isAutocomplete?: boolean;
+  emptyFeedback?: ReactNode;
   isClientFiltered?: boolean;
   items?: IAutocompleteOption[];
   onSearch?: (value: string) => void;
@@ -31,6 +32,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
   options = [],
   items,
   selectedItem = null,
+  emptyFeedback = null,
   isLoading = false,
   disabled = false,
   isRequired = false,
@@ -53,6 +55,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
     emptyText={noOptionsText}
     isClearable={isClearable}
     selectedItem={selectedItem}
+    emptyFeedback={emptyFeedback}
     isSearchMode={isAutocomplete}
     isInputReadOnly={!isAutocomplete}
     isSearchIconShown={isAutocomplete}

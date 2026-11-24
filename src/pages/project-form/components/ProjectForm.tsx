@@ -44,6 +44,12 @@ import {
   getLightingHeightError,
 } from "../../../utilities/project-constraints.utility";
 
+import {
+  setProjectRoleContact,
+  emptyProjectRoleContacts,
+  projectContactCreationInputs,
+} from "../../../utilities/project-contact-role.utility";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -70,18 +76,24 @@ import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
-import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { countStageNoteErrors } from "../../../utilities/stage-reason.utility";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
+import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
+import { useExistingDriveFolder } from "../../../hooks/existing-drive-folder.hook";
 import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
 import { useProjectNameAvailability } from "../../../hooks/queries/project-name.query";
 import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { PROJECT_CONTACT_ROLE_COPY } from "../../../constants/project-contact-role.constant";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
+import type { ProjectContactRoleType } from "../../../constants/project-contact-role.constant";
 import { readProjectDraft, clearProjectDraft } from "../../../utilities/project-draft.utility";
+import { getProjectMutationError } from "../../../utilities/existing-drive-folder-error.utility";
 import { useProjectStagesQuery, useProjectTypesQuery } from "../../../hooks/queries/project.query";
+import ProjectRoleContactsCard from "../../../components/ProjectContactRoles/ProjectRoleContactsCard";
 import DirectoryContactPicker from "../../../components/DirectoryContactPicker/DirectoryContactPicker";
+import ExistingDriveFolderField from "../../../components/ExistingDriveFolderField/ExistingDriveFolderField";
 
 interface IProjectFormProps {
   mode: ProjectFormModeType;
@@ -107,10 +119,20 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     setWasDraftRestored(false);
     setTypeSwitch(null);
     setIsSubmitAttempted(false);
+    setRoleContacts(emptyProjectRoleContacts());
+    setRoleActivity({});
+    setSelectedContacts([]);
+    driveFolder.reset();
   };
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
+  const [roleActivity, setRoleActivity] = useState<
+    Partial<Record<ProjectContactRoleType, boolean>>
+  >({});
+  const [roleContacts, setRoleContacts] = useState(emptyProjectRoleContacts);
   const [selectedContacts, setSelectedContacts] = useState<ICustomerContact[]>([]);
+
+  const driveFolder = useExistingDriveFolder(null);
 
   useProjectDraft(draftUserId, values);
 
@@ -152,7 +174,10 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     isTaken: isNameTaken,
     isCheckFailed: nameAvailability.isError,
   });
+  const hasUnfinishedRoleContact = Object.values(roleActivity).some(active => active);
   const isSubmitDisabled =
+    hasUnfinishedRoleContact ||
+    (!isEditMode && !driveFolder.canSubmit) ||
     !canSubmitProjectForm(values) ||
     nameAvailability.isPending ||
     nameAvailability.isError ||
@@ -175,11 +200,8 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           fieldSet,
           originalIntake,
           canHaveApartments,
-          contacts: selectedContacts.map((contact, index) => ({
-            contactId: contact.id,
-            role: null,
-            isPrimary: index === 0,
-          })),
+          contacts: projectContactCreationInputs(roleContacts, selectedContacts),
+          existingDriveFolder: driveFolder.existingDriveFolder,
         },
         { onSuccess: openProject },
       ),
@@ -196,6 +218,17 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         { onSuccess: openProject },
       ),
   };
+
+  const changeRoleActivity = (role: ProjectContactRoleType, active: boolean) =>
+    setRoleActivity(current => ({ ...current, [role]: active }));
+
+  const changeRoleContact = (role: ProjectContactRoleType, contact: ICustomerContact | null) => {
+    const next = setProjectRoleContact(roleContacts, role, contact);
+    setRoleContacts(next);
+  };
+
+  const canCreateContact = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
+  const canEditContactDetails = hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_UPDATE);
 
   const handleRetryNameCheck = async () => {
     await nameAvailability.retry();
@@ -279,15 +312,28 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       }
     />
   );
+  const driveFolderField = !isEditMode ? (
+    <ExistingDriveFolderField state={driveFolder} disabled={isSaving} />
+  ) : null;
   const contactPicker = !isEditMode && (
-    <DirectoryContactPicker
-      multiple
+    <ProjectRoleContactsCard
       disabled={isSaving}
-      title="אנשי קשר לפרויקט"
-      selected={selectedContacts}
-      onChange={setSelectedContacts}
-      subtitle="חפש ובחר אנשי קשר קיימים. הראשון שנבחר יהיה איש הקשר הראשי."
-    />
+      contacts={roleContacts}
+      onChange={changeRoleContact}
+      canCreateContact={canCreateContact}
+      onActivityChange={changeRoleActivity}
+      canEditDetails={canEditContactDetails}
+    >
+      <DirectoryContactPicker
+        embedded
+        multiple
+        disabled={isSaving}
+        title="אנשי קשר נוספים"
+        selected={selectedContacts}
+        onChange={setSelectedContacts}
+        subtitle="חפש ובחר אנשי קשר נוספים. הראשון שנבחר יהיה איש הקשר הראשי."
+      />
+    </ProjectRoleContactsCard>
   );
 
   return (
@@ -308,6 +354,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           actions={
             <Button
               text={PROJECT_FORM_COPY.DISCARD_DRAFT}
+              disabled={hasUnfinishedRoleContact || isSaving}
               onClick={discardDraft}
               variant={BUTTON_VARIANTS.NEUTRAL}
             />
@@ -321,6 +368,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         onChange={updateValues}
         stages={stagesQuery.data ?? []}
         originalStageId={originalStageId}
+        driveFolderField={driveFolderField}
         projectCode={project?.code ?? null}
         isSubmitAttempted={isSubmitAttempted}
         onRetryNameCheck={handleRetryNameCheck}
@@ -359,6 +407,12 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           {siteDetailsCard}
         </>
       )}
+      {isEditMode && projectId && (
+        <>
+          <Box>{PROJECT_CONTACT_ROLE_COPY.INSTANT_SAVE}</Box>
+          <ProjectContacts canEdit projectId={projectId} />
+        </>
+      )}
       {canHaveApartments && (
         <ProjectNotesCard notes={values.notes} onChange={notes => updateValues({ notes })} />
       )}
@@ -369,7 +423,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
         onAssigneeChange={handleAssigneeChange}
       />
 
-      {mutationError && <InlineError message={getApiErrorMessage(mutationError)} />}
+      {mutationError && <InlineError message={getProjectMutationError(mutationError)} />}
 
       <ActionBar captionIcon={ICON_NAMES.INFO} caption={PROJECT_FORM_COPY.NOTICE}>
         {canDelete && (
