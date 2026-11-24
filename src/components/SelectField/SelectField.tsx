@@ -9,6 +9,7 @@ interface ISelectFieldProps {
   ariaLabel: string;
   compact?: boolean;
   disabled?: boolean;
+  menuAbove?: boolean;
   items: { value: string; label: string }[];
   onChange: (event: SelectChangeEvent<string>) => void;
 }
@@ -17,6 +18,7 @@ const SelectField: FC<ISelectFieldProps> = ({
   value,
   title,
   compact = false,
+  menuAbove = false,
   items,
   disabled,
   onChange,
@@ -34,6 +36,15 @@ const SelectField: FC<ISelectFieldProps> = ({
         disabled={disabled}
         onChange={onChange}
         inputProps={{ "aria-label": ariaLabel }}
+        MenuProps={
+          menuAbove
+            ? {
+                anchorOrigin: { vertical: "top", horizontal: "right" },
+                transformOrigin: { vertical: "bottom", horizontal: "right" },
+                slotProps: { paper: { dir: "rtl" } },
+              }
+            : {}
+        }
       >
         {items.map(item => (
           <MenuItem key={item.value} value={item.value}>
