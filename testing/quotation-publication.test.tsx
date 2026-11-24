@@ -831,3 +831,98 @@ test("shared listener hook keeps latest callback and cleans captured target on r
     assert.equal(getEventListeners(second, FOCUS_EVENTS.ENTER).length, 0);
   }
 });
+
+test("publication accepts canonical Backend Drive open URLs in summary history and file navigation", (): void => {
+  const fileUrl = "https://drive.google.com/open?id=qa-reserved-file_123-ABC";
+  const stage: IQuotationPublicationStage = {
+    cycleId: "cycle",
+    generation: 1,
+    documentKind: PUBLICATION_KIND.QUOTATION,
+    sourceVersion: 4,
+    state: PUBLICATION_STATE.PUBLISHED,
+    reason: null,
+    updatedAt: "2026-11-24T00:30:00Z",
+    destinationLabel: "הצעות מחיר",
+    fileUrl,
+    lifecycleEventId: "event",
+  };
+  const publication = summary({
+    state: PUBLICATION_STATE.PUBLISHED,
+    canRetry: false,
+    reason: null,
+    fileUrl,
+    history: [stage],
+  });
+  assert.equal(isPublicationUrl(fileUrl), true);
+  assert.equal(
+    isPublicationUrl(
+      "https://drive.google.com/file/d/qa-reserved-file_123-ABC/view?usp=drive_link",
+    ),
+    true,
+  );
+  assert.equal(isQuotationPublication(publication), true);
+  const markup = renderToStaticMarkup(
+    <QuotationPublicationNotice
+      busy={false}
+      error={null}
+      refreshing={false}
+      publication={publication}
+      retry={async (): Promise<void> => {}}
+      refresh={async (): Promise<void> => {}}
+    />,
+  );
+  assert.ok(markup.includes(`href="${fileUrl}"`));
+  assert.ok(markup.includes(PUBLICATION_COPY.OPEN));
+  const quotation = quotationFixture();
+  quotation.lifecycleHistory = [
+    {
+      id: "event",
+      actorId: "actor",
+      actorName: "Dana",
+      occurredAt: "2026-11-24T00:30:00Z",
+      quotationId: quotation.id,
+      quotationVersion: 4,
+      fromStatus: QUOTATION_STATUS.DRAFT,
+      toStatus: QUOTATION_STATUS.REVIEW,
+      action: QUOTATION_LIFECYCLE_ACTION.SUBMIT,
+      reason: null,
+    },
+  ];
+  assert.equal(quotationLifecycleTimeline(quotation, publication)[0]?.fileLink?.href, fileUrl);
+  assert.equal(
+    isQuotationPublication({
+      ...publication,
+      history: [{ ...stage, fileUrl: "https://drive.google.com/open?id=bad/id" }],
+    }),
+    false,
+  );
+});
+test("publication Drive links reject credentials ports path tricks unsafe IDs and extra open parameters", (): void => {
+  const invalidUrls = [
+    "http://drive.google.com/open?id=ID",
+    "javascript:alert(1)",
+    "https://drive.google.com.evil.test/open?id=ID",
+    "https://drive.google.com@evil.test/open?id=ID",
+    "https://user@drive.google.com/open?id=ID",
+    "https://drive.google.com:443/open?id=ID",
+    "https://drive.google.com:8443/open?id=ID",
+    "https://drive.google.com//open?id=ID",
+    "https://drive.google.com/%6fpen?id=ID",
+    "https://drive.google.com/open/?id=ID",
+    "https://drive.google.com/open?id=",
+    "https://drive.google.com/open?id=ID&id=OTHER",
+    "https://drive.google.com/open?id=ID&usp=sharing",
+    "https://drive.google.com/open?id=ID#view",
+    "https://drive.google.com/open?id=bad/id",
+    "https://drive.google.com/open?id=bad%2FID",
+    "https://drive.google.com/open?id=bad%20ID",
+    "https://drive.google.com/open?id=..",
+    "https://drive.google.com/open?id=ID\n",
+    "https://drive.google.com/file/d/ID/view\n",
+    "https://drive.google.com/file/d/ID/view?usp=bad\nvalue",
+    "https://drive.google.com/file/d/bad%2FID/view",
+  ];
+  invalidUrls.forEach((url): void => {
+    assert.equal(isPublicationUrl(url), false, `Unsafe publication link: ${JSON.stringify(url)}`);
+  });
+});

@@ -45,3 +45,16 @@ export const publicationQueryKey = (
   version: number,
   generation: number,
 ): readonly [string, string, number, number] => ["quotation-publication", id, version, generation];
+
+const PUBLICATION_DRIVE_URL_PARTS = {
+  ORIGIN: "https://drive[.]google[.]com",
+  FILE_ID: "[a-zA-Z0-9_-]+",
+} as const;
+export const PUBLICATION_DRIVE_URL_PATTERNS = {
+  FILE: new RegExp(
+    `^${PUBLICATION_DRIVE_URL_PARTS.ORIGIN}/file/d/${PUBLICATION_DRIVE_URL_PARTS.FILE_ID}/view(?:[?][a-zA-Z0-9._~!$&()*+,;=:@%/?-]*)?$`,
+  ),
+  OPEN: new RegExp(
+    `^${PUBLICATION_DRIVE_URL_PARTS.ORIGIN}/open[?]id=${PUBLICATION_DRIVE_URL_PARTS.FILE_ID}$`,
+  ),
+} as const;

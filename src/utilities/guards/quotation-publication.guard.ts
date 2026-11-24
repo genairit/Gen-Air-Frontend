@@ -3,6 +3,7 @@ import {
   PUBLICATION_STATE,
   type PublicationKindType,
   type PublicationStateType,
+  PUBLICATION_DRIVE_URL_PATTERNS,
 } from "../../constants/quotation-publication.constant";
 
 import type {
@@ -25,9 +26,14 @@ export const isPublicationUrl = (value: unknown): value is string | null => {
     return false;
   }
 
-  const isDriveFilePath =
-    /^https:\/\/drive\.google\.com\/file\/d\/[a-zA-Z0-9_-]+\/view(?:\?[^#]*)?$/.test(value);
-  return isDriveFilePath;
+  const hasBoundaryWhitespace = value !== value.trim();
+  if (hasBoundaryWhitespace) {
+    return false;
+  }
+
+  const isDriveFilePath = PUBLICATION_DRIVE_URL_PATTERNS.FILE.test(value);
+  const isDriveOpenPath = PUBLICATION_DRIVE_URL_PATTERNS.OPEN.test(value);
+  return isDriveFilePath || isDriveOpenPath;
 };
 const hasPublicationFields = (value: Record<string, unknown>): boolean => {
   const hasState = isPublicationState(value.state);
