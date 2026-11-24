@@ -1,0 +1,9 @@
+.message {
+  direction: rtl;
+  text-align: start;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.message bdi {
+  unicode-bidi: isolate;
+}

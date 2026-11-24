@@ -5,6 +5,7 @@ import {
 } from "./quotation-render.test-plugin.mjs";
 
 import "./run-shared-ui-tests.mjs";
+import "./run-quotation-validation-tests.mjs";
 import { runBundledTest } from "./test-runner.utility.mjs";
 import { autocompleteRendererPlugin } from "./autocomplete-renderer.plugin.mjs";
 

@@ -74,7 +74,7 @@ const apiUser = overrides => ({
 test("legacy sales-role records have a label but the role is not assignable", () => {
   assert.deepEqual(USER_ROLE_LABELS, {
     system_admin: "הנהלה / מנהל מערכת",
-    engineer: "עובד הנדסה",
+    engineer: "עובד הנדסי",
     engineering_lead: "ראש צוות הנדסה",
     secretary: "מזכירה",
     project_manager: "מנהל פרויקט",

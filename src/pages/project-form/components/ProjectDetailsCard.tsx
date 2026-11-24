@@ -12,8 +12,8 @@ import {
   type ProjectFormModeType,
 } from "../../../constants/project-form.constant";
 
-import type { FC } from "react";
 import { Box } from "@mui/material";
+import type { FC, ReactNode } from "react";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Chip from "../../../components/Chip/Chip";
@@ -46,6 +46,7 @@ interface IProjectDetailsCardProps {
   projectCode: string | null;
   values: IProjectFormValues;
   stages: IApiProjectStage[];
+  driveFolderField?: ReactNode;
   onRetryNameCheck: () => void;
   originalStageId: string | null;
   onChange: (changes: Partial<IProjectFormValues>) => void;
@@ -63,6 +64,7 @@ const ProjectDetailsCard: FC<IProjectDetailsCardProps> = ({
   originalStageId,
   isSubmitAttempted,
   onRetryNameCheck,
+  driveFolderField = null,
 }) => {
   const styles = usePageStyles();
   const user = useSessionUser();
@@ -121,6 +123,7 @@ const ProjectDetailsCard: FC<IProjectDetailsCardProps> = ({
             isSubmitAttempted={isSubmitAttempted}
           />
         </Box>
+        {driveFolderField && <Box sx={styles.spanTwoColumns}>{driveFolderField}</Box>}
         {isEditMode && (
           <Autocomplete
             isRequired

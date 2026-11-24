@@ -7,6 +7,8 @@ import { toApartmentPayload } from "../utilities/apartment.utility";
 import type { IApartmentChanges } from "../interfaces/api-request.interface";
 import type { IApartmentFormValues } from "../interfaces/apartment.interface";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
+import type { IProjectContactInput } from "../interfaces/project-contact.interface";
+import { existingDriveFolderPayload } from "../utilities/existing-drive-folder.utility";
 
 const invalidateApartmentQueries = () =>
   Promise.all([
@@ -21,12 +23,20 @@ const invalidateApartmentQueries = () =>
 export const createApartmentAction = async ({
   values,
   buildingId,
+  contacts = [],
+  existingDriveFolder = null,
 }: {
   buildingId: string;
+  existingDriveFolder?: string | null;
+  contacts?: IProjectContactInput[];
   values: IApartmentFormValues;
 }): Promise<string> => {
   const context = new AuthorizationContext();
-  const apartment = await apartmentService.create(buildingId, toApartmentPayload(values));
+  const apartment = await apartmentService.create(buildingId, {
+    ...toApartmentPayload(values),
+    contacts,
+    ...existingDriveFolderPayload(existingDriveFolder),
+  });
   context.assertCurrent();
 
   await invalidateApartmentQueries();

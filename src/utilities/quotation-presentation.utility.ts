@@ -20,6 +20,7 @@ import type Decimal from "decimal.js";
 import { formatRelativeTime } from "./date.utility";
 import { isDecimal } from "./guards/quotation.guard";
 import { QUOTATION_DEFAULTS } from "../constants/quotation.constant";
+import { paymentScheduleTotal } from "./payment-configuration.utility";
 import { quotationMoney, quotationLineMoney } from "./quotation.utility";
 import type { IQuotationLineGroup } from "../interfaces/quotation.interface";
 
@@ -110,9 +111,7 @@ export const quotationPaymentRows = (quotation: IQuotation): IQuotationPaymentRo
     ),
   }));
 export const quotationPaymentTotal = (quotation: IQuotation): string =>
-  quotation.paymentSchedule
-    .reduce((total, stage) => total.plus(stage.percent || 0), new QUOTATION_DECIMAL(0))
-    .toString();
+  paymentScheduleTotal(quotation);
 export const quotationReviewSections = (quotation: IQuotation): IQuotationReviewSection[] => {
   const order = (brand: string | null): number =>
     brand === null ? quotation.brands.length : quotation.brands.indexOf(brand);

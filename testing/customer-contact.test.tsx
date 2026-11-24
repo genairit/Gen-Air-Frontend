@@ -1,6 +1,5 @@
 import {
   normalizeCustomerForm,
-  getCustomerFormErrors,
   countCustomerFormErrors,
 } from "../src/utilities/customer-form.utility";
 
@@ -16,10 +15,16 @@ import {
   isCustomerContactList,
   toCustomerContactDraft,
   toCustomerContactInput,
-  formatCustomerPrimaryContact,
+  formatCustomerContactDetails,
   validateCustomerContactDraft,
   getCustomerContactFieldErrors,
 } from "../src/utilities/customer-contact.utility";
+
+import {
+  toCustomerOwnContactDraft,
+  toCustomerOwnContactInput,
+  getCustomerOwnContactErrors,
+} from "../src/utilities/customer-own-contact.utility";
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -36,6 +41,7 @@ import CustomerContactEditor from "../src/components/CustomerContacts/CustomerCo
 import CustomerContactSummary from "../src/components/CustomerContacts/CustomerContactSummary";
 import { PROJECT_DETAIL_FIELD_SETS } from "../src/constants/project-detail-field-set.constant";
 import { getCustomerImportErrorMessage } from "../src/utilities/customer-import-error.utility";
+import CustomerOwnContactEditor from "../src/pages/customer/components/CustomerOwnContactEditor";
 import { CUSTOMER_IMPORT_ERROR_MESSAGES } from "../src/constants/customer-import-error.constant";
 import ApartmentEndCustomerCard from "../src/pages/apartment/components/ApartmentEndCustomerCard";
 
@@ -55,7 +61,6 @@ test("optional customer contact stays null without dummy values", () => {
     taxId: "514287937",
     address: "הרצל 12 תל אביב",
     customerType: PROJECT_DETAIL_FIELD_SETS.COMPANY,
-    contactName: "",
     phone: "",
     email: "",
   };
@@ -63,19 +68,14 @@ test("optional customer contact stays null without dummy values", () => {
   assert.deepEqual(normalizeCustomerForm(values), {
     ...values,
     paymentTerms: null,
-    contactName: null,
+    paymentSchedule: [],
     phone: null,
     email: null,
   });
-  assert.equal(countCustomerFormErrors({ ...values, phone: "+442071838750" }), 1);
-  assert.match(
-    getCustomerFormErrors({ ...values, phone: "+442071838750" }).contactName ?? "",
-    /שם איש קשר/,
-  );
-  assert.equal(
-    countCustomerFormErrors({ ...values, contactName: "נועה", phone: "+442071838750" }),
-    0,
-  );
+  assert.equal(countCustomerFormErrors({ ...values, phone: "+442071838750" }), 0);
+  assert.equal(countCustomerFormErrors({ ...values, email: "customer@example.com" }), 0);
+  assert.equal(Reflect.has(normalizeCustomerForm(values), "contactName"), false);
+  assert.equal(Reflect.has(normalizeCustomerForm(values), "primaryContactId"), false);
 });
 
 test("Israeli and international phone inputs use country-coded dial links", () => {
@@ -95,6 +95,26 @@ test("name is required; optional contact fields serialize to null", () => {
     role: null,
   });
   assert.equal(validateCustomerContactDraft(toCustomerContactDraft(null)).length, 1);
+});
+
+test("editing preserves legacy contact roles while allowing the new engineering wording", () => {
+  const savedContact = { ...contact, role: "מהנדס" };
+  const draft = toCustomerContactDraft(savedContact);
+  const markup = renderToStaticMarkup(
+    <CustomerContactEditor
+      busy={false}
+      error={null}
+      onSave={noop}
+      values={draft}
+      onCancel={noop}
+      onChange={noop}
+    />,
+  );
+
+  assert.match(markup, /value="מהנדס"/);
+  assert.match(markup, /עובד הנדסי/);
+  assert.equal(toCustomerContactInput(draft).role, "מהנדס");
+  assert.equal(toCustomerContactInput({ ...draft, role: "עובד הנדסי" }).role, "עובד הנדסי");
 });
 
 test("a failed project link retries the created contact without directory edit permission", async () => {
@@ -150,9 +170,13 @@ test("a failed project link retries the created contact without directory edit p
   }
 });
 
-test("customer primary label uses only the selected directory contact", () => {
-  assert.equal(formatCustomerPrimaryContact(null), "אין איש קשר ראשי");
-  assert.equal(formatCustomerPrimaryContact(contact), contact.name);
+test("customer summary uses only explicit own details and never an associated person's name", () => {
+  assert.equal(formatCustomerContactDetails(null), "לא הוגדרו פרטי קשר");
+  assert.equal(formatCustomerContactDetails(contact), "לא הוגדרו פרטי קשר");
+  assert.equal(
+    formatCustomerContactDetails({ ...contact, phone: "+442071838750", email: "own@example.com" }),
+    "+442071838750 · own@example.com",
+  );
 });
 
 test("invalid supplied email, phone, role and name are rejected", () => {
@@ -493,4 +517,53 @@ test("linked apartment customer wins over historical values and missing associat
   assert.match(linked, /לקוח מקושר/);
   assert.match(linked, /039999999/);
   assert.doesNotMatch(linked, /לקוח קצה היסטורי|031234567/);
+});
+
+test("own customer details accept independently optional email and international phone", () => {
+  assert.deepEqual(toCustomerOwnContactDraft(null), { phone: "", email: "" });
+  assert.deepEqual(toCustomerOwnContactInput({ phone: " ", email: " own@example.com " }), {
+    phone: null,
+    email: "own@example.com",
+  });
+  assert.deepEqual(getCustomerOwnContactErrors({ phone: "", email: "own@example.com" }), {});
+  assert.deepEqual(getCustomerOwnContactErrors({ phone: "+442071838750", email: "" }), {});
+  assert.deepEqual(getCustomerOwnContactErrors({ phone: "", email: "" }), {});
+  assert.deepEqual(Object.keys(getCustomerOwnContactErrors({ phone: "bad", email: "invalid" })), [
+    "phone",
+    "email",
+  ]);
+});
+
+test("own contact editor has two LTR communication fields without directory or person fields", () => {
+  const markup = renderToStaticMarkup(
+    <CustomerOwnContactEditor
+      busy={false}
+      error={null}
+      onSave={noop}
+      onChange={noop}
+      onCancel={noop}
+      draft={{ phone: "+442071838750", email: "own@example.com" }}
+    />,
+  );
+  assert.match(markup, /טלפון ראשי של הלקוח/);
+  assert.match(markup, /דוא״ל של הלקוח/);
+  assert.equal((markup.match(/<input /g) ?? []).length, 2);
+  assert.equal((markup.match(/dir="ltr"/g) ?? []).length, 2);
+  assert.doesNotMatch(markup, /שם איש הקשר|תפקידים נפוצים|בחר מהמדריך/);
+});
+
+test("own contact editor exposes validation and server errors while retaining entered data", () => {
+  const markup = renderToStaticMarkup(
+    <CustomerOwnContactEditor
+      busy={false}
+      onSave={noop}
+      onChange={noop}
+      onCancel={noop}
+      error="שמירה נכשלה"
+      draft={{ phone: "bad", email: "retry@example.com" }}
+    />,
+  );
+  assert.match(markup, /שמירה נכשלה/);
+  assert.match(markup, /value="retry@example.com"/);
+  assert.match(markup, /disabled/);
 });

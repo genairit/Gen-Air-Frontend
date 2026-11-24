@@ -23,7 +23,16 @@
     "test:shared-ui": "node testing/run-shared-ui-tests.mjs",
     "test:project-quotations": "node testing/run-project-quotations-tests.mjs",
     "test:project-boq": "node testing/run-project-boq-tests.mjs",
-    "test:purchase-workspace": "node testing/run-purchase-workspace-tests.mjs"
+    "test:purchase-workspace": "node testing/run-purchase-workspace-tests.mjs",
+    "test:project-contact-roles": "node testing/run-project-contact-role-tests.mjs",
+    "test:existing-drive-folder": "node testing/run-existing-drive-folder-tests.mjs",
+    "test:payment-configuration": "node testing/run-payment-configuration-tests.mjs",
+    "test:contact-directory-search": "node testing/run-contact-directory-search-tests.mjs",
+    "test:task-quotations": "node testing/run-task-quotations-tests.mjs",
+    "test:quotation-clone": "node testing/run-quotation-clone-tests.mjs",
+    "test:task-sort": "node testing/run-task-sort-tests.mjs",
+    "test:quotation-publication": "node testing/run-quotation-publication-tests.mjs",
+    "test:popup-focus": "node testing/run-popup-focus-tests.mjs"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

@@ -1,7 +1,7 @@
 import Dot from "../Dot/Dot";
 import type { FC } from "react";
 import Chip from "../Chip/Chip";
-import { Box } from "@mui/material";
+import { Box, Link } from "@mui/material";
 import { useStyles } from "./TimelineItem.style";
 import type { ITimelineEntry } from "../../interfaces/project.interface";
 import { STAGE_REASON_COPY } from "../../constants/project-stage.constant";
@@ -44,6 +44,21 @@ const TimelineItem: FC<ITimelineItemProps> = ({ entry, isLast }) => {
               {entry.note}
             </Box>
           </Box>
+        )}
+        {entry.detail && (
+          <Box component="bdi" sx={styles.detail}>
+            {entry.detail}
+          </Box>
+        )}
+        {entry.fileLink && (
+          <Link
+            target="_blank"
+            sx={styles.detail}
+            rel="noopener noreferrer"
+            href={entry.fileLink.href}
+          >
+            {entry.fileLink.label}
+          </Link>
         )}
         <Box component="span" sx={styles.author}>
           {entry.author}

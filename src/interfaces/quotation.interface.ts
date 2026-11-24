@@ -1,6 +1,7 @@
 import type {
   TQuotationStatus,
   TQuotationSystem,
+  TQuotationLifecycleAction,
   TQuotationRestorableStatus,
   TQuotationCancellationKind,
 } from "../constants/quotation.constant";
@@ -9,6 +10,10 @@ import type {
   TQuotationProjectKind,
   TQuotationProjectRole,
 } from "../constants/quotation-sharing.constant";
+
+import type { ITimelineEntry } from "./project.interface";
+import type { IQuotationTaskLink } from "./task-quotation.interface";
+import type { IPaymentStage } from "./payment-configuration.interface";
 
 export type {
   TQuotationStatus,
@@ -98,21 +103,22 @@ export interface IQuotation {
   projectId: string | null;
   status: TQuotationStatus;
   paymentTermsNote: string;
+  taskContextLocked?: boolean;
+  taskProjectLocked?: boolean;
   salesAgentId: string | null;
   projectName?: string | null;
   paymentTerms: string | null;
   sections: IQuotationSection[];
   warnings: IQuotationWarning[];
   salesAgentName?: string | null;
+  taskLinks?: IQuotationTaskLink[];
+  paymentSchedule: IPaymentStage[];
   targetPretaxAmount: string | null;
   rejectionHistory: IQuotationRejection[];
   apartmentLinks?: IQuotationApartmentLink[];
+  lifecycleHistory?: IQuotationLifecycleEvent[];
   cancellationHistory: IQuotationCancellation[];
   primaryProject?: IQuotationPrimaryProject | null;
-  paymentSchedule: {
-    text: string;
-    percent: string;
-  }[];
   cancelledFromStatus: TQuotationRestorableStatus | null;
   totals: {
     vat: string;
@@ -163,6 +169,29 @@ export interface IQuotationListQuery {
   status: TQuotationStatus | null;
 }
 
+export interface IQuotationConfirmationView {
+  title: string;
+  description: string;
+  actionLabel: string;
+}
+
+export interface IQuotationTimelineEntry extends ITimelineEntry {
+  createdAt: string;
+}
+
+export interface IQuotationLifecycleEvent {
+  id: string;
+  actorId: string;
+  actorName: string;
+  occurredAt: string;
+  quotationId: string;
+  reason: string | null;
+  quotationVersion: number;
+  toStatus: TQuotationStatus;
+  fromStatus: TQuotationStatus;
+  action: TQuotationLifecycleAction;
+}
+
 export interface IQuotationEditorState {
   busy: boolean;
   dirty: boolean;
@@ -171,6 +200,8 @@ export interface IQuotationEditorState {
   error: string | null;
   commandBusy: boolean;
   quotation: IQuotation;
+  requiresReload: boolean;
+  commandForbidden: boolean;
   deleteError: string | null;
   hasVersionConflict: boolean;
   remove: () => Promise<void>;
@@ -264,4 +295,16 @@ export interface IQuotationReviewSection {
 export interface IQuotationLineGroup {
   line: IQuotationLine;
   controls: IQuotationLine[];
+}
+
+export interface IRecommendedCloneCommand {
+  sourceId: string;
+  targetBrand: string;
+  sourceVersion: number;
+  idempotencyKey: string;
+}
+
+export interface IQuotationActionAvailability {
+  available: boolean;
+  forbidden: boolean;
 }

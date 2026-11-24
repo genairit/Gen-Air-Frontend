@@ -4,7 +4,7 @@ import type { IApiCustomer } from "../../../interfaces/api.interface";
 import { CUSTOMER_TABLE_HEADERS } from "../../../constants/customer.constant";
 import type { IDataTableColumn } from "../../../interfaces/data-table.interface";
 import CustomerSyncChip from "../../../components/CustomerSyncChip/CustomerSyncChip";
-import { formatCustomerPrimaryContact } from "../../../utilities/customer-contact.utility";
+import { formatCustomerContactDetails } from "../../../utilities/customer-contact.utility";
 import { formatPriorityId, formatCustomerTaxId } from "../../../utilities/customer.utility";
 
 export const CUSTOMER_TABLE_MIN_WIDTH = 680;
@@ -31,11 +31,8 @@ export const CUSTOMER_COLUMNS: IDataTableColumn<IApiCustomer>[] = [
     header: CUSTOMER_TABLE_HEADERS.CONTACT,
     render: customer => (
       <Box sx={CUSTOMER_COLUMN_STYLES.cell}>
-        <Box component="span" sx={CUSTOMER_COLUMN_STYLES.contactName}>
-          {formatCustomerPrimaryContact(customer.primaryContact ?? null)}
-        </Box>
-        <Box dir="ltr" component="span" sx={CUSTOMER_COLUMN_STYLES.caption}>
-          {customer.primaryContact?.phone ?? customer.primaryContact?.email ?? ""}
+        <Box dir="ltr" component="bdi" sx={CUSTOMER_COLUMN_STYLES.contactDetails}>
+          {formatCustomerContactDetails(customer.primaryContact ?? null)}
         </Box>
       </Box>
     ),

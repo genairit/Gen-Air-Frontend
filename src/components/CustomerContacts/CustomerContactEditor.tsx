@@ -21,6 +21,7 @@ interface ICustomerContactEditorProps {
   onSave: () => void;
   onCancel: () => void;
   error: string | null;
+  fieldsDisabled?: boolean;
   values: ICustomerContactDraft;
   onChange: (values: ICustomerContactDraft) => void;
 }
@@ -32,6 +33,7 @@ const CustomerContactEditor: FC<ICustomerContactEditorProps> = ({
   onSave,
   onCancel,
   onChange,
+  fieldsDisabled = false,
 }) => {
   const styles = usePageStyles();
   const contactStyles = useStyles();
@@ -42,6 +44,7 @@ const CustomerContactEditor: FC<ICustomerContactEditorProps> = ({
     validator: toErrorValidator(fieldErrors[field.field]),
   }));
   const isDisabled = busy || errors.length > 0;
+  const areFieldsDisabled = busy || fieldsDisabled;
   const validationError = errors.join(" · ");
   const roleOptions = CUSTOMER_CONTACT_ROLE_SUGGESTIONS.map(role => ({
     role,
@@ -54,7 +57,6 @@ const CustomerContactEditor: FC<ICustomerContactEditorProps> = ({
       <Box sx={contactStyles.fields}>
         {fields.map(field => (
           <TextField
-            disabled={busy}
             key={field.field}
             type={field.type}
             title={field.label}
@@ -63,6 +65,7 @@ const CustomerContactEditor: FC<ICustomerContactEditorProps> = ({
             value={values[field.field]}
             isRequired={field.required}
             maxLength={field.maxLength}
+            disabled={areFieldsDisabled}
             onChange={value => onChange({ ...values, [field.field]: value })}
           />
         ))}
@@ -73,12 +76,12 @@ const CustomerContactEditor: FC<ICustomerContactEditorProps> = ({
         </Box>
         {roleOptions.map(option => (
           <Button
-            disabled={busy}
             key={option.role}
             text={option.role}
             variant={option.variant}
             onClick={option.onSelect}
             size={BUTTON_SIZES.COMPACT}
+            disabled={areFieldsDisabled}
           />
         ))}
       </Box>

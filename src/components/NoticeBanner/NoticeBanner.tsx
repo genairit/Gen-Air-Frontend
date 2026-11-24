@@ -4,8 +4,8 @@ import {
 } from "../../vendor/smartbase/components/NoticeCard/constants/notice-card.constant";
 
 import { Box } from "@mui/material";
-import type { FC, ReactNode } from "react";
 import { useStyles } from "./NoticeBanner.style";
+import type { FC, ReactNode, RefObject } from "react";
 import SmartbaseNoticeCard from "../../vendor/smartbase/components/NoticeCard/NoticeCard";
 
 interface INoticeBannerProps {
@@ -13,12 +13,14 @@ interface INoticeBannerProps {
   lines?: string[];
   actions?: ReactNode;
   variant?: TNoticeVariant;
+  titleRef?: RefObject<HTMLElement | null>;
 }
 
 const NoticeBanner: FC<INoticeBannerProps> = ({
   title,
   lines = [],
   actions,
+  titleRef,
   variant = NOTICE_VARIANTS.info,
 }) => {
   const styles = useStyles();
@@ -32,7 +34,9 @@ const NoticeBanner: FC<INoticeBannerProps> = ({
         text={
           <Box sx={styles.content}>
             <Box sx={styles.text}>
-              <Box component="b">{title}</Box>
+              <Box component="b" ref={titleRef} tabIndex={-1}>
+                {title}
+              </Box>
               {lines.map(line => (
                 <Box component="span" key={line}>
                   {line}

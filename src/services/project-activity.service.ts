@@ -5,11 +5,14 @@ import {
   isApiStageTransition,
 } from "../utilities/guards/api.guard";
 
+import type { IApiProject } from "../interfaces/api.interface";
 import { isArrayOf } from "../utilities/guards/primitive.guard";
 import { httpClient, ensureResponse } from "./http-client.service";
 import { validateProjectFiles } from "../utilities/drive-upload.utility";
 import { isDriveUploadPolicy } from "../utilities/guards/drive-upload.guard";
 import { API_ENDPOINTS, DRIVE_UPLOAD_FIELD_NAME } from "../constants/api.constant";
+import { isExistingDriveFolderPreview } from "../utilities/guards/existing-drive-folder.guard";
+import type { IExistingDriveFolderPreview } from "../interfaces/existing-drive-folder.interface";
 
 const toFolderParams = (folderId: string | null) => (folderId ? { folderId } : {});
 
@@ -42,6 +45,27 @@ class ProjectActivityService {
 
   async provisionDrive(projectId: string) {
     const endpoint = API_ENDPOINTS.projectDriveProvision(projectId);
+    const response = await httpClient.post<unknown>(endpoint);
+    return ensureResponse(endpoint, response.data, isApiProject);
+  }
+
+  async previewExistingDriveFolder(
+    reference: string,
+    buildingId: string | null,
+    signal: AbortSignal,
+  ): Promise<IExistingDriveFolderPreview> {
+    const endpoint = API_ENDPOINTS.EXISTING_DRIVE_FOLDER_PREVIEW;
+    const building = buildingId ? { buildingId } : {};
+    const response = await httpClient.post<unknown>(
+      endpoint,
+      { reference, ...building },
+      { signal },
+    );
+    return ensureResponse(endpoint, response.data, isExistingDriveFolderPreview);
+  }
+
+  async completeDriveTemplate(projectId: string): Promise<IApiProject> {
+    const endpoint = API_ENDPOINTS.projectDriveCompleteTemplate(projectId);
     const response = await httpClient.post<unknown>(endpoint);
     return ensureResponse(endpoint, response.data, isApiProject);
   }

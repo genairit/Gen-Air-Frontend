@@ -1,5 +1,6 @@
 import type { UserRoleType } from "../constants/user-role.constant";
 import type { ICustomerContact } from "./customer-contact.interface";
+import type { IPaymentStage } from "./payment-configuration.interface";
 import type { PermissionType } from "../constants/permission.constant";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { FolderContentStatusType } from "../constants/drive-folder.constant";
@@ -119,6 +120,7 @@ export interface IApiProject extends IApiProjectCustomerDetails, IApiProjectInta
   customerId: string | null;
   priorityId: string | null;
   parentNotes?: string | null;
+  driveFolderLinked?: boolean;
   driveFolderId: string | null;
   waitingReason?: string | null;
   projectType?: IApiProjectType;
@@ -173,6 +175,7 @@ export interface IApiDriveContents {
   folderId: string;
   files: IApiDriveItem[];
   folders: IApiDriveFolder[];
+  missingTemplateFolders?: string[];
 }
 
 export interface IApiSharedDocument {
@@ -210,6 +213,7 @@ export interface IApiCustomer {
   prioritySyncedAt: string | null;
   primaryContactId?: string | null;
   prioritySyncError: string | null;
+  paymentSchedule?: IPaymentStage[];
   paymentTerms?: PaymentTermsType | null;
   customerType: ProjectDetailFieldSetType;
   primaryContact?: ICustomerContact | null;

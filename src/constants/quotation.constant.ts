@@ -11,7 +11,28 @@ export const QUOTATION_STATUS = {
 export const QUOTATION_CANCELLATION_KIND = {
   MANUAL: "manual",
 } as const;
+export const QUOTATION_LIFECYCLE_ACTION = {
+  SUBMIT: "submit",
+  APPROVE: "approve",
+  RETURN: "return",
+  REJECT: "reject",
+  RESUBMIT: "resubmit",
+  CANCEL: "cancel",
+  RESTORE: "restore",
+} as const;
+export type TQuotationLifecycleAction =
+  (typeof QUOTATION_LIFECYCLE_ACTION)[keyof typeof QUOTATION_LIFECYCLE_ACTION];
+export const QUOTATION_LIFECYCLE_LABELS = {
+  [QUOTATION_LIFECYCLE_ACTION.SUBMIT]: "שליחה לבדיקה",
+  [QUOTATION_LIFECYCLE_ACTION.APPROVE]: "אישור הצעה",
+  [QUOTATION_LIFECYCLE_ACTION.RETURN]: "החזרה לעריכה",
+  [QUOTATION_LIFECYCLE_ACTION.REJECT]: "דחייה עם סיבה",
+  [QUOTATION_LIFECYCLE_ACTION.RESUBMIT]: "שליחה מחדש לבדיקה",
+  [QUOTATION_LIFECYCLE_ACTION.CANCEL]: "ביטול",
+  [QUOTATION_LIFECYCLE_ACTION.RESTORE]: "שחזור",
+} as const;
 export const QUOTATION_CONFIRMATION = {
+  RETURN: "return",
   CANCEL: "cancel",
   RESTORE: "restore",
 } as const;
@@ -149,4 +170,18 @@ export const QUOTATION_ROW_COPY = {
   CUSTOMER: "לקוח",
   NO_PROJECT: "לא מקושרת לפרויקט",
   GENERAL: "כללי",
+} as const;
+
+export const QUOTATION_DETAIL_HEADING_ID = "quotation-detail-heading";
+
+export const QUOTATION_LIFECYCLE_BUTTON_SX = { minHeight: 44 } as const;
+
+export const QUOTATION_LIFECYCLE_COPY = {
+  REASON_REQUIRED: "יש להזין סיבה.",
+  REASON_TOO_LONG: `הסיבה יכולה להכיל עד ${MAX_QUOTATION_CANCELLATION_REASON_LENGTH} תווים.`,
+  RELOAD_REQUIRED:
+    "תוצאת הפעולה אינה ודאית. יש לטעון גרסה עדכנית לפני ביצוע פעולה נוספת ולאשר אותה מחדש.",
+  FORBIDDEN: "אין הרשאה לביצוע הפעולה. אפשר לסגור את החלון או לטעון את פרטי המסמך מחדש.",
+  SOURCE_CHANGED:
+    "מצב המסמך השתנה והפעולה אינה זמינה עוד. אפשר לסגור את החלון או לטעון את פרטי המסמך מחדש.",
 } as const;

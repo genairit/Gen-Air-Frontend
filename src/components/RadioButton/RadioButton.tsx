@@ -8,10 +8,18 @@ interface IRadioButtonProps {
   label: string;
   value?: string;
   checked: boolean;
+  disabled?: boolean;
   onSelect: () => void;
 }
 
-const RadioButton: FC<IRadioButtonProps> = ({ name, value, label, checked, onSelect }) => {
+const RadioButton: FC<IRadioButtonProps> = ({
+  name,
+  value,
+  label,
+  checked,
+  onSelect,
+  disabled = false,
+}) => {
   const styles = useStyles();
 
   return (
@@ -23,6 +31,7 @@ const RadioButton: FC<IRadioButtonProps> = ({ name, value, label, checked, onSel
           name={name}
           value={value}
           checked={checked}
+          disabled={disabled}
           onChange={onSelect}
           icon={<RadioIndicator checked={false} />}
           checkedIcon={<RadioIndicator checked />}

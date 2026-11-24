@@ -65,7 +65,7 @@ const STYLE_BY_VARIANT: Record<TButtonVariant, SystemStyleObject> = {
   primary: {
     color: "white",
     background: theme.background.brandGradient,
-    "&.Mui-disabled": {
+    "&.Mui-disabled, &[aria-disabled='true']": {
       opacity: 0.5,
       color: "white",
     },
@@ -74,7 +74,7 @@ const STYLE_BY_VARIANT: Record<TButtonVariant, SystemStyleObject> = {
   secondary: {
     color: "black",
     border: "1px solid black",
-    "&.Mui-disabled": {
+    "&.Mui-disabled, &[aria-disabled='true']": {
       color: "#73737C",
       border: "1px solid #73737C",
     },

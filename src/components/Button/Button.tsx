@@ -9,6 +9,7 @@ import {
   SMARTBASE_VARIANT_BY_BUTTON_VARIANT,
 } from "./constants/button.constants";
 
+import type { RefObject } from "react";
 import { useStyles } from "./Button.style";
 import ButtonContent from "./ButtonContent";
 import { mergeSx } from "../../utilities/sx.utility";
@@ -16,6 +17,7 @@ import { lazy, Suspense, type FC, type MouseEvent } from "react";
 import type { IconNameType } from "../../constants/icon.constant";
 import SmartbaseButton from "../../vendor/smartbase/components/Button/Button";
 import { Box, CircularProgress, type SxProps, type Theme } from "@mui/material";
+import { BUTTON_TYPES, type NativeButtonType } from "../../constants/button-type.constant";
 
 const LoadingAnimation = lazy(() => import("../LoadingAnimation/LoadingAnimation"));
 
@@ -28,18 +30,24 @@ interface IButtonProps {
   sx?: SxProps<Theme>;
   size?: ButtonSizeType;
   shape?: ButtonShapeType;
+  type?: NativeButtonType;
   variant?: ButtonVariantType;
-  onClick: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
+  focusableWhenDisabled?: boolean;
+  buttonRef?: RefObject<HTMLButtonElement | null>;
+  onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
 }
 
 const Button: FC<IButtonProps> = ({
   sx,
+  type = BUTTON_TYPES.BUTTON,
   text,
   icon,
   onClick,
   disabled,
+  buttonRef,
   ariaLabel,
   isLoading = false,
+  focusableWhenDisabled = false,
   size = BUTTON_SIZES.MEDIUM,
   shape = BUTTON_SHAPES.PILL,
   variant = BUTTON_VARIANTS.PRIMARY,
@@ -51,10 +59,13 @@ const Button: FC<IButtonProps> = ({
 
   return (
     <SmartbaseButton
+      type={type}
       onClick={onClick}
       disabled={disabled}
+      buttonRef={buttonRef}
       isLoading={isLoading}
       ariaLabel={buttonAriaLabel}
+      focusableWhenDisabled={focusableWhenDisabled}
       variant={SMARTBASE_VARIANT_BY_BUTTON_VARIANT[variant]}
       sx={mergeSx(styles.button({ isLoading, variant, size, shape, hasIcon }), sx ?? null)}
     >

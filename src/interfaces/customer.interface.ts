@@ -1,4 +1,5 @@
 import type { IApiCustomer } from "./api.interface";
+import type { IPaymentStage } from "./payment-configuration.interface";
 import type { IValidationResult } from "./validation-result.interface";
 import type { PaymentTermsType } from "../constants/payment-terms.constant";
 import type { PrioritySyncStatusType } from "../constants/priority-sync.constant";
@@ -31,24 +32,21 @@ export interface ICreateCustomerPayload {
   phone: string;
   email: string;
   address: string;
-  contactName: string;
+  paymentSchedule?: IPaymentStage[];
   paymentTerms?: PaymentTermsType | null;
   customerType: ProjectDetailFieldSetType;
 }
 
-export type ICustomerCreateRequest = Omit<
-  ICreateCustomerPayload,
-  "contactName" | "phone" | "email"
-> & {
+export type ICustomerCreateRequest = Omit<ICreateCustomerPayload, "phone" | "email"> & {
   primaryContactId?: string | null;
-  contactName: string | null;
+  contactName?: string | null;
   phone: string | null;
   email: string | null;
 };
 
 export type CustomerFormFieldType = Exclude<
   keyof ICreateCustomerPayload,
-  "customerType" | "paymentTerms"
+  "customerType" | "paymentTerms" | "paymentSchedule"
 >;
 
 export type TCustomerFormErrors = Partial<Record<keyof ICreateCustomerPayload, string>>;
@@ -63,3 +61,19 @@ export interface ICustomerFormField {
   field: CustomerFormFieldType;
   validator: (value: string) => IValidationResult;
 }
+
+export interface ICustomerOwnContactDraft {
+  phone: string;
+  email: string;
+}
+
+export interface ICustomerOwnContactInput {
+  phone: string | null;
+  email: string | null;
+}
+
+export interface ICustomerOwnContactField extends Omit<ICustomerFormField, "field"> {
+  field: keyof ICustomerOwnContactDraft;
+}
+
+export type TCustomerOwnContactErrors = Partial<Record<keyof ICustomerOwnContactDraft, string>>;

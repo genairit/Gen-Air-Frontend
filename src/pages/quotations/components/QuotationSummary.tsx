@@ -7,6 +7,7 @@ import QuotationWarnings from "./QuotationWarnings";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
+import { QUOTATION_LIFECYCLE_BUTTON_SX } from "../../../constants/quotation.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { quotationDecimalInput } from "../../../utilities/quotation-presentation.utility";
 import type { IQuotation, TQuotationStatus } from "../../../interfaces/quotation.interface";
@@ -18,6 +19,7 @@ interface IQuotationSummaryProps {
   quotation: IQuotation;
   canResubmit?: boolean;
   showWarnings?: boolean;
+  onReturn?: (() => void) | null;
   onReject?: (() => void) | null;
   onResubmit?: () => Promise<void>;
   onChange: (quotation: IQuotation) => void;
@@ -33,6 +35,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
   canResubmit = false,
   onResubmit,
   onReject,
+  onReturn,
   onChange,
   onTransition,
   onAcknowledge,
@@ -43,6 +46,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
   const isReview = quotation.status === QUOTATION_STATUS.REVIEW;
   const isApproved = quotation.status === QUOTATION_STATUS.APPROVED;
   const isCancelled = quotation.status === QUOTATION_STATUS.CANCELLED;
+  const showApprovedReturn = isApproved && onReturn != null;
   const amounts = [
     { label: "סכום השורות", value: totals.subtotal },
     { label: "הנחה / התאמה ליעד", value: totals.discount },
@@ -118,21 +122,33 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
                   disabled={blocked || openWarnings.length > 0}
                   onClick={() => onTransition(QUOTATION_STATUS.APPROVED)}
                 />
+                {onReturn && (
+                  <Button
+                    disabled={blocked}
+                    onClick={onReturn}
+                    text="החזרה לעריכה"
+                    variant={BUTTON_VARIANTS.NEUTRAL}
+                    sx={QUOTATION_LIFECYCLE_BUTTON_SX}
+                  />
+                )}
                 {onReject && (
                   <Button
-                    text="החזר לתיקון"
                     disabled={blocked}
                     onClick={onReject}
+                    text="דחייה עם סיבה"
                     variant={BUTTON_VARIANTS.DANGER}
+                    sx={QUOTATION_LIFECYCLE_BUTTON_SX}
                   />
                 )}
               </>
             )}
-            {isApproved && (
+            {showApprovedReturn && (
               <Button
                 disabled={blocked}
-                text="פתיחה לעריכה (אותו מזהה)"
-                onClick={() => onTransition(QUOTATION_STATUS.DRAFT)}
+                onClick={onReturn}
+                text="החזרה לעריכה"
+                variant={BUTTON_VARIANTS.NEUTRAL}
+                sx={QUOTATION_LIFECYCLE_BUTTON_SX}
               />
             )}
           </Box>

@@ -51,9 +51,10 @@ import {
 } from "../../constants/project-detail-field-set.constant";
 
 import { isPermission } from "./permission.guard";
+import { isStringList } from "./existing-drive-folder.guard";
+import { isCustomerContact } from "../customer-contact.utility";
 import { hasValidProjectLighting } from "../project-constraints.utility";
 import { SHARED_DOCUMENT_STATUS } from "../../constants/shared-document.constant";
-import { isCustomerContact } from "../customer-contact.utility";
 import { USER_ROLE_VALUES, type UserRoleType } from "../../constants/user-role.constant";
 import { isApartmentCredit, isApartmentOwnership } from "../apartment-commercial.utility";
 
@@ -181,6 +182,8 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     !("sharedDocumentFileId" in value) || isNullableString(value.sharedDocumentFileId);
   const hasValidCredit = isOptionalOf(isApartmentCredit)(value.apartmentCredit);
   const hasValidOwnership = isOptionalOf(isApartmentOwnership)(value.apartmentOwnership);
+  const hasValidLinkedFolder =
+    !("driveFolderLinked" in value) || typeof value.driveFolderLinked === "boolean";
   const hasValidOwnTeam = !("hasOwnTeam" in value) || typeof value.hasOwnTeam === "boolean";
   const hasValidWaitingReason =
     !("waitingReason" in value) || isNullableString(value.waitingReason);
@@ -196,6 +199,7 @@ export const isApiProject = (value: unknown): value is IApiProject => {
     hasSharedDocument &&
     hasValidCustomer &&
     hasValidOwnTeam &&
+    hasValidLinkedFolder &&
     hasValidCredit &&
     hasValidOwnership &&
     hasValidWaitingReason &&
@@ -258,7 +262,9 @@ export const isApiDriveContents = (value: unknown): value is IApiDriveContents =
   const hasFiles = isArrayOf(isApiDriveItem)(value.files);
   const hasFolders = isArrayOf(isApiDriveFolder)(value.folders);
 
-  return typeof value.folderId === "string" && hasFiles && hasFolders;
+  const hasValidMissingFolders =
+    !("missingTemplateFolders" in value) || isStringList(value.missingTemplateFolders);
+  return typeof value.folderId === "string" && hasFiles && hasFolders && hasValidMissingFolders;
 };
 
 export const isApiSharedDocument = (value: unknown): value is IApiSharedDocument => {
@@ -334,6 +340,13 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
   const hasValidCreator = isOptionalOf(isApiUser)(value.createdBy);
   const hasPaymentDefault =
     !("paymentTerms" in value) || value.paymentTerms === null || isPaymentTerms(value.paymentTerms);
+  const hasPaymentSchedule =
+    !("paymentSchedule" in value) ||
+    (Array.isArray(value.paymentSchedule) &&
+      value.paymentSchedule.every(
+        stage =>
+          isRecord(stage) && typeof stage.percent === "string" && typeof stage.text === "string",
+      ));
   const hasValidPrimary = isOptionalOf(isCustomerContact)(value.primaryContact);
 
   return (
@@ -344,6 +357,7 @@ export const isApiCustomer = (value: unknown): value is IApiCustomer => {
     hasSyncDetails &&
     hasValidCreator &&
     hasPaymentDefault &&
+    hasPaymentSchedule &&
     hasValidPrimary
   );
 };

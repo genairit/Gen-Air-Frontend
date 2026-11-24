@@ -4,11 +4,6 @@ import type {
   TUpdateTaskPayload,
 } from "../interfaces/task.interface";
 
-import { isCursorPageOf } from "../utilities/guards/api.guard";
-import { isArrayOf } from "../utilities/guards/primitive.guard";
-import type { TaskStatusType } from "../constants/task.constant";
-import { httpClient, ensureResponse } from "./http-client.service";
-import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
 import {
   isApiTask,
   isTaskCounts,
@@ -16,9 +11,32 @@ import {
   isProtectedTaskSlot,
 } from "../utilities/guards/task.guard";
 
+import {
+  isTaskQuotationResult,
+  isTaskQuotationContext,
+} from "../utilities/guards/task-quotation.guard";
+
+import { isCursorPageOf } from "../utilities/guards/api.guard";
+import { isArrayOf } from "../utilities/guards/primitive.guard";
+import type { TaskStatusType } from "../constants/task.constant";
+import { httpClient, ensureResponse } from "./http-client.service";
+import { API_ENDPOINTS, API_PAGE_SIZE } from "../constants/api.constant";
+
 const toSearchParam = (search?: string) => search?.trim() || null;
 
 class TaskService {
+  async getQuotations(taskId: string) {
+    const endpoint = API_ENDPOINTS.taskQuotations(taskId);
+    const response = await httpClient.get<unknown>(endpoint);
+    return ensureResponse(endpoint, response.data, isTaskQuotationContext);
+  }
+
+  async createQuotation(taskId: string) {
+    const endpoint = API_ENDPOINTS.taskQuotation(taskId);
+    const response = await httpClient.post<unknown>(endpoint, {});
+    return ensureResponse(endpoint, response.data, isTaskQuotationResult);
+  }
+
   async getProtectedForProject(projectId: string) {
     const endpoint = API_ENDPOINTS.projectProtectedTasks(projectId);
     const response = await httpClient.get<unknown>(endpoint);

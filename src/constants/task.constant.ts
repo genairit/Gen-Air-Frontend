@@ -23,7 +23,7 @@ export const TASK_STATUS_LABELS: Record<TaskStatusType, string> = {
   not_started: "טרם בעבודה",
   in_progress: "בעבודה",
   in_review: "בבדיקה",
-  proposal_sent: "נשלחה הצעה",
+  proposal_sent: "נשלח",
 };
 
 export const TASK_STATUS_DOT_COLORS: Record<TaskStatusType, string> = {
@@ -153,10 +153,10 @@ export const NEW_TASK_COPY = {
   RETRY: "נסה שוב",
   ASSIGNEE: "אחראי",
   CHOOSE_ASSIGNEE: "בחר...",
-  APARTMENT_ENGINEER: "עובד ההנדסה של הדירה",
-  OTHER_APARTMENT_ENGINEER: "אחראי המשימה · שונה מעובד ההנדסה של הדירה",
-  POOL_OPTION: "מאגר פתוח — כל מהנדס יכול למשוך",
-  POOL_HINT: 'המשימה תופיע לכל המהנדסים עם "משוך אליי"',
+  APARTMENT_ENGINEER: "העובד ההנדסי של הדירה",
+  OTHER_APARTMENT_ENGINEER: "אחראי המשימה · שונה מהעובד ההנדסי של הדירה",
+  POOL_OPTION: "מאגר פתוח — כל עובד הנדסי יכול למשוך",
+  POOL_HINT: 'המשימה תופיע לכל העובדים ההנדסיים עם "משוך אליי"',
   DETAILS_TITLE: "פרטי המשימה",
   DETAILS_SUBTITLE: "מה צריך לעשות ועד מתי",
   TASK_TITLE: "כותרת",

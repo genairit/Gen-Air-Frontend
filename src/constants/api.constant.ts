@@ -23,6 +23,7 @@ export const API_ENDPOINTS = {
   QUOTATION_SALES_AGENTS: "/quotation/sales-agents",
   CATALOGUE: "/catalogue-item",
   quotationById: (id: string) => `/quotation/${id}`,
+  quotationCloneRecommended: (id: string): string => `/quotation/${id}/clone-recommended`,
   quotationClone: (id: string) => `/quotation/${id}/clone`,
   quotationPdf: (id: string) => `/quotation/${id}/pdf`,
   quotationReview: (id: string) => `/quotation/${id}/review`,
@@ -37,6 +38,8 @@ export const API_ENDPOINTS = {
   quotationSalesAgent: (id: string) => `/quotation/${id}/sales-agent`,
   catalogueById: (id: string) => `/catalogue-item/${id}`,
   customerProjects: (id: string) => `/customer/${id}/projects`,
+  taskQuotations: (id: string) => `/task/${id}/quotations`,
+  taskQuotation: (id: string) => `/task/${id}/quotation`,
   TASKS: "/task",
   MY_TASKS: "/task/my-tasks",
   MY_TASK_COUNTS: "/task/my-tasks/counts",
@@ -74,6 +77,9 @@ export const API_ENDPOINTS = {
   projectDriveFiles: (projectId: string) => `/project-drive/${projectId}/files`,
   projectDriveFile: (projectId: string, fileId: string) =>
     `/project-drive/${projectId}/files/${encodeURIComponent(fileId)}`,
+  EXISTING_DRIVE_FOLDER_PREVIEW: "/project-drive/existing-folder/preview",
+  projectDriveCompleteTemplate: (projectId: string) =>
+    `/project-drive/${projectId}/complete-template`,
   DRIVE_UPLOAD_POLICY: "/project-drive/upload-policy",
   ADDRESS_SUGGESTIONS: "/address/suggestions",
   addressPlace: (placeId: string) => `/address/places/${encodeURIComponent(placeId)}`,
