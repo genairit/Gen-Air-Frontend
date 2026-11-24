@@ -9,6 +9,7 @@ import {
   SMARTBASE_VARIANT_BY_BUTTON_VARIANT,
 } from "./constants/button.constants";
 
+import type { RefObject } from "react";
 import { useStyles } from "./Button.style";
 import ButtonContent from "./ButtonContent";
 import { mergeSx } from "../../utilities/sx.utility";
@@ -31,6 +32,8 @@ interface IButtonProps {
   shape?: ButtonShapeType;
   type?: NativeButtonType;
   variant?: ButtonVariantType;
+  focusableWhenDisabled?: boolean;
+  buttonRef?: RefObject<HTMLButtonElement | null>;
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
 }
 
@@ -41,8 +44,10 @@ const Button: FC<IButtonProps> = ({
   icon,
   onClick,
   disabled,
+  buttonRef,
   ariaLabel,
   isLoading = false,
+  focusableWhenDisabled = false,
   size = BUTTON_SIZES.MEDIUM,
   shape = BUTTON_SHAPES.PILL,
   variant = BUTTON_VARIANTS.PRIMARY,
@@ -57,8 +62,10 @@ const Button: FC<IButtonProps> = ({
       type={type}
       onClick={onClick}
       disabled={disabled}
+      buttonRef={buttonRef}
       isLoading={isLoading}
       ariaLabel={buttonAriaLabel}
+      focusableWhenDisabled={focusableWhenDisabled}
       variant={SMARTBASE_VARIANT_BY_BUTTON_VARIANT[variant]}
       sx={mergeSx(styles.button({ isLoading, variant, size, shape, hasIcon }), sx ?? null)}
     >

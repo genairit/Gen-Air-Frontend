@@ -65,6 +65,7 @@ import { useElementFocus } from "../../../hooks/element-focus.hook";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
 import { useQuotationPdf } from "../../../hooks/quotation-pdf.hook";
 import { PERMISSIONS } from "../../../constants/permission.constant";
+import QuotationPublicationNotice from "./QuotationPublicationNotice";
 import { hasPermission } from "../../../utilities/permission.utility";
 import { getAssignedRoles } from "../../../utilities/user-role.utility";
 import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
@@ -79,6 +80,7 @@ import QuotationCustomerPaymentDefault from "./QuotationCustomerPaymentDefault";
 import { QUOTATION_LIFECYCLE_COPY } from "../../../constants/quotation.constant";
 import { TASK_QUOTATION_COPY } from "../../../constants/task-quotation.constant";
 import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
+import { useQuotationPublication } from "../../../hooks/quotation-publication.hook";
 import { QUOTATION_DETAIL_HEADING_ID } from "../../../constants/quotation.constant";
 import QuotationApartmentSharingCard from "./sharing/QuotationApartmentSharingCard";
 import { validateQuotationReason } from "../../../utilities/quotation-reason.utility";
@@ -139,6 +141,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
   const pdf = useQuotationPdf(quotation.id);
+  const publication = useQuotationPublication(quotation.id, quotation.version);
   const sharing = useQuotationApartmentSharing({
     quotation,
     canEdit: editable,
@@ -188,7 +191,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const systems = QUOTATION_SYSTEM_OPTIONS;
   const brandTabs = quotationBrandTabs(quotation, activeTab);
   const openingLine = quotationOpeningLine(quotation);
-  const cancellationEntries = quotationLifecycleTimeline(quotation);
+  const cancellationEntries = quotationLifecycleTimeline(quotation, publication.publication);
   const latestRejection = quotation.rejectionHistory.at(-1);
   const needsCorrection = quotationNeedsCorrection(quotation);
   const canReject =
@@ -402,6 +405,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             {lifecycleStatusText}
           </Box>
         </Box>
+        <QuotationPublicationNotice {...publication} />
         {taskLinks.map(link => (
           <BackLink
             key={link.taskId}
@@ -750,7 +754,10 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           }}
           content={
             <Box component="div">
-              <Box component="p">סיבת הדחייה תוצג לצוות ההנדסה עד לשליחה מחדש לבדיקה.</Box>
+              <Box component="p">
+                סיבת הדחייה תוצג לצוות ההנדסה עד לשליחה מחדש לבדיקה. קובץ המחזור יועבר לארכיון
+                ב-Drive.
+              </Box>
               <TextField
                 multiline
                 minRows={3}

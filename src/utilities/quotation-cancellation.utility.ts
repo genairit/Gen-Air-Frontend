@@ -33,11 +33,11 @@ export const quotationCancellationView = (
     [QUOTATION_CONFIRMATION.RETURN]: {
       title: "החזרה לעריכה",
       actionLabel: "החזר לעריכה",
-      description: `המסמך יחזור לטיוטה ויידרש אישור מחדש. היסטוריית המסמך תישמר.${consequence}`,
+      description: `המסמך יחזור לטיוטה ויידרש אישור מחדש. היסטוריית המסמך תישמר. קובץ המחזור יועבר לארכיון ב-Drive.${consequence}`,
     },
     [QUOTATION_CONFIRMATION.CANCEL]: {
       title: `ביטול ${noun}`,
-      description: `${definiteNoun} תבוטל אך תישמר במערכת. שחזור לסטטוס הקודם זמין למנהל מערכת מורשה.${consequence}`,
+      description: `${definiteNoun} תבוטל אך תישמר במערכת. קובץ המחזור יועבר לארכיון ב-Drive. שחזור לסטטוס הקודם זמין למנהל מערכת מורשה.${consequence}`,
       actionLabel: `בטל ${noun}`,
     },
     [QUOTATION_CONFIRMATION.RESTORE]: {
