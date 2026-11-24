@@ -27,6 +27,7 @@ import Button from "../Button/Button";
 import TextField from "../TextField/TextField";
 import ChoiceRow from "../ChoiceRow/ChoiceRow";
 import { useId, useState, type FC } from "react";
+import SelectField from "../SelectField/SelectField";
 import InlineError from "../InlineError/InlineError";
 import { useStyles } from "./PaymentConfigurationEditor.style";
 import { FIELD_TYPES } from "../TextField/constants/textfield.constants";
@@ -37,6 +38,7 @@ import { BUTTON_SIZES, BUTTON_SHAPES, BUTTON_VARIANTS } from "../Button/constant
 interface IPaymentConfigurationEditorProps {
   disabled?: boolean;
   amounts?: string[];
+  menuAbove?: boolean;
   allowUnset?: boolean;
   customLabel?: string;
   value: IPaymentConfiguration;
@@ -48,6 +50,7 @@ const PaymentConfigurationEditor: FC<IPaymentConfigurationEditorProps> = ({
   onChange,
   disabled = false,
   allowUnset = false,
+  menuAbove = false,
   customLabel = PAYMENT_STAGES_LABEL,
   termsOptions = PAYMENT_TERMS_VALUES,
   amounts = [],
@@ -91,22 +94,40 @@ const PaymentConfigurationEditor: FC<IPaymentConfigurationEditorProps> = ({
   };
   return (
     <Box sx={styles.root}>
-      <Box role="radiogroup" sx={styles.choices} aria-label={PAYMENT_CONFIGURATION_COPY.LABEL}>
-        {choices.map(choice => (
-          <ChoiceRow
-            role="radio"
-            key={choice.id}
-            sx={styles.choice}
-            disabled={disabled}
-            tabIndex={choice.tabIndex}
-            aria-checked={choice.selected}
-            onKeyDown={RadioChoiceNavigation.handleKey}
-            onClick={() => select(choice.configuration)}
-          >
-            {choice.label}
-          </ChoiceRow>
-        ))}
-      </Box>
+      {menuAbove ? (
+        <SelectField
+          compact
+          menuAbove
+          disabled={disabled}
+          title={PAYMENT_CONFIGURATION_COPY.LABEL}
+          ariaLabel={PAYMENT_CONFIGURATION_COPY.LABEL}
+          value={choices.find(choice => choice.selected)?.id ?? ""}
+          items={choices.map(choice => ({ value: choice.id, label: choice.label }))}
+          onChange={(event): void => {
+            const choice = choices.find(option => option.id === event.target.value);
+            if (choice) {
+              select(choice.configuration);
+            }
+          }}
+        />
+      ) : (
+        <Box role="radiogroup" sx={styles.choices} aria-label={PAYMENT_CONFIGURATION_COPY.LABEL}>
+          {choices.map(choice => (
+            <ChoiceRow
+              role="radio"
+              key={choice.id}
+              sx={styles.choice}
+              disabled={disabled}
+              tabIndex={choice.tabIndex}
+              aria-checked={choice.selected}
+              onKeyDown={RadioChoiceNavigation.handleKey}
+              onClick={() => select(choice.configuration)}
+            >
+              {choice.label}
+            </ChoiceRow>
+          ))}
+        </Box>
+      )}
       {hasConflict && <InlineError message={PAYMENT_CONFIGURATION_COPY.CONFLICT} />}
       {isLegacyOther && (
         <Box role="status" sx={styles.caption}>

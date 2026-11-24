@@ -40,10 +40,15 @@ const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({ customer }) 
   };
   return (
     <Card>
-      <Box component="h2">{PAYMENT_CONFIGURATION_COPY.DEFAULT_TITLE}</Box>
-      <Box component="p">{PAYMENT_CONFIGURATION_COPY.CUSTOMER_HELP}</Box>
+      <Box component="h2" sx={{ m: 0, fontSize: "1rem" }}>
+        {PAYMENT_CONFIGURATION_COPY.DEFAULT_TITLE}
+      </Box>
+      <Box component="p" sx={{ m: 0, color: "text.secondary", fontSize: "0.875rem" }}>
+        {PAYMENT_CONFIGURATION_COPY.CUSTOMER_HELP}
+      </Box>
       {editable ? (
         <PaymentConfigurationEditor
+          menuAbove
           allowUnset
           onChange={change}
           disabled={disabled}
