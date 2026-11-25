@@ -18,9 +18,19 @@ export interface IJennyChatMessage {
   role: JennyRoleType;
 }
 
+export interface IJennyThreadSource extends IJennySource {
+  hasTrustedUrl: boolean;
+}
+
 export interface IJennyThreadMessage extends IJennyChatMessage {
   id: string;
-  sources: IJennySource[];
+  sources: IJennyThreadSource[];
+}
+
+export interface IAskJennyInput {
+  signal: AbortSignal;
+  context: IJennyContext;
+  messages: IJennyThreadMessage[];
 }
 
 export interface IJennyChatRequest {
@@ -45,4 +55,29 @@ export interface IJennySurfaceProps {
   children: ReactNode;
   onClose: () => void;
   inputRef: RefObject<HTMLTextAreaElement | null>;
+}
+
+export interface ITransitionDuration {
+  exit: number;
+  enter: number;
+}
+
+export interface IJennyChat {
+  draft: string;
+  canSend: boolean;
+  isWaiting: boolean;
+  hasMessages: boolean;
+  announcement: string;
+  canStartNewChat: boolean;
+  startNewChat: () => void;
+  retry: () => Promise<void>;
+  sendDraft: () => Promise<void>;
+  messages: IJennyThreadMessage[];
+  setDraft: (draft: string) => void;
+  error: IJennyErrorFeedback | null;
+}
+
+export interface IJennyMarkSize {
+  size: number;
+  iconSize: number;
 }

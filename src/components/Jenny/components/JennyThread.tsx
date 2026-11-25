@@ -5,14 +5,14 @@ import JennyEmptyState from "./JennyEmptyState";
 import JennyErrorNotice from "./JennyErrorNotice";
 import { useThreadStyles } from "../JennyThread.style";
 import JennyTypingIndicator from "./JennyTypingIndicator";
-import type { TJennyChat } from "../../../hooks/jenny-chat.hook";
 import { VISUALLY_HIDDEN } from "../../../styles/templates.style";
+import type { IJennyChat } from "../../../interfaces/jenny.interface";
 import { getJennyThreadVersion } from "../../../utilities/jenny.utility";
 import { useScrollPinnedToBottom } from "../../../hooks/scroll-pinned-bottom.hook";
 import { JENNY_COPY, JENNY_SCROLL_PIN_THRESHOLD_PX } from "../../../constants/jenny.constant";
 
 interface IJennyThreadProps {
-  chat: TJennyChat;
+  chat: IJennyChat;
   canOpenSources: boolean;
   onRetry: () => Promise<void>;
 }

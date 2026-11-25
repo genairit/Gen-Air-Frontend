@@ -1,9 +1,9 @@
 import { theme } from "./theme.constants";
 import { TIME_UNITS } from "./time.constant";
-import { HTTP_STATUS } from "./api.constant";
 import { duration } from "@mui/material/styles";
 import { MOBILE_NAV_TOP_PX } from "./layout.constant";
-import type { IJennyErrorFeedback } from "../interfaces/jenny.interface";
+import { HTTP_STATUS, type HttpStatusType } from "./api.constant";
+import type { IJennyMarkSize, IJennyErrorFeedback } from "../interfaces/jenny.interface";
 
 export const JENNY_CONTEXT_TYPES = {
   PROJECT: "project",
@@ -70,6 +70,30 @@ export const JENNY_LAUNCHER_BOTTOM_PX = {
 
 export const JENNY_LAUNCHER_SIZE_PX = theme.controlHeight.large;
 
+export const JENNY_PANEL_SIZE_PX = {
+  WIDTH: 360,
+  HEIGHT: 520,
+} as const;
+
+export const JENNY_COMPOSER_ROWS = {
+  MIN: 1,
+  MAX: 4,
+} as const;
+
+export const JENNY_SOURCE_ICON_SIZE_PX = 16;
+
+export const JENNY_MARK_PRESETS = {
+  HEADER: "header",
+  EMPTY_STATE: "emptyState",
+} as const;
+
+export type JennyMarkPresetType = (typeof JENNY_MARK_PRESETS)[keyof typeof JENNY_MARK_PRESETS];
+
+export const JENNY_MARK_SIZES: Record<JennyMarkPresetType, IJennyMarkSize> = {
+  [JENNY_MARK_PRESETS.HEADER]: { size: 32, iconSize: 18 },
+  [JENNY_MARK_PRESETS.EMPTY_STATE]: { size: 48, iconSize: 28 },
+};
+
 export const JENNY_COPY = {
   TITLE: "ג׳ני",
   LAUNCHER_LABEL: "ג׳ני – עוזרת AI",
@@ -108,7 +132,7 @@ const JENNY_PERMISSION_ERROR: IJennyErrorFeedback = {
   message: "אין לך הרשאה לשאול את ג׳ני על הפרויקט הזה.",
 };
 
-export const JENNY_ERROR_BY_STATUS: Partial<Record<number, IJennyErrorFeedback>> = {
+export const JENNY_ERROR_BY_STATUS: Partial<Record<HttpStatusType, IJennyErrorFeedback>> = {
   [HTTP_STATUS.BAD_REQUEST]: {
     canRetry: false,
     message: "לא ניתן לשלוח את השאלה במבנה הזה. נסו לנסח אותה מחדש.",

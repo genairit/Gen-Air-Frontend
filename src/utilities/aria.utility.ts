@@ -1,3 +1,5 @@
+import type { AriaAttributes } from "react";
+
 interface IControlledElement {
   id: string;
   isRendered: boolean;
@@ -11,7 +13,9 @@ export const getControlledElementId = ({ id, isRendered }: IControlledElement): 
   return id;
 };
 
-export const getAriaControlsAttributes = (ariaControls: string | null) => {
+export const getAriaControlsAttributes = (
+  ariaControls: string | null,
+): Pick<AriaAttributes, "aria-controls"> => {
   if (ariaControls === null) {
     return {};
   }

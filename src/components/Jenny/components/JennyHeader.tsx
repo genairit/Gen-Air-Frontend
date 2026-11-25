@@ -4,9 +4,9 @@ import JennyMark from "./JennyMark";
 import { Box } from "@mui/material";
 import { useStyles } from "../Jenny.style";
 import { Close } from "@mui/icons-material";
-import { JENNY_COPY } from "../../../constants/jenny.constant";
 import IconActionButton from "../../IconActionButton/IconActionButton";
 import { ICON_NAMES, ICON_COLORS } from "../../../constants/icon.constant";
+import { JENNY_COPY, JENNY_MARK_PRESETS } from "../../../constants/jenny.constant";
 
 interface IJennyHeaderProps {
   titleId: string;
@@ -31,7 +31,7 @@ const JennyHeader: FC<IJennyHeaderProps> = ({
 
   return (
     <Box sx={styles.header({ isFullScreen })}>
-      <JennyMark size={32} iconSize={18} />
+      <JennyMark preset={JENNY_MARK_PRESETS.HEADER} />
       <Box sx={styles.titleBlock}>
         <Box id={titleId} component="h2" sx={styles.title}>
           {JENNY_COPY.TITLE}

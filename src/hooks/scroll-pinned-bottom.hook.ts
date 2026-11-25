@@ -1,19 +1,24 @@
 import { useMediaQuery } from "@mui/material";
-import { useRef, useLayoutEffect } from "react";
+import { useRef, useLayoutEffect, type RefObject } from "react";
 import { REDUCED_MOTION_QUERY } from "../constants/layout.constant";
+
+interface IScrollPinnedToBottom<TElement extends HTMLElement> {
+  trackPinnedState: () => void;
+  containerRef: RefObject<TElement | null>;
+}
 
 interface IScrollPinnedToBottomOptions {
   threshold: number;
   contentVersion: string;
 }
 
-const getDistanceFromBottom = (element: HTMLElement) =>
+const getDistanceFromBottom = (element: HTMLElement): number =>
   element.scrollHeight - element.scrollTop - element.clientHeight;
 
 export const useScrollPinnedToBottom = <TElement extends HTMLElement>({
   threshold,
   contentVersion,
-}: IScrollPinnedToBottomOptions) => {
+}: IScrollPinnedToBottomOptions): IScrollPinnedToBottom<TElement> => {
   const containerRef = useRef<TElement | null>(null);
   const isPinnedRef = useRef(true);
   const prefersReducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);

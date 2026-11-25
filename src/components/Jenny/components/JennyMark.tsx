@@ -4,14 +4,15 @@ import { Box } from "@mui/material";
 import { useStyles } from "../Jenny.style";
 import { theme } from "../../../constants/theme.constants";
 import { ICON_NAMES } from "../../../constants/icon.constant";
+import { JENNY_MARK_SIZES, type JennyMarkPresetType } from "../../../constants/jenny.constant";
 
 interface IJennyMarkProps {
-  size: number;
-  iconSize: number;
+  preset: JennyMarkPresetType;
 }
 
-const JennyMark: FC<IJennyMarkProps> = ({ size, iconSize }) => {
+const JennyMark: FC<IJennyMarkProps> = ({ preset }) => {
   const styles = useStyles();
+  const { size, iconSize } = JENNY_MARK_SIZES[preset];
 
   return (
     <Box aria-hidden sx={styles.mark(size)}>

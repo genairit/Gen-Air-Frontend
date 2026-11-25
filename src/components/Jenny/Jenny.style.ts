@@ -1,5 +1,6 @@
 import {
   JENNY_MOTION_MS,
+  JENNY_PANEL_SIZE_PX,
   JENNY_LAUNCHER_SIZE_PX,
   JENNY_LAUNCHER_BOTTOM_PX,
   JENNY_LAUNCHER_LAYOUT_PX,
@@ -11,6 +12,10 @@ import { theme } from "../../constants/theme.constants";
 import { CENTERED_FLEX, ELLIPSIS_TEXT } from "../../styles/templates.style";
 import { PRIMARY_BUTTON_SHADOW } from "../Button/constants/button.constants";
 import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../../constants/layout.constant";
+
+interface IJennyLayoutOptions {
+  isFullScreen: boolean;
+}
 
 const { palette, glass, radius } = theme;
 
@@ -34,10 +39,6 @@ const SAFE_AREA_PADDING = {
   HEADER: { paddingTop: "calc(12px + env(safe-area-inset-top))" },
   COMPOSER: { paddingBottom: "calc(12px + env(safe-area-inset-bottom))" },
 } as const;
-
-interface IJennyLayoutOptions {
-  isFullScreen: boolean;
-}
 
 const getSafeAreaPadding = (isFullScreen: boolean, padding: Record<string, string>) => {
   if (!isFullScreen) {
@@ -72,8 +73,8 @@ export const useStyles = () =>
       boxShadow: glass.shadow,
       border: `1px solid ${glass.rim}`,
       backgroundColor: palette.white,
-      width: `min(360px, calc(100vw - ${2 * EDGE_OFFSET_PX}px))`,
-      height: `min(520px, calc(100dvh - ${PANEL_BOTTOM_PX + EDGE_OFFSET_PX}px))`,
+      width: `min(${JENNY_PANEL_SIZE_PX.WIDTH}px, calc(100vw - ${2 * EDGE_OFFSET_PX}px))`,
+      height: `min(${JENNY_PANEL_SIZE_PX.HEIGHT}px, calc(100dvh - ${PANEL_BOTTOM_PX + EDGE_OFFSET_PX}px))`,
       // stylis-plugin-rtl flips physical keywords, so "right" renders at the launcher's left corner.
       transformOrigin: "bottom right",
       animation: `${PANEL_ENTER} ${JENNY_MOTION_MS.PANEL_ENTER}ms ease-out both`,

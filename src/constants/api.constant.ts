@@ -100,6 +100,8 @@ export const HTTP_STATUS = {
   GATEWAY_TIMEOUT: 504,
 } as const;
 
+export type HttpStatusType = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS];
+
 export const API_ERROR_CODES = {
   INVALID_CURRENT_PASSWORD: "INVALID_CURRENT_PASSWORD",
 } as const;

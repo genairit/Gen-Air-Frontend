@@ -1,12 +1,6 @@
 import { jennyService } from "../services/jenny.service";
 import { createJennyAnswer, toJennyChatRequest } from "../utilities/jenny.utility";
-import type { IJennyContext, IJennyThreadMessage } from "../interfaces/jenny.interface";
-
-interface IAskJennyInput {
-  signal: AbortSignal;
-  context: IJennyContext;
-  messages: IJennyThreadMessage[];
-}
+import type { IAskJennyInput, IJennyThreadMessage } from "../interfaces/jenny.interface";
 
 export const askJennyAction = async ({
   signal,

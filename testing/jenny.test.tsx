@@ -6,6 +6,7 @@ import {
 } from "axios";
 
 import {
+  toJennyChatHistory,
   toJennyChatRequest,
   createJennyMessage,
   createProjectJennyContext,
@@ -18,9 +19,12 @@ import {
   JENNY_CHAT_TIMEOUT_MS,
   JENNY_SERVER_DEADLINE_MS,
   JENNY_MESSAGE_MAX_LENGTH,
+  JENNY_SHEET_TRANSITION_MS,
+  JENNY_SCROLL_PIN_THRESHOLD_PX,
 } from "../src/constants/jenny.constant";
 
 import { test } from "node:test";
+import { Box } from "@mui/material";
 import assert from "node:assert/strict";
 import type { ReactElement } from "react";
 import Jenny from "../src/components/Jenny/Jenny";
@@ -29,13 +33,16 @@ import { setSession } from "../src/store/session.store";
 import TextField from "../src/components/TextField/TextField";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
+import { isKeyboardEvent } from "../src/utilities/keyboard.utility";
 import InlineError from "../src/components/InlineError/InlineError";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MARKDOWN_BLOCK_KINDS } from "../src/constants/markdown.constant";
 import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { parseRestrictedMarkdown } from "../src/utilities/markdown.utility";
 import type { IJennyThreadMessage } from "../src/interfaces/jenny.interface";
+import { useScrollPinnedToBottom } from "../src/hooks/scroll-pinned-bottom.hook";
 import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
+import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../src/constants/layout.constant";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -69,7 +76,7 @@ interface IKeyEventOptions {
 const PROJECT_ID = "project-jenny";
 const PROJECT_NAME = "מגדלי הים";
 const ANSWER = {
-  message: "הפרויקט בשלב **ביצוע**.\n\n- קומה 1\n- קומה 2",
+  message: "הפרויקט בשלב **ביצוע**.\n\n- קומה 1\n- קומה 2\n\n1. לאשר תוכנית",
   sources: [
     { fileId: "file-1", fileName: "Spec.pdf", page: 3, url: "https://drive.google.com/file-1" },
     {
@@ -389,8 +396,9 @@ test("Enter sends the question, shows thinking, then renders the answer with sou
     assert.equal(view.renderer.root.findAll(node => node.type === "strong").length, 1);
     assert.equal(
       view.renderer.root.findAll(node => node.type === "li" && node.props.dir === "auto").length,
-      2,
+      3,
     );
+    assert.equal(view.renderer.root.findAll(node => node.type === "ol").length, 1);
     assert.match(text, new RegExp(JENNY_COPY.SOURCES));
     assert.match(text, /עמ׳ 3/);
     assert.match(text, new RegExp(`${JENNY_COPY.ANSWER_ANNOUNCEMENT_PREFIX}הפרויקט בשלב ביצוע`));
@@ -456,6 +464,7 @@ test("server errors keep the question and retry re-sends the same history", asyn
     const retry = findButton(view.renderer, JENNY_COPY.RETRY);
     assert.ok(retry);
     await startWithoutAwaiting(() => retry.props.onClick());
+    assert.equal(view.focusLog.at(-1), JENNY_COPY.INPUT_LABEL);
     assert.deepEqual(http.calls[1].body, http.calls[0].body);
     assert.equal(view.renderer.root.findAllByType(InlineError).length, 0);
     await http.respond(ANSWER);
@@ -538,6 +547,7 @@ test("source links require Drive permission and open safely in a new tab", async
       ),
     );
     assert.match(links[0].props["aria-label"], /עמוד 3/);
+    assert.doesNotMatch(links[1].props["aria-label"], /עמוד/);
     for (const source of UNSAFE_SOURCES) {
       assert.match(textOf(permitted.renderer), new RegExp(source.fileName));
     }
@@ -659,6 +669,7 @@ test("opening focuses the composer, Escape closes the panel and focus returns to
     const [dialog] = findDialog(view.renderer);
     const stopped = { count: 0 };
     const keyEvent = (key: string) => ({ key, stopPropagation: () => (stopped.count += 1) });
+    await act(async () => dialog.props.onKeyDown(keyEvent("a")));
     await act(async () => dialog.props.onKeyDown(keyEvent("ArrowDown")));
     assert.equal(findDialog(view.renderer).length, 1);
     assert.equal(stopped.count, 0);
@@ -715,6 +726,13 @@ test("Escape closes an open header tooltip first and only then the panel", async
   try {
     await openChat(view.renderer);
     await act(async () => findTooltip(view.renderer, JENNY_COPY.CLOSE).props.onOpen());
+    assert.equal(findTooltip(view.renderer, JENNY_COPY.CLOSE).props.open, true);
+
+    const focusEvent = new Event("keydown");
+    await act(async () => {
+      view.ownerDocument.dispatchEvent(focusEvent);
+    });
+    assert.equal(focusEvent.cancelBubble, false);
     assert.equal(findTooltip(view.renderer, JENNY_COPY.CLOSE).props.open, true);
 
     const tooltipEscape = await dispatchDocumentEscape(view.ownerDocument);
@@ -779,5 +797,190 @@ test("a malformed success body shows the generic retryable error instead of an a
   } finally {
     http.restore();
     await view.unmount();
+  }
+});
+
+test("history without any user turn is empty and non-keyboard events are not key events", () => {
+  const assistantOnly = [createJennyMessage({ role: JENNY_ROLES.ASSISTANT, content: "תשובה" })];
+  assert.deepEqual(toJennyChatHistory(assistantOnly), []);
+  assert.equal(isKeyboardEvent(new Event("focus")), false);
+  const keyEvent = new Event("keydown");
+  Object.defineProperty(keyEvent, "key", { value: "Escape" });
+  assert.equal(isKeyboardEvent(keyEvent), true);
+});
+
+test("the send button sends the draft and keeps focus in the composer", async () => {
+  const http = createHarness();
+  const view = await render();
+  try {
+    await openChat(view.renderer);
+    await typeDraft(view.renderer, "שאלה בלחיצה");
+    const send = findButton(view.renderer, JENNY_COPY.SEND);
+    assert.ok(send);
+    await startWithoutAwaiting(() => send.props.onClick());
+    assert.equal(http.calls.length, 1);
+    assert.equal(view.focusLog.at(-1), JENNY_COPY.INPUT_LABEL);
+    await http.respond(ANSWER);
+  } finally {
+    http.restore();
+    await view.unmount();
+  }
+});
+
+const createMediaQueryList = (query: string, matchingQueries: string[]) => ({
+  media: query,
+  onchange: null,
+  matches: matchingQueries.includes(query),
+  addListener: () => {},
+  removeListener: () => {},
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  dispatchEvent: () => false,
+});
+
+const installMatchMedia = (matchingQueries: string[]) => {
+  const matchMedia = (query: string) => createMediaQueryList(query, matchingQueries);
+  Reflect.set(globalThis, "window", { matchMedia });
+  return () => Reflect.deleteProperty(globalThis, "window");
+};
+
+const SHEET_SCENARIOS = [
+  {
+    name: "standard motion",
+    queries: [MOBILE_LAYOUT_QUERY],
+    duration: JENNY_SHEET_TRANSITION_MS.STANDARD,
+  },
+  {
+    name: "reduced motion",
+    queries: [MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY],
+    duration: { enter: 0, exit: 0 },
+  },
+] as const;
+
+const hasSafeAreaPadding = (node: ReactTestInstance, edge: string) =>
+  Object.values(node.props.sx ?? {}).some(value =>
+    String(value).includes(`safe-area-inset-${edge}`),
+  );
+
+for (const scenario of SHEET_SCENARIOS) {
+  test(`mobile opens a labelled full-screen sheet with ${scenario.name}`, async () => {
+    const restoreWindow = installMatchMedia([...scenario.queries]);
+    const view = await render();
+    try {
+      await openChat(view.renderer);
+      const sheet = view.renderer.root.find(node => node.props.fullScreen === true);
+      const title = view.renderer.root.find(node => node.type === "h2");
+      assert.equal(sheet.props.open, true);
+      assert.equal(findDialog(view.renderer).length, 0);
+      assert.equal(sheet.props["aria-labelledby"], title.props.id);
+      assert.equal(
+        sheet.props.slotProps.paper.id,
+        findLauncher(view.renderer).props["aria-controls"],
+      );
+      assert.deepEqual(sheet.props.transitionDuration, scenario.duration);
+      assert.equal(
+        view.renderer.root.findAll(node => hasSafeAreaPadding(node, "top")).length > 0,
+        true,
+      );
+      assert.equal(
+        view.renderer.root.findAll(node => hasSafeAreaPadding(node, "bottom")).length > 0,
+        true,
+      );
+
+      await act(async () => sheet.props.slotProps.transition.onEntered());
+      assert.equal(view.focusLog.at(-1), JENNY_COPY.INPUT_LABEL);
+      await act(async () => sheet.props.onClose());
+      assert.equal(
+        view.renderer.root.find(node => node.props.fullScreen === true).props.open,
+        false,
+      );
+      assert.equal(view.focusLog.at(-1), JENNY_COPY.LAUNCHER_LABEL);
+    } finally {
+      await view.unmount();
+      restoreWindow();
+    }
+  });
+}
+
+interface IScrollHarnessProps {
+  contentVersion: string;
+}
+
+interface IScrollContainerMock {
+  scrollTop: number;
+  scrollHeight: number;
+  clientHeight: number;
+  scrollTo: (options: ScrollToOptions) => void;
+}
+
+const ScrollHarness = ({ contentVersion }: IScrollHarnessProps) => {
+  const { containerRef, trackPinnedState } = useScrollPinnedToBottom<HTMLDivElement>({
+    contentVersion,
+    threshold: JENNY_SCROLL_PIN_THRESHOLD_PX,
+  });
+
+  return <Box ref={containerRef} onScroll={trackPinnedState} data-scroll-container="true" />;
+};
+
+const renderScrollHarness = async (container: IScrollContainerMock) => {
+  const state: { renderer: ReactTestRenderer | null } = { renderer: null };
+  await act(async () => {
+    state.renderer = create(<ScrollHarness contentVersion="1" />, {
+      createNodeMock: () => container,
+    });
+  });
+  const renderer = state.renderer;
+  assert.ok(renderer);
+  const scrollTo = async (scrollTop: number) => {
+    container.scrollTop = scrollTop;
+    await act(async () => renderer.root.find(node => node.type === "div").props.onScroll());
+  };
+  const showVersion = async (contentVersion: string) => {
+    await act(async () => renderer.update(<ScrollHarness contentVersion={contentVersion} />));
+  };
+  return { renderer, scrollTo, showVersion };
+};
+
+const SCROLL_HEIGHT = 1000;
+const CLIENT_HEIGHT = 400;
+const BOTTOM_SCROLL_TOP = SCROLL_HEIGHT - CLIENT_HEIGHT;
+
+test("the thread follows new content only while the reader is near the bottom", async () => {
+  const scrolls: ScrollToOptions[] = [];
+  const container: IScrollContainerMock = {
+    scrollTop: BOTTOM_SCROLL_TOP,
+    scrollHeight: SCROLL_HEIGHT,
+    clientHeight: CLIENT_HEIGHT,
+    scrollTo: options => scrolls.push(options),
+  };
+  const harness = await renderScrollHarness(container);
+  try {
+    assert.deepEqual(scrolls, [{ top: SCROLL_HEIGHT, behavior: "smooth" }]);
+    await harness.scrollTo(BOTTOM_SCROLL_TOP - JENNY_SCROLL_PIN_THRESHOLD_PX - 1);
+    await harness.showVersion("2");
+    assert.equal(scrolls.length, 1);
+    await harness.scrollTo(BOTTOM_SCROLL_TOP - JENNY_SCROLL_PIN_THRESHOLD_PX);
+    await harness.showVersion("3");
+    assert.equal(scrolls.length, 2);
+  } finally {
+    await act(async () => harness.renderer.unmount());
+  }
+});
+
+test("thread auto-scroll jumps instantly under reduced motion", async () => {
+  const restoreWindow = installMatchMedia([REDUCED_MOTION_QUERY]);
+  const scrolls: ScrollToOptions[] = [];
+  const container: IScrollContainerMock = {
+    scrollTop: BOTTOM_SCROLL_TOP,
+    scrollHeight: SCROLL_HEIGHT,
+    clientHeight: CLIENT_HEIGHT,
+    scrollTo: options => scrolls.push(options),
+  };
+  const harness = await renderScrollHarness(container);
+  try {
+    assert.deepEqual(scrolls.at(-1), { top: SCROLL_HEIGHT, behavior: "auto" });
+  } finally {
+    await act(async () => harness.renderer.unmount());
+    restoreWindow();
   }
 });

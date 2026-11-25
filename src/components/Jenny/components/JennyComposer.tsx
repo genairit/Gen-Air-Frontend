@@ -1,16 +1,21 @@
+import {
+  JENNY_COPY,
+  JENNY_COMPOSER_ROWS,
+  JENNY_MESSAGE_MAX_LENGTH,
+} from "../../../constants/jenny.constant";
+
 import { Box } from "@mui/material";
 import Button from "../../Button/Button";
 import { useStyles } from "../Jenny.style";
 import TextField from "../../TextField/TextField";
 import type { FC, RefObject, KeyboardEvent } from "react";
-import type { TJennyChat } from "../../../hooks/jenny-chat.hook";
+import type { IJennyChat } from "../../../interfaces/jenny.interface";
 import { isPlainEnterKey } from "../../../utilities/keyboard.utility";
 import { focusConnectedElement } from "../../../utilities/focus.utility";
 import { FIELD_TYPES } from "../../TextField/constants/textfield.constants";
-import { JENNY_COPY, JENNY_MESSAGE_MAX_LENGTH } from "../../../constants/jenny.constant";
 
 interface IJennyComposerProps {
-  chat: TJennyChat;
+  chat: IJennyChat;
   isFullScreen: boolean;
   inputRef: RefObject<HTMLTextAreaElement | null>;
 }
@@ -37,13 +42,13 @@ const JennyComposer: FC<IJennyComposerProps> = ({ chat, inputRef, isFullScreen }
       <Box sx={styles.composerField}>
         <TextField
           multiline
-          minRows={1}
-          maxRows={4}
           value={chat.draft}
           inputRef={inputRef}
           type={FIELD_TYPES.TEXT}
           onChange={chat.setDraft}
           onKeyDown={handleKeyDown}
+          minRows={JENNY_COMPOSER_ROWS.MIN}
+          maxRows={JENNY_COMPOSER_ROWS.MAX}
           maxLength={JENNY_MESSAGE_MAX_LENGTH}
           placeholder={JENNY_COPY.PLACEHOLDER}
           slotProps={{ htmlInput: { "aria-label": JENNY_COPY.INPUT_LABEL } }}

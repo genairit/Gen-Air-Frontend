@@ -2,12 +2,12 @@ import JennyThread from "./JennyThread";
 import JennyHeader from "./JennyHeader";
 import type { FC, RefObject } from "react";
 import JennyComposer from "./JennyComposer";
-import type { TJennyChat } from "../../../hooks/jenny-chat.hook";
+import type { IJennyChat } from "../../../interfaces/jenny.interface";
 import { focusConnectedElement } from "../../../utilities/focus.utility";
 
 interface IJennyChatProps {
   titleId: string;
-  chat: TJennyChat;
+  chat: IJennyChat;
   onClose: () => void;
   contextLabel: string;
   isFullScreen: boolean;

@@ -5,22 +5,27 @@ import {
   getJennySourcePageLabel,
 } from "../../../utilities/jenny.utility";
 
+import {
+  JENNY_COPY,
+  JENNY_SOURCE_NAME_CLASS,
+  JENNY_SOURCE_ICON_SIZE_PX,
+} from "../../../constants/jenny.constant";
+
 import type { FC } from "react";
 import Icon from "../../Icon/Icon";
 import { Box } from "@mui/material";
 import { useThreadStyles } from "../JennyThread.style";
 import { mergeSx } from "../../../utilities/sx.utility";
 import { ICON_NAMES } from "../../../constants/icon.constant";
-import type { IJennySource } from "../../../interfaces/jenny.interface";
-import { JENNY_COPY, JENNY_SOURCE_NAME_CLASS } from "../../../constants/jenny.constant";
+import type { IJennyThreadSource } from "../../../interfaces/jenny.interface";
 
 interface IJennySourcesProps {
-  sources: IJennySource[];
   canOpenSources: boolean;
+  sources: IJennyThreadSource[];
 }
 
 interface IJennySourceProps {
-  source: IJennySource;
+  source: IJennyThreadSource;
 }
 
 interface IJennySourceRowProps extends IJennySourceProps {
@@ -33,7 +38,7 @@ const SourceDetails: FC<IJennySourceProps> = ({ source }) => {
 
   return (
     <>
-      <Icon size={16} name={ICON_NAMES.DOCUMENT} />
+      <Icon name={ICON_NAMES.DOCUMENT} size={JENNY_SOURCE_ICON_SIZE_PX} />
       <Box component="span" sx={styles.sourceName} className={JENNY_SOURCE_NAME_CLASS}>
         <Box component="bdi">{source.fileName}</Box>
       </Box>
@@ -59,7 +64,7 @@ const SourceLink: FC<IJennySourceProps> = ({ source }) => {
       sx={mergeSx(styles.sourceRow, styles.sourceLink)}
     >
       <SourceDetails source={source} />
-      <Icon size={16} name={ICON_NAMES.OPEN} />
+      <Icon name={ICON_NAMES.OPEN} size={JENNY_SOURCE_ICON_SIZE_PX} />
     </Box>
   );
 };

@@ -3,7 +3,12 @@ import { abortActiveController, releaseActiveController } from "../utilities/abo
 
 type TAbortableRequest = (signal: AbortSignal) => Promise<void>;
 
-export const useAbortableRequest = () => {
+interface IAbortableRequest {
+  abortActive: () => void;
+  runAbortable: (request: TAbortableRequest) => Promise<void>;
+}
+
+export const useAbortableRequest = (): IAbortableRequest => {
   const controllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => () => abortActiveController(controllerRef), []);
@@ -21,7 +26,7 @@ export const useAbortableRequest = () => {
     }
   };
 
-  const abortActive = () => abortActiveController(controllerRef);
+  const abortActive = (): void => abortActiveController(controllerRef);
 
   return { runAbortable, abortActive };
 };

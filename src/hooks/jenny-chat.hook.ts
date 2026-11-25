@@ -11,9 +11,9 @@ import { JENNY_ROLES } from "../constants/jenny.constant";
 import { useAbortableRequest } from "./abortable-request.hook";
 import { isCancelledRequest } from "../utilities/abort.utility";
 import { useAskJennyMutation } from "./mutations/jenny.mutation";
-import type { IJennyContext, IJennyThreadMessage } from "../interfaces/jenny.interface";
+import type { IJennyChat, IJennyContext, IJennyThreadMessage } from "../interfaces/jenny.interface";
 
-export const useJennyChat = (context: IJennyContext) => {
+export const useJennyChat = (context: IJennyContext): IJennyChat => {
   const [draft, setDraft] = useState("");
   const [announcement, setAnnouncement] = useState("");
   const [messages, setMessages] = useState<IJennyThreadMessage[]>([]);
@@ -87,5 +87,3 @@ export const useJennyChat = (context: IJennyContext) => {
     canStartNewChat,
   };
 };
-
-export type TJennyChat = ReturnType<typeof useJennyChat>;
