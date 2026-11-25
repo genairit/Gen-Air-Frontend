@@ -565,12 +565,14 @@ test("new chat clears the thread, and switching context resets the conversation"
     await openChat(view.renderer);
     await askQuestion(view.renderer, "שאלה ראשונה");
     await http.respond(ANSWER);
+    await typeDraft(view.renderer, "טיוטה");
     const newChat = view.renderer.root.find(
       node => node.type === "button" && node.props["aria-label"] === JENNY_COPY.NEW_CHAT,
     );
     await act(async () => newChat.props.onClick());
     assert.match(textOf(view.renderer), new RegExp(JENNY_COPY.GREETING));
     assert.doesNotMatch(textOf(view.renderer), /שאלה ראשונה/);
+    assert.equal(view.renderer.root.findByType(TextField).props.value, "");
 
     await askQuestion(view.renderer, "שאלה על פרויקט א");
     await http.respond(ANSWER);

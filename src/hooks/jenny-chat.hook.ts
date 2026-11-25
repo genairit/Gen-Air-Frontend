@@ -6,6 +6,7 @@ import {
 } from "../utilities/jenny.utility";
 
 import { useState } from "react";
+import { isAxiosError } from "axios";
 import { logger } from "../utilities/logger.utility";
 import { JENNY_ROLES } from "../constants/jenny.constant";
 import { useAbortableRequest } from "./abortable-request.hook";
@@ -38,7 +39,9 @@ export const useJennyChat = (context: IJennyContext): IJennyChat => {
         return;
       }
 
-      logger.error("Jenny chat request failed", { error: requestError, context });
+      const status = isAxiosError(requestError) ? (requestError.response?.status ?? null) : null;
+
+      logger.error("Jenny chat request failed", { status, contextType: context.type });
     }
   };
 
@@ -68,6 +71,7 @@ export const useJennyChat = (context: IJennyContext): IJennyChat => {
   const startNewChat = () => {
     abortActive();
     askMutation.reset();
+    setDraft("");
     setMessages([]);
     setAnnouncement("");
   };

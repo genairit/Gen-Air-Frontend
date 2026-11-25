@@ -103,7 +103,7 @@ export const JENNY_COPY = {
   PLACEHOLDER: "כתבו שאלה על הפרויקט…",
   INPUT_LABEL: "הודעה לג׳ני",
   SEND: "שליחה",
-  THINKING: "ג׳ני חושבת…",
+  THINKING: "מחפשת במסמכים…",
   RETRY: "נסו שוב",
   SOURCES: "מקורות",
   SOURCE_PAGE_PREFIX: "עמ׳ ",
