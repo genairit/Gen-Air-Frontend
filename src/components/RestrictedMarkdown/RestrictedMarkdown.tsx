@@ -1,3 +1,8 @@
+import {
+  MARKDOWN_BLOCK_KINDS,
+  type MarkdownBlockKindType,
+} from "../../constants/markdown.constant";
+
 import type {
   IMarkdownLineProps,
   IMarkdownSpanProps,
@@ -8,9 +13,7 @@ import type {
 import { Box } from "@mui/material";
 import type { FC, ElementType } from "react";
 import { useStyles } from "./RestrictedMarkdown.style";
-import { MARKDOWN_BLOCK_KINDS } from "../../constants/markdown.constant";
 import { parseRestrictedMarkdown } from "../../utilities/markdown.utility";
-import type { MarkdownBlockKindType } from "../../constants/markdown.constant";
 
 const MarkdownSpan: FC<IMarkdownSpanProps> = ({ span }) => {
   if (!span.isBold) {

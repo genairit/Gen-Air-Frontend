@@ -1,24 +1,24 @@
 import {
-  MOBILE_NAV_TOP_PX,
-  MOBILE_LAYOUT_QUERY,
-  REDUCED_MOTION_QUERY,
-} from "../../constants/layout.constant";
+  JENNY_MOTION_MS,
+  JENNY_LAUNCHER_SIZE_PX,
+  JENNY_LAUNCHER_BOTTOM_PX,
+  JENNY_LAUNCHER_LAYOUT_PX,
+} from "../../constants/jenny.constant";
 
 import { keyframes } from "@mui/material";
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 import { CENTERED_FLEX, ELLIPSIS_TEXT } from "../../styles/templates.style";
 import { PRIMARY_BUTTON_SHADOW } from "../Button/constants/button.constants";
-import { JENNY_MOTION_MS, JENNY_LAUNCHER_LAYOUT_PX } from "../../constants/jenny.constant";
+import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../../constants/layout.constant";
 
-const { palette, glass, radius, controlHeight } = theme;
+const { palette, glass, radius } = theme;
 
 const MOBILE_MEDIA = `@media ${MOBILE_LAYOUT_QUERY}`;
 const REDUCED_MOTION_MEDIA = `@media ${REDUCED_MOTION_QUERY}`;
 
 const { EDGE_OFFSET: EDGE_OFFSET_PX, MOBILE_EDGE_OFFSET, GAP } = JENNY_LAUNCHER_LAYOUT_PX;
-const PANEL_BOTTOM_PX = EDGE_OFFSET_PX + controlHeight.large + GAP;
-const MOBILE_LAUNCHER_BOTTOM_PX = MOBILE_NAV_TOP_PX + GAP;
+const PANEL_BOTTOM_PX = JENNY_LAUNCHER_BOTTOM_PX.DESKTOP + JENNY_LAUNCHER_SIZE_PX + GAP;
 
 const PANEL_ENTER = keyframes`
   from { opacity: 0; transform: scale(0.985); }
@@ -52,12 +52,12 @@ export const useStyles = () =>
     launcher: {
       zIndex: "fab",
       position: "fixed",
-      bottom: EDGE_OFFSET_PX,
+      bottom: JENNY_LAUNCHER_BOTTOM_PX.DESKTOP,
       insetInlineEnd: EDGE_OFFSET_PX,
       boxShadow: `${PRIMARY_BUTTON_SHADOW}, ${glass.shadowSmall}`,
       [MOBILE_MEDIA]: {
         insetInlineEnd: MOBILE_EDGE_OFFSET,
-        bottom: `calc(${MOBILE_LAUNCHER_BOTTOM_PX}px + env(safe-area-inset-bottom))`,
+        bottom: `calc(${JENNY_LAUNCHER_BOTTOM_PX.MOBILE}px + env(safe-area-inset-bottom))`,
       },
     },
     panel: {

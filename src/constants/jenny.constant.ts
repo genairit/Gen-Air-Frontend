@@ -2,6 +2,7 @@ import { theme } from "./theme.constants";
 import { TIME_UNITS } from "./time.constant";
 import { HTTP_STATUS } from "./api.constant";
 import { duration } from "@mui/material/styles";
+import { MOBILE_NAV_TOP_PX } from "./layout.constant";
 import type { IJennyErrorFeedback } from "../interfaces/jenny.interface";
 
 export const JENNY_CONTEXT_TYPES = {
@@ -21,8 +22,12 @@ export const JENNY_HISTORY_LIMIT = 20;
 
 export const JENNY_MESSAGE_MAX_LENGTH = 4000;
 
-// First document searches index PDFs and can take minutes; a finite cap still lets the user recover.
-export const JENNY_CHAT_TIMEOUT_MS = 5 * 60 * TIME_UNITS.SECOND_MS;
+export const JENNY_SERVER_DEADLINE_MS = 2 * TIME_UNITS.MINUTE_MS;
+
+const JENNY_RESPONSE_GRACE_MS = 30 * TIME_UNITS.SECOND_MS;
+
+// The grace lets the server's own 504 deadline answer before the client gives up on the request.
+export const JENNY_CHAT_TIMEOUT_MS = JENNY_SERVER_DEADLINE_MS + JENNY_RESPONSE_GRACE_MS;
 
 export const JENNY_SOURCE_LINK_POLICY = {
   PROTOCOL: "https:",
@@ -58,7 +63,12 @@ export const JENNY_LAUNCHER_LAYOUT_PX = {
   GAP: 12,
 } as const;
 
-export const JENNY_LAUNCHER_CLEARANCE_PX = theme.controlHeight.large + JENNY_LAUNCHER_LAYOUT_PX.GAP;
+export const JENNY_LAUNCHER_BOTTOM_PX = {
+  DESKTOP: JENNY_LAUNCHER_LAYOUT_PX.EDGE_OFFSET,
+  MOBILE: MOBILE_NAV_TOP_PX + JENNY_LAUNCHER_LAYOUT_PX.GAP,
+} as const;
+
+export const JENNY_LAUNCHER_SIZE_PX = theme.controlHeight.large;
 
 export const JENNY_COPY = {
   TITLE: "ג׳ני",

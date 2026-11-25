@@ -1,15 +1,13 @@
 import {
-  MOBILE_NAV_TOP_PX,
   MOBILE_LAYOUT_QUERY,
   MOBILE_NAV_LAYOUT_PX,
+  MAIN_BOTTOM_PADDING_PX,
 } from "../constants/layout.constant";
 
 import { createStyles } from "../create-styles";
 import { theme } from "../constants/theme.constants";
 
 const MOBILE_NAV_SHADOW = "0 10px 28px rgba(15, 23, 42, 0.18)";
-
-const MAIN_MOBILE_BOTTOM_PADDING_PX = MOBILE_NAV_TOP_PX + MOBILE_NAV_LAYOUT_PX.CONTENT_GAP;
 
 export const useStyles = () =>
   createStyles({
@@ -40,9 +38,9 @@ export const useStyles = () =>
       gap: "28px",
       display: "flex",
       flexDirection: "column",
-      padding: "16px 24px 48px",
+      padding: `16px 24px ${MAIN_BOTTOM_PADDING_PX.DESKTOP}px`,
       [`@media ${MOBILE_LAYOUT_QUERY}`]: {
-        padding: `16px 16px calc(${MAIN_MOBILE_BOTTOM_PADDING_PX}px + env(safe-area-inset-bottom))`,
+        padding: `16px 16px calc(${MAIN_BOTTOM_PADDING_PX.MOBILE}px + env(safe-area-inset-bottom))`,
       },
     },
     mobileNavigation: {

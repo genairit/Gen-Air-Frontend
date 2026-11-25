@@ -42,6 +42,12 @@ interface IJennyRequestInput {
   messages: IJennyThreadMessage[];
 }
 
+interface IJennyThreadState {
+  isWaiting: boolean;
+  messages: IJennyThreadMessage[];
+  error: IJennyErrorFeedback | null;
+}
+
 export const createProjectJennyContext = (projectId: string): IJennyContext => ({
   id: projectId,
   type: JENNY_CONTEXT_TYPES.PROJECT,
@@ -116,12 +122,6 @@ export const toJennyChatRequest = ({
 
 export const isSendableDraft = (draft: string) => draft.trim() !== "";
 
-interface IJennyThreadState {
-  isWaiting: boolean;
-  messages: IJennyThreadMessage[];
-  error: IJennyErrorFeedback | null;
-}
-
 export const getJennyThreadVersion = ({ messages, isWaiting, error }: IJennyThreadState) =>
   [messages.length, isWaiting, error?.message ?? ""].join(":");
 
@@ -143,15 +143,18 @@ export const getJennySourcePageLabel = ({ page }: IJennySource): string | null =
   return `${JENNY_COPY.SOURCE_PAGE_PREFIX}${page}`;
 };
 
-export const formatJennySourceLabel = ({ fileName, page }: IJennySource) => {
+const formatSpokenSourceLocation = ({ fileName, page }: IJennySource) => {
   const isolatedName = isolateBidiText(fileName);
 
   if (page == null) {
-    return `${isolatedName} – ${JENNY_COPY.SOURCE_OPENS_IN_DRIVE}`;
+    return isolatedName;
   }
 
-  return `${isolatedName}, ${JENNY_COPY.SOURCE_SPOKEN_PAGE_PREFIX}${page} – ${JENNY_COPY.SOURCE_OPENS_IN_DRIVE}`;
+  return `${isolatedName}, ${JENNY_COPY.SOURCE_SPOKEN_PAGE_PREFIX}${page}`;
 };
+
+export const formatJennySourceLabel = (source: IJennySource) =>
+  `${formatSpokenSourceLocation(source)} – ${JENNY_COPY.SOURCE_OPENS_IN_DRIVE}`;
 
 const isAllowedSourceUrl = (value: string) => {
   const url = parseUrl(value);

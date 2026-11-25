@@ -1,13 +1,38 @@
+import {
+  PAGE_STACK_GAP_PX,
+  MOBILE_LAYOUT_QUERY,
+  MOBILE_NAV_LAYOUT_PX,
+  MAIN_BOTTOM_PADDING_PX,
+} from "../../constants/layout.constant";
+
 import { createStyles } from "../../create-styles";
-import { MOBILE_LAYOUT_QUERY } from "../../constants/layout.constant";
-import { JENNY_LAUNCHER_CLEARANCE_PX } from "../../constants/jenny.constant";
+import { JENNY_LAUNCHER_SIZE_PX, JENNY_LAUNCHER_BOTTOM_PX } from "../../constants/jenny.constant";
+
+interface IClearanceGeometry {
+  launcherBottom: number;
+  mainBottomPadding: number;
+}
+
+const getJennyClearanceHeight = ({ launcherBottom, mainBottomPadding }: IClearanceGeometry) => {
+  const launcherTop = launcherBottom + JENNY_LAUNCHER_SIZE_PX;
+  const contentBottom = launcherTop + MOBILE_NAV_LAYOUT_PX.CONTENT_GAP;
+
+  return contentBottom - mainBottomPadding - PAGE_STACK_GAP_PX;
+};
 
 export const useProjectPageStyles = () =>
   createStyles({
     jennyClearance: {
       flexShrink: 0,
-      display: "none",
-      height: JENNY_LAUNCHER_CLEARANCE_PX,
-      [`@media ${MOBILE_LAYOUT_QUERY}`]: { display: "block" },
+      height: getJennyClearanceHeight({
+        launcherBottom: JENNY_LAUNCHER_BOTTOM_PX.DESKTOP,
+        mainBottomPadding: MAIN_BOTTOM_PADDING_PX.DESKTOP,
+      }),
+      [`@media ${MOBILE_LAYOUT_QUERY}`]: {
+        height: getJennyClearanceHeight({
+          launcherBottom: JENNY_LAUNCHER_BOTTOM_PX.MOBILE,
+          mainBottomPadding: MAIN_BOTTOM_PADDING_PX.MOBILE,
+        }),
+      },
     },
   });

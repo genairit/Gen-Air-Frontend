@@ -16,6 +16,7 @@ import {
   JENNY_ROLES,
   JENNY_HISTORY_LIMIT,
   JENNY_CHAT_TIMEOUT_MS,
+  JENNY_SERVER_DEADLINE_MS,
   JENNY_MESSAGE_MAX_LENGTH,
 } from "../src/constants/jenny.constant";
 
@@ -143,24 +144,30 @@ const createHarness = () => {
 const FOCUS_TARGET_LABELS: string[] = [JENNY_COPY.INPUT_LABEL, JENNY_COPY.LAUNCHER_LABEL];
 const FAKE_WINDOW = { addEventListener: () => {}, removeEventListener: () => {} };
 
-const createFocusNodeMock = (focusLog: string[]) => (element: ReactElement<IFocusLabelProps>) => {
-  const label = element.props["aria-label"] ?? null;
+const createNodeMock =
+  (focusLog: string[], ownerDocument: EventTarget) => (element: ReactElement<IFocusLabelProps>) => {
+    const label = element.props["aria-label"] ?? null;
 
-  if (label === null || !FOCUS_TARGET_LABELS.includes(label)) {
-    return null;
-  }
+    if (element.type === "span") {
+      return { ownerDocument };
+    }
 
-  return {
-    style: {},
-    tagName: "BUTTON",
-    isConnected: true,
-    ownerDocument: { defaultView: FAKE_WINDOW },
-    focus: () => focusLog.push(label),
+    if (label === null || !FOCUS_TARGET_LABELS.includes(label)) {
+      return null;
+    }
+
+    return {
+      style: {},
+      tagName: "BUTTON",
+      isConnected: true,
+      ownerDocument: { defaultView: FAKE_WINDOW },
+      focus: () => focusLog.push(label),
+    };
   };
-};
 
 const render = async (projectId = PROJECT_ID) => {
   const focusLog: string[] = [];
+  const ownerDocument = new EventTarget();
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   const element = (id: string) => (
     <QueryClientProvider client={client}>
@@ -169,13 +176,16 @@ const render = async (projectId = PROJECT_ID) => {
   );
   const view: { renderer: ReactTestRenderer | null } = { renderer: null };
   await act(async () => {
-    view.renderer = create(element(projectId), { createNodeMock: createFocusNodeMock(focusLog) });
+    view.renderer = create(element(projectId), {
+      createNodeMock: createNodeMock(focusLog, ownerDocument),
+    });
   });
   const renderer = view.renderer;
   assert.ok(renderer);
   return {
     renderer,
     focusLog,
+    ownerDocument,
     rerender: async (id: string) => act(async () => renderer.update(element(id))),
     unmount: async () => act(async () => renderer.unmount()),
   };
@@ -362,6 +372,7 @@ test("Enter sends the question, shows thinking, then renders the answer with sou
     assert.equal(http.calls.length, 1);
     assert.equal(http.calls[0].url, API_ENDPOINTS.JENNY_CHAT);
     assert.equal(http.calls[0].timeout, JENNY_CHAT_TIMEOUT_MS);
+    assert.ok(JENNY_CHAT_TIMEOUT_MS > JENNY_SERVER_DEADLINE_MS);
     assert.deepEqual(http.calls[0].body, {
       context: { type: "project", id: PROJECT_ID },
       messages: [{ role: "user", content: "מה הסטטוס?" }],
@@ -682,5 +693,40 @@ test("a pending request is aborted when the page unmounts or the project changes
   } finally {
     http.restore();
     await switched.unmount();
+  }
+});
+
+const dispatchDocumentEscape = async (ownerDocument: EventTarget) => {
+  const event = new Event("keydown", { cancelable: true });
+  Object.defineProperty(event, "key", { value: "Escape" });
+  await act(async () => {
+    ownerDocument.dispatchEvent(event);
+  });
+  return event;
+};
+
+const findTooltip = (renderer: ReactTestRenderer, title: string) =>
+  renderer.root.find(node => node.props.title === title && typeof node.props.onOpen === "function");
+
+test("Escape closes an open header tooltip first and only then the panel", async () => {
+  const view = await render();
+  try {
+    await openChat(view.renderer);
+    await act(async () => findTooltip(view.renderer, JENNY_COPY.CLOSE).props.onOpen());
+    assert.equal(findTooltip(view.renderer, JENNY_COPY.CLOSE).props.open, true);
+
+    const tooltipEscape = await dispatchDocumentEscape(view.ownerDocument);
+    assert.equal(tooltipEscape.cancelBubble, true);
+    assert.equal(findTooltip(view.renderer, JENNY_COPY.CLOSE).props.open, false);
+    assert.equal(findDialog(view.renderer).length, 1);
+
+    const panelEscape = await dispatchDocumentEscape(view.ownerDocument);
+    assert.equal(panelEscape.cancelBubble, false);
+    const [dialog] = findDialog(view.renderer);
+    await act(async () => dialog.props.onKeyDown(panelEscape));
+    assert.equal(findDialog(view.renderer).length, 0);
+    assert.equal(view.focusLog.at(-1), JENNY_COPY.LAUNCHER_LABEL);
+  } finally {
+    await view.unmount();
   }
 });
