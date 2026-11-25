@@ -1,4 +1,5 @@
 import { type MutableRefObject, useEffect, useRef } from "react";
+import { abortActiveController, releaseActiveController } from "../utilities/abort.utility";
 
 interface IUseDebouncedAbortableCallbackOptions {
   delayMs: number;
@@ -20,34 +21,12 @@ const clearDebounceTimer = (timerRef: MutableRefObject<number | null>): void => 
   timerRef.current = null;
 };
 
-const abortActiveController = (controllerRef: MutableRefObject<AbortController | null>): void => {
-  if (controllerRef.current === null) {
-    return;
-  }
-
-  controllerRef.current.abort();
-  controllerRef.current = null;
-};
-
 const cancelDebouncedAbortableCallback = ({
   timerRef,
   controllerRef,
 }: IDebouncedAbortableCallbackRefs): void => {
   clearDebounceTimer(timerRef);
   abortActiveController(controllerRef);
-};
-
-const releaseActiveController = ({
-  controllerRef,
-  controller,
-}: Pick<IDebouncedAbortableCallbackRefs, "controllerRef"> & {
-  controller: AbortController;
-}): void => {
-  if (controllerRef.current !== controller) {
-    return;
-  }
-
-  controllerRef.current = null;
 };
 
 const scheduleDebouncedAbortableCallback = ({

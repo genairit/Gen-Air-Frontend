@@ -68,3 +68,27 @@ export const isPlainEnterKey = (event: KeyboardEvent<Element>) => {
 
   return isEnter && !event.shiftKey && !isComposing;
 };
+
+type TKeyHandlers = Partial<Record<KeyType, () => void>>;
+
+interface IHandledKeyEvent {
+  key: string;
+  stopPropagation: () => void;
+}
+
+export const createKeyHandler = (handlers: TKeyHandlers) => (event: IHandledKeyEvent) => {
+  if (!isKeyType(event.key)) {
+    return;
+  }
+
+  const handler = handlers[event.key];
+
+  if (!handler) {
+    return;
+  }
+
+  event.stopPropagation();
+  handler();
+};
+
+export const isKeyboardEvent = (event: Event): event is globalThis.KeyboardEvent => "key" in event;

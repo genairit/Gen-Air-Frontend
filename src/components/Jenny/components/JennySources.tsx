@@ -11,8 +11,8 @@ import { Box } from "@mui/material";
 import { useThreadStyles } from "../JennyThread.style";
 import { mergeSx } from "../../../utilities/sx.utility";
 import { ICON_NAMES } from "../../../constants/icon.constant";
-import { JENNY_COPY } from "../../../constants/jenny.constant";
 import type { IJennySource } from "../../../interfaces/jenny.interface";
+import { JENNY_COPY, JENNY_SOURCE_NAME_CLASS } from "../../../constants/jenny.constant";
 
 interface IJennySourcesProps {
   sources: IJennySource[];
@@ -34,7 +34,7 @@ const SourceDetails: FC<IJennySourceProps> = ({ source }) => {
   return (
     <>
       <Icon size={16} name={ICON_NAMES.DOCUMENT} />
-      <Box component="span" sx={styles.sourceName} className="jenny-source-name">
+      <Box component="span" sx={styles.sourceName} className={JENNY_SOURCE_NAME_CLASS}>
         <Box component="bdi">{source.fileName}</Box>
       </Box>
       {pageLabel && (

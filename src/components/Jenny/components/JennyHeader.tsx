@@ -1,16 +1,12 @@
+import type { FC } from "react";
+import Icon from "../../Icon/Icon";
 import JennyMark from "./JennyMark";
+import { Box } from "@mui/material";
 import { useStyles } from "../Jenny.style";
-import { Close, AddRounded } from "@mui/icons-material";
-import { Box, Tooltip, IconButton } from "@mui/material";
-import type { FC, ReactNode, MouseEventHandler } from "react";
+import { Close } from "@mui/icons-material";
 import { JENNY_COPY } from "../../../constants/jenny.constant";
-
-interface IHeaderActionProps {
-  label: string;
-  disabled?: boolean;
-  children: ReactNode;
-  onClick: MouseEventHandler<HTMLButtonElement>;
-}
+import IconActionButton from "../../IconActionButton/IconActionButton";
+import { ICON_NAMES, ICON_COLORS } from "../../../constants/icon.constant";
 
 interface IJennyHeaderProps {
   titleId: string;
@@ -21,26 +17,6 @@ interface IJennyHeaderProps {
   onNewChat: () => void;
   canStartNewChat: boolean;
 }
-
-const HeaderAction: FC<IHeaderActionProps> = ({ label, onClick, children, disabled = false }) => {
-  const styles = useStyles();
-
-  return (
-    <Tooltip title={label}>
-      <Box component="span">
-        <IconButton
-          size="small"
-          onClick={onClick}
-          aria-label={label}
-          disabled={disabled}
-          sx={styles.headerAction}
-        >
-          {children}
-        </IconButton>
-      </Box>
-    </Tooltip>
-  );
-};
 
 const JennyHeader: FC<IJennyHeaderProps> = ({
   titleId,
@@ -67,13 +43,17 @@ const JennyHeader: FC<IJennyHeaderProps> = ({
       </Box>
       <Box sx={styles.headerActions}>
         {hasMessages && (
-          <HeaderAction onClick={onNewChat} label={JENNY_COPY.NEW_CHAT} disabled={!canStartNewChat}>
-            <AddRounded />
-          </HeaderAction>
+          <IconActionButton
+            onClick={onNewChat}
+            label={JENNY_COPY.NEW_CHAT}
+            disabled={!canStartNewChat}
+          >
+            <Icon name={ICON_NAMES.ADD} color={ICON_COLORS.INHERIT} />
+          </IconActionButton>
         )}
-        <HeaderAction onClick={onClose} label={JENNY_COPY.CLOSE}>
+        <IconActionButton onClick={onClose} label={JENNY_COPY.CLOSE}>
           <Close />
-        </HeaderAction>
+        </IconActionButton>
       </Box>
     </Box>
   );

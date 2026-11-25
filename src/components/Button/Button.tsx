@@ -28,12 +28,12 @@ interface IButtonProps {
   icon?: IconNameType;
   isLoading?: boolean;
   sx?: SxProps<Theme>;
-  ariaControls?: string;
   size?: ButtonSizeType;
   ariaExpanded?: boolean;
   shape?: ButtonShapeType;
   type?: NativeButtonType;
   variant?: ButtonVariantType;
+  ariaControls?: string | null;
   focusableWhenDisabled?: boolean;
   buttonRef?: RefObject<HTMLButtonElement | null>;
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
@@ -48,7 +48,7 @@ const Button: FC<IButtonProps> = ({
   disabled,
   buttonRef,
   ariaLabel,
-  ariaControls,
+  ariaControls = null,
   ariaExpanded,
   isLoading = false,
   focusableWhenDisabled = false,

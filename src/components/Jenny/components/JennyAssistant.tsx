@@ -3,11 +3,12 @@ import JennyPanel from "./JennyPanel";
 import JennySheet from "./JennySheet";
 import Button from "../../Button/Button";
 import { useStyles } from "../Jenny.style";
-import { Box, useMediaQuery } from "@mui/material";
+import { useMediaQuery } from "@mui/material";
 import { useId, useRef, useState, type FC } from "react";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useJennyChat } from "../../../hooks/jenny-chat.hook";
 import { JENNY_COPY } from "../../../constants/jenny.constant";
+import { getControlledElementId } from "../../../utilities/aria.utility";
 import { focusConnectedElement } from "../../../utilities/focus.utility";
 import { MOBILE_LAYOUT_QUERY } from "../../../constants/layout.constant";
 import type { IJennyContext } from "../../../interfaces/jenny.interface";
@@ -31,6 +32,7 @@ const JennyAssistant: FC<IJennyAssistantProps> = ({ context, contextLabel, canOp
   const chat = useJennyChat(context);
 
   const Surface = isMobile ? JennySheet : JennyPanel;
+  const controlledPanelId = getControlledElementId({ id: panelId, isRendered: isOpen });
 
   const closeChat = () => {
     setIsOpen(false);
@@ -53,10 +55,10 @@ const JennyAssistant: FC<IJennyAssistantProps> = ({ context, contextLabel, canOp
         sx={styles.launcher}
         ariaExpanded={isOpen}
         icon={ICON_NAMES.AIR}
-        ariaControls={panelId}
         buttonRef={launcherRef}
         size={BUTTON_SIZES.LARGE}
         shape={BUTTON_SHAPES.CIRCLE}
+        ariaControls={controlledPanelId}
         ariaLabel={JENNY_COPY.LAUNCHER_LABEL}
       />
       <Surface
@@ -76,7 +78,6 @@ const JennyAssistant: FC<IJennyAssistantProps> = ({ context, contextLabel, canOp
           canOpenSources={canOpenSources}
         />
       </Surface>
-      <Box aria-hidden sx={styles.mobileSpacer} />
     </>
   );
 };

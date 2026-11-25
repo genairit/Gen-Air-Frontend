@@ -9,6 +9,7 @@ import { Button as MuiButton } from "@mui/material";
 import type { SxProps, Theme } from "@mui/material";
 import type { FC, MouseEvent, ReactNode } from "react";
 import { mergeSx } from "../../../../utilities/sx.utility";
+import { getAriaControlsAttributes } from "../../../../utilities/aria.utility";
 import { BUTTON_TYPES, type NativeButtonType } from "../../../../constants/button-type.constant";
 
 interface IButtonProps {
@@ -17,10 +18,10 @@ interface IButtonProps {
   children: ReactNode;
   sx?: SxProps<Theme>;
   isLoading?: boolean;
-  ariaControls?: string;
   ariaExpanded?: boolean;
   type?: NativeButtonType;
   variant?: TButtonVariant;
+  ariaControls?: string | null;
   focusableWhenDisabled?: boolean;
   buttonRef?: RefObject<HTMLButtonElement | null>;
   onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>;
@@ -34,7 +35,7 @@ const Button: FC<IButtonProps> = ({
   disabled,
   buttonRef,
   ariaLabel,
-  ariaControls,
+  ariaControls = null,
   ariaExpanded,
   isLoading = false,
   focusableWhenDisabled = false,
@@ -61,11 +62,11 @@ const Button: FC<IButtonProps> = ({
       aria-busy={isLoading}
       aria-label={ariaLabel}
       disabled={nativeDisabled}
-      aria-controls={ariaControls}
       aria-expanded={ariaExpanded}
       aria-disabled={isUnavailable}
       disableRipple={IS_RIPPLE_DISABLED_BY_BUTTON_VARIANT[variant]}
       sx={mergeSx(styles.button({ isLoading, showOverlay, variant }), sx ?? null)}
+      {...getAriaControlsAttributes(ariaControls)}
     >
       {children}
     </MuiButton>

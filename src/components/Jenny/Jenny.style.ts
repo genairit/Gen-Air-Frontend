@@ -1,18 +1,24 @@
+import {
+  MOBILE_NAV_TOP_PX,
+  MOBILE_LAYOUT_QUERY,
+  REDUCED_MOTION_QUERY,
+} from "../../constants/layout.constant";
+
 import { keyframes } from "@mui/material";
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 import { CENTERED_FLEX, ELLIPSIS_TEXT } from "../../styles/templates.style";
 import { PRIMARY_BUTTON_SHADOW } from "../Button/constants/button.constants";
-import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../../constants/layout.constant";
+import { JENNY_MOTION_MS, JENNY_LAUNCHER_LAYOUT_PX } from "../../constants/jenny.constant";
 
 const { palette, glass, radius, controlHeight } = theme;
 
 const MOBILE_MEDIA = `@media ${MOBILE_LAYOUT_QUERY}`;
 const REDUCED_MOTION_MEDIA = `@media ${REDUCED_MOTION_QUERY}`;
 
-const EDGE_OFFSET_PX = 24;
-const LAUNCHER_PANEL_GAP_PX = 12;
-const PANEL_BOTTOM_PX = EDGE_OFFSET_PX + controlHeight.large + LAUNCHER_PANEL_GAP_PX;
+const { EDGE_OFFSET: EDGE_OFFSET_PX, MOBILE_EDGE_OFFSET, GAP } = JENNY_LAUNCHER_LAYOUT_PX;
+const PANEL_BOTTOM_PX = EDGE_OFFSET_PX + controlHeight.large + GAP;
+const MOBILE_LAUNCHER_BOTTOM_PX = MOBILE_NAV_TOP_PX + GAP;
 
 const PANEL_ENTER = keyframes`
   from { opacity: 0; transform: scale(0.985); }
@@ -50,16 +56,9 @@ export const useStyles = () =>
       insetInlineEnd: EDGE_OFFSET_PX,
       boxShadow: `${PRIMARY_BUTTON_SHADOW}, ${glass.shadowSmall}`,
       [MOBILE_MEDIA]: {
-        insetInlineEnd: 16,
-        bottom: "calc(100px + env(safe-area-inset-bottom))",
+        insetInlineEnd: MOBILE_EDGE_OFFSET,
+        bottom: `calc(${MOBILE_LAUNCHER_BOTTOM_PX}px + env(safe-area-inset-bottom))`,
       },
-    },
-    // The host page's 28px flex gap supplies the rest of the ~68px launcher clearance.
-    mobileSpacer: {
-      height: 40,
-      flexShrink: 0,
-      display: "none",
-      [MOBILE_MEDIA]: { display: "block" },
     },
     panel: {
       zIndex: "fab",
@@ -77,8 +76,10 @@ export const useStyles = () =>
       height: `min(520px, calc(100dvh - ${PANEL_BOTTOM_PX + EDGE_OFFSET_PX}px))`,
       // stylis-plugin-rtl flips physical keywords, so "right" renders at the launcher's left corner.
       transformOrigin: "bottom right",
-      animation: `${PANEL_ENTER} 180ms ease-out both`,
-      [REDUCED_MOTION_MEDIA]: { animation: `${PANEL_FADE_IN} 120ms linear both` },
+      animation: `${PANEL_ENTER} ${JENNY_MOTION_MS.PANEL_ENTER}ms ease-out both`,
+      [REDUCED_MOTION_MEDIA]: {
+        animation: `${PANEL_FADE_IN} ${JENNY_MOTION_MS.PANEL_FADE_IN}ms linear both`,
+      },
     },
     sheetPaper: {
       height: "100dvh",
@@ -120,12 +121,6 @@ export const useStyles = () =>
       flexShrink: 0,
       display: "flex",
       alignItems: "center",
-    },
-    headerAction: {
-      width: 40,
-      height: 40,
-      color: palette.charcoal,
-      "&.Mui-focusVisible": { outline: `2px solid ${palette.primary}`, outlineOffset: "2px" },
     },
     mark: (size: number) => ({
       ...CENTERED_FLEX,

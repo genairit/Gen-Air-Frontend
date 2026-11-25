@@ -11,3 +11,19 @@ export interface IMarkdownBlock {
   lines: TMarkdownLine[];
   kind: MarkdownBlockKindType;
 }
+
+export interface IRestrictedMarkdownProps {
+  markdown: string;
+}
+
+export interface IMarkdownBlockProps {
+  block: IMarkdownBlock;
+}
+
+export interface IMarkdownLineProps {
+  line: TMarkdownLine;
+}
+
+export interface IMarkdownSpanProps {
+  span: IMarkdownSpan;
+}

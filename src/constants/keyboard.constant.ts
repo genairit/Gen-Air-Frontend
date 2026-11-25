@@ -22,3 +22,7 @@ export const RTL_ARROW_STEPS: Record<ArrowKeyType, number> = {
   [ARROW_KEY_TYPES.ARROW_DOWN]: 1,
   [ARROW_KEY_TYPES.ARROW_LEFT]: 1,
 };
+
+export const KEYBOARD_EVENTS = {
+  KEY_DOWN: "keydown",
+} as const;

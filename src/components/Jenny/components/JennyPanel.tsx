@@ -1,7 +1,8 @@
 import { Box } from "@mui/material";
 import { useStyles } from "../Jenny.style";
-import { useEffect, type FC, type KeyboardEvent } from "react";
+import { useEffect, type FC } from "react";
 import { KEY_TYPES } from "../../../constants/keyboard.constant";
+import { createKeyHandler } from "../../../utilities/keyboard.utility";
 import { focusConnectedElement } from "../../../utilities/focus.utility";
 import type { IJennySurfaceProps } from "../../../interfaces/jenny.interface";
 
@@ -18,14 +19,7 @@ const JennyPanelSurface: FC<Omit<IJennySurfaceProps, "isOpen">> = ({
     focusConnectedElement(inputRef.current);
   }, [inputRef]);
 
-  const closeOnEscape = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key !== KEY_TYPES.ESCAPE) {
-      return;
-    }
-
-    event.stopPropagation();
-    onClose();
-  };
+  const closeOnEscape = createKeyHandler({ [KEY_TYPES.ESCAPE]: onClose });
 
   return (
     <Box

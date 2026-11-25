@@ -41,3 +41,7 @@ export const ICON_NAMES = {
 } as const;
 
 export type IconNameType = (typeof ICON_NAMES)[keyof typeof ICON_NAMES];
+
+export const ICON_COLORS = {
+  INHERIT: "currentColor",
+} as const;

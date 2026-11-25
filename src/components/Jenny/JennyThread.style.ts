@@ -1,9 +1,15 @@
+import {
+  JENNY_ROLES,
+  JENNY_MOTION_MS,
+  type JennyRoleType,
+  JENNY_SOURCE_NAME_CLASS,
+} from "../../constants/jenny.constant";
+
 import { keyframes } from "@mui/material";
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
 import { ELLIPSIS_TEXT } from "../../styles/templates.style";
 import { REDUCED_MOTION_QUERY } from "../../constants/layout.constant";
-import { JENNY_ROLES, type JennyRoleType } from "../../constants/jenny.constant";
 
 const { palette, glass, radius, font } = theme;
 
@@ -78,22 +84,6 @@ export const useThreadStyles = () =>
       margin: 0,
       whiteSpace: "pre-wrap",
     },
-    markdown: {
-      gap: "8px",
-      display: "flex",
-      flexDirection: "column",
-      "& p, & ul, & ol": { margin: 0 },
-      "& ul, & ol": {
-        gap: "4px",
-        display: "flex",
-        flexDirection: "column",
-        paddingInlineStart: "20px",
-      },
-      "& strong": { fontWeight: 700 },
-    },
-    markdownLine: {
-      display: "block",
-    },
     sources: {
       gap: "6px",
       display: "flex",
@@ -130,7 +120,7 @@ export const useThreadStyles = () =>
       backgroundColor: palette.white,
     },
     sourceLink: {
-      "&:hover .jenny-source-name": { textDecoration: "underline" },
+      [`&:hover .${JENNY_SOURCE_NAME_CLASS}`]: { textDecoration: "underline" },
       "&:focus-visible": { outline: `2px solid ${palette.primary}`, outlineOffset: "2px" },
     },
     sourceName: {
@@ -161,7 +151,7 @@ export const useThreadStyles = () =>
       height: 6,
       borderRadius: radius.pill,
       backgroundColor: palette.primary,
-      animation: `${TYPING_PULSE} 1.2s ease-in-out ${delayMs}ms infinite`,
+      animation: `${TYPING_PULSE} ${JENNY_MOTION_MS.TYPING_PULSE}ms ease-in-out ${delayMs}ms infinite`,
       [`@media ${REDUCED_MOTION_QUERY}`]: { animation: "none", opacity: 0.6 },
     }),
     error: {

@@ -7,9 +7,9 @@ import {
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import JennySources from "./JennySources";
-import JennyMarkdown from "./JennyMarkdown";
 import { useThreadStyles } from "../JennyThread.style";
 import { VISUALLY_HIDDEN } from "../../../styles/templates.style";
+import RestrictedMarkdown from "../../RestrictedMarkdown/RestrictedMarkdown";
 import type { IJennyThreadMessage } from "../../../interfaces/jenny.interface";
 
 interface IJennyMessageProps {
@@ -29,7 +29,7 @@ const UserMessageBody: FC<IJennyMessageProps> = ({ message }) => {
 
 const AssistantMessageBody: FC<IJennyMessageProps> = ({ message, canOpenSources }) => (
   <>
-    <JennyMarkdown markdown={message.content} />
+    <RestrictedMarkdown markdown={message.content} />
     <JennySources sources={message.sources} canOpenSources={canOpenSources} />
   </>
 );

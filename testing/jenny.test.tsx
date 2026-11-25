@@ -1,4 +1,11 @@
 import {
+  AxiosError,
+  CanceledError,
+  type AxiosResponse,
+  type InternalAxiosRequestConfig,
+} from "axios";
+
+import {
   toJennyChatRequest,
   createJennyMessage,
   createProjectJennyContext,
@@ -8,34 +15,42 @@ import {
   JENNY_COPY,
   JENNY_ROLES,
   JENNY_HISTORY_LIMIT,
+  JENNY_CHAT_TIMEOUT_MS,
   JENNY_MESSAGE_MAX_LENGTH,
 } from "../src/constants/jenny.constant";
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import type { ReactElement } from "react";
 import Jenny from "../src/components/Jenny/Jenny";
 import Button from "../src/components/Button/Button";
 import { setSession } from "../src/store/session.store";
-import { TIME_UNITS } from "../src/constants/time.constant";
 import TextField from "../src/components/TextField/TextField";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
-import { PERMISSIONS } from "../src/constants/permission.constant";
 import InlineError from "../src/components/InlineError/InlineError";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MARKDOWN_BLOCK_KINDS } from "../src/constants/markdown.constant";
 import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { parseRestrictedMarkdown } from "../src/utilities/markdown.utility";
 import type { IJennyThreadMessage } from "../src/interfaces/jenny.interface";
-import { AxiosError, type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
+import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+// MUI's autosizing textarea schedules frames once its node mock is mounted; Node has no frame API.
+Reflect.set(globalThis, "requestAnimationFrame", (callback: () => void) => setTimeout(callback, 0));
+Reflect.set(globalThis, "cancelAnimationFrame", (handle: number) => clearTimeout(handle));
 
 interface IChatCall {
   body: unknown;
-  url: string | undefined;
-  timeout: number | undefined;
+  url: string | null;
+  timeout: number | null;
+  signal: AbortSignal | null;
+}
+
+interface IFocusLabelProps {
+  "aria-label"?: string;
 }
 
 interface IDeferredResponse {
@@ -81,10 +96,17 @@ const createHarness = () => {
   const pending: IDeferredResponse[] = [];
   const adapter = httpClient.defaults.adapter;
   httpClient.defaults.adapter = (config: InternalAxiosRequestConfig) => {
-    calls.push({ url: config.url, timeout: config.timeout, body: JSON.parse(String(config.data)) });
-    return new Promise<AxiosResponse>((resolve, reject) =>
-      pending.push({ config, resolve, reject }),
-    );
+    const signal = config.signal instanceof AbortSignal ? config.signal : null;
+    calls.push({
+      signal,
+      url: config.url ?? null,
+      timeout: config.timeout ?? null,
+      body: JSON.parse(String(config.data)),
+    });
+    return new Promise<AxiosResponse>((resolve, reject) => {
+      signal?.addEventListener("abort", () => reject(new CanceledError()));
+      pending.push({ config, resolve, reject });
+    });
   };
   const respond = async (data: unknown, status = 200): Promise<void> => {
     const request = pending.shift();
@@ -104,13 +126,41 @@ const createHarness = () => {
     });
     await flushScheduledUpdates();
   };
+  const failWithoutResponse = async (code: string): Promise<void> => {
+    const request = pending.shift();
+    assert.ok(request);
+    await act(async () => {
+      request.reject(new AxiosError("failed", code, request.config, null));
+    });
+    await flushScheduledUpdates();
+  };
   const restore = () => {
     httpClient.defaults.adapter = adapter;
   };
-  return { calls, respond, fail, restore };
+  return { calls, respond, fail, failWithoutResponse, restore };
+};
+
+const FOCUS_TARGET_LABELS: string[] = [JENNY_COPY.INPUT_LABEL, JENNY_COPY.LAUNCHER_LABEL];
+const FAKE_WINDOW = { addEventListener: () => {}, removeEventListener: () => {} };
+
+const createFocusNodeMock = (focusLog: string[]) => (element: ReactElement<IFocusLabelProps>) => {
+  const label = element.props["aria-label"] ?? null;
+
+  if (label === null || !FOCUS_TARGET_LABELS.includes(label)) {
+    return null;
+  }
+
+  return {
+    style: {},
+    tagName: "BUTTON",
+    isConnected: true,
+    ownerDocument: { defaultView: FAKE_WINDOW },
+    focus: () => focusLog.push(label),
+  };
 };
 
 const render = async (projectId = PROJECT_ID) => {
+  const focusLog: string[] = [];
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   const element = (id: string) => (
     <QueryClientProvider client={client}>
@@ -119,12 +169,13 @@ const render = async (projectId = PROJECT_ID) => {
   );
   const view: { renderer: ReactTestRenderer | null } = { renderer: null };
   await act(async () => {
-    view.renderer = create(element(projectId));
+    view.renderer = create(element(projectId), { createNodeMock: createFocusNodeMock(focusLog) });
   });
   const renderer = view.renderer;
   assert.ok(renderer);
   return {
     renderer,
+    focusLog,
     rerender: async (id: string) => act(async () => renderer.update(element(id))),
     unmount: async () => act(async () => renderer.unmount()),
   };
@@ -181,6 +232,33 @@ const findSourceLinks = (renderer: ReactTestRenderer) =>
 const findDialog = (renderer: ReactTestRenderer) =>
   renderer.root.findAll(node => node.type === "div" && node.props.role === "dialog");
 
+const findLiveRegion = (renderer: ReactTestRenderer) =>
+  renderer.root.find(node => node.type === "div" && node.props["aria-live"] === "polite");
+
+const signIn = async (permissions: PermissionType[]) => {
+  await act(async () =>
+    setSession({
+      accessToken: "token",
+      user: {
+        id: "user",
+        email: "user@example.com",
+        phone: "",
+        firstName: "Test",
+        lastName: "User",
+        employeeNumber: "",
+        deletedAt: null,
+        role: USER_ROLES.SYSTEM_ADMIN,
+        assignedRoles: [USER_ROLES.SYSTEM_ADMIN],
+        permissions,
+      },
+    }),
+  );
+};
+
+const signOut = async () => {
+  await act(async () => setSession(null));
+};
+
 test("restricted markdown keeps paragraphs, bold and lists and never produces markup", () => {
   const blocks = parseRestrictedMarkdown(
     "שלום **עולם**\nשורה\n\n- א\n- ב\n1. ראשון\n<script>x</script>",
@@ -202,7 +280,7 @@ test("restricted markdown keeps paragraphs, bold and lists and never produces ma
   assert.deepEqual(blocks[3].lines[0], [{ text: "<script>x</script>", isBold: false }]);
 });
 
-test("chat request keeps only the latest history messages and drops local fields", () => {
+test("chat request keeps the latest history, starting with a user turn, without local fields", () => {
   const messages: IJennyThreadMessage[] = Array.from(
     { length: JENNY_HISTORY_LIMIT + 5 },
     (_, index) =>
@@ -212,8 +290,9 @@ test("chat request keeps only the latest history messages and drops local fields
       }),
   );
   const request = toJennyChatRequest({ context: createProjectJennyContext(PROJECT_ID), messages });
-  assert.equal(request.messages.length, JENNY_HISTORY_LIMIT);
-  assert.deepEqual(request.messages[0], { role: JENNY_ROLES.ASSISTANT, content: "m5" });
+  assert.equal(request.messages.length, JENNY_HISTORY_LIMIT - 1);
+  assert.deepEqual(request.messages[0], { role: JENNY_ROLES.USER, content: "m6" });
+  assert.deepEqual(request.messages.at(-1), { role: JENNY_ROLES.USER, content: "m24" });
   assert.deepEqual(request.context, { type: "project", id: PROJECT_ID });
 });
 
@@ -237,11 +316,27 @@ test("chat request trims, caps and drops empty messages so the last stays the qu
   assert.deepEqual(Object.keys(request).sort(), ["context", "messages"]);
 });
 
+test("chat request drops unanswered questions but always keeps the latest one", () => {
+  const messages = [
+    createJennyMessage({ role: JENNY_ROLES.USER, content: "נכשלה" }),
+    createJennyMessage({ role: JENNY_ROLES.USER, content: "נענתה" }),
+    createJennyMessage({ role: JENNY_ROLES.ASSISTANT, content: "תשובה" }),
+    createJennyMessage({ role: JENNY_ROLES.USER, content: "גם נכשלה" }),
+    createJennyMessage({ role: JENNY_ROLES.USER, content: "אחרונה" }),
+  ];
+  const request = toJennyChatRequest({ context: createProjectJennyContext(PROJECT_ID), messages });
+  assert.deepEqual(
+    request.messages.map(message => message.content),
+    ["נענתה", "תשובה", "אחרונה"],
+  );
+});
+
 test("launcher toggles a non-modal panel with an empty greeting", async () => {
   const view = await render();
   try {
     const launcher = findLauncher(view.renderer);
     assert.equal(launcher.props["aria-expanded"], false);
+    assert.equal("aria-controls" in launcher.props, false);
     assert.equal(findDialog(view.renderer).length, 0);
     await openChat(view.renderer);
     const [dialog] = findDialog(view.renderer);
@@ -252,6 +347,7 @@ test("launcher toggles a non-modal panel with an empty greeting", async () => {
     assert.match(textOf(view.renderer), new RegExp(PROJECT_NAME));
     await openChat(view.renderer);
     assert.equal(findDialog(view.renderer).length, 0);
+    assert.equal("aria-controls" in findLauncher(view.renderer).props, false);
   } finally {
     await view.unmount();
   }
@@ -265,7 +361,7 @@ test("Enter sends the question, shows thinking, then renders the answer with sou
     await askQuestion(view.renderer, "  מה הסטטוס?  ");
     assert.equal(http.calls.length, 1);
     assert.equal(http.calls[0].url, API_ENDPOINTS.JENNY_CHAT);
-    assert.ok((http.calls[0].timeout ?? 0) >= 120 * TIME_UNITS.SECOND_MS);
+    assert.equal(http.calls[0].timeout, JENNY_CHAT_TIMEOUT_MS);
     assert.deepEqual(http.calls[0].body, {
       context: { type: "project", id: PROJECT_ID },
       messages: [{ role: "user", content: "מה הסטטוס?" }],
@@ -360,11 +456,13 @@ test("server errors keep the question and retry re-sends the same history", asyn
 
 const STATUS_FEEDBACK = [
   { status: HTTP_STATUS.BAD_REQUEST, message: /לנסח אותה מחדש/, canRetry: false },
+  { status: HTTP_STATUS.UNAUTHORIZED, message: /אין לך הרשאה/, canRetry: false },
   { status: HTTP_STATUS.FORBIDDEN, message: /אין לך הרשאה/, canRetry: false },
   { status: HTTP_STATUS.NOT_FOUND, message: /הפרויקט לא נמצא/, canRetry: false },
   { status: HTTP_STATUS.TOO_MANY_REQUESTS, message: /יותר מדי/, canRetry: true },
   { status: HTTP_STATUS.BAD_GATEWAY, message: /לא הצלחתי לקבל תשובה/, canRetry: true },
   { status: HTTP_STATUS.SERVICE_UNAVAILABLE, message: /ג׳ני אינה זמינה כרגע/, canRetry: false },
+  { status: HTTP_STATUS.GATEWAY_TIMEOUT, message: /לא הספיקה לענות בזמן/, canRetry: true },
 ] as const;
 
 test("each documented failure status shows its Hebrew message and retry policy", async () => {
@@ -384,9 +482,16 @@ test("each documented failure status shows its Hebrew message and retry policy",
   }
 });
 
+const UNSAFE_SOURCES = [
+  { fileId: "x1", fileName: "script-link", page: null, url: "javascript:alert(1)" },
+  { fileId: "x2", fileName: "insecure-drive", page: null, url: "http://drive.google.com/x" },
+  { fileId: "x3", fileName: "phishing-host", page: 1, url: "https://drive.google.com.evil.io/x" },
+  { fileId: "x4", fileName: "other-host", page: null, url: "https://example.com/doc" },
+];
+
 test("source links require Drive permission and open safely in a new tab", async () => {
   const http = createHarness();
-  setSession(null);
+  await signOut();
   const view = await render();
   try {
     await openChat(view.renderer);
@@ -403,32 +508,12 @@ test("source links require Drive permission and open safely in a new tab", async
   } finally {
     await view.unmount();
   }
-  setSession({
-    accessToken: "token",
-    user: {
-      id: "user",
-      email: "user@example.com",
-      phone: "",
-      firstName: "Test",
-      lastName: "User",
-      employeeNumber: "",
-      deletedAt: null,
-      role: USER_ROLES.SYSTEM_ADMIN,
-      assignedRoles: [USER_ROLES.SYSTEM_ADMIN],
-      permissions: [PERMISSIONS.DRIVE_READ],
-    },
-  });
+  await signIn([PERMISSIONS.DRIVE_READ]);
   const permitted = await render();
   try {
     await openChat(permitted.renderer);
     await askQuestion(permitted.renderer, "מקורות?");
-    await http.respond({
-      ...ANSWER,
-      sources: [
-        ...ANSWER.sources,
-        { fileId: "x", fileName: "x", page: null, url: "javascript:alert(1)" },
-      ],
-    });
+    await http.respond({ ...ANSWER, sources: [...ANSWER.sources, ...UNSAFE_SOURCES] });
     const links = findSourceLinks(permitted.renderer);
     assert.deepEqual(
       links.map(link => link.props.href),
@@ -440,9 +525,12 @@ test("source links require Drive permission and open safely in a new tab", async
       ),
     );
     assert.match(links[0].props["aria-label"], /עמוד 3/);
+    for (const source of UNSAFE_SOURCES) {
+      assert.match(textOf(permitted.renderer), new RegExp(source.fileName));
+    }
   } finally {
     http.restore();
-    setSession(null);
+    await signOut();
     await permitted.unmount();
   }
 });
@@ -471,5 +559,128 @@ test("new chat clears the thread, and switching context resets the conversation"
   } finally {
     http.restore();
     await view.unmount();
+  }
+});
+
+test("a failed question is left out of the next request, and retry re-sends only the latest", async () => {
+  const http = createHarness();
+  const view = await render();
+  try {
+    await openChat(view.renderer);
+    await askQuestion(view.renderer, "שאלה שנכשלה");
+    await http.fail(HTTP_STATUS.SERVICE_UNAVAILABLE);
+    await askQuestion(view.renderer, "שאלה חדשה");
+    const latestOnly = {
+      context: { type: "project", id: PROJECT_ID },
+      messages: [{ role: "user", content: "שאלה חדשה" }],
+    };
+    assert.deepEqual(http.calls[1].body, latestOnly);
+    await http.fail(500);
+    const retry = findButton(view.renderer, JENNY_COPY.RETRY);
+    assert.ok(retry);
+    await startWithoutAwaiting(() => retry.props.onClick());
+    assert.deepEqual(http.calls[2].body, latestOnly);
+    await http.respond(ANSWER);
+    await askQuestion(view.renderer, "המשך");
+    assert.deepEqual(http.calls[3].body, {
+      context: { type: "project", id: PROJECT_ID },
+      messages: [
+        { role: "user", content: "שאלה חדשה" },
+        { role: "assistant", content: ANSWER.message },
+        { role: "user", content: "המשך" },
+      ],
+    });
+    await http.respond(ANSWER);
+  } finally {
+    http.restore();
+    await view.unmount();
+  }
+});
+
+const TRANSPORT_FAILURES = [AxiosError.ECONNABORTED, AxiosError.ETIMEDOUT, AxiosError.ERR_NETWORK];
+
+test("timeouts and network failures show the generic error with retry", async () => {
+  const http = createHarness();
+  const view = await render();
+  try {
+    await openChat(view.renderer);
+    for (const code of TRANSPORT_FAILURES) {
+      await askQuestion(view.renderer, `שאלה ${code}`);
+      await http.failWithoutResponse(code);
+      assert.match(
+        view.renderer.root.findByType(InlineError).props.message,
+        /לא הצלחתי לקבל תשובה/,
+      );
+      assert.ok(findButton(view.renderer, JENNY_COPY.RETRY), code);
+    }
+  } finally {
+    http.restore();
+    await view.unmount();
+  }
+});
+
+test("an identical consecutive answer is announced again", async () => {
+  const http = createHarness();
+  const view = await render();
+  try {
+    await openChat(view.renderer);
+    await askQuestion(view.renderer, "שאלה");
+    await http.respond(ANSWER);
+    const announcement = collectText(findLiveRegion(view.renderer));
+    assert.match(announcement, new RegExp(JENNY_COPY.ANSWER_ANNOUNCEMENT_PREFIX));
+    await askQuestion(view.renderer, "שאלה");
+    assert.equal(collectText(findLiveRegion(view.renderer)), "");
+    await http.respond(ANSWER);
+    assert.equal(collectText(findLiveRegion(view.renderer)), announcement);
+  } finally {
+    http.restore();
+    await view.unmount();
+  }
+});
+
+test("opening focuses the composer, Escape closes the panel and focus returns to the launcher", async () => {
+  const view = await render();
+  try {
+    await openChat(view.renderer);
+    assert.equal(view.focusLog.at(-1), JENNY_COPY.INPUT_LABEL);
+    const [dialog] = findDialog(view.renderer);
+    const stopped = { count: 0 };
+    const keyEvent = (key: string) => ({ key, stopPropagation: () => (stopped.count += 1) });
+    await act(async () => dialog.props.onKeyDown(keyEvent("ArrowDown")));
+    assert.equal(findDialog(view.renderer).length, 1);
+    assert.equal(stopped.count, 0);
+    await act(async () => dialog.props.onKeyDown(keyEvent("Escape")));
+    assert.equal(stopped.count, 1);
+    assert.equal(findDialog(view.renderer).length, 0);
+    assert.equal(findLauncher(view.renderer).props["aria-expanded"], false);
+    assert.equal(view.focusLog.at(-1), JENNY_COPY.LAUNCHER_LABEL);
+  } finally {
+    await view.unmount();
+  }
+});
+
+test("a pending request is aborted when the page unmounts or the project changes", async () => {
+  const http = createHarness();
+  const view = await render();
+  const switched = await render();
+  try {
+    await openChat(view.renderer);
+    await askQuestion(view.renderer, "שאלה ארוכה");
+    const [unmountedCall] = http.calls;
+    assert.equal(unmountedCall.signal?.aborted, false);
+    await view.unmount();
+    assert.equal(unmountedCall.signal?.aborted, true);
+
+    await openChat(switched.renderer);
+    await askQuestion(switched.renderer, "שאלה על פרויקט א");
+    const switchedCall = http.calls[1];
+    assert.equal(switchedCall.signal?.aborted, false);
+    await switched.rerender("project-other");
+    assert.equal(switchedCall.signal?.aborted, true);
+    assert.doesNotMatch(textOf(switched.renderer), /שאלה על פרויקט א/);
+    assert.equal(switched.renderer.root.findAllByType(InlineError).length, 0);
+  } finally {
+    http.restore();
+    await switched.unmount();
   }
 });

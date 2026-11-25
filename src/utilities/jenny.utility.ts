@@ -6,7 +6,7 @@ import {
   JENNY_HISTORY_LIMIT,
   JENNY_CONTEXT_TYPES,
   JENNY_ERROR_BY_STATUS,
-  JENNY_SAFE_LINK_PATTERN,
+  JENNY_SOURCE_LINK_POLICY,
   JENNY_MESSAGE_MAX_LENGTH,
   JENNY_SHEET_TRANSITION_MS,
 } from "../constants/jenny.constant";
@@ -22,6 +22,7 @@ import type {
 } from "../interfaces/jenny.interface";
 
 import { isAxiosError } from "axios";
+import { parseUrl } from "./url.utility";
 import { isolateBidiText } from "./text.utility";
 import { toMarkdownPlainText } from "./markdown.utility";
 
@@ -73,12 +74,44 @@ const toChatMessage = ({ role, content }: IJennyChatMessage): IJennyChatMessage 
 
 const hasContent = ({ content }: IJennyChatMessage) => content !== "";
 
+const isAnsweredOrLatest = (
+  message: IJennyChatMessage,
+  index: number,
+  messages: IJennyChatMessage[],
+) => {
+  const isAssistant = message.role === JENNY_ROLES.ASSISTANT;
+  const isLatest = index === messages.length - 1;
+  const isAnswered = messages[index + 1]?.role === JENNY_ROLES.ASSISTANT;
+
+  return isAssistant || isLatest || isAnswered;
+};
+
+const startWithUserTurn = (messages: IJennyChatMessage[]) => {
+  const firstUserIndex = messages.findIndex(message => message.role === JENNY_ROLES.USER);
+
+  if (firstUserIndex === -1) {
+    return [];
+  }
+
+  return messages.slice(firstUserIndex);
+};
+
+export const toJennyChatHistory = (messages: IJennyChatMessage[]): IJennyChatMessage[] => {
+  const answeredHistory = messages
+    .map(toChatMessage)
+    .filter(hasContent)
+    .filter(isAnsweredOrLatest)
+    .slice(-JENNY_HISTORY_LIMIT);
+
+  return startWithUserTurn(answeredHistory);
+};
+
 export const toJennyChatRequest = ({
   context,
   messages,
 }: IJennyRequestInput): IJennyChatRequest => ({
   context: { type: context.type, id: context.id },
-  messages: messages.map(toChatMessage).filter(hasContent).slice(-JENNY_HISTORY_LIMIT),
+  messages: toJennyChatHistory(messages),
 });
 
 export const isSendableDraft = (draft: string) => draft.trim() !== "";
@@ -120,8 +153,22 @@ export const formatJennySourceLabel = ({ fileName, page }: IJennySource) => {
   return `${isolatedName}, ${JENNY_COPY.SOURCE_SPOKEN_PAGE_PREFIX}${page} – ${JENNY_COPY.SOURCE_OPENS_IN_DRIVE}`;
 };
 
+const isAllowedSourceUrl = (value: string) => {
+  const url = parseUrl(value);
+  const hosts: readonly string[] = JENNY_SOURCE_LINK_POLICY.HOSTS;
+
+  if (url === null) {
+    return false;
+  }
+
+  const isSecure = url.protocol === JENNY_SOURCE_LINK_POLICY.PROTOCOL;
+  const isDriveHost = hosts.includes(url.hostname);
+
+  return isSecure && isDriveHost;
+};
+
 export const canOpenJennySource = ({ source, canOpenSources }: IJennySourceAccess) =>
-  canOpenSources && JENNY_SAFE_LINK_PATTERN.test(source.url);
+  canOpenSources && isAllowedSourceUrl(source.url);
 
 export const formatJennyAnswerAnnouncement = (answer: string) =>
   `${JENNY_COPY.ANSWER_ANNOUNCEMENT_PREFIX}${toMarkdownPlainText(answer)}`;

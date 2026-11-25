@@ -5,9 +5,10 @@ import { isJennyChatResponse } from "../utilities/guards/jenny.guard";
 import type { IJennyChatRequest } from "../interfaces/jenny.interface";
 
 export const jennyService = {
-  async chat(request: IJennyChatRequest) {
+  async chat(request: IJennyChatRequest, signal: AbortSignal) {
     const endpoint = API_ENDPOINTS.JENNY_CHAT;
     const response = await httpClient.post<unknown>(endpoint, request, {
+      signal,
       timeout: JENNY_CHAT_TIMEOUT_MS,
     });
 
