@@ -1,6 +1,11 @@
+import {
+  MOBILE_LAYOUT_QUERY,
+  MOBILE_NAV_LAYOUT_PX,
+  MAIN_BOTTOM_PADDING_PX,
+} from "../constants/layout.constant";
+
 import { createStyles } from "../create-styles";
 import { theme } from "../constants/theme.constants";
-import { MOBILE_LAYOUT_QUERY } from "../constants/layout.constant";
 
 const MOBILE_NAV_SHADOW = "0 10px 28px rgba(15, 23, 42, 0.18)";
 
@@ -33,18 +38,18 @@ export const useStyles = () =>
       gap: "28px",
       display: "flex",
       flexDirection: "column",
-      padding: "16px 24px 48px",
+      padding: `16px 24px ${MAIN_BOTTOM_PADDING_PX.DESKTOP}px`,
       [`@media ${MOBILE_LAYOUT_QUERY}`]: {
-        padding: "16px 16px calc(112px + env(safe-area-inset-bottom))",
+        padding: `16px 16px calc(${MAIN_BOTTOM_PADDING_PX.MOBILE}px + env(safe-area-inset-bottom))`,
       },
     },
     mobileNavigation: {
       display: "none",
       zIndex: 10,
-      bottom: "calc(12px + env(safe-area-inset-bottom))",
-      height: 76,
-      left: 12,
-      right: 12,
+      bottom: `calc(${MOBILE_NAV_LAYOUT_PX.EDGE_OFFSET}px + env(safe-area-inset-bottom))`,
+      height: MOBILE_NAV_LAYOUT_PX.HEIGHT,
+      left: MOBILE_NAV_LAYOUT_PX.EDGE_OFFSET,
+      right: MOBILE_NAV_LAYOUT_PX.EDGE_OFFSET,
       width: "auto",
       maxWidth: "none",
       position: "fixed",

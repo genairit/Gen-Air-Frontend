@@ -83,6 +83,7 @@ export const API_ENDPOINTS = {
   DRIVE_UPLOAD_POLICY: "/project-drive/upload-policy",
   ADDRESS_SUGGESTIONS: "/address/suggestions",
   addressPlace: (placeId: string) => `/address/places/${encodeURIComponent(placeId)}`,
+  JENNY_CHAT: "/jenny/chat",
 } as const;
 
 export const DRIVE_UPLOAD_FIELD_NAME = "files";
@@ -91,10 +92,15 @@ export const HTTP_STATUS = {
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
+  NOT_FOUND: 404,
   CONFLICT: 409,
+  TOO_MANY_REQUESTS: 429,
   BAD_GATEWAY: 502,
   SERVICE_UNAVAILABLE: 503,
+  GATEWAY_TIMEOUT: 504,
 } as const;
+
+export type HttpStatusType = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS];
 
 export const API_ERROR_CODES = {
   INVALID_CURRENT_PASSWORD: "INVALID_CURRENT_PASSWORD",
