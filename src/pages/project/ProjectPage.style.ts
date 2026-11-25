@@ -1,8 +1,8 @@
 import {
   PAGE_STACK_GAP_PX,
   MOBILE_LAYOUT_QUERY,
-  MOBILE_NAV_LAYOUT_PX,
   MAIN_BOTTOM_PADDING_PX,
+  FLOATING_CONTROL_CLEARANCE_PX,
 } from "../../constants/layout.constant";
 
 import { createStyles } from "../../create-styles";
@@ -15,7 +15,7 @@ interface IClearanceGeometry {
 
 const getJennyClearanceHeight = ({ launcherBottom, mainBottomPadding }: IClearanceGeometry) => {
   const launcherTop = launcherBottom + JENNY_LAUNCHER_SIZE_PX;
-  const contentBottom = launcherTop + MOBILE_NAV_LAYOUT_PX.CONTENT_GAP;
+  const contentBottom = launcherTop + FLOATING_CONTROL_CLEARANCE_PX;
 
   return contentBottom - mainBottomPadding - PAGE_STACK_GAP_PX;
 };

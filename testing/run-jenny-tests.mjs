@@ -13,6 +13,7 @@ await runBundledTest({
         if (!id.endsWith("/IconActionButton/IconActionButton.tsx")) {
           return null;
         }
+
         return { code: code.replaceAll('from "@mui/material"', 'from "jenny-tooltip-material"') };
       },
       resolveId: source => (source === "jenny-tooltip-material" ? TOOLTIP_STUB_ID : null),
@@ -20,6 +21,7 @@ await runBundledTest({
         if (id !== TOOLTIP_STUB_ID) {
           return null;
         }
+
         return {
           code: [
             'export * from "@mui/material";',

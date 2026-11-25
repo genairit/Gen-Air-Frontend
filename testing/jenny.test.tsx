@@ -195,6 +195,7 @@ const collectText = (node: ReactTestInstance | string): string => {
   if (typeof node === "string") {
     return node;
   }
+
   return node.children.map(collectText).join("");
 };
 
@@ -498,6 +499,7 @@ const UNSAFE_SOURCES = [
   { fileId: "x2", fileName: "insecure-drive", page: null, url: "http://drive.google.com/x" },
   { fileId: "x3", fileName: "phishing-host", page: 1, url: "https://drive.google.com.evil.io/x" },
   { fileId: "x4", fileName: "other-host", page: null, url: "https://example.com/doc" },
+  { fileId: "x5", fileName: "unparseable-url", page: null, url: "not a url" },
 ];
 
 test("source links require Drive permission and open safely in a new tab", async () => {
@@ -727,6 +729,55 @@ test("Escape closes an open header tooltip first and only then the panel", async
     assert.equal(findDialog(view.renderer).length, 0);
     assert.equal(view.focusLog.at(-1), JENNY_COPY.LAUNCHER_LABEL);
   } finally {
+    await view.unmount();
+  }
+});
+
+test("an unparseable source url renders as plain text without a link", async () => {
+  const http = createHarness();
+  await signIn([PERMISSIONS.DRIVE_READ]);
+  const view = await render();
+  try {
+    await openChat(view.renderer);
+    await askQuestion(view.renderer, "מקור שבור?");
+    const unparseable = { fileId: "bad", fileName: "broken-source.pdf", page: 4, url: "not a url" };
+    await http.respond({ message: "תשובה", sources: [unparseable] });
+    assert.equal(findSourceLinks(view.renderer).length, 0);
+    assert.match(textOf(view.renderer), /broken-source\.pdf/);
+    assert.match(textOf(view.renderer), /עמ׳ 4/);
+  } finally {
+    http.restore();
+    await signOut();
+    await view.unmount();
+  }
+});
+
+const MALFORMED_RESPONSES = [
+  { message: 1, sources: [] },
+  {
+    message: "תשובה שלא אמורה להופיע",
+    sources: [{ fileId: "f", fileName: "f.pdf", page: "3", url: "https://drive.google.com/f" }],
+  },
+];
+
+test("a malformed success body shows the generic retryable error instead of an answer", async () => {
+  const http = createHarness();
+  const view = await render();
+  try {
+    await openChat(view.renderer);
+    for (const body of MALFORMED_RESPONSES) {
+      await askQuestion(view.renderer, "שאלה");
+      await http.respond(body);
+      assert.equal(
+        view.renderer.root.findByType(InlineError).props.message,
+        "לא הצלחתי לקבל תשובה. נסו שוב.",
+      );
+      assert.ok(findButton(view.renderer, JENNY_COPY.RETRY));
+      assert.doesNotMatch(textOf(view.renderer), /תשובה שלא אמורה להופיע/);
+      assert.equal(findSourceLinks(view.renderer).length, 0);
+    }
+  } finally {
+    http.restore();
     await view.unmount();
   }
 });

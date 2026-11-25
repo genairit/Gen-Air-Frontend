@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import { useStyles } from "../Jenny.style";
-import SlideUpTransition from "./SlideUpTransition";
 import { Dialog, useMediaQuery } from "@mui/material";
+import SlideUpTransition from "../../transitions/SlideUpTransition";
 import { focusConnectedElement } from "../../../utilities/focus.utility";
 import { REDUCED_MOTION_QUERY } from "../../../constants/layout.constant";
 import type { IJennySurfaceProps } from "../../../interfaces/jenny.interface";
