@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
+import { REDUCED_MOTION_QUERY } from "../constants/layout.constant";
 
 interface IHashTargetFocusOptions {
   ready: boolean;
   focusId: string;
   targetId: string;
 }
-
-const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
 const revealHashTarget = ({ targetId, focusId }: Omit<IHashTargetFocusOptions, "ready">) => {
   const target = document.getElementById(targetId);

@@ -44,11 +44,13 @@ type TButtonStyle = SystemStyleObject<Theme>;
 
 const { palette, glass, controlHeight } = theme;
 
+export const PRIMARY_BUTTON_SHADOW = "0 6px 14px -6px rgba(22, 104, 189, 0.55)";
+
 export const STYLE_BY_VARIANT: Record<ButtonVariantType, TButtonStyle> = {
   primary: {
     fontWeight: 700,
     color: palette.white,
-    boxShadow: "0 6px 14px -6px rgba(22, 104, 189, 0.55)",
+    boxShadow: PRIMARY_BUTTON_SHADOW,
     background: glass.gradient,
     "&:hover": { boxShadow: "0 9px 18px -7px rgba(22, 104, 189, 0.55)" },
   },

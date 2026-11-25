@@ -61,3 +61,10 @@ export const focusSiblingOnArrow = (event: KeyboardEvent<HTMLElement>) => {
   event.preventDefault();
   sibling.focus();
 };
+
+export const isPlainEnterKey = (event: KeyboardEvent<Element>) => {
+  const isEnter = event.key === KEY_TYPES.ENTER;
+  const isComposing = event.nativeEvent.isComposing;
+
+  return isEnter && !event.shiftKey && !isComposing;
+};

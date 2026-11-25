@@ -28,7 +28,9 @@ interface IButtonProps {
   icon?: IconNameType;
   isLoading?: boolean;
   sx?: SxProps<Theme>;
+  ariaControls?: string;
   size?: ButtonSizeType;
+  ariaExpanded?: boolean;
   shape?: ButtonShapeType;
   type?: NativeButtonType;
   variant?: ButtonVariantType;
@@ -46,6 +48,8 @@ const Button: FC<IButtonProps> = ({
   disabled,
   buttonRef,
   ariaLabel,
+  ariaControls,
+  ariaExpanded,
   isLoading = false,
   focusableWhenDisabled = false,
   size = BUTTON_SIZES.MEDIUM,
@@ -65,6 +69,8 @@ const Button: FC<IButtonProps> = ({
       buttonRef={buttonRef}
       isLoading={isLoading}
       ariaLabel={buttonAriaLabel}
+      ariaControls={ariaControls}
+      ariaExpanded={ariaExpanded}
       focusableWhenDisabled={focusableWhenDisabled}
       variant={SMARTBASE_VARIANT_BY_BUTTON_VARIANT[variant]}
       sx={mergeSx(styles.button({ isLoading, variant, size, shape, hasIcon }), sx ?? null)}

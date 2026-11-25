@@ -17,6 +17,8 @@ interface IButtonProps {
   children: ReactNode;
   sx?: SxProps<Theme>;
   isLoading?: boolean;
+  ariaControls?: string;
+  ariaExpanded?: boolean;
   type?: NativeButtonType;
   variant?: TButtonVariant;
   focusableWhenDisabled?: boolean;
@@ -32,6 +34,8 @@ const Button: FC<IButtonProps> = ({
   disabled,
   buttonRef,
   ariaLabel,
+  ariaControls,
+  ariaExpanded,
   isLoading = false,
   focusableWhenDisabled = false,
   variant = "primary",
@@ -57,6 +61,8 @@ const Button: FC<IButtonProps> = ({
       aria-busy={isLoading}
       aria-label={ariaLabel}
       disabled={nativeDisabled}
+      aria-controls={ariaControls}
+      aria-expanded={ariaExpanded}
       aria-disabled={isUnavailable}
       disableRipple={IS_RIPPLE_DISABLED_BY_BUTTON_VARIANT[variant]}
       sx={mergeSx(styles.button({ isLoading, showOverlay, variant }), sx ?? null)}
