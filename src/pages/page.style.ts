@@ -1,13 +1,14 @@
 import { createStyles } from "../create-styles";
 import { theme } from "../constants/theme.constants";
 import { MUTED_CAPTION } from "../styles/templates.style";
+import { PAGE_STACK_GAP_PX } from "../constants/layout.constant";
 
 const { palette } = theme;
 
 export const usePageStyles = () =>
   createStyles({
     page: {
-      gap: "28px",
+      gap: `${PAGE_STACK_GAP_PX}px`,
       display: "flex",
       flexDirection: "column",
     },

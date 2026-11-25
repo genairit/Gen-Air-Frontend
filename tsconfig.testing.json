@@ -11,6 +11,7 @@
     "testing/quotation.validation.test.tsx",
     "testing/external-modules.d.ts",
     "testing/popup-focus.test.tsx",
-    "testing/quotation-publication.test.tsx"
+    "testing/quotation-publication.test.tsx",
+    "testing/jenny.test.tsx"
   ]
 }

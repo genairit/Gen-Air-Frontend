@@ -8,6 +8,13 @@ import {
 
 import type { KeyboardEvent } from "react";
 
+type TKeyHandlers = Partial<Record<KeyType, () => void>>;
+
+interface IHandledKeyEvent {
+  key: string;
+  stopPropagation: () => void;
+}
+
 interface IRtlArrowTargetOptions {
   key: string;
   index: number;
@@ -61,3 +68,29 @@ export const focusSiblingOnArrow = (event: KeyboardEvent<HTMLElement>) => {
   event.preventDefault();
   sibling.focus();
 };
+
+export const isPlainEnterKey = (event: KeyboardEvent<Element>): boolean => {
+  const isEnter = event.key === KEY_TYPES.ENTER;
+  const isComposing = event.nativeEvent.isComposing;
+
+  return isEnter && !event.shiftKey && !isComposing;
+};
+
+export const createKeyHandler =
+  (handlers: TKeyHandlers) =>
+  (event: IHandledKeyEvent): void => {
+    if (!isKeyType(event.key)) {
+      return;
+    }
+
+    const handler = handlers[event.key];
+
+    if (!handler) {
+      return;
+    }
+
+    event.stopPropagation();
+    handler();
+  };
+
+export const isKeyboardEvent = (event: Event): event is globalThis.KeyboardEvent => "key" in event;
