@@ -47,3 +47,15 @@ export const MONOSPACE_CAPTION = {
   fontFamily: theme.font.mono,
   color: theme.palette.textMuted,
 } as const satisfies CSSProperties;
+
+export const VISUALLY_HIDDEN = {
+  border: 0,
+  margin: 0,
+  padding: 0,
+  width: "1px",
+  height: "1px",
+  overflow: "hidden",
+  position: "absolute",
+  whiteSpace: "nowrap",
+  clip: "rect(0 0 0 0)",
+} as const satisfies CSSProperties;

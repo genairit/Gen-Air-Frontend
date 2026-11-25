@@ -6,6 +6,7 @@ export const useEventListener = ({
   type,
   target,
   listener,
+  capture = false,
   isEnabled = true,
 }: IUseEventListenerOptions): void => {
   const listenerRef = useRef(listener);
@@ -25,9 +26,9 @@ export const useEventListener = ({
       type,
       target,
       listener: (event: Event): void => listenerRef.current(event),
-      options: { signal: controller.signal },
+      options: { capture, signal: controller.signal },
     });
 
     return (): void => controller.abort();
-  }, [type, target, isEnabled]);
+  }, [type, target, capture, isEnabled]);
 };

@@ -18,15 +18,11 @@ import type {
   IApplyValidationResultOptions,
 } from "../../../interfaces/free-text.interface";
 
-import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { freeTextService } from "../../../services/free-text.service";
+import { isCancelledRequest } from "../../../utilities/abort.utility";
 import { buildFreeTextStatusMessage } from "../../../utilities/free-text.utility";
 import { useDebouncedAbortableCallback } from "../../../hooks/debounced-abortable-callback.hook";
-
-const isCancelledRequest = (error: unknown, signal: AbortSignal): boolean => {
-  return signal.aborted || axios.isCancel(error);
-};
 
 const resetValidationState = ({
   setStatus,

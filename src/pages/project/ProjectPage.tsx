@@ -1,8 +1,10 @@
 import { Box } from "@mui/material";
 import { usePageStyles } from "../page.style";
 import { PROJECT_VIEWS } from "./project-views";
+import Jenny from "../../components/Jenny/Jenny";
 import Button from "../../components/Button/Button";
 import { useNavigate, useParams } from "react-router-dom";
+import { useProjectPageStyles } from "./ProjectPage.style";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import { useSessionUser } from "../../store/session.store";
 import EmptyState from "../../components/EmptyState/EmptyState";
@@ -12,6 +14,7 @@ import { hasPermission } from "../../utilities/permission.utility";
 import { useProjectQuery } from "../../hooks/queries/project.query";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import { createProjectJennyContext } from "../../utilities/jenny.utility";
 import { ROUTE_PARAMS, ROUTE_PATHS } from "../../constants/routes.constant";
 import ProjectContacts from "../../components/ProjectContacts/ProjectContacts";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
@@ -19,6 +22,7 @@ import { PROJECT_PAGE_COPY, PROJECT_PAGE_STATUS_COPY } from "../../constants/pro
 
 const ProjectPage = () => {
   const styles = usePageStyles();
+  const projectStyles = useProjectPageStyles();
   const navigate = useNavigate();
   const params = useParams();
   const projectId = params[ROUTE_PARAMS.PROJECT_ID] ?? null;
@@ -54,6 +58,8 @@ const ProjectPage = () => {
     <Box sx={styles.page}>
       <ProjectView key={project.id} project={project} />
       <ProjectContacts projectId={project.id} canEdit={canEditContacts} />
+      <Jenny contextLabel={project.name} context={createProjectJennyContext(project.id)} />
+      <Box aria-hidden sx={projectStyles.jennyClearance} />
     </Box>
   );
 };
