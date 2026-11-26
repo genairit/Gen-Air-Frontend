@@ -80,7 +80,7 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
       return { value: line.id, label };
     }),
   ];
-  const formKey = selectedLine?.id ?? selectedAreaId;
+  const lineEditorKey = `line-editor:${selectedLine?.id ?? selectedAreaId}`;
   const editorProps =
     selectedLine && selectedLineLabel
       ? { initial: selectedLine, itemLabel: selectedLineLabel }
@@ -125,8 +125,8 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
               <EstimateAreaUpdate
                 busy={busy}
                 area={selectedArea}
-                key={selectedArea.id}
                 onChange={updateArea}
+                key={`area-editor:${selectedArea.id}`}
               />
               <SelectField
                 disabled={busy}
@@ -136,7 +136,12 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
                 value={selectedLine?.id ?? ""}
                 onChange={(event): void => setLineId(event.target.value)}
               />
-              <EstimateCatalogueLine busy={busy} key={formKey} onSave={saveLine} {...editorProps} />
+              <EstimateCatalogueLine
+                busy={busy}
+                onSave={saveLine}
+                key={lineEditorKey}
+                {...editorProps}
+              />
               {selectedLine && (
                 <Button
                   disabled={busy}
