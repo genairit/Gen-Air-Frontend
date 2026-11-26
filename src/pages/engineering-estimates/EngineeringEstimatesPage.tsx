@@ -3,7 +3,7 @@ import {
   ESTIMATE_STATUS_LABELS,
 } from "../../constants/engineering-estimate.constant";
 
-import type { FC } from "react";
+import { useState, type FC } from "react";
 import { usePageStyles } from "../page.style";
 import Card from "../../components/Card/Card";
 import { Box, Typography } from "@mui/material";
@@ -12,6 +12,7 @@ import Button from "../../components/Button/Button";
 import EstimateJenny from "./components/EstimateJenny";
 import { useSessionUser } from "../../store/session.store";
 import EstimateWorkspace from "./components/EstimateWorkspace";
+import EstimateCreateForm from "./components/EstimateCreateForm";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import InlineError from "../../components/InlineError/InlineError";
 import { hasPermission } from "../../utilities/permission.utility";
@@ -24,6 +25,7 @@ import type { IEngineeringEstimate } from "../../interfaces/engineering-estimate
 const EngineeringEstimatesPage: FC = () => {
   const styles = usePageStyles();
   const user = useSessionUser();
+  const [creating, setCreating] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const estimateId = searchParams.get(ESTIMATE_PARAM);
   const list = useEstimatesQuery();
@@ -38,8 +40,10 @@ const EngineeringEstimatesPage: FC = () => {
   const isList = estimateId === null;
   const items = list.data?.pages.flatMap(page => page.items) ?? [];
   const activeQuery = isList ? list : detail;
-  const open = (selected: Pick<IEngineeringEstimate, "id">): void =>
+  const open = (selected: Pick<IEngineeringEstimate, "id">): void => {
+    setCreating(false);
     setSearchParams({ [ESTIMATE_PARAM]: selected.id });
+  };
 
   return (
     <Box sx={styles.page}>
@@ -47,6 +51,9 @@ const EngineeringEstimatesPage: FC = () => {
         <Typography component="h1" sx={styles.heading}>
           כתבי כמויות
         </Typography>
+        {isList && canEdit && !creating && (
+          <Button text="כתב כמויות חדש" onClick={(): void => setCreating(true)} />
+        )}
         {!isList && (
           <Button
             text="לכל כתבי הכמויות"
@@ -67,10 +74,12 @@ const EngineeringEstimatesPage: FC = () => {
           />
         </Box>
       )}
-      {isList && list.isSuccess && canEdit && (
-        <Typography sx={styles.description}>
-          ליצירת כתב כמויות חדש, לחצו על הכפתור הכחול של ג׳ני.
-        </Typography>
+      {isList && canEdit && creating && (
+        <EstimateCreateForm
+          onCreated={open}
+          onCancel={(): void => setCreating(false)}
+          canLinkProject={hasPermission(user, PERMISSIONS.PROJECTS_READ)}
+        />
       )}
       {isList && list.isSuccess && items.length === 0 && (
         <Typography>אין כתבי כמויות להצגה.</Typography>
