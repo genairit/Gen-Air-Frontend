@@ -1,8 +1,3 @@
-import {
-  BUTTON_TYPES,
-  BUTTON_VARIANTS,
-} from "../../../components/Button/constants/button.constants";
-
 import { Box } from "@mui/material";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
@@ -10,11 +5,14 @@ import Button from "../../../components/Button/Button";
 import EstimateProjectPicker from "./EstimateProjectPicker";
 import TextField from "../../../components/TextField/TextField";
 import InlineError from "../../../components/InlineError/InlineError";
+import { BUTTON_TYPES } from "../../../constants/button-type.constant";
 import { focusConnectedElement } from "../../../utilities/focus.utility";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useEffect, useRef, useState, type FC, type FormEvent } from "react";
 import { useCreateEstimate } from "../../../hooks/engineering-estimate.hook";
+import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
+import { ESTIMATE_NAME_MAX_LENGTH } from "../../../constants/engineering-estimate.constant";
 import type { IEngineeringEstimate } from "../../../interfaces/engineering-estimate.interface";
 
 interface IEstimateCreateFormProps {
@@ -59,13 +57,15 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
       >
         <Box sx={styles.grid({ minColumnWidth: 240, gap: "12px" })}>
           <TextField
+            required
+            isRequired
             value={name}
-            maxLength={160}
             onChange={setName}
             inputRef={nameRef}
             title="שם כתב הכמויות"
             type={FIELD_TYPES.TEXT}
             disabled={create.isPending}
+            maxLength={ESTIMATE_NAME_MAX_LENGTH}
           />
           {canLinkProject && (
             <EstimateProjectPicker

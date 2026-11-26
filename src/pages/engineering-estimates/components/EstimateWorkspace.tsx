@@ -7,6 +7,7 @@ import {
   ESTIMATE_STATUS_LABELS,
   ESTIMATE_WORKSPACE_TAB,
   ESTIMATE_WORKSPACE_TABS,
+  ESTIMATE_NAME_MAX_LENGTH,
 } from "../../../constants/engineering-estimate.constant";
 
 import type {
@@ -124,11 +125,11 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
               <Box sx={styles.stack({ gap: "8px" })}>
                 <TextField
                   value={name}
-                  maxLength={160}
                   disabled={busy}
                   onChange={setName}
                   title="שם כתב הכמויות"
                   type={FIELD_TYPES.TEXT}
+                  maxLength={ESTIMATE_NAME_MAX_LENGTH}
                 />
                 <Button
                   text="שמירת שם"

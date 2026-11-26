@@ -88,3 +88,5 @@ export const ESTIMATE_IMAGE_TYPES: readonly string[] = [
   ESTIMATE_PLAN_TYPE_BY_EXTENSION.png,
   ESTIMATE_PLAN_TYPE_BY_EXTENSION.jpeg,
 ];
+
+export const ESTIMATE_NAME_MAX_LENGTH = 160;

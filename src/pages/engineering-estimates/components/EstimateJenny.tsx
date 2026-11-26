@@ -13,6 +13,7 @@ import JennyHeader from "../../../components/Jenny/components/JennyHeader";
 import { useCreateEstimate } from "../../../hooks/engineering-estimate.hook";
 import { useThreadStyles } from "../../../components/Jenny/JennyThread.style";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
+import { ESTIMATE_NAME_MAX_LENGTH } from "../../../constants/engineering-estimate.constant";
 import type { IEngineeringEstimate } from "../../../interfaces/engineering-estimate.interface";
 
 interface IEstimateJennyProps {
@@ -75,12 +76,12 @@ const EstimateJenny: FC<IEstimateJennyProps> = ({ estimate, canBrowse, onCreated
           </Typography>
           <TextField
             value={name}
-            maxLength={160}
             onChange={setName}
             inputRef={inputRef}
             title="שם כתב הכמויות"
             type={FIELD_TYPES.TEXT}
             disabled={create.isPending}
+            maxLength={ESTIMATE_NAME_MAX_LENGTH}
           />
           <Button
             onClick={start}
