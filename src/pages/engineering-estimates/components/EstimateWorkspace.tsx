@@ -1,11 +1,22 @@
+import {
+  useEstimateCommand,
+  getEstimateCommandErrorMessage,
+} from "../../../hooks/engineering-estimate.hook";
+
+import {
+  ESTIMATE_STATUS_LABELS,
+  ESTIMATE_WORKSPACE_TAB,
+  ESTIMATE_WORKSPACE_TABS,
+} from "../../../constants/engineering-estimate.constant";
+
 import type {
   TEstimatePatch,
   IEngineeringEstimate,
 } from "../../../interfaces/engineering-estimate.interface";
 
-import { useState, type FC } from "react";
 import { Box, Typography } from "@mui/material";
 import EstimateOutputs from "./EstimateOutputs";
+import { useId, useState, type FC } from "react";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Tabs from "../../../components/Tabs/Tabs";
@@ -17,41 +28,33 @@ import EstimateProjectPicker from "./EstimateProjectPicker";
 import { TAB_MODES } from "../../../constants/tabs.constant";
 import TextField from "../../../components/TextField/TextField";
 import InlineError from "../../../components/InlineError/InlineError";
-import { getApiErrorMessage } from "../../../utilities/api-error.utility";
-import { useEstimateCommand } from "../../../hooks/engineering-estimate.hook";
-import { ESTIMATE_STATUS_LABELS } from "../../../constants/engineering-estimate.constant";
+import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import { engineeringEstimateService } from "../../../services/engineering-estimate.service";
 
 interface IEstimateWorkspaceProps {
   canEdit: boolean;
-  canQuote: boolean;
   canBrowse: boolean;
   canApprove: boolean;
+  canReadQuotation: boolean;
+  canCreateQuotation: boolean;
+  canExportQuotation: boolean;
   estimate: IEngineeringEstimate;
 }
-
-const TABS = {
-  QUANTITIES: "quantities",
-  QUESTIONS: "questions",
-  OUTPUT: "output",
-} as const;
-
-const TABS_OPTIONS = [
-  { id: TABS.QUANTITIES, label: "כמויות ותמחור" },
-  { id: TABS.QUESTIONS, label: "שאלות לבירור" },
-  { id: TABS.OUTPUT, label: "סקיצה ותוצרים" },
-];
 
 const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
   estimate,
   canEdit,
   canApprove,
   canBrowse,
-  canQuote,
+  canReadQuotation,
+  canCreateQuotation,
+  canExportQuotation,
 }) => {
   const styles = usePageStyles();
-  const [activeTab, setActiveTab] = useState<string>(TABS.QUANTITIES);
+  const detailsId = useId();
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(ESTIMATE_WORKSPACE_TAB.QUANTITIES);
   const [name, setName] = useState(estimate.name);
   const command = useEstimateCommand(estimate.id);
   const busy = command.isPending;
@@ -64,7 +67,7 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
     });
   };
   const panels: Record<string, React.JSX.Element> = {
-    [TABS.QUANTITIES]: (
+    [ESTIMATE_WORKSPACE_TAB.QUANTITIES]: (
       <EstimateQuantities
         busy={busy}
         canEdit={canEdit}
@@ -72,7 +75,7 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
         onChange={(areas): void => patch({ areas })}
       />
     ),
-    [TABS.QUESTIONS]: (
+    [ESTIMATE_WORKSPACE_TAB.QUESTIONS]: (
       <EstimateQuestions
         busy={busy}
         canEdit={canEdit}
@@ -80,68 +83,82 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
         onChange={(questions): void => patch({ questions })}
       />
     ),
-    [TABS.OUTPUT]: (
+    [ESTIMATE_WORKSPACE_TAB.OUTPUT]: (
       <EstimateOutputs
         run={run}
         busy={busy}
         canEdit={canEdit}
-        canQuote={canQuote}
         estimate={estimate}
         canBrowse={canBrowse}
         canApprove={canApprove}
+        canReadQuotation={canReadQuotation}
+        canCreateQuotation={canCreateQuotation}
+        canExportQuotation={canExportQuotation}
       />
     ),
   };
 
   return (
     <Box sx={styles.stack({ gap: "12px" })}>
-      <Box sx={styles.headerText}>
-        <Typography component="h2">{estimate.name}</Typography>
-        <Typography sx={styles.caption}>
-          גרסה {estimate.version} · {ESTIMATE_STATUS_LABELS[estimate.status]}
-        </Typography>
+      <Box sx={styles.spacedRow}>
+        <Box sx={styles.headerText}>
+          <Typography component="h2">{estimate.name}</Typography>
+          <Typography sx={styles.caption}>
+            גרסה {estimate.version} · {ESTIMATE_STATUS_LABELS[estimate.status]}
+          </Typography>
+        </Box>
+        {canEdit && (
+          <Button
+            ariaExpanded={detailsOpen}
+            variant={BUTTON_VARIANTS.SECONDARY}
+            ariaControls={detailsOpen ? detailsId : null}
+            onClick={(): void => setDetailsOpen(!detailsOpen)}
+            text={detailsOpen ? "סגירת פרטי טיוטה" : "עריכת פרטי טיוטה"}
+          />
+        )}
       </Box>
-      {canEdit && (
-        <Card>
-          <Box sx={styles.grid({ minColumnWidth: 240, gap: "12px" })}>
-            <Box sx={styles.stack({ gap: "8px" })}>
-              <TextField
-                value={name}
-                maxLength={160}
+      {canEdit && detailsOpen && (
+        <Box id={detailsId}>
+          <Card>
+            <Box sx={styles.grid({ minColumnWidth: 240, gap: "12px" })}>
+              <Box sx={styles.stack({ gap: "8px" })}>
+                <TextField
+                  value={name}
+                  maxLength={160}
+                  disabled={busy}
+                  onChange={setName}
+                  title="שם כתב הכמויות"
+                  type={FIELD_TYPES.TEXT}
+                />
+                <Button
+                  text="שמירת שם"
+                  disabled={saveNameDisabled}
+                  onClick={(): void => patch({ name: trimmedName })}
+                />
+              </Box>
+              <EstimateProjectPicker
                 disabled={busy}
-                onChange={setName}
-                title="שם כתב הכמויות"
-                type={FIELD_TYPES.TEXT}
+                value={estimate.projectId}
+                onChange={(projectId): void => patch({ projectId })}
               />
-              <Button
-                text="שמירת שם"
-                disabled={saveNameDisabled}
-                onClick={(): void => patch({ name: trimmedName })}
+              <EstimateScopeField
+                busy={busy}
+                value={estimate.scope}
+                onChange={(scope): void => patch({ scope })}
               />
             </Box>
-            <EstimateProjectPicker
-              disabled={busy}
-              value={estimate.projectId}
-              onChange={(projectId): void => patch({ projectId })}
-            />
-            <EstimateScopeField
-              busy={busy}
-              value={estimate.scope}
-              onChange={(scope): void => patch({ scope })}
-            />
-          </Box>
-        </Card>
+          </Card>
+        </Box>
       )}
       <Tabs
-        isScrollable
-        items={TABS_OPTIONS}
         activeId={activeTab}
         mode={TAB_MODES.FILTER}
         onChange={setActiveTab}
         ariaLabel="תצוגת כתב הכמויות"
+        items={ESTIMATE_WORKSPACE_TABS}
       />
       {busy && <Typography role="status">מעדכן את כתב הכמויות…</Typography>}
-      {command.isError && <InlineError message={getApiErrorMessage(command.error)} />}
+      {command.isError && <InlineError message={getEstimateCommandErrorMessage(command.error)} />}
       {panels[activeTab]}
     </Box>
   );

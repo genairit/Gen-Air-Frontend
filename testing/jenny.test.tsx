@@ -1,5 +1,6 @@
 import {
   AxiosError,
+  AxiosHeaders,
   CanceledError,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
@@ -29,6 +30,11 @@ import {
   ESTIMATE_SETUP_PROMPTS,
 } from "../src/constants/engineering-estimate.constant";
 
+import {
+  receiveEstimatePdf,
+  EstimateDocumentError,
+} from "../src/services/engineering-estimate-document.service";
+
 import { test } from "node:test";
 import { Box } from "@mui/material";
 import assert from "node:assert/strict";
@@ -51,6 +57,7 @@ import EstimateJenny from "../src/pages/engineering-estimates/components/Estimat
 import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
 import type { IEngineeringEstimate } from "../src/interfaces/engineering-estimate.interface";
 import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../src/constants/layout.constant";
+import { validateEstimatePlanSelection } from "../src/utilities/engineering-estimate.utility";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -1009,6 +1016,8 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
     status: "draft",
     projectId: null,
     quotationId: null,
+    quotationCustomerId: null,
+    quotationUnavailable: false,
     approvedVersion: null,
     setupStep: ESTIMATE_SETUP.AREAS,
     questions: [],
@@ -1050,4 +1059,45 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
     queryClient.clear();
     harness.restore();
   }
+});
+
+test("estimate plan selection validates extension/size and keeps marked uploads image-only", (): void => {
+  const pdf = new File(["fixture"], "תוכנית.PDF", { type: "application/pdf" });
+  const png = new File(["fixture"], "סקיצה.png", { type: "image/png" });
+  const renamed = new File(["fixture"], "program.pdf.exe", { type: "application/pdf" });
+  const mismatched = new File(["fixture"], "program.pdf", { type: "image/png" });
+
+  assert.equal(validateEstimatePlanSelection(pdf, false), null);
+  assert.equal(validateEstimatePlanSelection(png, true), null);
+  assert.match(validateEstimatePlanSelection(pdf, true) ?? "", /PNG/);
+  assert.match(validateEstimatePlanSelection(renamed, false) ?? "", /PDF/);
+  assert.match(validateEstimatePlanSelection(mismatched, false) ?? "", /PDF/);
+  assert.match(validateEstimatePlanSelection(new File([], "empty.pdf"), false) ?? "", /ריקה/);
+});
+
+test("estimate PDF client preserves localized API conflict messages from blob responses", async (): Promise<void> => {
+  const message = "כתב הכמויות השתנה. יש לרענן ולנסות שוב";
+  const data = new Blob([JSON.stringify({ message })], { type: "application/json" });
+  const response = {
+    config: { headers: new AxiosHeaders() },
+    headers: {},
+    status: HTTP_STATUS.CONFLICT,
+    statusText: "Conflict",
+    data,
+  };
+  const failure = new AxiosError(
+    "failed",
+    AxiosError.ERR_BAD_REQUEST,
+    response.config,
+    null,
+    response,
+  );
+  await assert.rejects(
+    receiveEstimatePdf(Promise.reject(failure)),
+    (error: unknown): boolean =>
+      error instanceof EstimateDocumentError &&
+      error.status === HTTP_STATUS.CONFLICT &&
+      error.message.includes(message),
+  );
+  assert.equal(failure.response?.data, data);
 });

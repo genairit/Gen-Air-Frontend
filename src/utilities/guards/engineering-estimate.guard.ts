@@ -19,7 +19,9 @@ import {
 
 import type {
   IEstimateArea,
+  IEstimatePage,
   IEstimatePlan,
+  IEstimateListItem,
   IEstimateQuestion,
   IEstimateInputLine,
   IEstimatePricedLine,
@@ -90,13 +92,25 @@ export const isEngineeringEstimate = (value: unknown): value is IEngineeringEsti
   Object.hasOwn(ESTIMATE_STATUS_LABELS, value.status) &&
   isNullableString(value.projectId) &&
   isNullableString(value.quotationId) &&
+  isNullableString(value.quotationCustomerId) &&
+  typeof value.quotationUnavailable === "boolean" &&
   isNullableNumber(value.approvedVersion) &&
   isArrayOf(isEstimatePlan)(value.plans) &&
   isArrayOf(isEstimateArea)(value.areas) &&
   isArrayOf(isEstimateQuestion)(value.questions) &&
   isArrayOf(isEstimatePricedLine)(value.lines);
 
-export const areEngineeringEstimates = isArrayOf(isEngineeringEstimate);
+const isEstimateListItem = (value: unknown): value is IEstimateListItem =>
+  isRecord(value) &&
+  hasStringFields(value, ["id", "name", "updatedAt"]) &&
+  isNullableString(value.projectId) &&
+  isString(value.status) &&
+  Object.hasOwn(ESTIMATE_STATUS_LABELS, value.status);
+
+export const isEstimatePage = (value: unknown): value is IEstimatePage =>
+  isRecord(value) &&
+  isNullableString(value.nextCursor) &&
+  isArrayOf(isEstimateListItem)(value.items);
 
 export const isEstimateQuotation = (value: unknown): value is { quotationId: string } =>
   isRecord(value) && typeof value.quotationId === "string";

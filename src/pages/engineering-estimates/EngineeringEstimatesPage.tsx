@@ -32,10 +32,13 @@ const EngineeringEstimatesPage: FC = () => {
   const canEdit = hasPermission(user, PERMISSIONS.ENGINEERING_ESTIMATES_MANAGE);
   const canApprove = hasPermission(user, PERMISSIONS.ENGINEERING_ESTIMATES_APPROVE);
   const canBrowse = hasPermission(user, PERMISSIONS.DRIVE_READ);
-  const canQuote = hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE);
+  const canReadQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_READ);
+  const canCreateQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE);
+  const canExportQuotation = hasPermission(user, PERMISSIONS.QUOTATIONS_EXPORT);
   const isList = estimateId === null;
+  const items = list.data?.pages.flatMap(page => page.items) ?? [];
   const activeQuery = isList ? list : detail;
-  const open = (selected: IEngineeringEstimate): void =>
+  const open = (selected: Pick<IEngineeringEstimate, "id">): void =>
     setSearchParams({ [ESTIMATE_PARAM]: selected.id });
 
   return (
@@ -69,11 +72,11 @@ const EngineeringEstimatesPage: FC = () => {
           ליצירת כתב כמויות חדש, לחצו על הכפתור הכחול של ג׳ני.
         </Typography>
       )}
-      {isList && list.isSuccess && list.data.length === 0 && (
+      {isList && list.isSuccess && items.length === 0 && (
         <Typography>אין כתבי כמויות להצגה.</Typography>
       )}
       {isList &&
-        list.data?.map((row): React.JSX.Element => (
+        items.map((row): React.JSX.Element => (
           <Card key={row.id}>
             <Box sx={styles.spacedRow}>
               <Typography component="strong">{row.name}</Typography>
@@ -86,14 +89,26 @@ const EngineeringEstimatesPage: FC = () => {
             </Box>
           </Card>
         ))}
+      {isList && list.hasNextPage && (
+        <Button
+          text="טענו עוד"
+          disabled={list.isFetchingNextPage}
+          isLoading={list.isFetchingNextPage}
+          onClick={async (): Promise<void> => {
+            await list.fetchNextPage();
+          }}
+        />
+      )}
       {estimate && (
         <EstimateWorkspace
           key={estimate.id}
           canEdit={canEdit}
-          canQuote={canQuote}
           estimate={estimate}
           canBrowse={canBrowse}
           canApprove={canApprove}
+          canReadQuotation={canReadQuotation}
+          canCreateQuotation={canCreateQuotation}
+          canExportQuotation={canExportQuotation}
         />
       )}
       {canEdit && (isList || estimate) && (

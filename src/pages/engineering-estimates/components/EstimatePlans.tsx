@@ -1,7 +1,7 @@
 import {
-  ESTIMATE_MAX_PLAN_BYTES,
-  ESTIMATE_MAX_MARKED_BYTES,
-} from "../../../constants/engineering-estimate.constant";
+  estimatePlanType,
+  validateEstimatePlanSelection,
+} from "../../../utilities/engineering-estimate.utility";
 
 import { useState, type FC } from "react";
 import { Box, Typography } from "@mui/material";
@@ -39,7 +39,9 @@ const EstimatePlans: FC<IEstimatePlansProps> = ({ estimate, busy, canEdit, canBr
   const browseAllowed = canEdit && canBrowse && projectId !== "";
   const library = useProjectDriveQuery(projectId, location.folderId, browsing && browseAllowed);
   const folders = library.data?.folders ?? [];
-  const files = library.data?.files ?? [];
+  const files = (library.data?.files ?? []).filter(
+    file => estimatePlanType({ name: file.name, type: file.mimeType }) !== null,
+  );
   const hasParentFolder = path.length > 1;
   const planType = marked ? "marked" : "source";
   const upload = ([file]: File[]): void => {
@@ -47,9 +49,9 @@ const EstimatePlans: FC<IEstimatePlansProps> = ({ estimate, busy, canEdit, canBr
       return;
     }
 
-    const max = marked ? ESTIMATE_MAX_MARKED_BYTES : ESTIMATE_MAX_PLAN_BYTES;
-    if (file.size > max) {
-      setUploadError(marked ? "תשריט מסומן יכול להיות עד 512KB." : "תוכנית יכולה להיות עד 4MB.");
+    const validation = validateEstimatePlanSelection(file, marked);
+    if (validation) {
+      setUploadError(validation);
       return;
     }
 

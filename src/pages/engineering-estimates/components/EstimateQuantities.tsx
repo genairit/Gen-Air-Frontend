@@ -1,7 +1,6 @@
 import type {
   IEstimateArea,
   IEstimateInputLine,
-  IEstimatePricedLine,
   IEngineeringEstimate,
 } from "../../../interfaces/engineering-estimate.interface";
 
@@ -15,8 +14,8 @@ import EstimateCatalogueLine from "./EstimateCatalogueLine";
 import DataTable from "../../../components/DataTable/DataTable";
 import SelectField from "../../../components/SelectField/SelectField";
 import { quotationMoney } from "../../../utilities/quotation.utility";
-import type { IDataTableColumn } from "../../../interfaces/data-table.interface";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { ESTIMATE_COLUMNS } from "../../../constants/engineering-estimate-columns.constant";
 
 interface IEstimateQuantitiesProps {
   busy: boolean;
@@ -112,7 +111,7 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
       </Typography>
       {canEdit && (
         <Box sx={styles.grid({ minColumnWidth: 250 })}>
-          <EstimateAreaEditor busy={busy} areas={areas} onChange={onChange} />
+          <EstimateAreaEditor busy={busy} areas={areas} key={areas.length} onChange={onChange} />
           {selectedArea && (
             <Box sx={styles.stack({ gap: "12px" })}>
               <SelectField
@@ -153,40 +152,5 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
     </Box>
   );
 };
-
-const ESTIMATE_COLUMNS: IDataTableColumn<IEstimatePricedLine>[] = [
-  { id: "sku", header: "מק״ט", track: "minmax(115px, 0.7fr)", render: (line): string => line.sku },
-  {
-    id: "description",
-    header: "פריט",
-    track: "minmax(200px, 1fr)",
-    render: (line): string => line.description,
-  },
-  {
-    id: "source",
-    header: "מקור",
-    track: "minmax(90px, 0.6fr)",
-    render: (line): string => line.provenance ?? (line.source === "rule" ? "לפי כלל" : "ידני"),
-  },
-  {
-    id: "quantity",
-    header: "כמות כוללת",
-    track: "minmax(125px, 0.7fr)",
-    render: (line): string => `${line.quantity} ${line.unit}`,
-  },
-  {
-    id: "unitPrice",
-    header: "מחיר יחידה",
-    track: "minmax(115px, 0.7fr)",
-    render: (line): string =>
-      line.unitPrice === null ? "חסר מחיר" : quotationMoney(line.unitPrice),
-  },
-  {
-    id: "total",
-    header: "סה״כ",
-    track: "minmax(115px, 0.7fr)",
-    render: (line): string => (line.total === null ? "—" : quotationMoney(line.total)),
-  },
-];
 
 export default EstimateQuantities;

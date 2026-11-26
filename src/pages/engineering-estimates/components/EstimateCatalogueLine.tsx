@@ -35,7 +35,11 @@ const EstimateCatalogueLine: FC<IEstimateCatalogueLineProps> = ({
   onSave,
 }) => {
   const styles = usePageStyles();
-  const [sku, setSku] = useState<string | null>(initial?.catalogueItemId ?? null);
+  const [selected, setSelected] = useState(
+    initial
+      ? { value: initial.catalogueItemId, label: itemLabel ?? initial.catalogueItemId }
+      : null,
+  );
   const [search, setSearch] = useState("");
   const [quantity, setQuantity] = useState(initial?.quantity ?? "1");
   const [source, setSource] = useState(initial?.source ?? "");
@@ -49,8 +53,14 @@ const EstimateCatalogueLine: FC<IEstimateCatalogueLineProps> = ({
   const items =
     catalogue.data?.map(item => ({ value: item.id, label: `${item.sku} · ${item.description}` })) ??
     [];
-  const selected =
-    sku && initial?.catalogueItemId === sku ? { value: sku, label: itemLabel ?? sku } : null;
+  const sku = selected?.value ?? null;
+  const chooseItem = (catalogueItemId: string | null): void => {
+    if (catalogueItemId === sku) {
+      return;
+    }
+
+    setSelected(items.find(item => item.value === catalogueItemId) ?? null);
+  };
   const saveLabel = initial ? "שמירת פריט" : "הוספת פריט";
   const validQuantity = isValidEstimateQuantity(quantity);
   const validRules = !useRules || validEstimateMeasurements(measurements);
@@ -77,8 +87,8 @@ const EstimateCatalogueLine: FC<IEstimateCatalogueLineProps> = ({
         value={sku}
         items={items}
         disabled={busy}
-        onChange={setSku}
         onSearch={setSearch}
+        onChange={chooseItem}
         selectedItem={selected}
         isClientFiltered={false}
         title="בחירת פריט מהקטלוג"

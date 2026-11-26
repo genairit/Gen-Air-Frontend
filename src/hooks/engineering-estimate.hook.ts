@@ -1,14 +1,35 @@
+import {
+  useQuery,
+  useMutation,
+  useIsMutating,
+  useQueryClient,
+  useInfiniteQuery,
+} from "@tanstack/react-query";
+
+import type {
+  IEstimatePage,
+  IEngineeringEstimate,
+} from "../interfaces/engineering-estimate.interface";
+
+import { isAxiosError } from "axios";
+import { HTTP_STATUS } from "../constants/api.constant";
+import { getApiErrorMessage } from "../utilities/api-error.utility";
 import { ESTIMATE_QUERY_KEY } from "../constants/engineering-estimate.constant";
 import { engineeringEstimateService } from "../services/engineering-estimate.service";
-import type { IEngineeringEstimate } from "../interfaces/engineering-estimate.interface";
-import { useIsMutating, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { EstimateDocumentError } from "../services/engineering-estimate-document.service";
 
+const FIRST_ESTIMATE_CURSOR: string | null = null;
 const listKey = [ESTIMATE_QUERY_KEY, "list"];
 const commandKey = (id: string): string[] => [ESTIMATE_QUERY_KEY, "command", id];
 const detailKey = (id: string): string[] => [ESTIMATE_QUERY_KEY, "detail", id];
 
 export const useEstimatesQuery = () =>
-  useQuery({ queryKey: listKey, queryFn: engineeringEstimateService.list });
+  useInfiniteQuery({
+    queryKey: listKey,
+    initialPageParam: FIRST_ESTIMATE_CURSOR,
+    getNextPageParam: (page: IEstimatePage): string | null => page.nextCursor,
+    queryFn: ({ pageParam }) => engineeringEstimateService.list(pageParam),
+  });
 
 export const useEstimateQuery = (id: string | null) =>
   useQuery({
@@ -32,15 +53,35 @@ export const useEstimateCommand = (id: string) => {
   const client = useQueryClient();
   const mutationKey = commandKey(id);
   const isPending = useIsMutating({ mutationKey }) > 0;
+  const refresh = async (): Promise<void> => {
+    await Promise.all([
+      client.invalidateQueries({ queryKey: detailKey(id) }),
+      client.invalidateQueries({ queryKey: listKey }),
+    ]);
+  };
   const mutation = useMutation({
     mutationKey,
     mutationFn: async (command: () => Promise<void>): Promise<void> => command(),
-    onSuccess: async (): Promise<void> => {
-      await Promise.all([
-        client.invalidateQueries({ queryKey: detailKey(id) }),
-        client.invalidateQueries({ queryKey: listKey }),
-      ]);
+    onSuccess: refresh,
+    onError: async (error): Promise<void> => {
+      if (isEstimateConflict(error)) {
+        await refresh();
+      }
     },
   });
   return { ...mutation, isPending };
+};
+
+const isEstimateConflict = (error: unknown): boolean =>
+  (isAxiosError(error) && error.response?.status === HTTP_STATUS.CONFLICT) ||
+  (error instanceof EstimateDocumentError && error.status === HTTP_STATUS.CONFLICT);
+
+export const getEstimateCommandErrorMessage = (error: unknown): string => {
+  const message =
+    error instanceof EstimateDocumentError ? error.message : getApiErrorMessage(error);
+  if (isEstimateConflict(error)) {
+    return `${message} בדקו את הנתונים המעודכנים לפני ניסיון נוסף.`;
+  }
+
+  return message;
 };

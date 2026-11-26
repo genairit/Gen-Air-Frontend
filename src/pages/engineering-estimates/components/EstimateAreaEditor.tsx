@@ -4,6 +4,7 @@ import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
 import TextField from "../../../components/TextField/TextField";
 import { CommandIdentityManager } from "../../../managers/command-identity.manager";
+import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import type { IEstimateArea } from "../../../interfaces/engineering-estimate.interface";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import { validEstimateRepeatCount } from "../../../utilities/engineering-estimate.utility";
@@ -56,7 +57,12 @@ const EstimateAreaEditor: FC<IEstimateAreaEditorProps> = ({ busy, areas, onChang
         onChange={setRepeats}
         type={FIELD_TYPES.NUMBER}
       />
-      <Button text="הוספת אזור" onClick={addArea} disabled={addBlocked} />
+      <Button
+        text="הוספת אזור"
+        onClick={addArea}
+        disabled={addBlocked}
+        variant={BUTTON_VARIANTS.SECONDARY}
+      />
     </Box>
   );
 };

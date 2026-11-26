@@ -83,8 +83,10 @@ export interface IEngineeringEstimate {
   quotationId: string | null;
   setupStep: EstimateSetupType;
   lines: IEstimatePricedLine[];
+  quotationUnavailable: boolean;
   questions: IEstimateQuestion[];
   approvedVersion: number | null;
+  quotationCustomerId: string | null;
 }
 
 export interface IEstimateSample {
@@ -101,3 +103,16 @@ export type TEstimatePatch = Pick<IEngineeringEstimate, "version"> &
   Partial<
     Pick<IEngineeringEstimate, "name" | "projectId" | "scope" | "areas" | "questions" | "setupStep">
   >;
+
+export interface IEstimateListItem {
+  id: string;
+  name: string;
+  updatedAt: string;
+  projectId: string | null;
+  status: EstimateStatusType;
+}
+
+export interface IEstimatePage {
+  nextCursor: string | null;
+  items: IEstimateListItem[];
+}

@@ -4,8 +4,9 @@ import {
 } from "../../../utilities/engineering-estimate.utility";
 
 import {
-  ESTIMATE_EQUIPMENT_LABELS,
-  ESTIMATE_DISTRIBUTION_LABELS,
+  ESTIMATE_SHELTER_OPTIONS,
+  ESTIMATE_EQUIPMENT_OPTIONS,
+  ESTIMATE_DISTRIBUTION_OPTIONS,
 } from "../../../constants/engineering-estimate.constant";
 
 import type { FC } from "react";
@@ -29,17 +30,6 @@ const EstimateMeasurementFields: FC<IEstimateMeasurementFieldsProps> = ({
   onChange,
 }) => {
   const styles = usePageStyles();
-  const equipmentOptions = Object.entries(ESTIMATE_EQUIPMENT_LABELS).map(([value, label]) => ({
-    value,
-    label,
-  }));
-  const distributionOptions = Object.entries(ESTIMATE_DISTRIBUTION_LABELS).map(
-    ([value, label]) => ({ value, label }),
-  );
-  const shelterOptions = [
-    { value: "no", label: "ללא" },
-    { value: "yes", label: "יש יציאת אספקה בממ״ד" },
-  ];
   const { distribution } = value;
   const showDuct = distribution.kind === "duct";
   const ductCode = distribution.catalogueCode ?? "";
@@ -59,9 +49,9 @@ const EstimateMeasurementFields: FC<IEstimateMeasurementFieldsProps> = ({
       <SelectField
         disabled={busy}
         value={value.equipment}
-        items={equipmentOptions}
         title="סוג ציוד לפי תוכנית"
         ariaLabel="סוג ציוד לפי תוכנית"
+        items={ESTIMATE_EQUIPMENT_OPTIONS}
         onChange={(event): void => changeEquipment(event.target.value)}
       />
       <EstimateMeasurementNumber
@@ -73,8 +63,8 @@ const EstimateMeasurementFields: FC<IEstimateMeasurementFieldsProps> = ({
       <SelectField
         disabled={busy}
         title="אספקה לממ״ד"
-        items={shelterOptions}
         ariaLabel="אספקה לממ״ד"
+        items={ESTIMATE_SHELTER_OPTIONS}
         value={value.shelterSupply ? "yes" : "no"}
         onChange={(event): void =>
           onChange({ ...value, shelterSupply: event.target.value === "yes" })
@@ -85,7 +75,7 @@ const EstimateMeasurementFields: FC<IEstimateMeasurementFieldsProps> = ({
         title="פיזור אוויר"
         ariaLabel="פיזור אוויר"
         value={distribution.kind}
-        items={distributionOptions}
+        items={ESTIMATE_DISTRIBUTION_OPTIONS}
         onChange={(event): void => changeDistribution(event.target.value)}
       />
       {showDuct && (

@@ -1,4 +1,9 @@
 import {
+  useEstimateCommand,
+  getEstimateCommandErrorMessage,
+} from "../../../hooks/engineering-estimate.hook";
+
+import {
   ESTIMATE_SETUP,
   ESTIMATE_SETUP_PROMPTS,
 } from "../../../constants/engineering-estimate.constant";
@@ -19,10 +24,8 @@ import EstimateProjectPicker from "./EstimateProjectPicker";
 import { JENNY_ROLES } from "../../../constants/jenny.constant";
 import InlineError from "../../../components/InlineError/InlineError";
 import { focusConnectedElement } from "../../../utilities/focus.utility";
-import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useEffect, type FC, type ReactNode, type RefObject } from "react";
 import JennyHeader from "../../../components/Jenny/components/JennyHeader";
-import { useEstimateCommand } from "../../../hooks/engineering-estimate.hook";
 import { useThreadStyles } from "../../../components/Jenny/JennyThread.style";
 import { engineeringEstimateService } from "../../../services/engineering-estimate.service";
 
@@ -104,6 +107,7 @@ const EstimateGuide: FC<IEstimateGuideProps> = ({
         <EstimateAreaEditor
           busy={busy}
           areas={estimate.areas}
+          key={estimate.areas.length}
           onChange={(areas): void => patch({ areas })}
         />
         <Button
@@ -140,7 +144,9 @@ const EstimateGuide: FC<IEstimateGuideProps> = ({
           </Typography>
           {nextByStep[estimate.setupStep]}
           {busy && <Typography role="status">שומרת את ההתקדמות…</Typography>}
-          {command.isError && <InlineError message={getApiErrorMessage(command.error)} />}
+          {command.isError && (
+            <InlineError message={getEstimateCommandErrorMessage(command.error)} />
+          )}
         </Box>
       </Box>
     </>

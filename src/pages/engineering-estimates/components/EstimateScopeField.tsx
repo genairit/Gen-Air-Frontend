@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import SelectField from "../../../components/SelectField/SelectField";
 import { isEstimateScope } from "../../../utilities/engineering-estimate.utility";
-import { ESTIMATE_SCOPE_LABELS } from "../../../constants/engineering-estimate.constant";
+import { ESTIMATE_SCOPE_OPTIONS } from "../../../constants/engineering-estimate.constant";
 import type { EstimateScopeType } from "../../../interfaces/engineering-estimate.interface";
 
 interface IEstimateScopeFieldProps {
@@ -11,14 +11,13 @@ interface IEstimateScopeFieldProps {
 }
 
 const EstimateScopeField: FC<IEstimateScopeFieldProps> = ({ busy, value, onChange }) => {
-  const options = Object.entries(ESTIMATE_SCOPE_LABELS).map(([value, label]) => ({ value, label }));
   return (
     <SelectField
       value={value}
       disabled={busy}
-      items={options}
       title="היקף עבודה"
       ariaLabel="היקף עבודה"
+      items={ESTIMATE_SCOPE_OPTIONS}
       onChange={(event): void => {
         const scope = event.target.value;
         if (isEstimateScope(scope)) {
