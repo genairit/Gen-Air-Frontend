@@ -24,6 +24,7 @@ import NewCustomerPage from "./pages/customer-form/NewCustomerPage";
 import NewApartmentPage from "./pages/apartment-form/NewApartmentPage";
 import { PROJECT_FORM_MODES } from "./constants/project-form.constant";
 import ProjectBoqIndexPage from "./pages/project-boq/ProjectBoqIndexPage";
+import EngineeringEstimatesPage from "./pages/engineering-estimates/EngineeringEstimatesPage";
 
 export const routes: RouteObject[] = [
   { path: ROUTE_PATHS.LOGIN, element: <LoginPage /> },
@@ -54,6 +55,14 @@ export const routes: RouteObject[] = [
             element: (
               <RequireFeature permission={PERMISSIONS.PROJECTS_READ}>
                 <BoardPage />
+              </RequireFeature>
+            ),
+          },
+          {
+            path: ROUTE_PATHS.ENGINEERING_ESTIMATES,
+            element: (
+              <RequireFeature permission={PERMISSIONS.ENGINEERING_ESTIMATES_READ}>
+                <EngineeringEstimatesPage />
               </RequireFeature>
             ),
           },

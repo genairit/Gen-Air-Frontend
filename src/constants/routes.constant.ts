@@ -19,6 +19,7 @@ export const ROUTE_PATHS = {
   COMPONENTS: "/components",
   NEW_PROJECT: "/projects/new",
   PROJECT: `/projects/:${ROUTE_PARAMS.PROJECT_ID}`,
+  ENGINEERING_ESTIMATES: "/engineering-estimates",
   PROJECT_BOQS: "/project-boqs",
   PROJECT_BOQ: `/project-boqs/:${ROUTE_PARAMS.PROJECT_ID}`,
   EDIT_PROJECT: `/projects/:${ROUTE_PARAMS.PROJECT_ID}/edit`,

@@ -54,7 +54,7 @@ export interface IJennySurfaceProps {
   titleId: string;
   children: ReactNode;
   onClose: () => void;
-  inputRef: RefObject<HTMLTextAreaElement | null>;
+  inputRef: RefObject<HTMLElement | null>;
 }
 
 export interface ITransitionDuration {

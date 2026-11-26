@@ -1,5 +1,6 @@
 import {
   AxiosError,
+  AxiosHeaders,
   CanceledError,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
@@ -23,6 +24,17 @@ import {
   JENNY_SCROLL_PIN_THRESHOLD_PX,
 } from "../src/constants/jenny.constant";
 
+import {
+  ESTIMATE_SETUP,
+  ESTIMATE_ENDPOINT,
+  ESTIMATE_SETUP_PROMPTS,
+} from "../src/constants/engineering-estimate.constant";
+
+import {
+  receiveEstimatePdf,
+  EstimateDocumentError,
+} from "../src/services/engineering-estimate-document.service";
+
 import { test } from "node:test";
 import { Box } from "@mui/material";
 import assert from "node:assert/strict";
@@ -41,8 +53,11 @@ import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { parseRestrictedMarkdown } from "../src/utilities/markdown.utility";
 import type { IJennyThreadMessage } from "../src/interfaces/jenny.interface";
 import { useScrollPinnedToBottom } from "../src/hooks/scroll-pinned-bottom.hook";
+import EstimateJenny from "../src/pages/engineering-estimates/components/EstimateJenny";
 import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
+import type { IEngineeringEstimate } from "../src/interfaces/engineering-estimate.interface";
 import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../src/constants/layout.constant";
+import { validateEstimatePlanSelection } from "../src/utilities/engineering-estimate.utility";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -985,4 +1000,104 @@ test("thread auto-scroll jumps instantly under reduced motion", async () => {
     await act(async () => harness.renderer.unmount());
     restoreWindow();
   }
+});
+
+test("Jenny starts a standalone estimate and opens the persisted setup step on resume", async (): Promise<void> => {
+  const harness = createHarness();
+  const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  const estimate: IEngineeringEstimate = {
+    id: "sample-id",
+    name: "מלון",
+    version: 1,
+    subtotal: "0",
+    plans: [],
+    areas: [],
+    scope: "hvac",
+    status: "draft",
+    projectId: null,
+    quotationId: null,
+    quotationCustomerId: null,
+    quotationUnavailable: false,
+    approvedVersion: null,
+    setupStep: ESTIMATE_SETUP.AREAS,
+    questions: [],
+    lines: [],
+  };
+  const saved: { estimate: IEngineeringEstimate | null } = { estimate: null };
+  const onCreated = (created: IEngineeringEstimate): void => {
+    saved.estimate = created;
+  };
+  const renderGuide = (resume: IEngineeringEstimate | null): ReactElement => (
+    <QueryClientProvider client={queryClient}>
+      <EstimateJenny estimate={resume} canBrowse={false} onCreated={onCreated} />
+    </QueryClientProvider>
+  );
+  const view: { renderer: ReactTestRenderer | null } = { renderer: null };
+  await act(async (): Promise<void> => {
+    view.renderer = create(renderGuide(null));
+  });
+  const renderer = view.renderer;
+  assert.ok(renderer);
+  try {
+    await openChat(renderer);
+    await typeDraft(renderer, "   מלון   ");
+    const start = findButton(renderer, "יצירת טיוטה");
+    assert.ok(start);
+    await act(async (): Promise<void> => start.props.onClick());
+    assert.equal(harness.calls[0]?.url, ESTIMATE_ENDPOINT);
+    assert.deepEqual(harness.calls[0]?.body, { name: "מלון" });
+    await harness.respond(estimate);
+    assert.deepEqual(saved.estimate, estimate);
+
+    await act(async (): Promise<void> => renderer.update(renderGuide(estimate)));
+    assert.ok(textOf(renderer).includes(ESTIMATE_SETUP_PROMPTS.areas));
+    const finish = findButton(renderer, "סיום ההגדרה");
+    assert.ok(finish);
+    assert.equal(finish.props.disabled, true);
+  } finally {
+    await act(async (): Promise<void> => renderer.unmount());
+    queryClient.clear();
+    harness.restore();
+  }
+});
+
+test("estimate plan selection validates extension/size and keeps marked uploads image-only", (): void => {
+  const pdf = new File(["fixture"], "תוכנית.PDF", { type: "application/pdf" });
+  const png = new File(["fixture"], "סקיצה.png", { type: "image/png" });
+  const renamed = new File(["fixture"], "program.pdf.exe", { type: "application/pdf" });
+  const mismatched = new File(["fixture"], "program.pdf", { type: "image/png" });
+
+  assert.equal(validateEstimatePlanSelection(pdf, false), null);
+  assert.equal(validateEstimatePlanSelection(png, true), null);
+  assert.match(validateEstimatePlanSelection(pdf, true) ?? "", /PNG/);
+  assert.match(validateEstimatePlanSelection(renamed, false) ?? "", /PDF/);
+  assert.match(validateEstimatePlanSelection(mismatched, false) ?? "", /PDF/);
+  assert.match(validateEstimatePlanSelection(new File([], "empty.pdf"), false) ?? "", /ריקה/);
+});
+
+test("estimate PDF client preserves localized API conflict messages from blob responses", async (): Promise<void> => {
+  const message = "כתב הכמויות השתנה. יש לרענן ולנסות שוב";
+  const data = new Blob([JSON.stringify({ message })], { type: "application/json" });
+  const response = {
+    config: { headers: new AxiosHeaders() },
+    headers: {},
+    status: HTTP_STATUS.CONFLICT,
+    statusText: "Conflict",
+    data,
+  };
+  const failure = new AxiosError(
+    "failed",
+    AxiosError.ERR_BAD_REQUEST,
+    response.config,
+    null,
+    response,
+  );
+  await assert.rejects(
+    receiveEstimatePdf(Promise.reject(failure)),
+    (error: unknown): boolean =>
+      error instanceof EstimateDocumentError &&
+      error.status === HTTP_STATUS.CONFLICT &&
+      error.message.includes(message),
+  );
+  assert.equal(failure.response?.data, data);
 });

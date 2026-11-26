@@ -15,6 +15,7 @@ interface IJennyHeaderProps {
   contextLabel: string;
   isFullScreen: boolean;
   onNewChat: () => void;
+  subtitlePrefix?: string;
   canStartNewChat: boolean;
 }
 
@@ -26,6 +27,7 @@ const JennyHeader: FC<IJennyHeaderProps> = ({
   contextLabel,
   isFullScreen,
   canStartNewChat,
+  subtitlePrefix = JENNY_COPY.SUBTITLE_PREFIX,
 }) => {
   const styles = useStyles();
 
@@ -37,7 +39,7 @@ const JennyHeader: FC<IJennyHeaderProps> = ({
           {JENNY_COPY.TITLE}
         </Box>
         <Box component="span" sx={styles.subtitle}>
-          {JENNY_COPY.SUBTITLE_PREFIX}
+          {subtitlePrefix}
           <Box component="bdi">{contextLabel}</Box>
         </Box>
       </Box>
