@@ -1,0 +1,106 @@
+import {
+  ESTIMATE_PARAM,
+  ESTIMATE_STATUS_LABELS,
+} from "../../constants/engineering-estimate.constant";
+
+import type { FC } from "react";
+import { usePageStyles } from "../page.style";
+import Card from "../../components/Card/Card";
+import { Box, Typography } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
+import Button from "../../components/Button/Button";
+import EstimateJenny from "./components/EstimateJenny";
+import { useSessionUser } from "../../store/session.store";
+import EstimateWorkspace from "./components/EstimateWorkspace";
+import { PERMISSIONS } from "../../constants/permission.constant";
+import InlineError from "../../components/InlineError/InlineError";
+import { hasPermission } from "../../utilities/permission.utility";
+import LoadingState from "../../components/LoadingState/LoadingState";
+import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
+import { useEstimateQuery, useEstimatesQuery } from "../../hooks/engineering-estimate.hook";
+import type { IEngineeringEstimate } from "../../interfaces/engineering-estimate.interface";
+
+const EngineeringEstimatesPage: FC = () => {
+  const styles = usePageStyles();
+  const user = useSessionUser();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const estimateId = searchParams.get(ESTIMATE_PARAM);
+  const list = useEstimatesQuery();
+  const detail = useEstimateQuery(estimateId);
+  const estimate = detail.data ?? null;
+  const canEdit = hasPermission(user, PERMISSIONS.ENGINEERING_ESTIMATES_MANAGE);
+  const canApprove = hasPermission(user, PERMISSIONS.ENGINEERING_ESTIMATES_APPROVE);
+  const canBrowse = hasPermission(user, PERMISSIONS.DRIVE_READ);
+  const canQuote = hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE);
+  const isList = estimateId === null;
+  const activeQuery = isList ? list : detail;
+  const open = (selected: IEngineeringEstimate): void =>
+    setSearchParams({ [ESTIMATE_PARAM]: selected.id });
+
+  return (
+    <Box sx={styles.page}>
+      <Box sx={styles.header}>
+        <Typography component="h1" sx={styles.heading}>
+          כתבי כמויות
+        </Typography>
+        {!isList && (
+          <Button
+            text="לכל כתבי הכמויות"
+            variant={BUTTON_VARIANTS.SECONDARY}
+            onClick={(): void => setSearchParams({})}
+          />
+        )}
+      </Box>
+      {activeQuery.isPending && <LoadingState />}
+      {activeQuery.isError && (
+        <Box sx={styles.stack({ gap: "12px" })}>
+          <InlineError message={getApiErrorMessage(activeQuery.error)} />
+          <Button
+            text="נסו שוב"
+            onClick={async (): Promise<void> => {
+              await activeQuery.refetch();
+            }}
+          />
+        </Box>
+      )}
+      {isList && list.isSuccess && canEdit && (
+        <Typography sx={styles.description}>
+          ליצירת כתב כמויות חדש, לחצו על הכפתור הכחול של ג׳ני.
+        </Typography>
+      )}
+      {isList && list.isSuccess && list.data.length === 0 && (
+        <Typography>אין כתבי כמויות להצגה.</Typography>
+      )}
+      {isList &&
+        list.data?.map((row): React.JSX.Element => (
+          <Card key={row.id}>
+            <Box sx={styles.spacedRow}>
+              <Typography component="strong">{row.name}</Typography>
+              <Typography sx={styles.caption}>{ESTIMATE_STATUS_LABELS[row.status]}</Typography>
+              <Button
+                text={`פתיחת ${row.name}`}
+                onClick={(): void => open(row)}
+                variant={BUTTON_VARIANTS.SECONDARY}
+              />
+            </Box>
+          </Card>
+        ))}
+      {estimate && (
+        <EstimateWorkspace
+          key={estimate.id}
+          canEdit={canEdit}
+          canQuote={canQuote}
+          estimate={estimate}
+          canBrowse={canBrowse}
+          canApprove={canApprove}
+        />
+      )}
+      {canEdit && (isList || estimate) && (
+        <EstimateJenny onCreated={open} estimate={estimate} canBrowse={canBrowse} />
+      )}
+    </Box>
+  );
+};
+
+export default EngineeringEstimatesPage;

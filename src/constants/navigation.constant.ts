@@ -5,6 +5,7 @@ import type { IBackLinkRoute, INavigationItem } from "../interfaces/navigation-i
 
 export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
   { id: ROUTE_PATHS.BOARD, label: "תיקים", icon: ICON_NAMES.PROJECTS },
+  { id: ROUTE_PATHS.ENGINEERING_ESTIMATES, label: "כתבי כמויות", icon: ICON_NAMES.QUOTE },
   { id: ROUTE_PATHS.PROJECT_BOQS, label: "כתבי רכש", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
   { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
@@ -15,6 +16,7 @@ export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
 
 export const MOBILE_NAVIGATION_ITEMS: INavigationItem[] = [
   { id: ROUTE_PATHS.BOARD, label: "תיקים", icon: ICON_NAMES.PROJECTS },
+  { id: ROUTE_PATHS.ENGINEERING_ESTIMATES, label: "כתבי כמויות", icon: ICON_NAMES.QUOTE },
   { id: ROUTE_PATHS.PROJECT_BOQS, label: "כתבי רכש", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
   { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
@@ -28,6 +30,7 @@ export const PAGE_TITLE_BY_ROUTE: Record<string, string> = {
   [ROUTE_PATHS.QUOTATIONS]: "הצעות מחיר",
   [ROUTE_PATHS.QUOTATION]: "הצעת מחיר",
   [ROUTE_PATHS.BOARD]: "ניהול פרויקטים ומשימות",
+  [ROUTE_PATHS.ENGINEERING_ESTIMATES]: "כתבי כמויות",
   [ROUTE_PATHS.PROJECT_BOQS]: "כתבי רכש",
   [ROUTE_PATHS.PROJECT_BOQ]: "כתב רכש לפרויקט",
   [ROUTE_PATHS.PROJECT]: "תצוגת פרויקט",
@@ -50,6 +53,7 @@ export const ACTIVE_NAVIGATION_BY_ROUTE: Record<string, string> = {
   [ROUTE_PATHS.QUOTATIONS]: ROUTE_PATHS.QUOTATIONS,
   [ROUTE_PATHS.QUOTATION]: ROUTE_PATHS.QUOTATIONS,
   [ROUTE_PATHS.BOARD]: ROUTE_PATHS.BOARD,
+  [ROUTE_PATHS.ENGINEERING_ESTIMATES]: ROUTE_PATHS.ENGINEERING_ESTIMATES,
   [ROUTE_PATHS.PROJECT_BOQS]: ROUTE_PATHS.PROJECT_BOQS,
   [ROUTE_PATHS.PROJECT_BOQ]: ROUTE_PATHS.PROJECT_BOQS,
   [ROUTE_PATHS.PROJECT]: ROUTE_PATHS.BOARD,
