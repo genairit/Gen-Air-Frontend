@@ -42,12 +42,12 @@ const EngineeringEstimatesPage: FC = () => {
   const isList = estimateId === null;
   const canStartEstimate = isList && canEdit;
   const showCreateForm = canStartEstimate && creating;
+  const items = list.data?.pages.flatMap(page => page.items) ?? [];
+  const activeQuery = isList ? list : detail;
   const cancelCreate = (): void => {
     setCreating(false);
     focusConnectedElement(createTrigger.current);
   };
-  const items = list.data?.pages.flatMap(page => page.items) ?? [];
-  const activeQuery = isList ? list : detail;
   const open = (selected: Pick<IEngineeringEstimate, "id">): void => {
     setCreating(false);
     setSearchParams({ [ESTIMATE_PARAM]: selected.id });
