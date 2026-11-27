@@ -52,7 +52,12 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
   const save = useCatalogueMutation((values: TCatalogueForm) =>
     item
       ? catalogueService.update(item.id, changedCatalogueFields(values, original))
-      : catalogueService.create({ ...toCatalogueChanges(values), sku: values.sku.trim() }),
+      : catalogueService.create({
+          ...toCatalogueChanges(values),
+          sku: values.sku.trim(),
+          brand: values.brand,
+          systemType: values.systemType,
+        }),
   );
   const archive = useCatalogueMutation((id: string) =>
     catalogueService.update(id, { status: CATALOGUE_STATUS.ARCHIVED }),

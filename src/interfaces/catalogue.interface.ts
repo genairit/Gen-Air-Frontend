@@ -10,13 +10,12 @@ export type TCatalogueItemChanges = Pick<
   | "description"
   | "unit"
   | "price"
-  | "brand"
-  | "systemType"
   | "capacityBtu"
   | "equipmentRole"
   | "includesRemote"
   | "includesThermostat"
 >;
-export type TCatalogueCreate = TCatalogueItemChanges & Pick<ICatalogueItem, "sku">;
+export type TCatalogueCreate = TCatalogueItemChanges &
+  Pick<ICatalogueItem, "sku" | "brand" | "systemType">;
 export type TCatalogueForm = Omit<TCatalogueCreate, "capacityBtu"> & { capacityBtu: string };
 export type TCatalogueErrors = Partial<Record<keyof TCatalogueForm, string>>;

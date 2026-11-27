@@ -79,9 +79,7 @@ export const validateCatalogueForm = (
 export const toCatalogueChanges = (form: TCatalogueForm): TCatalogueItemChanges => ({
   unit: form.unit.trim(),
   price: form.price.trim(),
-  brand: form.brand.trim(),
   capacityBtu: form.capacityBtu.trim() ? Number(form.capacityBtu) : null,
-  systemType: form.systemType,
   description: form.description.trim(),
   equipmentRole: form.equipmentRole,
   includesRemote: form.includesRemote,
