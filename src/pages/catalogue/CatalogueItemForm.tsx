@@ -134,10 +134,10 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
           <Box component="summary">מאפייני ציוד</Box>
           <Box sx={styles.fieldGrid}>
             <SelectField
-              disabled={locked}
               title="חברת מיזוג"
               value={form.brand}
               ariaLabel="חברת מיזוג"
+              disabled={locked || Boolean(item)}
               onChange={event => change({ brand: event.target.value })}
               items={[
                 { value: "", label: "כללי" },
@@ -145,11 +145,11 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
               ]}
             />
             <SelectField
-              disabled={locked}
               title="סוג מערכת"
               ariaLabel="סוג מערכת"
               items={SYSTEM_OPTIONS}
               value={form.systemType ?? ""}
+              disabled={locked || Boolean(item)}
               onChange={event => change({ systemType: event.target.value || null })}
             />
             <SelectField
