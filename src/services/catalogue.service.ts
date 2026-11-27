@@ -20,7 +20,7 @@ export const catalogueService = {
         search: filters.search,
         batchCursor: cursor,
         pricedOnly: filters.pricedOnly,
-        excludeArchived: filters.canManage || undefined,
+        excludeArchived: filters.canManage,
       },
     });
     return ensureResponse(endpoint, response.data, isCursorPageOf(isCatalogueItem));

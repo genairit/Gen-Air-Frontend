@@ -18,4 +18,4 @@ export type TCatalogueItemChanges = Pick<
 export type TCatalogueCreate = TCatalogueItemChanges &
   Pick<ICatalogueItem, "sku" | "brand" | "systemType">;
 export type TCatalogueForm = Omit<TCatalogueCreate, "capacityBtu"> & { capacityBtu: string };
-export type TCatalogueErrors = Partial<Record<keyof TCatalogueForm, string>>;
+export type TCatalogueErrors = Partial<Record<keyof TCatalogueForm, string | null>>;

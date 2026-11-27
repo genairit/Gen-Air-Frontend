@@ -13,11 +13,17 @@ import type {
 import type { ICatalogueItem } from "../../interfaces/quotation.interface";
 
 export const CATALOGUE_FORM_FIELDS = [
-  { name: "description", label: "תיאור", maxLength: 1000, required: true },
-  { name: "sku", label: "מק״ט", maxLength: 200, required: true },
-  { name: "unit", label: "יחידת מידה", maxLength: 40, required: true },
-  { name: "price", label: "מחיר ליחידה (₪)", maxLength: 17, required: true },
-  { name: "capacityBtu", label: "תפוקה (BTU)", maxLength: 9, required: false },
+  { name: "description", label: "תיאור", maxLength: 1000, required: true, inputMode: "text" },
+  { name: "sku", label: "מק״ט", maxLength: 200, required: true, inputMode: "text" },
+  { name: "unit", label: "יחידת מידה", maxLength: 40, required: true, inputMode: "text" },
+  { name: "price", label: "מחיר ליחידה (₪)", maxLength: 17, required: true, inputMode: "decimal" },
+  {
+    name: "capacityBtu",
+    label: "תפוקה (BTU)",
+    maxLength: 9,
+    required: false,
+    inputMode: "numeric",
+  },
 ] as const;
 
 export const EQUIPMENT_ROLE_OPTIONS = [
@@ -53,7 +59,7 @@ export const createCatalogueForm = (item?: ICatalogueItem): TCatalogueForm => ({
 
 export const validateCatalogueForm = (
   form: TCatalogueForm,
-  original?: TCatalogueForm,
+  original: TCatalogueForm | null,
 ): TCatalogueErrors => {
   const errors: TCatalogueErrors = {};
   for (const field of CATALOGUE_FORM_FIELDS) {

@@ -15,6 +15,7 @@ import Card from "../../components/Card/Card";
 import { useState, type FormEvent } from "react";
 import Button from "../../components/Button/Button";
 import { useCatalogueStyles } from "./catalogue.style";
+import { logger } from "../../utilities/logger.utility";
 import CheckBox from "../../components/CheckBox/CheckBox";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import { HTTP_STATUS } from "../../constants/api.constant";
@@ -72,7 +73,7 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (locked) return;
-    const nextErrors = validateCatalogueForm(form, item ? original : undefined);
+    const nextErrors = validateCatalogueForm(form, item ? original : null);
     setErrors(nextErrors);
     setError(null);
     if (Object.keys(nextErrors).length > 0) return;
@@ -87,6 +88,8 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
       if (!item && isAxiosError(failure) && failure.response?.status === HTTP_STATUS.CONFLICT) {
         setErrors({ sku: "מק״ט זה כבר פעיל בקטלוג" });
       } else {
+        const status = isAxiosError(failure) ? (failure.response?.status ?? null) : null;
+        logger.error("Catalogue item save failed", { status, action: item ? "edit" : "create" });
         setError(getApiErrorMessage(failure));
       }
     }
@@ -98,10 +101,10 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
         <CardHeader
           title="פרטי פריט"
           icon={ICON_NAMES.HVAC}
-          subtitle={item ? (catalogueStatusLabel(item.status) ?? undefined) : undefined}
+          subtitle={item ? (catalogueStatusLabel(item.status) ?? "") : ""}
         />
         <Box sx={styles.fieldGrid}>
-          {CATALOGUE_FORM_FIELDS.map(({ name, label, maxLength, required }) => (
+          {CATALOGUE_FORM_FIELDS.map(({ name, label, maxLength, required, inputMode }) => (
             <Box key={name} sx={{ gridColumn: name === "description" ? "1 / -1" : "auto" }}>
               <TextField
                 title={label}
@@ -113,19 +116,19 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
                 multiline={name === "description"}
                 readonly={name === "sku" && Boolean(item)}
                 validator={toErrorValidator(errors[name])}
-                minRows={name === "description" ? 2 : undefined}
                 isLtr={name === "sku" || name === "price" || name === "capacityBtu"}
                 onChange={value => {
                   change({ [name]: value });
-                  setErrors(previous => ({ ...previous, [name]: undefined }));
+                  setErrors(previous => ({ ...previous, [name]: null }));
                 }}
                 slotProps={{
                   htmlInput: {
-                    inputMode:
-                      name === "price" ? "decimal" : name === "capacityBtu" ? "numeric" : undefined,
+                    inputMode,
+                    readOnly: name === "sku" && Boolean(item),
                     "aria-required": required,
                   },
                 }}
+                {...(name === "description" && { minRows: 2 })}
               />
             </Box>
           ))}
