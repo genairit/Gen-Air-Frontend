@@ -1,11 +1,13 @@
 import { useState, type FC } from "react";
 import { Box, Typography } from "@mui/material";
+import EstimateSection from "./EstimateSection";
 import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
 import TextField from "../../../components/TextField/TextField";
 import { CommandIdentityManager } from "../../../managers/command-identity.manager";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
+import { ESTIMATE_TYPOGRAPHY } from "../../../styles/engineering-estimate-typography.style";
 import type { IEstimateQuestion } from "../../../interfaces/engineering-estimate.interface";
 
 interface IEstimateQuestionsProps {
@@ -47,11 +49,13 @@ const EstimateQuestions: FC<IEstimateQuestionsProps> = ({ busy, canEdit, questio
   };
 
   return (
-    <Box sx={styles.stack({ gap: "12px" })}>
+    <EstimateSection title="שאלות לבירור">
       {questions.length === 0 && <Typography>אין שאלות פתוחות.</Typography>}
       {questions.map((question): React.JSX.Element => (
         <Box key={question.id} sx={styles.stack({ gap: "8px" })}>
-          <Typography component="h3">{question.prompt}</Typography>
+          <Typography component="h3" sx={ESTIMATE_TYPOGRAPHY.group}>
+            {question.prompt}
+          </Typography>
           <Typography role="status">{question.answer ?? "ממתינה לתשובה"}</Typography>
           {canEdit && (
             <Box sx={styles.row({})}>
@@ -96,7 +100,7 @@ const EstimateQuestions: FC<IEstimateQuestionsProps> = ({ busy, canEdit, questio
           <Button onClick={add} text="הוספת שאלה" disabled={!canAdd} />
         </>
       )}
-    </Box>
+    </EstimateSection>
   );
 };
 

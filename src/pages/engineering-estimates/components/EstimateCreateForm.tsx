@@ -1,14 +1,14 @@
 import { Box } from "@mui/material";
+import EstimateSection from "./EstimateSection";
 import { usePageStyles } from "../../page.style";
-import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
 import EstimateProjectPicker from "./EstimateProjectPicker";
 import TextField from "../../../components/TextField/TextField";
+import { useRef, useState, type FC, type FormEvent } from "react";
+import { useElementFocus } from "../../../hooks/element-focus.hook";
 import InlineError from "../../../components/InlineError/InlineError";
 import { BUTTON_TYPES } from "../../../constants/button-type.constant";
-import { focusConnectedElement } from "../../../utilities/focus.utility";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
-import { useEffect, useRef, useState, type FC, type FormEvent } from "react";
 import { useCreateEstimate } from "../../../hooks/engineering-estimate.hook";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
@@ -34,9 +34,7 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
   const trimmedName = name.trim();
   const canSubmit = trimmedName.length > 0 && !create.isPending;
 
-  useEffect((): void => {
-    focusConnectedElement(nameRef.current);
-  }, []);
+  useElementFocus(nameRef, true);
 
   const submit = (event: FormEvent<HTMLFormElement>): void => {
     event.preventDefault();
@@ -48,14 +46,14 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
   };
 
   return (
-    <Card>
+    <EstimateSection title="פרטי כתב הכמויות">
       <Box
         component="form"
         onSubmit={submit}
         aria-label="כתב כמויות חדש"
-        sx={styles.stack({ gap: "12px" })}
+        sx={styles.stack({ gap: "20px" })}
       >
-        <Box sx={styles.grid({ minColumnWidth: 240, gap: "12px" })}>
+        <Box sx={styles.grid({ minColumnWidth: 240, gap: "20px" })}>
           <TextField
             required
             isRequired
@@ -91,7 +89,7 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
           />
         </Box>
       </Box>
-    </Card>
+    </EstimateSection>
   );
 };
 

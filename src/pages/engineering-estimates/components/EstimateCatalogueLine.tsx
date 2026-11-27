@@ -9,6 +9,7 @@ import { useState, type FC } from "react";
 import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
 import TextField from "../../../components/TextField/TextField";
+import { useEstimateStyles } from "../engineering-estimates.style";
 import EstimateMeasurementFields from "./EstimateMeasurementFields";
 import InlineError from "../../../components/InlineError/InlineError";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
@@ -35,6 +36,7 @@ const EstimateCatalogueLine: FC<IEstimateCatalogueLineProps> = ({
   onSave,
 }) => {
   const styles = usePageStyles();
+  const estimateStyles = useEstimateStyles();
   const [selected, setSelected] = useState(
     initial
       ? { value: initial.catalogueItemId, label: itemLabel ?? initial.catalogueItemId }
@@ -82,27 +84,29 @@ const EstimateCatalogueLine: FC<IEstimateCatalogueLineProps> = ({
 
   return (
     <Box sx={styles.stack({ gap: "12px" })}>
-      <Autocomplete
-        isClearable
-        value={sku}
-        items={items}
-        disabled={busy}
-        onSearch={setSearch}
-        onChange={chooseItem}
-        selectedItem={selected}
-        isClientFiltered={false}
-        title="בחירת פריט מהקטלוג"
-        isLoading={catalogue.isFetching}
-        placeholder="חיפוש לפי מק״ט או תיאור"
-      />
+      <Box sx={estimateStyles.primaryEditor}>
+        <Autocomplete
+          isClearable
+          value={sku}
+          items={items}
+          disabled={busy}
+          onSearch={setSearch}
+          onChange={chooseItem}
+          selectedItem={selected}
+          isClientFiltered={false}
+          title="בחירת פריט מהקטלוג"
+          isLoading={catalogue.isFetching}
+          placeholder="חיפוש לפי מק״ט או תיאור"
+        />
+        <TextField
+          disabled={busy}
+          value={quantity}
+          onChange={setQuantity}
+          title="כמות לאזור אחד"
+          type={FIELD_TYPES.NUMBER}
+        />
+      </Box>
       {catalogue.isError && <InlineError message={getApiErrorMessage(catalogue.error)} />}
-      <TextField
-        disabled={busy}
-        value={quantity}
-        onChange={setQuantity}
-        title="כמות לאזור אחד"
-        type={FIELD_TYPES.NUMBER}
-      />
       <TextField
         value={source}
         disabled={busy}
@@ -121,7 +125,9 @@ const EstimateCatalogueLine: FC<IEstimateCatalogueLineProps> = ({
       {useRules && (
         <EstimateMeasurementFields busy={busy} value={measurements} onChange={setMeasurements} />
       )}
-      <Button onClick={add} text={saveLabel} disabled={disabled} />
+      <Box sx={styles.row({})}>
+        <Button onClick={add} text={saveLabel} disabled={disabled} />
+      </Box>
     </Box>
   );
 };

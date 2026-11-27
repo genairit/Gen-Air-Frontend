@@ -6,16 +6,19 @@ import type {
 
 import { useState, type FC } from "react";
 import { Box, Typography } from "@mui/material";
+import EstimateSection from "./EstimateSection";
 import { usePageStyles } from "../../page.style";
 import EstimateAreaUpdate from "./EstimateAreaUpdate";
 import EstimateAreaEditor from "./EstimateAreaEditor";
 import Button from "../../../components/Button/Button";
 import EstimateCatalogueLine from "./EstimateCatalogueLine";
 import DataTable from "../../../components/DataTable/DataTable";
+import { useEstimateStyles } from "../engineering-estimates.style";
 import SelectField from "../../../components/SelectField/SelectField";
 import { quotationMoney } from "../../../utilities/quotation.utility";
 import { CommandIdentityManager } from "../../../managers/command-identity.manager";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { ESTIMATE_TYPOGRAPHY } from "../../../styles/engineering-estimate-typography.style";
 import { ESTIMATE_COLUMNS } from "../../../constants/engineering-estimate-columns.constant";
 
 interface IEstimateQuantitiesProps {
@@ -32,6 +35,7 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
   onChange,
 }) => {
   const styles = usePageStyles();
+  const estimateStyles = useEstimateStyles();
   const [areaId, setAreaId] = useState("");
   const [lineId, setLineId] = useState("");
   const areas = estimate.areas;
@@ -95,8 +99,7 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
   return (
     <Box sx={styles.stack({ gap: "12px" })}>
       {canEdit && (
-        <Box sx={styles.stack({ gap: "12px" })}>
-          <Typography component="h3">פריטים מהקטלוג</Typography>
+        <EstimateSection title="פריטים מהקטלוג">
           {areas.length > 1 && (
             <SelectField
               items={items}
@@ -131,7 +134,7 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
               variant={BUTTON_VARIANTS.DANGER}
             />
           )}
-        </Box>
+        </EstimateSection>
       )}
       {areas.map((area): React.JSX.Element => {
         const rows = estimate.lines
@@ -139,7 +142,7 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
           .map((line, index) => ({ ...line, rowId: String(index) }));
         return (
           <Box key={area.id} sx={styles.stack({ gap: "8px" })}>
-            <Typography component="h3">
+            <Typography component="h3" sx={ESTIMATE_TYPOGRAPHY.group}>
               {area.name} · {area.repeatCount} חזרות
             </Typography>
             <DataTable
@@ -151,9 +154,14 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
           </Box>
         );
       })}
-      <Typography component="strong">
-        סה״כ לפני מע״מ · {quotationMoney(estimate.subtotal)}
-      </Typography>
+      <Box sx={[styles.spacedRow, estimateStyles.totals]}>
+        <Typography component="span" sx={ESTIMATE_TYPOGRAPHY.label}>
+          סה״כ לפני מע״מ
+        </Typography>
+        <Typography component="bdi" sx={ESTIMATE_TYPOGRAPHY.total}>
+          {quotationMoney(estimate.subtotal)}
+        </Typography>
+      </Box>
 
       {canEdit && (
         <Box sx={styles.grid({ minColumnWidth: 250 })}>

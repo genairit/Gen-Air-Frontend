@@ -5,6 +5,7 @@ import type {
 
 import { useState, type FC } from "react";
 import EstimatePlans from "./EstimatePlans";
+import EstimateSection from "./EstimateSection";
 import { Box, Typography } from "@mui/material";
 import { useQuery } from "@tanstack/react-query";
 import { usePageStyles } from "../../page.style";
@@ -104,6 +105,14 @@ const EstimateOutputs: FC<IEstimateOutputsProps> = ({
       : "להפקת ההצעה ללקוח נדרש משתמש שמורשה ליצור ולאשר הצעות מחיר.";
   const showCommercialHint =
     approved && mayExport && quotationAvailable && !canDownloadProposal && !quotation.isFetching;
+  const canOpenLinkedQuote =
+    Boolean(estimate.quotationId) && canReadQuotation && quotationAvailable;
+  const showCommercialSection =
+    estimate.quotationUnavailable ||
+    showCommercialHint ||
+    canDownloadProposal ||
+    showQuotationCreation ||
+    canOpenLinkedQuote;
   const revise = (): void => {
     run((): Promise<void> =>
       engineeringEstimateService.patch(estimate.id, { version: estimate.version }),
@@ -140,113 +149,129 @@ const EstimateOutputs: FC<IEstimateOutputsProps> = ({
 
   return (
     <Box sx={styles.stack({ gap: "12px" })}>
-      <EstimatePlans
-        run={run}
-        busy={busy}
-        canEdit={canEdit}
-        estimate={estimate}
-        canBrowse={canBrowse}
-        key={estimate.projectId ?? ""}
-      />
-      {canEdit && !hasSketch && (
-        <>
-          <Typography>בחרו תשריט מסומן שונה לכל אזור להדגמה, עד ארבעה אזורים.</Typography>
-          {estimate.areas.map((area): React.JSX.Element => {
-            const title = `תשריט לסקיצה: ${area.name}`;
-            return (
-              <SelectField
-                key={area.id}
-                title={title}
-                items={options}
-                disabled={busy}
-                ariaLabel={title}
-                value={sampleByArea[area.id] ?? ""}
-                onChange={(event): void =>
-                  setSampleByArea({ ...sampleByArea, [area.id]: event.target.value })
-                }
-              />
-            );
-          })}
-          {!sampleAreasPriced && (
-            <Typography role="status">יש להוסיף פריטים מתומחרים לכל אזור שנבחר.</Typography>
-          )}
-          <Button onClick={sketch} text="הפקת סקיצה לאישור" disabled={!canCreateSketch} />
-        </>
-      )}
-      {hasSketch && (
-        <Button
-          disabled={busy}
-          text="הורדת הסקיצה השמורה"
-          variant={BUTTON_VARIANTS.SECONDARY}
-          onClick={(): void => download("sketch")}
+      <EstimateSection title="תוכניות">
+        <EstimatePlans
+          run={run}
+          busy={busy}
+          canEdit={canEdit}
+          estimate={estimate}
+          canBrowse={canBrowse}
+          key={estimate.projectId ?? ""}
         />
-      )}
-      {emptyEstimate && <Typography role="status">יש להוסיף פריטים לפני הפקת הסקיצה.</Typography>}
-      {missingPrice && (
-        <Typography role="status">יש להשלים מחירי קטלוג לפני הפקת הסקיצה.</Typography>
-      )}
-      {questionsOpen && (
-        <Typography role="status">יש לענות על שאלות הבירור לפני הפקת הסקיצה.</Typography>
-      )}
-      {canApprove && estimate.status === "sketch" && (
-        <Button
-          text="אישור גרסת הסקיצה"
-          disabled={busy || missingPrice || questionsOpen}
-          onClick={(): void =>
-            run((): Promise<void> =>
-              engineeringEstimateService.approve(estimate.id, estimate.version),
-            )
-          }
-        />
-      )}
-      {estimate.quotationUnavailable && (
-        <Box sx={styles.stack({ gap: "8px" })}>
-          <Typography role="status">
-            הצעת המחיר המקושרת הוסרה. לפתיחת הצעה נוספת, צרו גרסת כתב כמויות חדשה.
-          </Typography>
-          {canEdit && (
-            <Button
-              disabled={busy}
-              onClick={revise}
-              text="פתיחת גרסה חדשה"
-              variant={BUTTON_VARIANTS.SECONDARY}
-            />
-          )}
-        </Box>
-      )}
-      {showCommercialHint && <Typography>{commercialHint}</Typography>}
-      {canDownloadProposal && (
-        <Button
-          text="הורדת הצעה ללקוח (PDF)"
-          disabled={busy || missingPrice}
-          onClick={(): void => download("proposal")}
-        />
-      )}
-      {showQuotationCreation && (
-        <>
-          {linkedCustomerRepairPath && (
+      </EstimateSection>
+      <EstimateSection title="סקיצה ואישור">
+        {canEdit && !hasSketch && (
+          <>
+            <Typography>בחרו תשריט מסומן שונה לכל אזור להדגמה, עד ארבעה אזורים.</Typography>
+            {estimate.areas.map((area): React.JSX.Element => {
+              const title = `תשריט לסקיצה: ${area.name}`;
+              return (
+                <SelectField
+                  key={area.id}
+                  title={title}
+                  items={options}
+                  disabled={busy}
+                  ariaLabel={title}
+                  value={sampleByArea[area.id] ?? ""}
+                  onChange={(event): void =>
+                    setSampleByArea({ ...sampleByArea, [area.id]: event.target.value })
+                  }
+                />
+              );
+            })}
+            {!sampleAreasPriced && (
+              <Typography role="status">יש להוסיף פריטים מתומחרים לכל אזור שנבחר.</Typography>
+            )}
+            <Button onClick={sketch} text="הפקת סקיצה לאישור" disabled={!canCreateSketch} />
+          </>
+        )}
+        {hasSketch && (
+          <Button
+            disabled={busy}
+            text="הורדת הסקיצה השמורה"
+            variant={BUTTON_VARIANTS.SECONDARY}
+            onClick={(): void => download("sketch")}
+          />
+        )}
+        {emptyEstimate && <Typography role="status">יש להוסיף פריטים לפני הפקת הסקיצה.</Typography>}
+        {missingPrice && (
+          <Typography role="status">יש להשלים מחירי קטלוג לפני הפקת הסקיצה.</Typography>
+        )}
+        {questionsOpen && (
+          <Typography role="status">יש לענות על שאלות הבירור לפני הפקת הסקיצה.</Typography>
+        )}
+        {canApprove && estimate.status === "sketch" && (
+          <Button
+            text="אישור גרסת הסקיצה"
+            disabled={busy || missingPrice || questionsOpen}
+            onClick={(): void =>
+              run((): Promise<void> =>
+                engineeringEstimateService.approve(estimate.id, estimate.version),
+              )
+            }
+          />
+        )}
+      </EstimateSection>
+      {showCommercialSection && (
+        <EstimateSection title="הצעת מחיר">
+          {estimate.quotationUnavailable && (
             <Box sx={styles.stack({ gap: "8px" })}>
               <Typography role="status">
-                בפרויקט המקושר לא הוגדר לקוח בזמן הסקיצה. שייכו לקוח בפרויקט, פתחו גרסה חדשה ואשרו
-                אותה.
+                הצעת המחיר המקושרת הוסרה. לפתיחת הצעה נוספת, צרו גרסת כתב כמויות חדשה.
               </Typography>
-              <Link to={linkedCustomerRepairPath}>פתיחת הפרויקט המקושר</Link>
-              <Button
-                disabled={busy}
-                onClick={revise}
-                text="פתיחת גרסה חדשה"
-                variant={BUTTON_VARIANTS.SECONDARY}
-              />
+              {canEdit && (
+                <Button
+                  disabled={busy}
+                  onClick={revise}
+                  text="פתיחת גרסה חדשה"
+                  variant={BUTTON_VARIANTS.SECONDARY}
+                />
+              )}
             </Box>
           )}
-          {needsCustomer && (
-            <QuotationCustomerPicker disabled={busy} value={customerId} onChange={setCustomerId} />
+          {showCommercialHint && <Typography>{commercialHint}</Typography>}
+          {canDownloadProposal && (
+            <Button
+              text="הורדת הצעה ללקוח (PDF)"
+              disabled={busy || missingPrice}
+              onClick={(): void => download("proposal")}
+            />
           )}
-          <Button disabled={quoteBlocked} onClick={createQuotation} text="יצירת טיוטת הצעת מחיר" />
-        </>
-      )}
-      {estimate.quotationId && canReadQuotation && quotationAvailable && (
-        <Link to={buildQuotationPath(estimate.quotationId)}>פתיחת הצעת המחיר המקושרת</Link>
+          {showQuotationCreation && (
+            <>
+              {linkedCustomerRepairPath && (
+                <Box sx={styles.stack({ gap: "8px" })}>
+                  <Typography role="status">
+                    בפרויקט המקושר לא הוגדר לקוח בזמן הסקיצה. שייכו לקוח בפרויקט, פתחו גרסה חדשה
+                    ואשרו אותה.
+                  </Typography>
+                  <Link to={linkedCustomerRepairPath}>פתיחת הפרויקט המקושר</Link>
+                  <Button
+                    disabled={busy}
+                    onClick={revise}
+                    text="פתיחת גרסה חדשה"
+                    variant={BUTTON_VARIANTS.SECONDARY}
+                  />
+                </Box>
+              )}
+              {needsCustomer && (
+                <QuotationCustomerPicker
+                  disabled={busy}
+                  value={customerId}
+                  onChange={setCustomerId}
+                />
+              )}
+              <Button
+                disabled={quoteBlocked}
+                onClick={createQuotation}
+                text="יצירת טיוטת הצעת מחיר"
+              />
+            </>
+          )}
+          {canOpenLinkedQuote && (
+            <Link to={buildQuotationPath(quotationId)}>פתיחת הצעת המחיר המקושרת</Link>
+          )}
+        </EstimateSection>
       )}
     </Box>
   );
