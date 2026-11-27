@@ -9,60 +9,59 @@ runNodeTest(resolve(TEST_ROOT, "tests/apartment.test.mjs"));
 const output = resolve(TEST_ROOT, "testing/user-roles.interactions.generated.mjs");
 process.once("exit", () => rmSync(output, { force: true }));
 
+const portalBoundary = {
+  name: "role-test-portal-boundary",
+  transform: (code, id) => {
+    if (id.endsWith("/apartment/components/ApartmentEngineerPicker.tsx")) {
+      return {
+        code: code.replace(
+          'from "../../../components/Autocomplete/Autocomplete"',
+          'from "engineer-test-autocomplete"',
+        ),
+      };
+    }
+    const isPortalComponent =
+      id.endsWith("/GenericPopup/GenericPopup.tsx") || id.endsWith("/TopBar/UserMenuButton.tsx");
+
+    if (!isPortalComponent) {
+      return null;
+    }
+
+    return { code: code.replaceAll('from "@mui/material"', 'from "role-test-material"') };
+  },
+  resolveId: source =>
+    source === "role-test-material" || source === "engineer-test-autocomplete"
+      ? `\0${source}`
+      : null,
+  load: id => {
+    if (id === "\0engineer-test-autocomplete") {
+      return {
+        code: 'import { createElement } from "react"; export default function Autocomplete(props) { return createElement("select", props); }',
+        moduleType: "js",
+      };
+    }
+    if (id !== "\0role-test-material") {
+      return null;
+    }
+
+    return {
+      code: [
+        'export * from "@mui/material";',
+        'import { createElement } from "react";',
+        'import { MenuList } from "@mui/material";',
+        'export const Dialog = ({ children }) => createElement("section", null, children);',
+        "export const Menu = ({ children, open }) => open ? createElement(MenuList, null, children) : null;",
+      ].join("\n"),
+      moduleType: "js",
+    };
+  },
+};
+
 await runBundledTest({
   input: "testing/user-roles.interactions.test.tsx",
   output,
   external: ["axios", "@tanstack/react-query", "react-router-dom"],
-  plugins: [
-    {
-      name: "role-test-portal-boundary",
-      transform: (code, id) => {
-        if (id.endsWith("/apartment/components/ApartmentEngineerPicker.tsx")) {
-          return {
-            code: code.replace(
-              'from "../../../components/Autocomplete/Autocomplete"',
-              'from "engineer-test-autocomplete"',
-            ),
-          };
-        }
-        const isPortalComponent =
-          id.endsWith("/GenericPopup/GenericPopup.tsx") ||
-          id.endsWith("/TopBar/UserMenuButton.tsx");
-
-        if (!isPortalComponent) {
-          return null;
-        }
-
-        return { code: code.replaceAll('from "@mui/material"', 'from "role-test-material"') };
-      },
-      resolveId: source =>
-        source === "role-test-material" || source === "engineer-test-autocomplete"
-          ? `\0${source}`
-          : null,
-      load: id => {
-        if (id === "\0engineer-test-autocomplete") {
-          return {
-            code: 'import { createElement } from "react"; export default function Autocomplete(props) { return createElement("select", props); }',
-            moduleType: "js",
-          };
-        }
-        if (id !== "\0role-test-material") {
-          return null;
-        }
-
-        return {
-          code: [
-            'export * from "@mui/material";',
-            'import { createElement } from "react";',
-            'import { MenuList } from "@mui/material";',
-            'export const Dialog = ({ children }) => createElement("section", null, children);',
-            "export const Menu = ({ children, open }) => open ? createElement(MenuList, null, children) : null;",
-          ].join("\n"),
-          moduleType: "js",
-        };
-      },
-    },
-  ],
+  plugins: [portalBoundary],
 });
 
 const passwordOutput = resolve(TEST_ROOT, "testing/password-security.generated.mjs");
@@ -71,6 +70,7 @@ process.once("exit", () => rmSync(passwordOutput, { force: true }));
 await runBundledTest({
   input: "testing/password-security.test.tsx",
   output: passwordOutput,
+  plugins: [portalBoundary],
   external: ["axios", "@tanstack/react-query", "react-router-dom"],
 });
 

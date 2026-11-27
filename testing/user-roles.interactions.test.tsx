@@ -5,15 +5,14 @@ import {
 } from "../src/constants/user-role.constant";
 
 import { test } from "node:test";
-import { Radio } from "@mui/material";
 import assert from "node:assert/strict";
 import type { ReactElement } from "react";
 import { AxiosError, AxiosHeaders } from "axios";
+import { Radio, Autocomplete } from "@mui/material";
 import Button from "../src/components/Button/Button";
 import { QueryObserver } from "@tanstack/react-query";
 import { setSession } from "../src/store/session.store";
 import { logger } from "../src/utilities/logger.utility";
-import CheckBox from "../src/components/CheckBox/CheckBox";
 import { userService } from "../src/services/user.service";
 import { queryClient } from "../src/providers/query-client";
 import { TIME_UNITS } from "../src/constants/time.constant";
@@ -203,30 +202,18 @@ test("employee role assignments omit the retired sales role", async () => {
   );
 
   try {
-    const groups = renderer.root
-      .findAllByType("div")
-      .filter(
-        node =>
-          node.props.role === "group" && node.props["aria-label"] === EMPLOYEES_COPY.ROLE_LABEL,
-      );
-    assert.equal(groups.length, 2);
-    assert.deepEqual(
-      groups.map(group => group.findAllByType(CheckBox).map(option => option.props.text)),
-      [ASSIGNABLE_USER_ROLE_VALUES, ASSIGNABLE_USER_ROLE_VALUES].map(roles =>
-        roles.map(role => USER_ROLE_LABELS[role]),
-      ),
-    );
+    const pickers = renderer.root.findAllByType(Autocomplete);
+    assert.equal(pickers.length, 2);
+    assert.notEqual(pickers[0].props.id, pickers[1].props.id);
+    for (const picker of pickers) {
+      assert.equal(picker.props.multiple, true);
+      assert.deepEqual(picker.props.options, ASSIGNABLE_USER_ROLE_VALUES);
+      assert.equal(picker.props.options.includes(USER_ROLES.SALES_AGENT), false);
+    }
     assert.equal(
       EMPLOYEE_FILTERS.some(filter => filter.role === USER_ROLES.SALES_AGENT),
       false,
     );
-    assert.equal(renderer.root.findAllByType(RadioButton).length, 0);
-    assert.notEqual(groups[0].props["aria-describedby"], groups[1].props["aria-describedby"]);
-    const assignmentHelpers = renderer.root
-      .findAllByType("span")
-      .filter(node => node.props.id === groups[0].props["aria-describedby"]);
-    assert.equal(assignmentHelpers.length, 1);
-    assert.equal(assignmentHelpers[0].children[0], EMPLOYEES_COPY.ROLE_ASSIGNMENT_HELPER);
   } finally {
     await act(async () => renderer.unmount());
   }
@@ -242,11 +229,9 @@ test("selecting a role replaces a retired sales-only assignment", async () => {
   );
 
   try {
-    const engineer = renderer.root
-      .findAllByType(CheckBox)
-      .find(option => option.props.text === USER_ROLE_LABELS[USER_ROLES.ENGINEER]);
-    assert.ok(engineer);
-    await act(async () => engineer.props.onChange(true));
+    const picker = renderer.root.findByType(Autocomplete);
+    assert.deepEqual(picker.props.value, []);
+    await act(async () => picker.props.onChange(null, [USER_ROLES.ENGINEER]));
     assert.deepEqual(changes, [[USER_ROLES.ENGINEER]]);
   } finally {
     await act(async () => renderer.unmount());
@@ -381,7 +366,12 @@ for (const failure of [
       assert.equal(renderer.root.findByType(GenericPopup).props.open, true);
       assert.equal(getSaveButton()?.props.isLoading, false);
       assert.ok(renderer.root.findAllByProps({ role: "alert" }).length > 0);
-      assert.ok(errors.length > 0);
+      assert.deepEqual(errors, [
+        {
+          message: "Popup primary action failed",
+          context: { status: failure instanceof AxiosError ? 409 : null },
+        },
+      ]);
       if (failure instanceof AxiosError) {
         assert.ok(JSON.stringify(renderer.toJSON()).includes("final system administrator"));
       }

@@ -1,12 +1,8 @@
-import { useState } from "react";
 import { Box } from "@mui/material";
-import Card from "../../../components/Card/Card";
-import { useStyles } from "./AddEmployeeCard.style";
-import Button from "../../../components/Button/Button";
-import { ICON_NAMES } from "../../../constants/icon.constant";
+import { type FC, useRef, useState } from "react";
+import { useStyles } from "./AddEmployeePopup.style";
 import TextField from "../../../components/TextField/TextField";
-import CardHeader from "../../../components/CardHeader/CardHeader";
-import InlineError from "../../../components/InlineError/InlineError";
+import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { canSubmitEmployeeForm } from "../../../utilities/employee.utility";
 import { useAddEmployeeMutation } from "../../../hooks/mutations/user.mutation";
@@ -16,8 +12,13 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 import { EMPLOYEES_COPY, EMPTY_EMPLOYEE_FORM } from "../../../constants/employee.constant";
 import RoleAssignmentFields from "../../../components/RoleAssignmentFields/RoleAssignmentFields";
 
-const AddEmployeeCard = () => {
+interface IAddEmployeePopupProps {
+  onClose: () => void;
+}
+
+const AddEmployeePopup: FC<IAddEmployeePopupProps> = ({ onClose }) => {
   const styles = useStyles();
+  const nameRef = useRef<HTMLInputElement>(null);
   const [values, setValues] = useState<IEmployeeFormValues>(EMPTY_EMPLOYEE_FORM);
   const validateConfirmation = createPasswordConfirmationValidator(values.password);
   const addMutation = useAddEmployeeMutation();
@@ -25,32 +26,38 @@ const AddEmployeeCard = () => {
   const updateValues = (changes: Partial<IEmployeeFormValues>) =>
     setValues(current => ({ ...current, ...changes }));
 
-  const handleAdd = () =>
-    addMutation.mutate(values, { onSuccess: () => setValues(EMPTY_EMPLOYEE_FORM) });
-
   return (
-    <Card gap="24px" sx={styles.card}>
-      <CardHeader
-        icon={ICON_NAMES.CUSTOMER}
-        title={EMPLOYEES_COPY.ADD_TITLE}
-        subtitle={EMPLOYEES_COPY.ADD_SUBTITLE}
-      />
-      <Box sx={styles.sections}>
-        <Box component="section" sx={styles.accountSection}>
-          <Box component="h2" sx={styles.sectionTitle}>
-            {EMPLOYEES_COPY.ACCOUNT_SECTION_TITLE}
-          </Box>
+    <GenericPopup
+      open
+      onClose={onClose}
+      initialFocusRef={nameRef}
+      title={EMPLOYEES_COPY.ADD_TITLE}
+      closeDisabled={addMutation.isPending}
+      getActionErrorMessage={getApiErrorMessage}
+      buttons={{
+        secondary: { text: EMPLOYEES_COPY.CANCEL, isDisabled: addMutation.isPending },
+        primary: {
+          text: EMPLOYEES_COPY.ADD_BUTTON,
+          onClick: () => addMutation.mutateAsync(values),
+          isDisabled: addMutation.isPending || !canSubmitEmployeeForm(values),
+        },
+      }}
+      content={
+        <Box sx={styles.form}>
+          <TextField
+            compact
+            inputRef={nameRef}
+            isRequired
+            value={values.name}
+            type={FIELD_TYPES.TEXT}
+            title={EMPLOYEES_COPY.NAME_LABEL}
+            titleHint={EMPLOYEES_COPY.NAME_HINT}
+            onChange={name => updateValues({ name })}
+            placeholder={EMPLOYEES_COPY.NAME_PLACEHOLDER}
+          />
           <Box sx={styles.fields}>
             <TextField
-              isRequired
-              value={values.name}
-              type={FIELD_TYPES.TEXT}
-              title={EMPLOYEES_COPY.NAME_LABEL}
-              titleHint={EMPLOYEES_COPY.NAME_HINT}
-              onChange={name => updateValues({ name })}
-              placeholder={EMPLOYEES_COPY.NAME_PLACEHOLDER}
-            />
-            <TextField
+              compact
               isRequired
               value={values.email}
               type={FIELD_TYPES.EMAIL}
@@ -59,6 +66,7 @@ const AddEmployeeCard = () => {
               placeholder={EMPLOYEES_COPY.EMAIL_PLACEHOLDER}
             />
             <TextField
+              compact
               isRequired
               value={values.phone}
               type={FIELD_TYPES.PHONE}
@@ -67,6 +75,7 @@ const AddEmployeeCard = () => {
               placeholder={EMPLOYEES_COPY.PHONE_PLACEHOLDER}
             />
             <TextField
+              compact
               isLtr
               isRequired
               value={values.password}
@@ -77,6 +86,7 @@ const AddEmployeeCard = () => {
               onChange={password => updateValues({ password })}
             />
             <TextField
+              compact
               isLtr
               isRequired
               type={FIELD_TYPES.PASSWORD}
@@ -90,31 +100,14 @@ const AddEmployeeCard = () => {
           <Box component="p" sx={styles.securityHint}>
             {EMPLOYEES_COPY.PASSWORD_SHARE_HINT}
           </Box>
-        </Box>
-        <Box component="section" sx={styles.accessSection}>
-          <Box component="h2" sx={styles.sectionTitle}>
-            {EMPLOYEES_COPY.ACCESS_SECTION_TITLE}
-          </Box>
           <RoleAssignmentFields
-            columns={3}
             assignedRoles={values.assignedRoles}
             onAssignedRolesChange={assignedRoles => updateValues({ assignedRoles })}
           />
         </Box>
-      </Box>
-      <Box sx={styles.footer}>
-        {addMutation.isError && <InlineError message={getApiErrorMessage(addMutation.error)} />}
-        <Button
-          onClick={handleAdd}
-          icon={ICON_NAMES.ADD}
-          sx={styles.submitButton}
-          text={EMPLOYEES_COPY.ADD_BUTTON}
-          isLoading={addMutation.isPending}
-          disabled={!canSubmitEmployeeForm(values)}
-        />
-      </Box>
-    </Card>
+      }
+    />
   );
 };
 
-export default AddEmployeeCard;
+export default AddEmployeePopup;

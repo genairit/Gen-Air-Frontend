@@ -1,6 +1,4 @@
-import { Box } from "@mui/material";
 import { type FC, useState } from "react";
-import InlineError from "../../../components/InlineError/InlineError";
 import { EMPLOYEES_COPY } from "../../../constants/employee.constant";
 import type { IEmployee } from "../../../interfaces/employee.interface";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
@@ -35,6 +33,14 @@ const EditEmployeeRolesPopup: FC<IEditEmployeeRolesPopupProps> = ({ employee, on
       open
       onClose={onClose}
       title={EMPLOYEES_COPY.EDIT_ROLES_TITLE}
+      closeDisabled={updateMutation.isPending}
+      getActionErrorMessage={getApiErrorMessage}
+      content={
+        <RoleAssignmentFields
+          assignedRoles={assignedRoles}
+          onAssignedRolesChange={setAssignedRoles}
+        />
+      }
       buttons={{
         primary: {
           text: EMPLOYEES_COPY.SAVE_ROLE_CHANGES,
@@ -43,20 +49,9 @@ const EditEmployeeRolesPopup: FC<IEditEmployeeRolesPopupProps> = ({ employee, on
         },
         secondary: {
           text: EMPLOYEES_COPY.CANCEL,
-          onClick: onClose,
+          isDisabled: updateMutation.isPending,
         },
       }}
-      content={
-        <Box>
-          <RoleAssignmentFields
-            assignedRoles={assignedRoles}
-            onAssignedRolesChange={setAssignedRoles}
-          />
-          {updateMutation.error && (
-            <InlineError message={getApiErrorMessage(updateMutation.error)} />
-          )}
-        </Box>
-      }
     />
   );
 };

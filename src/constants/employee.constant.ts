@@ -21,14 +21,7 @@ export const EMPLOYEE_FILTERS: IEmployeeFilter[] = [
 export const EMPLOYEE_PAGE_SIZE = 5;
 
 export const EMPLOYEES_COPY = {
-  TITLE: "ניהול עובדים ומשתמשים",
-  EYEBROW: "פורטל ניהול משא״ש והרשאות אבטחה",
-  DESCRIPTION:
-    "הוספה, עריכה וניהול הרשאות ותפקידי עובדים במערכת GENAIR. הקצאת גישה מאובטחת ומעקב כניסות למנהלים, צוותי שטח ומשרד.",
-  ADD_TITLE: "הוספת עובד / משתמש חדש",
-  ADD_SUBTITLE: "יצירת חשבון משתמש, שיוך תפקיד תפעולי וקביעת סיסמת כניסה זמנית",
-  ACCOUNT_SECTION_TITLE: "פרטי חשבון",
-  ACCESS_SECTION_TITLE: "גישה ותפקידים",
+  ADD_TITLE: "הוספת עובד",
   NAME_LABEL: "שם מלא",
   NAME_PLACEHOLDER: "לדוגמה: יובל אל",
   EMAIL_LABEL: "כתובת דוא״ל",
@@ -36,7 +29,9 @@ export const EMPLOYEES_COPY = {
   PHONE_LABEL: "טלפון נייד",
   PHONE_PLACEHOLDER: "0500000000",
   ROLE_LABEL: "תפקידים משויכים",
-  ROLE_ASSIGNMENT_HELPER: "סמנו תפקיד אחד או יותר שיוקצו לעובד.",
+  ROLE_SEARCH: "חיפוש תפקיד",
+  NO_MATCHING_ROLES: "לא נמצאו תפקידים",
+  FILTER_BY_ROLE: "סינון לפי תפקיד",
   ROLE_SWITCHER_LABEL: "החלפת תפקיד פעיל",
   ROLE_ASSIGNMENT_REQUIRED: "יש לבחור לפחות תפקיד אחד",
   PASSWORD_LABEL: "סיסמה ראשונית",
