@@ -15,11 +15,14 @@ import { hasPermission } from "../../utilities/permission.utility";
 import { focusConnectedElement } from "../../utilities/focus.utility";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
-import { ESTIMATE_PARAM } from "../../constants/engineering-estimate.constant";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import { useEstimateQuery, useEstimatesQuery } from "../../hooks/engineering-estimate.hook";
 import type { IEngineeringEstimate } from "../../interfaces/engineering-estimate.interface";
 import { ESTIMATE_LIST_COLUMNS } from "../../constants/engineering-estimate-columns.constant";
+import {
+  ESTIMATE_STATUS_LABELS,
+  ESTIMATE_PARAM,
+} from "../../constants/engineering-estimate.constant";
 
 const EngineeringEstimatesPage: FC = () => {
   const styles = usePageStyles();
@@ -45,7 +48,7 @@ const EngineeringEstimatesPage: FC = () => {
   const items = list.data?.pages.flatMap(page => page.items) ?? [];
   const showList = isList && list.isSuccess && !showCreateForm;
   const showCreateAction = canStartEstimate && !showCreateForm;
-  const showJenny = canEdit && (isList || estimate !== null) && !showCreateForm;
+  const showJenny = canEdit && (isList || estimate !== null);
   const pageTitle = showCreateForm ? "כתב כמויות חדש" : (estimate?.name ?? "כתבי כמויות");
   const activeQuery = isList ? list : detail;
   const showLoading = !showCreateForm && activeQuery.isPending;
@@ -115,8 +118,8 @@ const EngineeringEstimatesPage: FC = () => {
           ariaLabel="רשימת כתבי כמויות"
           columns={ESTIMATE_LIST_COLUMNS}
           getRowId={(row): string => row.id}
-          getRowLabel={(row): string => `פתיחת ${row.name}`}
           endAdornment={items.length === 0 && <Typography>אין כתבי כמויות להצגה.</Typography>}
+          getRowLabel={(row): string => `פתיחת ${row.name} · ${ESTIMATE_STATUS_LABELS[row.status]}`}
           footer={
             list.hasNextPage && (
               <Button

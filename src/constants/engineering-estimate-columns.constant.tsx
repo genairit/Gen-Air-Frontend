@@ -88,7 +88,7 @@ export const ESTIMATE_LIST_COLUMNS: IDataTableColumn<IEstimateListItem>[] = [
   {
     id: "status",
     header: columnHeading("סטטוס"),
-    track: "minmax(75px, 0.25fr)",
+    track: "minmax(120px, 0.25fr)",
     render: (row): React.JSX.Element => (
       <Chip
         size={CHIP_SIZES.MEDIUM}
