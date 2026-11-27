@@ -2,7 +2,7 @@ import {
   SYSTEM_OPTIONS,
   toCatalogueChanges,
   createCatalogueForm,
-  CATALOGUE_FORM_FIELDS,
+  catalogueFormFields,
   validateCatalogueForm,
   EQUIPMENT_ROLE_OPTIONS,
   changedCatalogueFields,
@@ -104,31 +104,25 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
           subtitle={item ? (catalogueStatusLabel(item.status) ?? "") : ""}
         />
         <Box sx={styles.fieldGrid}>
-          {CATALOGUE_FORM_FIELDS.map(({ name, label, maxLength, required, inputMode }) => (
-            <Box key={name} sx={{ gridColumn: name === "description" ? "1 / -1" : "auto" }}>
+          {catalogueFormFields(Boolean(item)).map(field => (
+            <Box key={field.name} sx={{ gridColumn: field.gridColumn }}>
               <TextField
-                title={label}
                 disabled={locked}
-                value={form[name]}
-                isRequired={required}
-                maxLength={maxLength}
+                title={field.label}
+                isLtr={field.isLtr}
                 type={FIELD_TYPES.TEXT}
-                multiline={name === "description"}
-                readonly={name === "sku" && Boolean(item)}
-                validator={toErrorValidator(errors[name])}
-                isLtr={name === "sku" || name === "price" || name === "capacityBtu"}
+                value={form[field.name]}
+                isRequired={field.required}
+                maxLength={field.maxLength}
+                multiline={field.multiline}
+                readonly={field.inputAttributes.readOnly}
+                validator={toErrorValidator(errors[field.name])}
+                slotProps={{ htmlInput: field.inputAttributes }}
                 onChange={value => {
-                  change({ [name]: value });
-                  setErrors(previous => ({ ...previous, [name]: null }));
+                  change({ [field.name]: value });
+                  setErrors(previous => ({ ...previous, [field.name]: null }));
                 }}
-                slotProps={{
-                  htmlInput: {
-                    inputMode,
-                    readOnly: name === "sku" && Boolean(item),
-                    "aria-required": required,
-                  },
-                }}
-                {...(name === "description" && { minRows: 2 })}
+                {...field.extra}
               />
             </Box>
           ))}

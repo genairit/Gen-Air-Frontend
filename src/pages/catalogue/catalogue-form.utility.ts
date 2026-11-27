@@ -26,6 +26,23 @@ export const CATALOGUE_FORM_FIELDS = [
   },
 ] as const;
 
+export const catalogueFormFields = (editing: boolean) =>
+  CATALOGUE_FORM_FIELDS.map(field => {
+    const description = field.name === "description";
+    return {
+      ...field,
+      gridColumn: description ? "1 / -1" : "auto",
+      multiline: description,
+      inputAttributes: {
+        inputMode: field.inputMode,
+        readOnly: editing && field.name === "sku",
+        "aria-required": field.required,
+      },
+      isLtr: field.name === "sku" || field.inputMode !== "text",
+      extra: description ? { minRows: 2 } : {},
+    };
+  });
+
 export const EQUIPMENT_ROLE_OPTIONS = [
   { value: EQUIPMENT_ROLE.OTHER, label: "אחר" },
   { value: EQUIPMENT_ROLE.INDOOR, label: "יחידת פנים" },
