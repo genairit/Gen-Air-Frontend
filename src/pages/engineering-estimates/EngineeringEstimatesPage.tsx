@@ -99,15 +99,10 @@ const EngineeringEstimatesPage: FC = () => {
       )}
       {isList &&
         items.map((row): React.JSX.Element => (
-          <Card key={row.id}>
+          <Card key={row.id} ariaLabel={`פתיחת ${row.name}`} onClick={(): void => open(row)}>
             <Box sx={styles.spacedRow}>
               <Typography component="strong">{row.name}</Typography>
               <Typography sx={styles.caption}>{ESTIMATE_STATUS_LABELS[row.status]}</Typography>
-              <Button
-                text={`פתיחת ${row.name}`}
-                onClick={(): void => open(row)}
-                variant={BUTTON_VARIANTS.SECONDARY}
-              />
             </Box>
           </Card>
         ))}
