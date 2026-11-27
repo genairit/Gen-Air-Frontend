@@ -66,22 +66,24 @@ const CataloguePage = () => {
   }, [locationKey]);
 
   useEffect(() => {
-    if (showingList) {
-      const previous = returnFocus.current;
-      if (previous) {
-        focusConnectedElement(
-          previous.isConnected ? previous : (createButton.current ?? heading.current),
-        );
-      }
-      returnFocus.current = null;
-    } else {
+    if (!showingList) {
       focusConnectedElement(heading.current);
+      return;
     }
+    const trigger = returnFocus.current;
+    if (!trigger) return;
+    const frame = window.requestAnimationFrame(() => {
+      returnFocus.current = null;
+      focusConnectedElement(trigger);
+      if (trigger.ownerDocument.activeElement !== trigger) {
+        focusConnectedElement(createButton.current ?? heading.current);
+      }
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [selection, showingList]);
 
-  const open = (value: string) => {
-    returnFocus.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  const open = (value: string, trigger: HTMLElement) => {
+    returnFocus.current = trigger;
     setNotice("");
     setParams({ [ITEM_PARAM]: value });
   };
@@ -108,7 +110,7 @@ const CataloguePage = () => {
             text={CREATE_TITLE}
             icon={ICON_NAMES.ADD}
             buttonRef={createButton}
-            onClick={() => open(CREATE_VALUE)}
+            onClick={event => open(CREATE_VALUE, event.currentTarget)}
           />
         )}
         {showBackAction && (
@@ -121,7 +123,10 @@ const CataloguePage = () => {
         </Box>
       )}
       <Box hidden={!showingList}>
-        <CatalogueDirectory canManage={canManage} onOpen={row => open(row.id)} />
+        <CatalogueDirectory
+          canManage={canManage}
+          onOpen={(row, trigger) => open(row.id, trigger)}
+        />
       </Box>
       {loading && <LoadingState label="טוען פרטי פריט" />}
       {loadError && <InlineError message={getApiErrorMessage(detail.error)} />}
