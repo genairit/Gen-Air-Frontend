@@ -15,6 +15,7 @@ import ApartmentPage from "./pages/apartment/ApartmentPage";
 import ComponentsShowcase from "./pages/ComponentsShowcase";
 import EmployeesPage from "./pages/employees/EmployeesPage";
 import CustomersPage from "./pages/customers/CustomersPage";
+import CataloguePage from "./pages/catalogue/CataloguePage";
 import QuotationPage from "./pages/quotations/QuotationPage";
 import { PERMISSIONS } from "./constants/permission.constant";
 import QuotationsPage from "./pages/quotations/QuotationsPage";
@@ -39,6 +40,14 @@ export const routes: RouteObject[] = [
             element: (
               <RequireFeature permission={PERMISSIONS.QUOTATIONS_READ}>
                 <QuotationsPage />
+              </RequireFeature>
+            ),
+          },
+          {
+            path: ROUTE_PATHS.CATALOGUE,
+            element: (
+              <RequireFeature permission={PERMISSIONS.QUOTATIONS_READ}>
+                <CataloguePage />
               </RequireFeature>
             ),
           },
