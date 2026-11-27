@@ -1,8 +1,3 @@
-import {
-  ESTIMATE_PARAM,
-  ESTIMATE_STATUS_LABELS,
-} from "../../constants/engineering-estimate.constant";
-
 import { usePageStyles } from "../page.style";
 import { Box, Typography } from "@mui/material";
 import { useRef, useState, type FC } from "react";
@@ -19,23 +14,11 @@ import { hasPermission } from "../../utilities/permission.utility";
 import { focusConnectedElement } from "../../utilities/focus.utility";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
-import type { IDataTableColumn } from "../../interfaces/data-table.interface";
+import { ESTIMATE_PARAM } from "../../constants/engineering-estimate.constant";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import { useEstimateQuery, useEstimatesQuery } from "../../hooks/engineering-estimate.hook";
-import type {
-  IEstimateListItem,
-  IEngineeringEstimate,
-} from "../../interfaces/engineering-estimate.interface";
-
-const LIST_COLUMNS: IDataTableColumn<IEstimateListItem>[] = [
-  { id: "name", header: "שם כתב הכמויות", track: "minmax(0, 1fr)", render: row => row.name },
-  {
-    id: "status",
-    header: "סטטוס",
-    track: "minmax(75px, 0.25fr)",
-    render: row => ESTIMATE_STATUS_LABELS[row.status],
-  },
-];
+import type { IEngineeringEstimate } from "../../interfaces/engineering-estimate.interface";
+import { ESTIMATE_LIST_COLUMNS } from "../../constants/engineering-estimate-columns.constant";
 
 const EngineeringEstimatesPage: FC = () => {
   const styles = usePageStyles();
@@ -115,8 +98,8 @@ const EngineeringEstimatesPage: FC = () => {
           rows={items}
           padding="16px"
           onRowClick={open}
-          columns={LIST_COLUMNS}
           ariaLabel="רשימת כתבי כמויות"
+          columns={ESTIMATE_LIST_COLUMNS}
           getRowId={(row): string => row.id}
           getRowLabel={(row): string => `פתיחת ${row.name}`}
           endAdornment={items.length === 0 && <Typography>אין כתבי כמויות להצגה.</Typography>}
