@@ -1,5 +1,4 @@
 import { Box } from "@mui/material";
-import {} from "./catalogue-display.utility";
 import { usePageStyles } from "../page.style";
 import Card from "../../components/Card/Card";
 import CatalogueItemForm from "./CatalogueItemForm";
