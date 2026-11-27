@@ -5,12 +5,12 @@ import {
 
 import { usePageStyles } from "../page.style";
 import Card from "../../components/Card/Card";
-import { Box, Typography } from "@mui/material";
 import { useRef, useState, type FC } from "react";
 import { useSearchParams } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import EstimateJenny from "./components/EstimateJenny";
 import { useSessionUser } from "../../store/session.store";
+import { Box, ButtonBase, Typography } from "@mui/material";
 import EstimateWorkspace from "./components/EstimateWorkspace";
 import EstimateCreateForm from "./components/EstimateCreateForm";
 import { PERMISSIONS } from "../../constants/permission.constant";
@@ -19,12 +19,14 @@ import { hasPermission } from "../../utilities/permission.utility";
 import { focusConnectedElement } from "../../utilities/focus.utility";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import { useEstimateListStyles } from "./EngineeringEstimatesPage.style";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import { useEstimateQuery, useEstimatesQuery } from "../../hooks/engineering-estimate.hook";
 import type { IEngineeringEstimate } from "../../interfaces/engineering-estimate.interface";
 
 const EngineeringEstimatesPage: FC = () => {
   const styles = usePageStyles();
+  const listStyles = useEstimateListStyles();
   const user = useSessionUser();
   const [creating, setCreating] = useState(false);
   const createTrigger = useRef<HTMLButtonElement | null>(null);
@@ -43,6 +45,7 @@ const EngineeringEstimatesPage: FC = () => {
   const canStartEstimate = isList && canEdit;
   const showCreateForm = canStartEstimate && creating;
   const items = list.data?.pages.flatMap(page => page.items) ?? [];
+  const showList = isList && list.isSuccess;
   const activeQuery = isList ? list : detail;
   const cancelCreate = (): void => {
     setCreating(false);
@@ -94,27 +97,35 @@ const EngineeringEstimatesPage: FC = () => {
           canLinkProject={hasPermission(user, PERMISSIONS.PROJECTS_READ)}
         />
       )}
-      {isList && list.isSuccess && items.length === 0 && (
-        <Typography>אין כתבי כמויות להצגה.</Typography>
-      )}
-      {isList &&
-        items.map((row): React.JSX.Element => (
-          <Card key={row.id} ariaLabel={`פתיחת ${row.name}`} onClick={(): void => open(row)}>
-            <Box sx={styles.spacedRow}>
-              <Typography component="strong">{row.name}</Typography>
-              <Typography sx={styles.caption}>{ESTIMATE_STATUS_LABELS[row.status]}</Typography>
-            </Box>
-          </Card>
-        ))}
-      {isList && list.hasNextPage && (
-        <Button
-          text="טענו עוד"
-          disabled={list.isFetchingNextPage}
-          isLoading={list.isFetchingNextPage}
-          onClick={async (): Promise<void> => {
-            await list.fetchNextPage();
-          }}
-        />
+      {showList && (
+        <Card ariaLabel="רשימת כתבי כמויות">
+          {items.length === 0 && <Typography>אין כתבי כמויות להצגה.</Typography>}
+          {items.map((row): React.JSX.Element => (
+            <ButtonBase
+              key={row.id}
+              sx={listStyles.row}
+              onClick={(): void => open(row)}
+              aria-label={`פתיחת ${row.name}`}
+            >
+              <Typography component="span" sx={listStyles.name}>
+                {row.name}
+              </Typography>
+              <Typography component="span" sx={styles.caption}>
+                {ESTIMATE_STATUS_LABELS[row.status]}
+              </Typography>
+            </ButtonBase>
+          ))}
+          {list.hasNextPage && (
+            <Button
+              text="טענו עוד"
+              disabled={list.isFetchingNextPage}
+              isLoading={list.isFetchingNextPage}
+              onClick={async (): Promise<void> => {
+                await list.fetchNextPage();
+              }}
+            />
+          )}
+        </Card>
       )}
       {estimate && (
         <EstimateWorkspace
