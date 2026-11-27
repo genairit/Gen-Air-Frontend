@@ -1,16 +1,11 @@
-import {
-  ESTIMATE_PARAM,
-  ESTIMATE_STATUS_LABELS,
-} from "../../constants/engineering-estimate.constant";
-
 import { usePageStyles } from "../page.style";
-import Card from "../../components/Card/Card";
 import { Box, Typography } from "@mui/material";
 import { useRef, useState, type FC } from "react";
 import { useSearchParams } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import EstimateJenny from "./components/EstimateJenny";
 import { useSessionUser } from "../../store/session.store";
+import DataTable from "../../components/DataTable/DataTable";
 import EstimateWorkspace from "./components/EstimateWorkspace";
 import EstimateCreateForm from "./components/EstimateCreateForm";
 import { PERMISSIONS } from "../../constants/permission.constant";
@@ -19,9 +14,11 @@ import { hasPermission } from "../../utilities/permission.utility";
 import { focusConnectedElement } from "../../utilities/focus.utility";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import { ESTIMATE_PARAM } from "../../constants/engineering-estimate.constant";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import { useEstimateQuery, useEstimatesQuery } from "../../hooks/engineering-estimate.hook";
 import type { IEngineeringEstimate } from "../../interfaces/engineering-estimate.interface";
+import { ESTIMATE_LIST_COLUMNS } from "../../constants/engineering-estimate-columns.constant";
 
 const EngineeringEstimatesPage: FC = () => {
   const styles = usePageStyles();
@@ -43,6 +40,7 @@ const EngineeringEstimatesPage: FC = () => {
   const canStartEstimate = isList && canEdit;
   const showCreateForm = canStartEstimate && creating;
   const items = list.data?.pages.flatMap(page => page.items) ?? [];
+  const showList = isList && list.isSuccess;
   const activeQuery = isList ? list : detail;
   const cancelCreate = (): void => {
     setCreating(false);
@@ -94,31 +92,29 @@ const EngineeringEstimatesPage: FC = () => {
           canLinkProject={hasPermission(user, PERMISSIONS.PROJECTS_READ)}
         />
       )}
-      {isList && list.isSuccess && items.length === 0 && (
-        <Typography>אין כתבי כמויות להצגה.</Typography>
-      )}
-      {isList &&
-        items.map((row): React.JSX.Element => (
-          <Card key={row.id}>
-            <Box sx={styles.spacedRow}>
-              <Typography component="strong">{row.name}</Typography>
-              <Typography sx={styles.caption}>{ESTIMATE_STATUS_LABELS[row.status]}</Typography>
+      {showList && (
+        <DataTable
+          minWidth={0}
+          rows={items}
+          padding="16px"
+          onRowClick={open}
+          ariaLabel="רשימת כתבי כמויות"
+          columns={ESTIMATE_LIST_COLUMNS}
+          getRowId={(row): string => row.id}
+          getRowLabel={(row): string => `פתיחת ${row.name}`}
+          endAdornment={items.length === 0 && <Typography>אין כתבי כמויות להצגה.</Typography>}
+          footer={
+            list.hasNextPage && (
               <Button
-                text={`פתיחת ${row.name}`}
-                onClick={(): void => open(row)}
-                variant={BUTTON_VARIANTS.SECONDARY}
+                text="טענו עוד"
+                disabled={list.isFetchingNextPage}
+                isLoading={list.isFetchingNextPage}
+                onClick={async (): Promise<void> => {
+                  await list.fetchNextPage();
+                }}
               />
-            </Box>
-          </Card>
-        ))}
-      {isList && list.hasNextPage && (
-        <Button
-          text="טענו עוד"
-          disabled={list.isFetchingNextPage}
-          isLoading={list.isFetchingNextPage}
-          onClick={async (): Promise<void> => {
-            await list.fetchNextPage();
-          }}
+            )
+          }
         />
       )}
       {estimate && (
