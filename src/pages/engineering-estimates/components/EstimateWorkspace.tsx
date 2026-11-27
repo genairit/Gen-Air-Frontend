@@ -4,6 +4,7 @@ import {
 } from "../../../hooks/engineering-estimate.hook";
 
 import {
+  ESTIMATE_SCOPE_LABELS,
   ESTIMATE_STATUS_LABELS,
   ESTIMATE_WORKSPACE_TAB,
   ESTIMATE_WORKSPACE_TABS,
@@ -17,6 +18,7 @@ import type {
 
 import { Box, Typography } from "@mui/material";
 import EstimateOutputs from "./EstimateOutputs";
+import Chip from "../../../components/Chip/Chip";
 import { useId, useState, type FC } from "react";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
@@ -27,10 +29,13 @@ import EstimateScopeField from "./EstimateScopeField";
 import Button from "../../../components/Button/Button";
 import EstimateProjectPicker from "./EstimateProjectPicker";
 import { TAB_MODES } from "../../../constants/tabs.constant";
+import { CHIP_SIZES } from "../../../constants/chip.constant";
 import TextField from "../../../components/TextField/TextField";
+import { useEstimateStyles } from "../engineering-estimates.style";
 import InlineError from "../../../components/InlineError/InlineError";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
+import { ESTIMATE_TYPOGRAPHY } from "../../../styles/engineering-estimate-typography.style";
 import { engineeringEstimateService } from "../../../services/engineering-estimate.service";
 
 interface IEstimateWorkspaceProps {
@@ -53,6 +58,7 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
   canExportQuotation,
 }) => {
   const styles = usePageStyles();
+  const estimateStyles = useEstimateStyles();
   const detailsId = useId();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(ESTIMATE_WORKSPACE_TAB.QUANTITIES);
@@ -102,10 +108,17 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
   return (
     <Box sx={styles.stack({ gap: "12px" })}>
       <Box sx={styles.spacedRow}>
-        <Box sx={styles.headerText}>
-          <Typography component="h2">{estimate.name}</Typography>
-          <Typography sx={styles.caption}>
-            גרסה {estimate.version} · {ESTIMATE_STATUS_LABELS[estimate.status]}
+        <Box sx={estimateStyles.details}>
+          <Chip
+            size={CHIP_SIZES.MEDIUM}
+            sx={ESTIMATE_TYPOGRAPHY.status}
+            label={ESTIMATE_STATUS_LABELS[estimate.status]}
+          />
+          <Typography component="span" sx={ESTIMATE_TYPOGRAPHY.status}>
+            גרסה {estimate.version}
+          </Typography>
+          <Typography component="span" sx={ESTIMATE_TYPOGRAPHY.status}>
+            {ESTIMATE_SCOPE_LABELS[estimate.scope]}
           </Typography>
         </Box>
         {canEdit && (
@@ -120,7 +133,10 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
       </Box>
       {canEdit && detailsOpen && (
         <Box id={detailsId}>
-          <Card>
+          <Card gap="18px" padding="24px">
+            <Typography component="h2" sx={ESTIMATE_TYPOGRAPHY.section}>
+              פרטי כתב הכמויות
+            </Typography>
             <Box sx={styles.grid({ minColumnWidth: 240, gap: "12px" })}>
               <Box sx={styles.stack({ gap: "8px" })}>
                 <TextField

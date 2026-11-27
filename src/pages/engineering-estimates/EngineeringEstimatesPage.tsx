@@ -1,13 +1,14 @@
 import { usePageStyles } from "../page.style";
 import { Box, Typography } from "@mui/material";
-import { useRef, useState, type FC } from "react";
 import { useSearchParams } from "react-router-dom";
 import Button from "../../components/Button/Button";
 import EstimateJenny from "./components/EstimateJenny";
 import { useSessionUser } from "../../store/session.store";
+import { useEffect, useRef, useState, type FC } from "react";
 import DataTable from "../../components/DataTable/DataTable";
 import EstimateWorkspace from "./components/EstimateWorkspace";
 import EstimateCreateForm from "./components/EstimateCreateForm";
+import { useEstimateStyles } from "./engineering-estimates.style";
 import { PERMISSIONS } from "../../constants/permission.constant";
 import InlineError from "../../components/InlineError/InlineError";
 import { hasPermission } from "../../utilities/permission.utility";
@@ -22,8 +23,10 @@ import { ESTIMATE_LIST_COLUMNS } from "../../constants/engineering-estimate-colu
 
 const EngineeringEstimatesPage: FC = () => {
   const styles = usePageStyles();
+  const estimateStyles = useEstimateStyles();
   const user = useSessionUser();
   const [creating, setCreating] = useState(false);
+  const restoreCreateFocus = useRef(false);
   const createTrigger = useRef<HTMLButtonElement | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
   const estimateId = searchParams.get(ESTIMATE_PARAM);
@@ -40,11 +43,23 @@ const EngineeringEstimatesPage: FC = () => {
   const canStartEstimate = isList && canEdit;
   const showCreateForm = canStartEstimate && creating;
   const items = list.data?.pages.flatMap(page => page.items) ?? [];
-  const showList = isList && list.isSuccess;
+  const showList = isList && list.isSuccess && !showCreateForm;
+  const showCreateAction = canStartEstimate && !showCreateForm;
+  const showJenny = canEdit && (isList || estimate !== null) && !showCreateForm;
+  const pageTitle = showCreateForm ? "כתב כמויות חדש" : (estimate?.name ?? "כתבי כמויות");
   const activeQuery = isList ? list : detail;
+  const showLoading = !showCreateForm && activeQuery.isPending;
+  const showError = !showCreateForm && activeQuery.isError;
+  useEffect((): void => {
+    if (!showCreateForm && restoreCreateFocus.current) {
+      restoreCreateFocus.current = false;
+      focusConnectedElement(createTrigger.current);
+    }
+  }, [showCreateForm]);
+
   const cancelCreate = (): void => {
+    restoreCreateFocus.current = true;
     setCreating(false);
-    focusConnectedElement(createTrigger.current);
   };
   const open = (selected: Pick<IEngineeringEstimate, "id">): void => {
     setCreating(false);
@@ -54,14 +69,13 @@ const EngineeringEstimatesPage: FC = () => {
   return (
     <Box sx={styles.page}>
       <Box sx={styles.header}>
-        <Typography component="h1" sx={styles.heading}>
-          כתבי כמויות
+        <Typography component="h1" sx={estimateStyles.title}>
+          {pageTitle}
         </Typography>
-        {canStartEstimate && (
+        {showCreateAction && (
           <Button
             text="כתב כמויות חדש"
             buttonRef={createTrigger}
-            ariaExpanded={showCreateForm}
             onClick={(): void => setCreating(true)}
           />
         )}
@@ -73,8 +87,8 @@ const EngineeringEstimatesPage: FC = () => {
           />
         )}
       </Box>
-      {activeQuery.isPending && <LoadingState />}
-      {activeQuery.isError && (
+      {showLoading && <LoadingState />}
+      {showError && (
         <Box sx={styles.stack({ gap: "12px" })}>
           <InlineError message={getApiErrorMessage(activeQuery.error)} />
           <Button
@@ -129,9 +143,7 @@ const EngineeringEstimatesPage: FC = () => {
           canExportQuotation={canExportQuotation}
         />
       )}
-      {canEdit && (isList || estimate) && (
-        <EstimateJenny onCreated={open} estimate={estimate} canBrowse={canBrowse} />
-      )}
+      {showJenny && <EstimateJenny onCreated={open} estimate={estimate} canBrowse={canBrowse} />}
     </Box>
   );
 };

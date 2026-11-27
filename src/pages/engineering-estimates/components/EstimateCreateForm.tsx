@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
+import EstimateSection from "./EstimateSection";
 import { usePageStyles } from "../../page.style";
-import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
 import EstimateProjectPicker from "./EstimateProjectPicker";
 import TextField from "../../../components/TextField/TextField";
@@ -48,14 +48,14 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
   };
 
   return (
-    <Card>
+    <EstimateSection title="פרטי כתב הכמויות">
       <Box
         component="form"
         onSubmit={submit}
         aria-label="כתב כמויות חדש"
-        sx={styles.stack({ gap: "12px" })}
+        sx={styles.stack({ gap: "20px" })}
       >
-        <Box sx={styles.grid({ minColumnWidth: 240, gap: "12px" })}>
+        <Box sx={styles.grid({ minColumnWidth: 240, gap: "20px" })}>
           <TextField
             required
             isRequired
@@ -91,7 +91,7 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
           />
         </Box>
       </Box>
-    </Card>
+    </EstimateSection>
   );
 };
 
