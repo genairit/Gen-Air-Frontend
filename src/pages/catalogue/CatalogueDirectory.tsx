@@ -24,7 +24,7 @@ import { cataloguePrice, catalogueCapacity, catalogueRowLabel } from "./catalogu
 
 interface ICatalogueDirectoryProps {
   canManage: boolean;
-  onOpen: (item: ICatalogueItem, trigger: HTMLElement) => void;
+  onOpen: (item: ICatalogueItem) => void;
 }
 
 const SEARCH_LABEL = "חיפוש לפי מק״ט, תיאור או BTU";
@@ -109,8 +109,9 @@ const CatalogueDirectory = ({ canManage, onOpen }: ICatalogueDirectoryProps) => 
           <ChoiceRow
             key={item.id}
             sx={styles.mobileRow}
+            data-row-id={item.id}
+            onClick={() => onOpen(item)}
             aria-label={catalogueRowLabel(item)}
-            onClick={event => onOpen(item, event.currentTarget)}
           >
             <CatalogueItemName item={item} />
             <Box component="bdi">{item.sku}</Box>

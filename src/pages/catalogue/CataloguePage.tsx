@@ -47,7 +47,8 @@ const CataloguePage = () => {
   const editing = Boolean(item && canManage && item.status !== CATALOGUE_STATUS.ARCHIVED);
   const heading = useRef<HTMLHeadingElement>(null);
   const createButton = useRef<HTMLButtonElement>(null);
-  const returnFocus = useRef<HTMLElement | null>(null);
+  const list = useRef<HTMLDivElement>(null);
+  const returnFocusId = useRef<string | null>(null);
   const [notice, setNotice] = useState("");
   const title = cataloguePageTitle(creating, editing, Boolean(item));
   const showCreateAction = showingList && canManage;
@@ -70,20 +71,21 @@ const CataloguePage = () => {
       focusConnectedElement(heading.current);
       return;
     }
-    const trigger = returnFocus.current;
-    if (!trigger) return;
+    const id = returnFocusId.current;
+    if (!id) return;
     const frame = window.requestAnimationFrame(() => {
-      returnFocus.current = null;
-      focusConnectedElement(trigger);
-      if (trigger.ownerDocument.activeElement !== trigger) {
-        focusConnectedElement(createButton.current ?? heading.current);
-      }
+      returnFocusId.current = null;
+      const row =
+        id === CREATE_VALUE
+          ? null
+          : list.current?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(id)}"]`);
+      focusConnectedElement(row ?? createButton.current ?? heading.current);
     });
     return () => window.cancelAnimationFrame(frame);
   }, [selection, showingList]);
 
-  const open = (value: string, trigger: HTMLElement) => {
-    returnFocus.current = trigger;
+  const open = (value: string) => {
+    returnFocusId.current = value;
     setNotice("");
     setParams({ [ITEM_PARAM]: value });
   };
@@ -110,7 +112,7 @@ const CataloguePage = () => {
             text={CREATE_TITLE}
             icon={ICON_NAMES.ADD}
             buttonRef={createButton}
-            onClick={event => open(CREATE_VALUE, event.currentTarget)}
+            onClick={() => open(CREATE_VALUE)}
           />
         )}
         {showBackAction && (
@@ -122,11 +124,8 @@ const CataloguePage = () => {
           {notice}
         </Box>
       )}
-      <Box hidden={!showingList}>
-        <CatalogueDirectory
-          canManage={canManage}
-          onOpen={(row, trigger) => open(row.id, trigger)}
-        />
+      <Box ref={list} hidden={!showingList}>
+        <CatalogueDirectory canManage={canManage} onOpen={row => open(row.id)} />
       </Box>
       {loading && <LoadingState label="טוען פרטי פריט" />}
       {loadError && <InlineError message={getApiErrorMessage(detail.error)} />}

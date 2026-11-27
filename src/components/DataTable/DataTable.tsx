@@ -1,8 +1,8 @@
 import Card from "../Card/Card";
 import { Box } from "@mui/material";
+import type { ReactNode, Ref } from "react";
 import { useStyles } from "./DataTable.style";
 import ChoiceRow from "../ChoiceRow/ChoiceRow";
-import type { MouseEvent, ReactNode, Ref } from "react";
 import type { IDataTableColumn } from "../../interfaces/data-table.interface";
 
 interface IDataTableProps<TRow> {
@@ -15,11 +15,11 @@ interface IDataTableProps<TRow> {
   scrollMaxHeight?: string;
   endAdornment?: ReactNode;
   getRowId: (row: TRow) => string;
+  onRowClick?: (row: TRow) => void;
   scrollerRef?: Ref<HTMLDivElement>;
   columns: IDataTableColumn<TRow>[];
   getRowLabel?: (row: TRow) => string;
   isRowDimmed?: (row: TRow) => boolean;
-  onRowClick?: (row: TRow, trigger: HTMLElement) => void;
 }
 
 const getGridTemplate = <TRow,>(columns: IDataTableColumn<TRow>[]) =>
@@ -70,8 +70,9 @@ const DataTable = <TRow,>({
               <ChoiceRow
                 key={id}
                 sx={rowSx}
+                data-row-id={id}
                 aria-label={getRowLabel(row)}
-                onClick={(event): void => onRowClick(row, event.currentTarget)}
+                onClick={(): void => onRowClick(row)}
               >
                 {columns.map(column => (
                   <Box key={column.id} component="span">
@@ -83,15 +84,7 @@ const DataTable = <TRow,>({
           }
 
           return (
-            <Box
-              key={id}
-              role="row"
-              sx={rowSx}
-              onClick={
-                onRowClick &&
-                ((event: MouseEvent<HTMLDivElement>) => onRowClick(row, event.currentTarget))
-              }
-            >
+            <Box key={id} role="row" sx={rowSx} onClick={onRowClick && (() => onRowClick(row))}>
               {columns.map(column => (
                 <Box role="cell" key={column.id}>
                   {column.render(row)}
