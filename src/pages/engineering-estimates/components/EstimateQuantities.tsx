@@ -14,6 +14,7 @@ import EstimateCatalogueLine from "./EstimateCatalogueLine";
 import DataTable from "../../../components/DataTable/DataTable";
 import SelectField from "../../../components/SelectField/SelectField";
 import { quotationMoney } from "../../../utilities/quotation.utility";
+import { CommandIdentityManager } from "../../../managers/command-identity.manager";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { ESTIMATE_COLUMNS } from "../../../constants/engineering-estimate-columns.constant";
 
@@ -49,6 +50,9 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
   };
   const saveLine = (line: IEstimateInputLine): void => {
     if (!selectedArea) {
+      onChange([
+        { id: CommandIdentityManager.create(), name: "כללי", repeatCount: 1, lines: [line] },
+      ]);
       return;
     }
 
@@ -80,7 +84,9 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
       return { value: line.id, label };
     }),
   ];
-  const lineEditorKey = `line-editor:${selectedLine?.id ?? selectedAreaId}`;
+  const lineEditorKey = selectedLine
+    ? `line-editor:${selectedLine.id}`
+    : `new-line:${selectedAreaId}:${inputLines.length}`;
   const editorProps =
     selectedLine && selectedLineLabel
       ? { initial: selectedLine, itemLabel: selectedLineLabel }
@@ -88,6 +94,45 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
 
   return (
     <Box sx={styles.stack({ gap: "12px" })}>
+      {canEdit && (
+        <Box sx={styles.stack({ gap: "12px" })}>
+          <Typography component="h3">פריטים מהקטלוג</Typography>
+          {areas.length > 1 && (
+            <SelectField
+              items={items}
+              disabled={busy}
+              title="אזור לעריכה"
+              value={selectedAreaId}
+              ariaLabel="אזור לעריכה"
+              onChange={(event): void => chooseArea(event.target.value)}
+            />
+          )}
+          {inputLines.length > 0 && (
+            <SelectField
+              disabled={busy}
+              items={lineOptions}
+              title="פריט לעריכה"
+              ariaLabel="פריט לעריכה"
+              value={selectedLine?.id ?? ""}
+              onChange={(event): void => setLineId(event.target.value)}
+            />
+          )}
+          <EstimateCatalogueLine
+            busy={busy}
+            onSave={saveLine}
+            key={lineEditorKey}
+            {...editorProps}
+          />
+          {selectedLine && (
+            <Button
+              disabled={busy}
+              text="הסרת פריט"
+              onClick={removeLine}
+              variant={BUTTON_VARIANTS.DANGER}
+            />
+          )}
+        </Box>
+      )}
       {areas.map((area): React.JSX.Element => {
         const rows = estimate.lines
           .filter(line => line.areaId === area.id)
@@ -109,49 +154,18 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
       <Typography component="strong">
         סה״כ לפני מע״מ · {quotationMoney(estimate.subtotal)}
       </Typography>
+
       {canEdit && (
         <Box sx={styles.grid({ minColumnWidth: 250 })}>
-          <EstimateAreaEditor busy={busy} areas={areas} key={areas.length} onChange={onChange} />
           {selectedArea && (
-            <Box sx={styles.stack({ gap: "12px" })}>
-              <SelectField
-                items={items}
-                disabled={busy}
-                title="אזור לעריכה"
-                value={selectedAreaId}
-                ariaLabel="אזור לעריכה"
-                onChange={(event): void => chooseArea(event.target.value)}
-              />
-              <EstimateAreaUpdate
-                busy={busy}
-                area={selectedArea}
-                onChange={updateArea}
-                key={`area-editor:${selectedArea.id}`}
-              />
-              <SelectField
-                disabled={busy}
-                items={lineOptions}
-                title="פריט לעריכה"
-                ariaLabel="פריט לעריכה"
-                value={selectedLine?.id ?? ""}
-                onChange={(event): void => setLineId(event.target.value)}
-              />
-              <EstimateCatalogueLine
-                busy={busy}
-                onSave={saveLine}
-                key={lineEditorKey}
-                {...editorProps}
-              />
-              {selectedLine && (
-                <Button
-                  disabled={busy}
-                  text="הסרת פריט"
-                  onClick={removeLine}
-                  variant={BUTTON_VARIANTS.DANGER}
-                />
-              )}
-            </Box>
+            <EstimateAreaUpdate
+              busy={busy}
+              area={selectedArea}
+              onChange={updateArea}
+              key={`area-editor:${selectedArea.id}`}
+            />
           )}
+          <EstimateAreaEditor busy={busy} areas={areas} key={areas.length} onChange={onChange} />
         </Box>
       )}
     </Box>
