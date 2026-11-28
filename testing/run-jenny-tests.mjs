@@ -23,6 +23,21 @@ await runBundledTest({
   external: ["@tanstack/react-query", "react-router-dom", "axios"],
   plugins: [
     {
+      name: "estimate-autocomplete-boundary",
+      resolveId: source =>
+        source.endsWith("/Autocomplete/Autocomplete") ? "\0estimate-autocomplete" : null,
+      load: id =>
+        id === "\0estimate-autocomplete"
+          ? "export default function Autocomplete() { return null; }"
+          : null,
+    },
+    {
+      name: "estimate-css-module-boundary",
+      resolveId: source =>
+        source.endsWith("estimate-document.module.css") ? "\0estimate-test-css" : null,
+      load: id => (id === "\0estimate-test-css" ? "export default {};" : null),
+    },
+    {
       name: "jenny-portal-boundary",
       transform: (code, id) => {
         const portalStub = findPortalStub(id);

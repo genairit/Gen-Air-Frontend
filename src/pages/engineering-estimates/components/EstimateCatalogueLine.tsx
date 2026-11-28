@@ -33,14 +33,14 @@ const EstimateCatalogueLine: FC<IEstimateCatalogueLineProps> = ({
   const optionsId = useId();
   const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedLabel, setSelectedLabel] = useState(itemLabel);
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const debounced = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
   const catalogue = useQuotationCatalogueQuery({ search: debounced }, debounced.length > 0);
   const items =
     catalogue.data?.map(item => ({ value: item.id, label: `${item.sku} · ${item.description}` })) ??
     [];
   const selected = line.catalogueItemId
-    ? { value: line.catalogueItemId, label: selectedLabel || itemLabel }
+    ? { value: line.catalogueItemId, label: selectedLabel ?? itemLabel }
     : null;
   const measurements = line.measurements ?? initialEstimateMeasurements();
   const measurementsLabel = line.measurements
@@ -59,77 +59,85 @@ const EstimateCatalogueLine: FC<IEstimateCatalogueLineProps> = ({
   };
   return (
     <>
-      <Box component="div" className={styles.line}>
-        <Autocomplete
-          isClearable
-          items={items}
-          disabled={busy}
-          onChange={choose}
-          onSearch={setSearch}
-          selectedItem={selected}
-          isClientFiltered={false}
-          title="בחירת פריט מהקטלוג"
-          isLoading={catalogue.isFetching}
-          value={line.catalogueItemId || null}
-          placeholder="חיפוש לפי מק״ט או תיאור"
-        />
-        <TextField
-          compact
-          disabled={busy}
-          value={line.quantity}
-          title="כמות לאזור אחד"
-          type={FIELD_TYPES.NUMBER}
-          onChange={quantity => onChange({ ...line, quantity })}
-        />
-      </Box>
-      {catalogue.isError && <InlineError message={getApiErrorMessage(catalogue.error)} />}
-      <Box component="div" className={styles.actions}>
-        <Button
-          disabled={busy}
-          text="מדידות וכללים"
-          ariaExpanded={expanded}
-          ariaControls={optionsId}
-          variant={BUTTON_VARIANTS.SECONDARY}
-          onClick={() => setExpanded(!expanded)}
-        />
-        <Button
-          disabled={busy}
-          text="הסרת פריט"
-          onClick={onRemove}
-          variant={BUTTON_VARIANTS.SECONDARY}
-        />
-      </Box>
-      {!valid && (
-        <Box component="p" role="status">
-          בחרו פריט והשלימו כמות ומדידות תקינות לחישוב.
+      <Box component="tr">
+        <Box component="td">
+          <Autocomplete
+            isClearable
+            items={items}
+            disabled={busy}
+            onChange={choose}
+            onSearch={setSearch}
+            selectedItem={selected}
+            isClientFiltered={false}
+            title="בחירת פריט מהקטלוג"
+            isLoading={catalogue.isFetching}
+            value={line.catalogueItemId || null}
+            placeholder="חיפוש לפי מק״ט או תיאור"
+          />
         </Box>
-      )}
-      <Box id={optionsId} component="div" hidden={!expanded}>
-        <Box component="div" className={styles.options}>
+        <Box component="td">
           <TextField
             compact
-            maxLength={500}
             disabled={busy}
-            type={FIELD_TYPES.TEXT}
-            value={line.source ?? ""}
-            title="מקור המדידה (אופציונלי)"
-            onChange={source => onChange({ ...line, source })}
+            value={line.quantity}
+            title="כמות לאזור אחד"
+            type={FIELD_TYPES.NUMBER}
+            onChange={quantity => onChange({ ...line, quantity })}
           />
-          <Button
-            disabled={busy}
-            text={measurementsLabel}
-            variant={BUTTON_VARIANTS.SECONDARY}
-            onClick={() =>
-              line.measurements ? removeRules() : onChange({ ...line, measurements })
-            }
-          />
-          {line.measurements && (
-            <EstimateMeasurementFields
-              busy={busy}
-              value={measurements}
-              onChange={next => onChange({ ...line, measurements: next })}
+        </Box>
+        <Box component="td">
+          {catalogue.isError && <InlineError message={getApiErrorMessage(catalogue.error)} />}
+          <Box component="div" className={styles.actions}>
+            <Button
+              disabled={busy}
+              text="מדידות וכללים"
+              ariaExpanded={expanded}
+              ariaControls={optionsId}
+              variant={BUTTON_VARIANTS.SECONDARY}
+              onClick={() => setExpanded(!expanded)}
             />
+            <Button
+              disabled={busy}
+              text="הסרת פריט"
+              onClick={onRemove}
+              variant={BUTTON_VARIANTS.SECONDARY}
+            />
+          </Box>
+          {!valid && (
+            <Box component="p" role="status">
+              בחרו פריט והשלימו כמות ומדידות תקינות לחישוב.
+            </Box>
           )}
+        </Box>
+      </Box>
+      <Box id={optionsId} component="tr" hidden={!expanded}>
+        <Box colSpan={3} component="td">
+          <Box component="div" className={styles.options}>
+            <TextField
+              compact
+              maxLength={500}
+              disabled={busy}
+              type={FIELD_TYPES.TEXT}
+              value={line.source ?? ""}
+              title="מקור המדידה (אופציונלי)"
+              onChange={source => onChange({ ...line, source })}
+            />
+            <Button
+              disabled={busy}
+              text={measurementsLabel}
+              variant={BUTTON_VARIANTS.SECONDARY}
+              onClick={() =>
+                line.measurements ? removeRules() : onChange({ ...line, measurements })
+              }
+            />
+            {line.measurements && (
+              <EstimateMeasurementFields
+                busy={busy}
+                value={measurements}
+                onChange={next => onChange({ ...line, measurements: next })}
+              />
+            )}
+          </Box>
         </Box>
       </Box>
     </>

@@ -50,7 +50,7 @@ const EngineeringEstimatesPage: FC = () => {
   const items = list.data?.pages.flatMap(page => page.items) ?? [];
   const showList = isList && list.isSuccess && !showCreateForm;
   const showCreateAction = canStartEstimate && !showCreateForm;
-  const showJenny = canEdit && !creating && !editing && (isList || estimate !== null);
+  const showJenny = canEdit && (isList || estimate !== null);
   const pageTitle = showCreateForm ? "כתב כמויות חדש" : (estimate?.name ?? "כתבי כמויות");
   const activeQuery = isList ? list : detail;
   const showLoading = !showCreateForm && activeQuery.isPending;
@@ -149,7 +149,14 @@ const EngineeringEstimatesPage: FC = () => {
           canExportQuotation={canExportQuotation}
         />
       )}
-      {showJenny && <EstimateJenny onCreated={open} estimate={estimate} canBrowse={canBrowse} />}
+      {showJenny && (
+        <EstimateJenny
+          onCreated={open}
+          estimate={estimate}
+          canBrowse={canBrowse}
+          suspended={creating || editing}
+        />
+      )}
     </Box>
   );
 };

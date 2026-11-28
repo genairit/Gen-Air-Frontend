@@ -1,3 +1,8 @@
+import {
+  ESTIMATE_DOCUMENT_PANEL,
+  ESTIMATE_DOCUMENT_PANELS,
+} from "../../../constants/engineering-estimate.constant";
+
 import type {
   IEstimateArea,
   IEngineeringEstimate,
@@ -26,11 +31,11 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
   estimate,
   onChange,
 }) => {
-  const [panel, setPanel] = useState("editor");
+  const [panel, setPanel] = useState<string>(ESTIMATE_DOCUMENT_PANEL.EDITOR);
   const preview = useEstimatePreview({ areas: estimate.areas, scope: estimate.scope }, canEdit);
   const pricing = canEdit ? preview.data : estimate;
-  const editorClass = panel === "editor" ? "" : styles.hidden;
-  const previewClass = panel === "preview" ? "" : styles.hidden;
+  const editorClass = panel === ESTIMATE_DOCUMENT_PANEL.EDITOR ? "" : styles.hidden;
+  const previewClass = panel === ESTIMATE_DOCUMENT_PANEL.PREVIEW ? "" : styles.hidden;
   return (
     <>
       {canEdit && (
@@ -39,10 +44,7 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
             activeId={panel}
             onChange={setPanel}
             ariaLabel="עורך ותצוגה מקדימה"
-            items={[
-              { id: "editor", label: "עריכה" },
-              { id: "preview", label: "תצוגה מקדימה" },
-            ]}
+            items={ESTIMATE_DOCUMENT_PANELS}
           />
         </Box>
       )}
@@ -53,7 +55,7 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
               busy={busy}
               onChange={onChange}
               areas={estimate.areas}
-              lines={preview.data?.lines ?? []}
+              lines={preview.data?.lines ?? estimate.lines}
             />
           </Box>
         )}
@@ -68,8 +70,8 @@ const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
               <InlineError message={getApiErrorMessage(preview.error)} />
               <Button
                 text="חישוב מחדש"
-                onClick={() => {
-                  void preview.refetch();
+                onClick={async () => {
+                  await preview.refetch();
                 }}
               />
             </>

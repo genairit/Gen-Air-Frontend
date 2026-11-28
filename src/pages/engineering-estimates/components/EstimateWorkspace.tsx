@@ -19,7 +19,6 @@ import type {
 import { Box, Typography } from "@mui/material";
 import EstimateOutputs from "./EstimateOutputs";
 import Chip from "../../../components/Chip/Chip";
-import { useId, useState, type FC } from "react";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Tabs from "../../../components/Tabs/Tabs";
@@ -27,6 +26,7 @@ import EstimateQuestions from "./EstimateQuestions";
 import EstimateQuantities from "./EstimateQuantities";
 import EstimateScopeField from "./EstimateScopeField";
 import Button from "../../../components/Button/Button";
+import { useId, useState, useEffect, type FC } from "react";
 import EstimateProjectPicker from "./EstimateProjectPicker";
 import { TAB_MODES } from "../../../constants/tabs.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
@@ -61,6 +61,7 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
   canExportQuotation,
   onEditingChange,
 }) => {
+  useEffect(() => () => onEditingChange(false), [onEditingChange]);
   const styles = usePageStyles();
   const estimateStyles = useEstimateStyles();
   const detailsId = useId();

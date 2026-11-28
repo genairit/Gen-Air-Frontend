@@ -90,13 +90,7 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
         />
       </Box>
       <Box sx={styles.row({ gap: "8px" })}>
-        <Button
-          type="submit"
-          onClick={save}
-          isLoading={busy}
-          text="יצירת כתב כמויות"
-          disabled={!valid || busy}
-        />
+        <Button type="submit" isLoading={busy} text="יצירת כתב כמויות" disabled={!valid || busy} />
         <Button text="ביטול" disabled={busy} onClick={cancel} variant={BUTTON_VARIANTS.SECONDARY} />
       </Box>
       {create.isError && <InlineError message={getApiErrorMessage(create.error)} />}

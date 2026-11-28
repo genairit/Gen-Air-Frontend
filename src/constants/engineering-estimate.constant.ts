@@ -90,3 +90,9 @@ export const ESTIMATE_IMAGE_TYPES: readonly string[] = [
 ];
 
 export const ESTIMATE_NAME_MAX_LENGTH = 160;
+
+export const ESTIMATE_DOCUMENT_PANEL = { EDITOR: "editor", PREVIEW: "preview" } as const;
+export const ESTIMATE_DOCUMENT_PANELS = [
+  { id: ESTIMATE_DOCUMENT_PANEL.EDITOR, label: "עריכה" },
+  { id: ESTIMATE_DOCUMENT_PANEL.PREVIEW, label: "תצוגה מקדימה" },
+];

@@ -18,11 +18,17 @@ import type { IEngineeringEstimate } from "../../../interfaces/engineering-estim
 
 interface IEstimateJennyProps {
   canBrowse: boolean;
+  suspended?: boolean;
   estimate: IEngineeringEstimate | null;
   onCreated: (estimate: IEngineeringEstimate) => void;
 }
 
-const EstimateJenny: FC<IEstimateJennyProps> = ({ estimate, canBrowse, onCreated }) => {
+const EstimateJenny: FC<IEstimateJennyProps> = ({
+  estimate,
+  canBrowse,
+  onCreated,
+  suspended = false,
+}) => {
   const styles = usePageStyles();
   const threadStyles = useThreadStyles();
   const [name, setName] = useState("");
@@ -94,6 +100,10 @@ const EstimateJenny: FC<IEstimateJennyProps> = ({ estimate, canBrowse, onCreated
       </Box>
     </>
   );
+
+  if (suspended) {
+    return null;
+  }
 
   return (
     <JennyDialog dialog={dialog} inputRef={inputRef}>

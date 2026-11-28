@@ -136,3 +136,13 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.editorTable {
+  min-width: 460px;
+}
+.editorTable > tbody > tr > td:first-child {
+  width: 56%;
+}
+.editorTable > tbody > tr > td:nth-child(2) {
+  width: 100px;
+}
