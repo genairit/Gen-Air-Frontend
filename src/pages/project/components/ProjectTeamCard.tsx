@@ -67,6 +67,7 @@ const ProjectTeamCard: FC<IProjectTeamCardProps> = ({ members }) => {
       </Box>
       {pageCount > 1 && (
         <Pagination
+          compact
           page={currentPage}
           onChange={setPage}
           pageCount={pageCount}

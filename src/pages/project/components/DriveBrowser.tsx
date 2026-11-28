@@ -130,6 +130,7 @@ const DriveBrowser: FC<IDriveBrowserProps> = ({ projectId, rootFolderId }) => {
       })}
       {pageCount > 1 && (
         <Pagination
+          compact
           page={page}
           onChange={setPage}
           pageCount={pageCount}

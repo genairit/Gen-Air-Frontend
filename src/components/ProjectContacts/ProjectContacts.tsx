@@ -189,6 +189,7 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
       </Box>
       {additionalLinks.length > 2 && (
         <Pagination
+          compact
           page={currentPage}
           onChange={setPage}
           pageCount={pageCount}
