@@ -1,15 +1,14 @@
 import type { FC } from "react";
-
+import { usePageStyles } from "../../page.style";
 import { useMutation } from "@tanstack/react-query";
 import { Box, Link, Typography } from "@mui/material";
-import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
 import InlineError from "../../../components/InlineError/InlineError";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { ESTIMATE_EXPORT_COPY } from "../../../constants/engineering-estimate.constant";
+import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { engineeringEstimateService } from "../../../services/engineering-estimate.service";
 import { PUBLICATION_DRIVE_URL_PATTERNS } from "../../../constants/quotation-publication.constant";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 
 interface IEstimateDriveExportProps {
   id: string;
@@ -42,8 +41,8 @@ const EstimateDriveExport: FC<IEstimateDriveExportProps> = ({
       <Box sx={styles.row({ gap: "8px" })}>
         <Button
           variant={BUTTON_VARIANTS.SECONDARY}
-          onClick={(): void => exportToDrive.mutate()}
           isLoading={exportToDrive.isPending}
+          onClick={(): void => exportToDrive.mutate()}
           disabled={disabled || busy || missingProject || exportToDrive.isPending}
           text={exportToDrive.isPending ? ESTIMATE_EXPORT_COPY.BUSY : ESTIMATE_EXPORT_COPY.BUTTON}
         />
