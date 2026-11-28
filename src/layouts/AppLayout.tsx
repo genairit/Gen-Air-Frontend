@@ -43,7 +43,7 @@ const AppLayout = () => {
     enabled: false,
     queryKey: QUOTATION_DETAIL_KEY(quotationId),
     queryFn: () => quotationService.get(quotationId),
-    select: quotation => quotation.projectId,
+    select: quotation => quotation.primaryProject?.id ?? null,
   });
   useEffect(() => SessionBroadcastManager.subscribeToUserChanges(refreshSessionUserAction), []);
   const navigationItems = filterNavigationByPermissions(APP_NAVIGATION_ITEMS, sessionUser);

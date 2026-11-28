@@ -156,7 +156,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     editor.commandForbidden;
   const navigationPending = !editor.deleted && (editor.dirty || editor.busy || rebrand.busy);
   const blocker = useUnsavedChangesNavigation(navigationPending);
-  useQuotationDeletedNavigation(editor.deleted, quotation.id, quotation.projectId);
+  useQuotationDeletedNavigation(editor.deleted, quotation.id, quotation.primaryProject?.id ?? null);
   const isSummaryVisible =
     !editable ||
     (quotation.status === QUOTATION_STATUS.DRAFT ? viewDraft : editingStatus !== quotation.status);
