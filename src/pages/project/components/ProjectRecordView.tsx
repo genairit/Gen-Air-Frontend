@@ -10,6 +10,7 @@ import ProjectTimelineCard from "./ProjectTimelineCard";
 import ProjectCustomerCard from "./ProjectCustomerCard";
 import ProjectQuotationsCard from "./ProjectQuotationsCard";
 import { useSessionUser } from "../../../store/session.store";
+import ProjectPurchaseDocuments from "./ProjectPurchaseDocuments";
 import BuildingInheritedCard from "./building/BuildingInheritedCard";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import type { IApiProject } from "../../../interfaces/api.interface";
@@ -35,6 +36,7 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
   const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canReadQuotations = building && hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
+  const canReadPurchase = hasPermission(sessionUser, PERMISSIONS.PROJECT_BOQ_READ);
   const panels = [
     ...(canReadTasks
       ? [
@@ -67,6 +69,9 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
             content: <ProjectQuotationsCard projectId={project.id} />,
           },
         ]
+      : []),
+    ...(canReadPurchase
+      ? [{ ...PROJECT_TABS.purchase, content: <ProjectPurchaseDocuments projectId={project.id} /> }]
       : []),
     {
       ...PROJECT_TABS.details,
