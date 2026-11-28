@@ -4,6 +4,7 @@ import { Box } from "@mui/material";
 import { useStyles } from "./ProjectWorkspace.style";
 import { useId, useState, type ReactNode } from "react";
 import { TAB_MODES } from "../../constants/tabs.constant";
+import { WorkspaceToolbarContext } from "./WorkspaceToolbar.context";
 import { useVisibleActiveTab } from "../../hooks/visible-active-tab.hook";
 import { PROJECT_TAB_PARAM } from "../../constants/project-workspace.constant";
 import { useProjectWorkspaceQuery } from "../../hooks/project-workspace-query.hook";
@@ -30,11 +31,13 @@ const WorkspacePanel = ({
   active,
   keepMounted,
   prefix,
+  toolbar,
 }: {
   panel: IPanel;
   active: boolean;
   keepMounted: boolean;
   prefix: string;
+  toolbar: HTMLElement | null;
 }) => {
   const styles = useStyles();
   const [visited, setVisited] = useState(active);
@@ -49,7 +52,9 @@ const WorkspacePanel = ({
       id={`${prefix}-panel-${panel.id}`}
       aria-labelledby={`${prefix}-tab-${panel.id}`}
     >
-      {(keepMounted || active || visited) && panel.content}
+      <WorkspaceToolbarContext.Provider value={active ? toolbar : null}>
+        {(keepMounted || active || visited) && panel.content}
+      </WorkspaceToolbarContext.Provider>
     </Box>
   );
 };
@@ -64,6 +69,7 @@ const ProjectWorkspace = ({
   footer,
 }: IWorkspaceProps) => {
   const prefix = useId();
+  const [toolbar, setToolbar] = useState<HTMLElement | null>(null);
   const styles = useStyles();
   const { params, update } = useProjectWorkspaceQuery();
   const requested = activeTab ?? params.get(PROJECT_TAB_PARAM);
@@ -80,8 +86,8 @@ const ProjectWorkspace = ({
     <Box sx={styles.workspace} data-project-workspace="">
       {header}
       <Card gap="4px" padding="8px" sx={styles.surface}>
-        <Box sx={styles.tabBar}>
-          <Box ref={tabScroll} sx={styles.tabScroll}>
+        <Box sx={styles.toolbar} data-panel-action={activePanel?.action ? "" : undefined}>
+          <Box ref={tabScroll} sx={styles.tabBar}>
             <Tabs
               isScrollable
               items={panels}
@@ -92,13 +98,16 @@ const ProjectWorkspace = ({
               ariaLabel="לשוניות הפרויקט"
             />
           </Box>
-          {activePanel?.action}
+          <Box ref={setToolbar} sx={styles.actions}>
+            {activePanel?.action}
+          </Box>
         </Box>
         {panels.map(panel => (
           <WorkspacePanel
             panel={panel}
             key={panel.id}
             prefix={prefix}
+            toolbar={toolbar}
             keepMounted={keepMounted}
             active={panel.id === selected}
           />

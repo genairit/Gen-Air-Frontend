@@ -26,17 +26,26 @@ export const useStyles = () =>
       minWidth: 0,
       [WORKSPACE_DESKTOP]: { flex: "1 1 0" },
     },
-    tabBar: {
+    toolbar: {
       display: "flex",
+      gap: "8px",
       alignItems: "center",
       justifyContent: "space-between",
-      gap: "8px",
-      minWidth: 0,
+      flexWrap: "wrap",
+      "&[data-panel-action]": { flexWrap: "nowrap" },
+      "@media (min-width:900px)": { flexWrap: "nowrap" },
       flexShrink: 0,
-      "& > button": { flexShrink: 0 },
     },
-    tabScroll: {
+    actions: {
+      display: "flex",
+      flexShrink: 0,
+      alignItems: "center",
+      "&:empty": { display: "none" },
+    },
+    tabBar: {
       minWidth: 0,
+      maxWidth: "100%",
+      flexShrink: 1,
       overflowX: "auto",
       padding: "4px",
     },
