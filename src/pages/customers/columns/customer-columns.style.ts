@@ -10,6 +10,12 @@ export const CUSTOMER_COLUMN_STYLES = createStyles({
     flexDirection: "column",
     alignItems: "flex-start",
   },
+  nameRow: {
+    gap: "8px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   name: {
     fontSize: 15,
     fontWeight: 700,

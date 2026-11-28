@@ -3,7 +3,7 @@ import { customerService } from "../services/customer.service";
 import type { IApiCustomer } from "../interfaces/api.interface";
 import { QUERY_KEYS, QUERY_ROOTS } from "../constants/query-key.constant";
 import type { ICustomerCreateRequest } from "../interfaces/customer.interface";
-import type { ICustomerOwnContactInput } from "../interfaces/customer.interface";
+import type { TCustomerUpdateRequest } from "../interfaces/customer.interface";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
 import type { ICustomerProjectLinkInput } from "../interfaces/customer-project-link.interface";
 
@@ -36,17 +36,18 @@ export const linkCustomerProjectsAction = async (
   context.assertCurrent();
 };
 
-export const updateCustomerOwnContactAction = async (
+export const updateCustomerAction = async (
   customerId: string,
-  details: ICustomerOwnContactInput,
+  details: TCustomerUpdateRequest,
 ): Promise<IApiCustomer> => {
   const context = new AuthorizationContext();
-  const customer = await customerService.updateOwnContact(customerId, details);
+  const customer = await customerService.update(customerId, details);
   context.assertCurrent();
   queryClient.setQueryData(QUERY_KEYS.customer(customerId), customer);
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.CUSTOMERS] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECT] }),
+    queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.PROJECTS] }),
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.APARTMENTS] }),
   ]);
   context.assertCurrent();

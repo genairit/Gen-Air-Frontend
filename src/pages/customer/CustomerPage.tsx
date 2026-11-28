@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Box } from "@mui/material";
 import { usePageStyles } from "../page.style";
 import Button from "../../components/Button/Button";
@@ -8,6 +9,7 @@ import CustomerSyncCard from "./components/CustomerSyncCard";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import CustomerHeaderCard from "./components/CustomerHeaderCard";
 import { PERMISSIONS } from "../../constants/permission.constant";
+import CustomerFormPopup from "../customer-form/CustomerFormPopup";
 import CustomerDetailsCard from "./components/CustomerDetailsCard";
 import { hasPermission } from "../../utilities/permission.utility";
 import CustomerProjectsCard from "./components/CustomerProjectsCard";
@@ -28,6 +30,7 @@ const CustomerPage = () => {
   const user = useSessionUser();
   const params = useParams();
   const customerId = params[ROUTE_PARAMS.CUSTOMER_ID] ?? null;
+  const [editingId, setEditingId] = useState<string | null>(null);
   const customerQuery = useCustomerQuery(customerId);
 
   if (customerQuery.isPending) {
@@ -52,18 +55,22 @@ const CustomerPage = () => {
   }
 
   const customer = customerQuery.data;
+  const canEdit = hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
+  const openEditor = canEdit ? () => setEditingId(customer.id) : null;
+  const showEditor = canEdit && editingId === customer.id;
 
   return (
     <Box sx={styles.page}>
       <CustomerHeaderCard customer={customer} />
       <Box sx={styles.grid({ minColumnWidth: 500 })}>
-        <CustomerDetailsCard customer={customer} />
-        <CustomerPrimaryContactCard customer={customer} key={`customer-contact:${customer.id}`} />
+        <CustomerDetailsCard customer={customer} onEdit={openEditor} />
+        <CustomerPrimaryContactCard customer={customer} onEdit={openEditor} />
       </Box>
       <Box sx={styles.grid({ minColumnWidth: 500 })}>
         <CustomerSyncCard customer={customer} />
         <CustomerPaymentDefault customer={customer} key={`customer-payment:${customer.id}`} />
       </Box>
+      {showEditor && <CustomerFormPopup customer={customer} onClose={() => setEditingId(null)} />}
       {hasPermission(user, PERMISSIONS.PROJECTS_READ) && (
         <Box
           component="section"

@@ -15,8 +15,6 @@ export const CUSTOMER_PAGE_SIZE = 7;
 
 export const CUSTOMERS_COPY = {
   TITLE: "לקוחות",
-  EYEBROW: "לקוחות · ניהול ב-CRM",
-  DESCRIPTION: "ניהול לקוחות ופרטי הקשר שלהם, לשיוך לפרויקטים, לבניינים ולדירות.",
   SEARCH_PLACEHOLDER: "חיפוש לפי שם, ח.פ, טלפון, דוא״ל או מזהה Priority...",
   LOADING: "טוען לקוחות...",
   EMPTY: "לא נמצאו לקוחות שמתאימים לחיפוש או לסינון",

@@ -44,6 +44,10 @@ export type ICustomerCreateRequest = Omit<ICreateCustomerPayload, "phone" | "ema
   email: string | null;
 };
 
+export type TCustomerUpdateRequest = Partial<
+  Omit<ICustomerCreateRequest, "contactName" | "primaryContactId">
+>;
+
 export type CustomerFormFieldType = Exclude<
   keyof ICreateCustomerPayload,
   "customerType" | "paymentTerms" | "paymentSchedule"
@@ -62,18 +66,6 @@ export interface ICustomerFormField {
   validator: (value: string) => IValidationResult;
 }
 
-export interface ICustomerOwnContactDraft {
-  phone: string;
-  email: string;
-}
-
-export interface ICustomerOwnContactInput {
-  phone: string | null;
-  email: string | null;
-}
-
 export interface ICustomerOwnContactField extends Omit<ICustomerFormField, "field"> {
-  field: keyof ICustomerOwnContactDraft;
+  field: "phone" | "email";
 }
-
-export type TCustomerOwnContactErrors = Partial<Record<keyof ICustomerOwnContactDraft, string>>;
