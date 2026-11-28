@@ -38,6 +38,7 @@ import CustomerContactEditor from "../CustomerContacts/CustomerContactEditor";
 import { projectContactService } from "../../services/project-contact.service";
 import { saveProjectContactAction } from "../../actions/contact-directory.action";
 import { toCustomerContactDraft } from "../../utilities/customer-contact.utility";
+import { PEOPLE_ROW_STYLES } from "../ProjectPeoplePanel/ProjectPeoplePanel.style";
 import ProjectContactRoleFields from "../ProjectContactRoles/ProjectContactRoleFields";
 import { useContactDirectorySearch } from "../../hooks/queries/contact-directory.query";
 import type { ProjectContactRoleType } from "../../constants/project-contact-role.constant";
@@ -168,7 +169,7 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
       />
       <Box sx={styles.stack({ gap: "8px" })}>
         {visibleLinks.map(link => (
-          <Box key={link.contactId} sx={styles.stack({ gap: "8px" })}>
+          <Box key={link.contactId} sx={{ ...styles.stack({ gap: "5px" }), ...PEOPLE_ROW_STYLES }}>
             <Box sx={styles.spacedRow}>
               <Box component="b" sx={styles.wrappingText}>
                 {link.contact.name} {link.isPrimary ? "· איש קשר ראשי של הפרויקט" : ""}

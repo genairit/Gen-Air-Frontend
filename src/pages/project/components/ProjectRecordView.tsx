@@ -24,6 +24,7 @@ import { toErpSyncCaption } from "../../../utilities/mappers/project.mapper";
 import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
 import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import ProjectPeoplePanel from "../../../components/ProjectPeoplePanel/ProjectPeoplePanel";
+import ProjectHeaderDetails from "../../../components/ProjectHeaderDetails/ProjectHeaderDetails";
 import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
 
 interface IProjectRecordViewProps {
@@ -41,6 +42,30 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
   const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
   const canReadEstimates = hasPermission(sessionUser, PERMISSIONS.ENGINEERING_ESTIMATES_READ);
   const canReadPurchase = hasPermission(sessionUser, PERMISSIONS.PROJECT_BOQ_READ);
+  const headerDetails = (
+    <ProjectHeaderDetails project={project}>
+      <>
+        <Box sx={styles.grid({ minColumnWidth: 400, gap: "12px" })}>
+          {building ? (
+            <BuildingInheritedCard building={project} />
+          ) : (
+            <ProjectIntakeCard onEdit={null} project={project} />
+          )}
+          {fieldSet && (
+            <ProjectCustomerCard
+              onEdit={null}
+              project={project}
+              fieldSet={fieldSet}
+              typeName={project.projectType?.name ?? ""}
+            />
+          )}
+        </Box>
+        <Box component="p" sx={styles.caption}>
+          {toErpSyncCaption(project.prioritySyncedAt)}
+        </Box>
+      </>
+    </ProjectHeaderDetails>
+  );
   const panels = [
     ...(canReadTasks
       ? [
@@ -87,31 +112,6 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
       ? [{ ...PROJECT_TABS.purchase, content: <ProjectPurchaseDocuments projectId={project.id} /> }]
       : []),
     {
-      ...PROJECT_TABS.details,
-      content: (
-        <>
-          <Box sx={styles.grid({ minColumnWidth: 400, gap: "12px" })}>
-            {building ? (
-              <BuildingInheritedCard building={project} />
-            ) : (
-              <ProjectIntakeCard onEdit={null} project={project} />
-            )}
-            {fieldSet && (
-              <ProjectCustomerCard
-                onEdit={null}
-                project={project}
-                fieldSet={fieldSet}
-                typeName={project.projectType?.name ?? ""}
-              />
-            )}
-          </Box>
-          <Box component="p" sx={styles.caption}>
-            {toErpSyncCaption(project.prioritySyncedAt)}
-          </Box>
-        </>
-      ),
-    },
-    {
       ...PROJECT_TABS.people,
       content: (
         <ProjectPeoplePanel
@@ -136,8 +136,8 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
   return (
     <ProjectWorkspace
       panels={panels}
-      header={<ProjectPageHeader project={project} />}
-      defaultTab={canReadTasks ? PROJECT_TABS.tasks.id : PROJECT_TABS.details.id}
+      defaultTab={canReadTasks ? PROJECT_TABS.tasks.id : PROJECT_TABS.people.id}
+      header={<ProjectPageHeader project={project}>{headerDetails}</ProjectPageHeader>}
     />
   );
 };

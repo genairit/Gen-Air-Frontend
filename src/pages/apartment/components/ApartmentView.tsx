@@ -24,6 +24,7 @@ import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorksp
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 import ProjectPurchaseDocuments from "../../project/components/ProjectPurchaseDocuments";
 import ProjectPeoplePanel from "../../../components/ProjectPeoplePanel/ProjectPeoplePanel";
+import ProjectHeaderDetails from "../../../components/ProjectHeaderDetails/ProjectHeaderDetails";
 import ProjectQuotationCreateButton from "../../project/components/ProjectQuotationCreateButton";
 import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
 
@@ -43,6 +44,18 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
 
   const canReadEstimates = hasPermission(sessionUser, PERMISSIONS.ENGINEERING_ESTIMATES_READ);
   const canReadPurchase = hasPermission(sessionUser, PERMISSIONS.PROJECT_BOQ_READ);
+  const headerDetails = (
+    <ProjectHeaderDetails project={apartment}>
+      <Box sx={styles.grid({ minColumnWidth: 380, gap: "12px" })}>
+        <ApartmentEndCustomerCard building={building} apartment={apartment} />
+        <ApartmentInheritedCard apartment={apartment} />
+        <ApartmentCommercialCard apartment={apartment} />
+        <ApartmentLightingCard canEdit={canEdit} apartment={apartment} />
+        <ParentNotesCard apartment={apartment} />
+        <ApartmentNotesCard canEdit={canEdit} apartment={apartment} />
+      </Box>
+    </ProjectHeaderDetails>
+  );
   const panels = [
     ...(canReadTasks
       ? [
@@ -91,19 +104,6 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
         ]
       : []),
     {
-      ...PROJECT_TABS.details,
-      content: (
-        <Box sx={styles.grid({ minColumnWidth: 380, gap: "12px" })}>
-          <ApartmentEndCustomerCard building={building} apartment={apartment} />
-          <ApartmentInheritedCard apartment={apartment} />
-          <ApartmentCommercialCard apartment={apartment} />
-          <ApartmentLightingCard canEdit={canEdit} apartment={apartment} />
-          <ParentNotesCard apartment={apartment} />
-          <ApartmentNotesCard canEdit={canEdit} apartment={apartment} />
-        </Box>
-      ),
-    },
-    {
       ...PROJECT_TABS.people,
       content: (
         <ProjectPeoplePanel
@@ -129,8 +129,12 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
   return (
     <ProjectWorkspace
       panels={panels}
-      defaultTab={canReadTasks ? PROJECT_TABS.tasks.id : PROJECT_TABS.details.id}
-      header={<ApartmentHeaderCard stages={stages} building={building} apartment={apartment} />}
+      defaultTab={canReadTasks ? PROJECT_TABS.tasks.id : PROJECT_TABS.people.id}
+      header={
+        <ApartmentHeaderCard stages={stages} building={building} apartment={apartment}>
+          {headerDetails}
+        </ApartmentHeaderCard>
+      }
     />
   );
 };
