@@ -5,12 +5,12 @@ import {
   formatAssigneeLabel,
 } from "../../../utilities/task.utility";
 
+import { createPortal } from "react-dom";
 import { Box, Link } from "@mui/material";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
 import { theme } from "../../../constants/theme.constants";
-import { type FC, useState, type MouseEvent } from "react";
 import { useSessionUser } from "../../../store/session.store";
 import { buildTaskPath } from "../../../utilities/route.utility";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
@@ -25,6 +25,7 @@ import { getTaskEditButtonId } from "../../../utilities/task.utility";
 import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { PROJECT_TASKS_COPY } from "../../../constants/task.constant";
+import { type FC, useState, useContext, type MouseEvent } from "react";
 import TaskTypeChip from "../../../components/TaskTypeChip/TaskTypeChip";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
@@ -34,12 +35,14 @@ import TaskUrgentChip from "../../../components/TaskUrgentChip/TaskUrgentChip";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { useTasksQuery, useProjectProtectedTasksQuery } from "../../../hooks/queries/task.query";
 import { TASK_TYPES, TASK_TYPE_LABELS, type TaskType } from "../../../constants/task-type.constant";
+import { WorkspaceToolbarContext } from "../../../components/ProjectWorkspace/WorkspaceToolbar.context";
 
 interface IProjectTasksCardProps {
   project: IApiProject;
 }
 
 const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ project }) => {
+  const toolbar = useContext(WorkspaceToolbarContext);
   const projectId = project.id;
   const [editingTask, setEditingTask] = useState<IApiTask | null>(null);
   const [creatingType, setCreatingType] = useState<TaskType | null>(null);
@@ -107,7 +110,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ project }) => {
 
   return (
     <Card gap="4px" ariaLabel={PROJECT_TASKS_COPY.TITLE}>
-      {action && <Box sx={styles.endRow}>{action}</Box>}
+      {action && (toolbar ? createPortal(action, toolbar) : <Box sx={styles.endRow}>{action}</Box>)}
       {isManager && creatingType !== null && (
         <TaskFormPopup
           mode="create"

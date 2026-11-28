@@ -13,11 +13,17 @@ import { EXECUTION_PLAN_COPY } from "../../../constants/execution-plan.constant"
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 
 interface IProjectDriveFileRowProps {
+  compact?: boolean;
   projectId: string;
   folderName: string;
   file: IProjectFile;
 }
-const ProjectDriveFileRow: FC<IProjectDriveFileRowProps> = ({ projectId, file, folderName }) => {
+const ProjectDriveFileRow: FC<IProjectDriveFileRowProps> = ({
+  projectId,
+  file,
+  folderName,
+  compact = false,
+}) => {
   const [submissionOpen, setSubmissionOpen] = useState(false);
   const user = useSessionUser();
   const canSubmit = [
@@ -31,11 +37,13 @@ const ProjectDriveFileRow: FC<IProjectDriveFileRowProps> = ({ projectId, file, f
     <>
       <FileRow
         file={file}
+        compact={compact}
         linkLabel={PROJECT_PAGE_COPY.OPEN_IN_DRIVE}
         actions={
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {canSubmit && !/\.zip$/i.test(file.name) && (
               <Button
+                size="compact"
                 text={EXECUTION_PLAN_COPY.SUBMIT_ACTION}
                 ariaLabel={`${EXECUTION_PLAN_COPY.SUBMIT_ACTION}: ${file.name}`}
                 variant={BUTTON_VARIANTS.NEUTRAL}

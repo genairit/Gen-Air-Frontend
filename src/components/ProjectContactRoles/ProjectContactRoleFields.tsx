@@ -9,6 +9,7 @@ import type { TProjectRoleContacts } from "../../interfaces/project-contact-role
 
 interface IProjectContactRoleFieldsProps {
   canEdit: boolean;
+  compact?: boolean;
   disabled: boolean;
   canEditDetails: boolean;
   canCreateContact?: boolean;
@@ -20,6 +21,7 @@ interface IProjectContactRoleFieldsProps {
   ) => void | Promise<void>;
 }
 const ProjectContactRoleFields: FC<IProjectContactRoleFieldsProps> = ({
+  compact = false,
   contacts,
   canEdit,
   disabled,
@@ -30,11 +32,12 @@ const ProjectContactRoleFields: FC<IProjectContactRoleFieldsProps> = ({
 }) => {
   const styles = usePageStyles();
   return (
-    <Box sx={styles.grid({ minColumnWidth: 250 })}>
+    <Box sx={compact ? styles.stack({ gap: "4px" }) : styles.grid({ minColumnWidth: 250 })}>
       {Object.values(PROJECT_CONTACT_ROLES).map(role => (
         <ProjectContactRoleField
           key={role}
           role={role}
+          compact={compact}
           canEdit={canEdit}
           disabled={disabled}
           contact={contacts[role]}

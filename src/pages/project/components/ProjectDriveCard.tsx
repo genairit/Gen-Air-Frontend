@@ -1,7 +1,5 @@
 import {
   hasUnknownFolder,
-  getFolderBadgeState,
-  getRootContentStatus,
   isDriveUnavailableError,
   isDriveFolderMissingError,
 } from "../../../utilities/drive-folder.utility";
@@ -23,31 +21,24 @@ import {
 
 import type { FC } from "react";
 import { Box } from "@mui/material";
-import DriveFolderList from "./DriveFolderList";
+import DriveBrowser from "./DriveBrowser";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
-import ProjectDriveUpload from "./ProjectDriveUpload";
 import Button from "../../../components/Button/Button";
-import ProjectDriveActions from "./ProjectDriveActions";
-import ProjectDriveFileRow from "./ProjectDriveFileRow";
 import DriveUnavailableBanner from "./DriveUnavailableBanner";
-import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useSessionUser } from "../../../store/session.store";
 import DriveProvisioningNotice from "./DriveProvisioningNotice";
 import { SharedDocumentContext } from "./SharedDocumentContext";
-import CardHeader from "../../../components/CardHeader/CardHeader";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
-import { DRIVE_FILE_COPY } from "../../../constants/drive-file.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import DriveTemplateCompletionNotice from "./DriveTemplateCompletionNotice";
 import { useDriveFeedbackStore } from "../../../store/drive-feedback.store";
 import { useProjectDriveQuery } from "../../../hooks/queries/project.query";
 import { useSharedDocumentQuery } from "../../../hooks/queries/project.query";
-import { DRIVE_STATUS_BADGE_SIZES } from "../../../constants/drive-folder.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { toProjectFile, toProjectFolder } from "../../../utilities/mappers/project.mapper";
 import { useSelectSharedDocumentMutation } from "../../../hooks/mutations/project.mutation";
@@ -97,33 +88,16 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({
   const folders = (rootQuery.data?.folders ?? []).map(toProjectFolder);
   const rootFiles = (rootQuery.data?.files ?? []).filter(item => !item.isFolder).map(toProjectFile);
   const isEmpty = rootQuery.isSuccess && folders.length === 0 && rootFiles.length === 0;
-  const isRefreshing = rootQuery.isSuccess && rootQuery.isFetching;
   const hasLinkedFolderError = isExistingDriveFolderError(rootQuery.error);
   const isDriveUnavailable = isDriveUnavailableError(rootQuery.error) && !hasLinkedFolderError;
   const isMissingFolder = isDriveFolderMissingError(rootQuery.error) && !hasLinkedFolderError;
   const hasOtherError = rootQuery.isError && !isDriveUnavailable && !isMissingFolder;
   const showUnavailableBanner = isDriveUnavailable || hasUnknownFolder(folders);
 
-  const rootBadgeState = getFolderBadgeState({
-    isRefreshing,
-    contentStatus: getRootContentStatus({ folders, rootFileCount: rootFiles.length }),
-  });
-
   return (
     <Box component="section" aria-label={PROJECT_PAGE_COPY.FOLDERS_TITLE}>
       <SharedDocumentContext.Provider value={sharedDocument}>
         <Card>
-          <CardHeader
-            stackActionsOnMobile
-            icon={ICON_NAMES.GDRIVE}
-            title={PROJECT_PAGE_COPY.FOLDERS_TITLE}
-            subtitle={PROJECT_PAGE_COPY.FOLDERS_SUBTITLE}
-            action={
-              rootQuery.isSuccess && (
-                <ProjectDriveActions state={rootBadgeState} folderId={rootQuery.data.folderId} />
-              )
-            }
-          />
           {isLinkedFolder && <Box sx={styles.caption}>{EXISTING_DRIVE_FOLDER_COPY.LINKED}</Box>}
           {hasMissingTemplateFolders && (
             <DriveTemplateCompletionNotice projectId={projectId} missingFolders={missingFolders} />
@@ -170,21 +144,9 @@ const ProjectDriveCard: FC<IProjectDriveCardProps> = ({
               {PROJECT_PAGE_STATUS_COPY.NO_FOLDERS}
             </Box>
           )}
-          <DriveFolderList
-            folders={folders}
-            projectId={projectId}
-            isRefreshing={isRefreshing}
-            badgeSize={DRIVE_STATUS_BADGE_SIZES.ACCORDION}
-          />
-          {rootFiles.map(file => (
-            <ProjectDriveFileRow
-              file={file}
-              key={file.id}
-              projectId={projectId}
-              folderName={DRIVE_FILE_COPY.ROOT}
-            />
-          ))}
-          <ProjectDriveUpload projectId={projectId} />
+          {rootQuery.isSuccess && (
+            <DriveBrowser projectId={projectId} rootFolderId={rootQuery.data.folderId} />
+          )}
         </Card>
       </SharedDocumentContext.Provider>
     </Box>

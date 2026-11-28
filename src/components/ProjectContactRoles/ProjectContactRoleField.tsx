@@ -9,6 +9,7 @@ import { type FC, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import InlineError from "../InlineError/InlineError";
 import { usePageStyles } from "../../pages/page.style";
+import GenericPopup from "../GenericPopup/GenericPopup";
 import Autocomplete from "../Autocomplete/Autocomplete";
 import { toTelephoneHref } from "../../utilities/phone.utility";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
@@ -25,6 +26,7 @@ import ContactDirectorySearchError from "../ContactDirectorySearchError/ContactD
 
 interface IProjectContactRoleFieldProps {
   canEdit: boolean;
+  compact?: boolean;
   disabled: boolean;
   canEditDetails: boolean;
   canCreateContact?: boolean;
@@ -35,6 +37,7 @@ interface IProjectContactRoleFieldProps {
 }
 
 const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
+  compact = false,
   role,
   contact,
   canEdit,
@@ -44,6 +47,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
   onSelect,
   onActivityChange,
 }) => {
+  const [isOpen, setIsOpen] = useState(false);
   const title = PROJECT_CONTACT_ROLE_LABELS[role];
   const styles = usePageStyles();
   const [search, setSearch] = useState("");
@@ -125,6 +129,57 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
     selectMutation.mutate(selected);
     setSearch("");
   };
+  if (compact)
+    return (
+      <Box sx={styles.stack({ gap: "4px" })}>
+        <Box sx={styles.spacedRow}>
+          <Box sx={styles.row({ gap: "8px" })}>
+            <Box component="b">{title}</Box>
+            <Box>{contact?.name ?? "לא שויך"}</Box>
+          </Box>
+          {canEdit && (
+            <Button
+              size="compact"
+              disabled={disabled}
+              onClick={() => setIsOpen(true)}
+              variant={BUTTON_VARIANTS.NEUTRAL}
+              text={contact ? `ערוך ${title}` : `שייך ${title}`}
+            />
+          )}
+        </Box>
+        <Box sx={styles.row({ gap: "8px" })}>
+          {contact?.phone && (
+            <Box dir="ltr" component="a" href={toTelephoneHref(contact.phone)}>
+              {contact.phone}
+            </Box>
+          )}
+          {contact?.email && (
+            <Box dir="ltr" component="a" sx={styles.wrappingText} href={`mailto:${contact.email}`}>
+              {contact.email}
+            </Box>
+          )}
+        </Box>
+        <GenericPopup
+          open={isOpen}
+          title={title}
+          maxWidth="sm"
+          onClose={() => setIsOpen(false)}
+          buttons={{ primary: { text: "סיום", onClick: () => setIsOpen(false) } }}
+          content={
+            <ProjectContactRoleField
+              role={role}
+              contact={contact}
+              canEdit={canEdit}
+              disabled={disabled}
+              canEditDetails={canEditDetails}
+              canCreateContact={canCreateContact}
+              onSelect={onSelect}
+              onActivityChange={onActivityChange}
+            />
+          }
+        />
+      </Box>
+    );
   return (
     <Box sx={styles.stack({ gap: "8px" })}>
       {canEdit ? (

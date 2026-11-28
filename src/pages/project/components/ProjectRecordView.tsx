@@ -22,6 +22,7 @@ import { PROJECT_TABS } from "../../../constants/project-workspace.constant";
 import { toErpSyncCaption } from "../../../utilities/mappers/project.mapper";
 import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
 import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
+import ProjectPeoplePanel from "../../../components/ProjectPeoplePanel/ProjectPeoplePanel";
 import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
 
 interface IProjectRecordViewProps {
@@ -111,15 +112,21 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
     {
       ...PROJECT_TABS.people,
       content: (
-        <>
-          {project.customer && hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_READ) && (
-            <CustomerContactSummary
-              contacts={project.customer.primaryContact ? [project.customer.primaryContact] : []}
-            />
-          )}
-          <ProjectContacts canEdit={canEdit} projectId={project.id} />
-          <ProjectTeamCard members={project.members ?? []} />
-        </>
+        <ProjectPeoplePanel
+          team={<ProjectTeamCard members={project.members ?? []} />}
+          contacts={
+            <>
+              {project.customer && hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_READ) && (
+                <CustomerContactSummary
+                  contacts={
+                    project.customer.primaryContact ? [project.customer.primaryContact] : []
+                  }
+                />
+              )}
+              <ProjectContacts canEdit={canEdit} projectId={project.id} />
+            </>
+          }
+        />
       ),
     },
     { ...PROJECT_TABS.history, content: <ProjectTimelineCard projectId={project.id} /> },

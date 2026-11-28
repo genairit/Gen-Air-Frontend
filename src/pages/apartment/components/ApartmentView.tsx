@@ -23,6 +23,7 @@ import ProjectQuotationsCard from "../../project/components/ProjectQuotationsCar
 import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 import ProjectPurchaseDocuments from "../../project/components/ProjectPurchaseDocuments";
+import ProjectPeoplePanel from "../../../components/ProjectPeoplePanel/ProjectPeoplePanel";
 import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
 
 interface IApartmentViewProps {
@@ -103,17 +104,21 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
     {
       ...PROJECT_TABS.people,
       content: (
-        <>
-          {apartment.customer && hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_READ) && (
-            <CustomerContactSummary
-              contacts={
-                apartment.customer.primaryContact ? [apartment.customer.primaryContact] : []
-              }
-            />
-          )}
-          <ProjectContacts canEdit={canEdit} projectId={apartment.id} />
-          <ApartmentContactCard canEdit={canEdit} apartment={apartment} />
-        </>
+        <ProjectPeoplePanel
+          team={<ApartmentContactCard canEdit={canEdit} apartment={apartment} />}
+          contacts={
+            <>
+              {apartment.customer && hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_READ) && (
+                <CustomerContactSummary
+                  contacts={
+                    apartment.customer.primaryContact ? [apartment.customer.primaryContact] : []
+                  }
+                />
+              )}
+              <ProjectContacts canEdit={canEdit} projectId={apartment.id} />
+            </>
+          }
+        />
       ),
     },
     { ...PROJECT_TABS.history, content: <ProjectTimelineCard projectId={apartment.id} /> },
