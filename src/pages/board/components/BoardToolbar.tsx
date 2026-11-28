@@ -64,7 +64,6 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
           <Autocomplete
             isAutocomplete={false}
             onChange={typeFilter.onChange}
-            startIcon={ICON_NAMES.BUILDING}
             ariaLabel={BOARD_COPY.TYPE_FILTER}
             value={getSelectedLabel(typeFilter)}
             options={getOptionLabels(typeFilter.options)}
