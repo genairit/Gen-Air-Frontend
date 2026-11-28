@@ -21,6 +21,7 @@ import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts
 import ProjectQuotationsCard from "../../project/components/ProjectQuotationsCard";
 import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
+import ProjectQuotationCreateButton from "../../project/components/ProjectQuotationCreateButton";
 import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
 
 interface IApartmentViewProps {
@@ -63,6 +64,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
       ? [
           {
             ...PROJECT_TABS.quotations,
+            action: <ProjectQuotationCreateButton projectId={apartment.id} />,
             content: <ProjectQuotationsCard projectId={apartment.id} />,
           },
         ]

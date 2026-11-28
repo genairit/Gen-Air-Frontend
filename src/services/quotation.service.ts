@@ -90,7 +90,11 @@ export const quotationService = {
       data: { version: quotation.version },
     });
   },
-  async create(input: { customerId: string; salesAgentId: string | null }): Promise<IQuotation> {
+  async create(input: {
+    customerId: string;
+    projectId: string;
+    salesAgentId: string | null;
+  }): Promise<IQuotation> {
     const response = await httpClient.post<unknown>(API_ENDPOINTS.QUOTATIONS, input);
     return ensureResponse(API_ENDPOINTS.QUOTATIONS, response.data, isQuotation);
   },

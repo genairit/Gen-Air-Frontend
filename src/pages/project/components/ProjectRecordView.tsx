@@ -16,6 +16,7 @@ import type { IApiProject } from "../../../interfaces/api.interface";
 import { getProjectKind } from "../../../utilities/apartment.utility";
 import { hasPermission } from "../../../utilities/permission.utility";
 import BuildingApartmentsPanel from "./building/BuildingApartmentsPanel";
+import ProjectQuotationCreateButton from "./ProjectQuotationCreateButton";
 import { PROJECT_TABS } from "../../../constants/project-workspace.constant";
 import { toErpSyncCaption } from "../../../utilities/mappers/project.mapper";
 import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
@@ -34,7 +35,7 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
   const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
   const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
-  const canReadQuotations = building && hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
+  const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
   const panels = [
     ...(canReadTasks
       ? [
@@ -64,6 +65,7 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
       ? [
           {
             ...PROJECT_TABS.quotations,
+            action: <ProjectQuotationCreateButton projectId={project.id} />,
             content: <ProjectQuotationsCard projectId={project.id} />,
           },
         ]

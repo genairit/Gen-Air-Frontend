@@ -8,6 +8,7 @@ import {
 import { useEffect } from "react";
 import { Box } from "@mui/material";
 import { useStyles } from "./AppLayout.style";
+import { useQuery } from "@tanstack/react-query";
 import TopBar from "../components/TopBar/TopBar";
 import Sidebar from "../components/Sidebar/Sidebar";
 import BackLink from "../components/BackLink/BackLink";
@@ -19,9 +20,11 @@ import { toPerson } from "../utilities/mappers/user.mapper";
 import { PERMISSIONS } from "../constants/permission.constant";
 import { hasPermission } from "../utilities/permission.utility";
 import SidebarAction from "../components/Sidebar/SidebarAction";
+import { quotationService } from "../services/quotation.service";
 import UserMenuButton from "../components/TopBar/UserMenuButton";
 import { BRAND_LOGO_WIDTHS } from "../constants/brand-logo.constant";
 import { clearSessionAction } from "../actions/session-reset.action";
+import { QUOTATION_DETAIL_KEY } from "../constants/quotation.constant";
 import { switchActiveRoleAction } from "../actions/role-switch.action";
 import MobileBottomNav from "../components/MobileBottomNav/MobileBottomNav";
 import { refreshSessionUserAction } from "../actions/session-refresh.action";
@@ -35,6 +38,13 @@ const AppLayout = () => {
   const navigate = useNavigate();
   const { pathname, state } = useLocation();
   const sessionUser = useSessionUser();
+  const quotationId = matchPath(ROUTE_PATHS.QUOTATION, pathname)?.params.quotationId ?? "";
+  const { data: quotationProjectId } = useQuery({
+    enabled: false,
+    queryKey: QUOTATION_DETAIL_KEY(quotationId),
+    queryFn: () => quotationService.get(quotationId),
+    select: quotation => quotation.projectId,
+  });
   useEffect(() => SessionBroadcastManager.subscribeToUserChanges(refreshSessionUserAction), []);
   const navigationItems = filterNavigationByPermissions(APP_NAVIGATION_ITEMS, sessionUser);
   const mobileItems = filterNavigationByPermissions(MOBILE_NAVIGATION_ITEMS, sessionUser);
@@ -67,9 +77,14 @@ const AppLayout = () => {
     assignedRoles: sessionUser.assignedRoles,
     onRoleChange: switchActiveRoleAction,
   };
-  const backLinkTarget = getBackLinkTarget(pathname, state?.buildingSearch);
+  const backLinkTarget = getBackLinkTarget(pathname, {
+    quotationProjectId,
+    buildingSearch: state?.buildingSearch,
+    quotationReturnTo: state?.quotationReturnTo,
+  });
+  const backLinkState = matchPath(ROUTE_PATHS.QUOTATION_CLONE, pathname) ? state : null;
   const topBarLeading = backLinkTarget && (
-    <BackLink to={backLinkTarget.to} label={backLinkTarget.label} />
+    <BackLink state={backLinkState} to={backLinkTarget.to} label={backLinkTarget.label} />
   );
 
   return (

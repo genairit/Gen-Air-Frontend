@@ -17,7 +17,6 @@ export const EXECUTION_PLAN_STATUS_LABELS: Record<ExecutionPlanStatusType, strin
   cancelled: "בוטלה",
 };
 
-export const EXECUTION_PLAN_TAB_ID = "pending-execution-plans";
 
 export const EXECUTION_PLAN_COPY = {
   SUBMIT_ACTION: "הגש תוכנית לביצוע",
@@ -32,8 +31,6 @@ export const EXECUTION_PLAN_COPY = {
   RETURN: "החזר לתיקון",
   RETURN_COMMENT: "סיבת החזרה לתיקון",
   CANCEL: "בטל הגשה",
-  PENDING_TAB: "ממתינות לאישור",
-  PENDING_EMPTY: "אין תוכניות לביצוע שממתינות לאישור.",
   NO_QUOTATIONS: "אין הצעות מחיר מקושרות לפרויקט או לדירה זו.",
   CHECKLIST_INCOMPLETE: "יש לאשר את כל בדיקות ההנדסה לפני ההגשה.",
   LOADING: "טוען תוכניות לביצוע…",

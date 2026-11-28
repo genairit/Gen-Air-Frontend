@@ -42,14 +42,13 @@ const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
   return (
     <Box component="div" className={styles.picker}>
       <QuotationEntityPicker
-        allowClear
         value={choice}
+        label="פרויקט *"
         options={options}
         onSearch={setSearch}
         disabled={isDisabled}
-        label="פרויקט (אופציונלי)"
         loading={projects.isPending}
-        placeholder="ללא פרויקט · חיפוש פרויקט..."
+        placeholder="בחירת פרויקט או חיפוש..."
         onChange={id => {
           const selected = options.find(project => project.id === id) ?? null;
           setSelection(selected);

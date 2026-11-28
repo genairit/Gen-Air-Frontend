@@ -27,8 +27,16 @@ export const useStyles = () =>
       [WORKSPACE_DESKTOP]: { flex: "1 1 0" },
     },
     tabBar: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "8px",
       minWidth: 0,
       flexShrink: 0,
+      "& > button": { flexShrink: 0 },
+    },
+    tabScroll: {
+      minWidth: 0,
       overflowX: "auto",
       padding: "4px",
     },

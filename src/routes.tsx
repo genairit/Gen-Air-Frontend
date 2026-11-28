@@ -16,13 +16,15 @@ import CustomersPage from "./pages/customers/CustomersPage";
 import QuotationPage from "./pages/quotations/QuotationPage";
 import { Navigate, type RouteObject } from "react-router-dom";
 import { PERMISSIONS } from "./constants/permission.constant";
-import QuotationsPage from "./pages/quotations/QuotationsPage";
 import ProjectBoqPage from "./pages/project-boq/ProjectBoqPage";
 import ProjectFormPage from "./pages/project-form/ProjectFormPage";
 import NewCustomerPage from "./pages/customer-form/NewCustomerPage";
+import QuotationClonePage from "./pages/quotations/QuotationClonePage";
 import NewApartmentPage from "./pages/apartment-form/NewApartmentPage";
 import { PROJECT_FORM_MODES } from "./constants/project-form.constant";
 import ProjectBoqIndexPage from "./pages/project-boq/ProjectBoqIndexPage";
+import LegacyQuotationsRedirect from "./pages/quotations/LegacyQuotationsRedirect";
+import ProjectQuotationCreatePage from "./pages/quotations/ProjectQuotationCreatePage";
 import EngineeringEstimatesPage from "./pages/engineering-estimates/EngineeringEstimatesPage";
 
 export const routes: RouteObject[] = [
@@ -35,12 +37,23 @@ export const routes: RouteObject[] = [
         children: [
           {
             path: ROUTE_PATHS.QUOTATIONS,
+            element: <LegacyQuotationsRedirect />,
+          },
+          ...[
+            { path: ROUTE_PATHS.PROJECT_QUOTATION_CREATE, element: <ProjectQuotationCreatePage /> },
+            { path: ROUTE_PATHS.QUOTATION_CLONE, element: <QuotationClonePage /> },
+          ].map(({ path, element }) => ({
+            path,
             element: (
-              <RequireFeature permission={PERMISSIONS.QUOTATIONS_READ}>
-                <QuotationsPage />
+              <RequireFeature permission={PERMISSIONS.PROJECTS_READ}>
+                <RequireFeature permission={PERMISSIONS.QUOTATIONS_READ}>
+                  <RequireFeature permission={PERMISSIONS.QUOTATIONS_CREATE}>
+                    {element}
+                  </RequireFeature>
+                </RequireFeature>
               </RequireFeature>
             ),
-          },
+          })),
           {
             path: ROUTE_PATHS.QUOTATION,
             element: (
