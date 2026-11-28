@@ -29,7 +29,7 @@ const context: IQuotationDocumentContext = {
     vatFileNumber: "9876",
   },
   recipient: { ...party, customerNumber: "C101" },
-  recipientContext: { customerId: "customer1", projectId: null, salesAgentId: null },
+  recipientContext: { customerId: "customer1", projectId: "project1", salesAgentId: null },
   project: { name: null, address: null },
   metadata: {
     validUntil: null,

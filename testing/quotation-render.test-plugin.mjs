@@ -1,6 +1,6 @@
 export const tabsRendererTestPlugin = {
   name: "tabs-renderer-stub",
-  resolveId: id => (id.endsWith("/components/Tabs/Tabs") ? "\0tabs-renderer-stub" : null),
+  resolveId: id => (id.endsWith("/Tabs/Tabs") ? "\0tabs-renderer-stub" : null),
   load: id =>
     id === "\0tabs-renderer-stub"
       ? {

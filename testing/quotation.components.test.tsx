@@ -14,7 +14,6 @@ import { customerService } from "../src/services/customer.service";
 import InlineError from "../src/components/InlineError/InlineError";
 import { quotationService } from "../src/services/quotation.service";
 import { createMemoryRouter, RouterProvider } from "react-router-dom";
-import { getActiveNavigationId } from "../src/utilities/route.utility";
 import { QUOTATION_SYSTEM } from "../src/constants/quotation.constant";
 import GenericPopup from "../src/components/GenericPopup/GenericPopup";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -30,6 +29,7 @@ import QuotationSection from "../src/pages/quotations/components/QuotationSectio
 import QuotationSummary from "../src/pages/quotations/components/QuotationSummary";
 import QuotationWorkspace from "../src/pages/quotations/components/QuotationWorkspace";
 import type { IQuotation, IQuotationLine } from "../src/interfaces/quotation.interface";
+import { getActiveNavigationId, getBackLinkTarget } from "../src/utilities/route.utility";
 import QuotationDecimalInput from "../src/pages/quotations/components/QuotationDecimalInput";
 import QuotationProjectPicker from "../src/pages/quotations/components/QuotationProjectPicker";
 import QuotationCustomerPicker from "../src/pages/quotations/components/QuotationCustomerPicker";
@@ -164,8 +164,8 @@ for (const [initialStatus, nextStatus, expectedReviews] of [
     }
   });
 }
-test("quotation list highlights quotation navigation", () => {
-  assert.equal(getActiveNavigationId("/quotations"), "/quotations");
+test("quotations belong to project navigation", () => {
+  assert.equal(getActiveNavigationId("/quotations/quotation-1"), "/");
 });
 
 test("unsaved edits block navigation until the server accepts the save", async () => {
@@ -873,7 +873,7 @@ test("direct customer search keeps an unloaded selection and selects duplicate n
   }
 });
 
-test("direct project search stays customer-scoped, retains the selected name and permits clearing", async () => {
+test("direct project search stays customer-scoped, retains the selected name and requires a project", async () => {
   const { default: Autocomplete } = await import("../src/components/Autocomplete/Autocomplete");
   const { SEARCH_DEBOUNCE_MS } = await import("../src/constants/search.constant");
   const { default: QuotationProjectPicker } =
@@ -909,7 +909,7 @@ test("direct project search stays customer-scoped, retains the selected name and
       value: selected.id,
       label: selected.name,
     });
-    assert.equal(autocomplete().props.isClearable, true);
+    assert.equal(autocomplete().props.isClearable, false);
     assert.equal(autocomplete().props.isClientFiltered, false);
     await act(async () => autocomplete().props.onSearch("פרויקט אחר"));
     await act(async () => settle(SEARCH_DEBOUNCE_MS + 30));
@@ -923,9 +923,8 @@ test("direct project search stays customer-scoped, retains the selected name and
     assert.equal(autocomplete().props.value, selected.id);
     await act(async () => {
       autocomplete().props.onChange(other.id);
-      autocomplete().props.onChange(null);
     });
-    assert.deepEqual(selectedIds, [other.id, null]);
+    assert.deepEqual(selectedIds, [other.id]);
   } finally {
     await act(async () => state.renderer?.unmount());
     client.clear();
@@ -1066,10 +1065,52 @@ for (const role of ["header", "pipe"] as const) {
   });
 }
 
+test("quotation back links preserve the opening project and resolve direct links", () => {
+  const apartment = "/projects/b1/apartments/a1?tab=quotations&floor=3";
+  assert.equal(
+    getBackLinkTarget("/quotations/q1", { quotationReturnTo: apartment, quotationProjectId: "b1" })
+      ?.to,
+    apartment,
+  );
+  assert.equal(
+    getBackLinkTarget("/quotations/q1", { quotationProjectId: "b1" })?.to,
+    "/projects/b1?tab=quotations",
+  );
+  assert.equal(
+    getBackLinkTarget("/quotations/q1", { quotationReturnTo: "https://elsewhere.invalid" })?.to,
+    "/",
+  );
+  assert.equal(getBackLinkTarget("/projects/a1/quotations/new")?.to, "/projects/a1?tab=quotations");
+  assert.equal(
+    getBackLinkTarget("/projects/a1/quotations/new", { quotationReturnTo: apartment })?.to,
+    apartment,
+  );
+  assert.equal(getBackLinkTarget("/quotations/q1/clone")?.to, "/quotations/q1");
+  assert.equal(
+    getBackLinkTarget("/projects/b1/apartments/a1", { buildingSearch: "?floor=3" })?.to,
+    "/projects/b1?floor=3&tab=apartments",
+  );
+});
+
 for (const status of ["draft", "review", "approved"] as const) {
   for (const canDelete of [false, true]) {
     test(`${status}: delete permission independently controls action and successful navigation`, async () => {
-      const base = { ...quotationFixture(), status };
+      const projectId = "building";
+      const primaryProject =
+        status === "draft"
+          ? null
+          : { id: projectId, name: "Building", code: "B1", kind: "building" as const };
+      const sharedOrigin = "/projects/building/apartments/apartment?tab=quotations";
+      const initialState =
+        status === "approved"
+          ? { quotationReturnTo: sharedOrigin, buildingSearch: "?floor=3" }
+          : null;
+      const destinations = {
+        draft: "/",
+        review: "/projects/building?tab=quotations",
+        approved: sharedOrigin,
+      };
+      const base = { ...quotationFixture(), status, projectId, primaryProject };
       const remove = mock.method(quotationService, "delete", async () => {});
       const customers = mock.method(customerService, "getByFilter", async () => []);
       const customer = mock.method(customerService, "getById", async () => ({
@@ -1094,9 +1135,9 @@ for (const status of ["draft", "review", "approved"] as const) {
               </QueryClientProvider>
             ),
           },
-          { path: "/quotations", element: <p>Quotation list</p> },
+          { path: "*", element: <p>Project destination</p> },
         ],
-        { initialEntries: ["/detail"] },
+        { initialEntries: [{ pathname: "/detail", state: initialState }] },
       );
       const state = { renderer: null as ReturnType<typeof create> | null };
       try {
@@ -1108,7 +1149,11 @@ for (const status of ["draft", "review", "approved"] as const) {
         if (canDelete) {
           await act(() => cards[0].props.onDelete());
           assert.equal(remove.mock.callCount(), 1);
-          assert.equal(router.state.location.pathname, "/quotations");
+          assert.equal(
+            router.state.location.pathname + router.state.location.search,
+            destinations[status],
+          );
+          assert.equal(router.state.location.state?.buildingSearch, initialState?.buildingSearch);
           assert.equal(router.state.historyAction, "REPLACE");
           assert.equal(
             [...router.state.blockers.values()].some(blocker => blocker.state === "blocked"),

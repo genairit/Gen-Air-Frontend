@@ -5,6 +5,7 @@ import { useStyles } from "./ProjectWorkspace.style";
 import { useId, useState, type ReactNode } from "react";
 import { TAB_MODES } from "../../constants/tabs.constant";
 import { WorkspaceToolbarContext } from "./WorkspaceToolbar.context";
+import { useVisibleActiveTab } from "../../hooks/visible-active-tab.hook";
 import { PROJECT_TAB_PARAM } from "../../constants/project-workspace.constant";
 import { useProjectWorkspaceQuery } from "../../hooks/project-workspace-query.hook";
 
@@ -12,6 +13,7 @@ interface IPanel {
   id: string;
   label: string;
   content: ReactNode;
+  action?: ReactNode;
 }
 
 interface IWorkspaceProps {
@@ -71,7 +73,11 @@ const ProjectWorkspace = ({
   const styles = useStyles();
   const { params, update } = useProjectWorkspaceQuery();
   const requested = activeTab ?? params.get(PROJECT_TAB_PARAM);
-  const selected = panels.find(panel => panel.id === requested)?.id ?? defaultTab;
+  const activePanel =
+    panels.find(panel => panel.id === requested) ?? panels.find(panel => panel.id === defaultTab);
+  const selected = activePanel?.id ?? defaultTab;
+  const panelActionAttribute = activePanel?.action ? "" : null;
+  const tabScroll = useVisibleActiveTab(selected);
   const selectTab = (id: string) => {
     if (id === selected) return;
     if (onTabChange) onTabChange(id);
@@ -81,8 +87,8 @@ const ProjectWorkspace = ({
     <Box sx={styles.workspace} data-project-workspace="">
       {header}
       <Card gap="4px" padding="8px" sx={styles.surface}>
-        <Box sx={styles.toolbar}>
-          <Box sx={styles.tabBar}>
+        <Box sx={styles.toolbar} data-panel-action={panelActionAttribute}>
+          <Box ref={tabScroll} sx={styles.tabBar}>
             <Tabs
               isScrollable
               items={panels}
@@ -93,7 +99,9 @@ const ProjectWorkspace = ({
               ariaLabel="לשוניות הפרויקט"
             />
           </Box>
-          <Box ref={setToolbar} sx={styles.actions} />
+          <Box ref={setToolbar} sx={styles.actions}>
+            {activePanel?.action}
+          </Box>
         </Box>
         {panels.map(panel => (
           <WorkspacePanel

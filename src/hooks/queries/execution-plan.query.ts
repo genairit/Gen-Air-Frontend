@@ -9,13 +9,6 @@ export const useExecutionPlanTemplateQuery = (enabled: boolean) =>
     queryFn: executionPlanService.template,
   });
 
-export const usePendingExecutionPlansQuery = (enabled: boolean) =>
-  useQuery({
-    enabled,
-    queryKey: QUERY_KEYS.executionPlanPending(),
-    queryFn: executionPlanService.pending,
-  });
-
 export const useQuotationExecutionPlansQuery = (quotationId: string, enabled: boolean) =>
   useQuery({
     enabled,

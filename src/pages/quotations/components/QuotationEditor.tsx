@@ -26,7 +26,6 @@ import Button from "./QuotationButton";
 import { useRef, useState } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
-import { useNavigate } from "react-router-dom";
 import QuotationSelect from "./QuotationSelect";
 import QuotationDelete from "./QuotationDelete";
 import Card from "../../../components/Card/Card";
@@ -34,6 +33,7 @@ import QuotationSummary from "./QuotationSummary";
 import QuotationPayments from "./QuotationPayments";
 import QuotationWorkspace from "./QuotationWorkspace";
 import QuotationDiagnostics from "./QuotationDiagnostics";
+import { useLocation, useNavigate } from "react-router-dom";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import BackLink from "../../../components/BackLink/BackLink";
 import Timeline from "../../../components/Timeline/Timeline";
@@ -43,7 +43,6 @@ import TextField from "../../../components/TextField/TextField";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
 import ExecutionPlanReviewCard from "./ExecutionPlanReviewCard";
 import { buildTaskPath } from "../../../utilities/route.utility";
-import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { USER_ROLES } from "../../../constants/user-role.constant";
 import { useElementFocus } from "../../../hooks/element-focus.hook";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
@@ -62,6 +61,7 @@ import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useHashTargetFocus } from "../../../hooks/hash-target-focus.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
 import QuotationCustomerPaymentDefault from "./QuotationCustomerPaymentDefault";
+import { buildQuotationClonePath } from "../../../constants/navigation.constant";
 import { QUOTATION_LIFECYCLE_COPY } from "../../../constants/quotation.constant";
 import { TASK_QUOTATION_COPY } from "../../../constants/task-quotation.constant";
 import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
@@ -104,6 +104,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   canClone = false,
 }: IQuotationEditorProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   useHashTargetFocus({
     ready: true,
     targetId: QUOTATION_DETAIL_HEADING_ID,
@@ -155,7 +156,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     editor.commandForbidden;
   const navigationPending = !editor.deleted && (editor.dirty || editor.busy || rebrand.busy);
   const blocker = useUnsavedChangesNavigation(navigationPending);
-  useQuotationDeletedNavigation(editor.deleted, quotation.id);
+  useQuotationDeletedNavigation(editor.deleted, quotation.id, quotation.primaryProject?.id ?? null);
   const isSummaryVisible =
     !editable ||
     (quotation.status === QUOTATION_STATUS.DRAFT ? viewDraft : editingStatus !== quotation.status);
@@ -362,7 +363,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                     disabled={blocked}
                     text="צור העתק לחברה אחרת"
                     variant={BUTTON_VARIANTS.NEUTRAL}
-                    onClick={() => navigate(`${ROUTE_PATHS.QUOTATIONS}?cloneFrom=${quotation.id}`)}
+                    onClick={() =>
+                      navigate(buildQuotationClonePath(quotation.id), { state: location.state })
+                    }
                   />
                 )}
               {canExport && (
@@ -452,8 +455,8 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           elevation={0}
           disableGutters
           className={styles.contextDisclosure}
-          expanded={detailsExpanded || !quotation.customerId}
           onChange={(_, expanded) => setDetailsExpanded(expanded)}
+          expanded={detailsExpanded || !quotation.customerId || !quotation.projectId}
         >
           <AccordionSummary
             expandIcon={

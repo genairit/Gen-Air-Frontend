@@ -24,6 +24,7 @@ import { getApiErrorMessage } from "../utilities/api-error.utility";
 import { quotationDraftTotals } from "../utilities/quotation-document.utility";
 import { validateQuotationReason } from "../utilities/quotation-reason.utility";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
+import { QUOTATION_SHARING_KEYS } from "../constants/quotation-sharing.constant";
 
 export const useQuotationEditor = (
   initial: IQuotation,
@@ -48,7 +49,10 @@ export const useQuotationEditor = (
   const cache = async (next: IQuotation, context: AuthorizationContext): Promise<void> => {
     context.assertCurrent();
     queryClient.setQueryData(QUOTATION_DETAIL_KEY(next.id), next);
-    await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY }),
+      queryClient.invalidateQueries({ queryKey: [QUOTATION_SHARING_KEYS.PROJECT_QUOTATIONS_ROOT] }),
+    ]);
     context.assertCurrent();
   };
   const update = (next: IQuotation): void => {
@@ -95,7 +99,8 @@ export const useQuotationEditor = (
       setBusy(false);
     }
   };
-  const autosaveEnabled = !deleted && dirty && !busy && !error && editable;
+  const autosaveEnabled =
+    !deleted && dirty && quotation.projectId !== null && !busy && !error && editable;
   useDelayedAsyncTask({
     enabled: autosaveEnabled,
     delayMs: QUOTATION_AUTOSAVE_MS,
@@ -171,7 +176,12 @@ export const useQuotationEditor = (
         exact: true,
       });
       context.assertCurrent();
-      await queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY }),
+        queryClient.invalidateQueries({
+          queryKey: [QUOTATION_SHARING_KEYS.PROJECT_QUOTATIONS_ROOT],
+        }),
+      ]);
       context.assertCurrent();
       setDeleted(true);
     } catch (failure) {

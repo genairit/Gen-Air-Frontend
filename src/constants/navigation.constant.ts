@@ -7,7 +7,6 @@ import type { IBackLinkRoute, INavigationItem } from "../interfaces/navigation-i
 export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
   { id: ROUTE_PATHS.BOARD, label: "תיקים", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
-  { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
   { id: ROUTE_PATHS.TASKS, label: "משימות", icon: ICON_NAMES.TASKS },
   { id: ROUTE_PATHS.EMPLOYEES, label: "ניהול עובדים", icon: ICON_NAMES.CONTACTS },
   { id: ROUTE_PATHS.SETTINGS, label: "הגדרות", icon: ICON_NAMES.SETTINGS },
@@ -16,7 +15,6 @@ export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
 export const MOBILE_NAVIGATION_ITEMS: INavigationItem[] = [
   { id: ROUTE_PATHS.BOARD, label: "תיקים", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
-  { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
   { id: ROUTE_PATHS.TASKS, label: "משימות", icon: ICON_NAMES.TASKS },
   { id: ROUTE_PATHS.EMPLOYEES, label: "עובדים", icon: ICON_NAMES.CONTACTS },
   { id: ROUTE_PATHS.SETTINGS, label: "הגדרות", icon: ICON_NAMES.SETTINGS },
@@ -24,7 +22,8 @@ export const MOBILE_NAVIGATION_ITEMS: INavigationItem[] = [
 ];
 
 export const PAGE_TITLE_BY_ROUTE: Record<string, string> = {
-  [ROUTE_PATHS.QUOTATIONS]: "הצעות מחיר",
+  [ROUTE_PATHS.QUOTATION_CLONE]: "שכפול הצעת מחיר",
+  [ROUTE_PATHS.PROJECT_QUOTATION_CREATE]: "הצעת מחיר חדשה",
   [ROUTE_PATHS.QUOTATION]: "הצעת מחיר",
   [ROUTE_PATHS.BOARD]: "ניהול פרויקטים ומשימות",
   [ROUTE_PATHS.ENGINEERING_ESTIMATES]: "כתבי כמויות",
@@ -47,8 +46,9 @@ export const PAGE_TITLE_BY_ROUTE: Record<string, string> = {
 };
 
 export const ACTIVE_NAVIGATION_BY_ROUTE: Record<string, string> = {
-  [ROUTE_PATHS.QUOTATIONS]: ROUTE_PATHS.QUOTATIONS,
-  [ROUTE_PATHS.QUOTATION]: ROUTE_PATHS.QUOTATIONS,
+  [ROUTE_PATHS.QUOTATION]: ROUTE_PATHS.BOARD,
+  [ROUTE_PATHS.QUOTATION_CLONE]: ROUTE_PATHS.BOARD,
+  [ROUTE_PATHS.PROJECT_QUOTATION_CREATE]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.BOARD]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.ENGINEERING_ESTIMATES]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.PROJECT_BOQS]: ROUTE_PATHS.BOARD,
@@ -68,6 +68,12 @@ export const ACTIVE_NAVIGATION_BY_ROUTE: Record<string, string> = {
   [ROUTE_PATHS.CUSTOMER]: ROUTE_PATHS.CUSTOMERS,
   [ROUTE_PATHS.COMPONENTS]: ROUTE_PATHS.BOARD,
 };
+
+export const buildProjectQuotationCreatePath = (projectId: string) =>
+  generatePath(ROUTE_PATHS.PROJECT_QUOTATION_CREATE, { projectId });
+
+export const buildQuotationClonePath = (quotationId: string) =>
+  generatePath(ROUTE_PATHS.QUOTATION_CLONE, { quotationId });
 
 export const BRAND = {
   TITLE: "GENAIR",
@@ -92,9 +98,10 @@ export const BACK_LINK_BY_ROUTE: Record<string, IBackLinkRoute> = {
     buildPath: params =>
       `${toBuildingPath(params)}?${PROJECT_TAB_PARAM}=${PROJECT_TABS.purchase.id}`,
   },
-  [ROUTE_PATHS.QUOTATION]: {
-    label: NAVIGATION_LABELS.BACK_TO_QUOTATIONS,
-    buildPath: () => ROUTE_PATHS.QUOTATIONS,
+  [ROUTE_PATHS.QUOTATION_CLONE]: {
+    label: "חזרה להצעת המקור",
+    buildPath: params =>
+      generatePath(ROUTE_PATHS.QUOTATION, { quotationId: params.quotationId ?? "" }),
   },
   [ROUTE_PATHS.NEW_CUSTOMER]: {
     label: NAVIGATION_LABELS.BACK_TO_CUSTOMERS,
