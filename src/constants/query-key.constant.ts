@@ -10,6 +10,7 @@ import type { ITaskQuery } from "../interfaces/task.interface";
 import type { ICustomerProjectQuery } from "../interfaces/customer-project.interface";
 
 export const QUERY_ROOTS = {
+  PROJECT_BOQ_DOCUMENTS: "project-boq-documents",
   CONTACT_DIRECTORY: "contact-directory",
   EXISTING_DRIVE_PREVIEW: "existing-drive-folder-preview",
   TASKS: "tasks",
@@ -33,6 +34,7 @@ export const QUERY_ROOTS = {
 } as const;
 
 export const QUERY_KEYS = {
+  projectBoqDocuments: (projectId: string) => [QUERY_ROOTS.PROJECT_BOQ_DOCUMENTS, projectId],
   contactDirectory: (search: string) => [QUERY_ROOTS.CONTACT_DIRECTORY, search],
   executionPlanTemplate: () => [QUERY_ROOTS.EXECUTION_PLANS, "template"],
   executionPlanPending: () => [QUERY_ROOTS.EXECUTION_PLANS, "pending"],
