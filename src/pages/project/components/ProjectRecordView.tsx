@@ -17,6 +17,7 @@ import { PERMISSIONS } from "../../../constants/permission.constant";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { getProjectKind } from "../../../utilities/apartment.utility";
 import { hasPermission } from "../../../utilities/permission.utility";
+import ProjectPurchaseCreateButton from "./ProjectPurchaseCreateButton";
 import ProjectEstimateCreateButton from "./ProjectEstimateCreateButton";
 import BuildingApartmentsPanel from "./building/BuildingApartmentsPanel";
 import ProjectQuotationCreateButton from "./ProjectQuotationCreateButton";
@@ -111,7 +112,13 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
         ]
       : []),
     ...(canReadPurchase
-      ? [{ ...PROJECT_TABS.purchase, content: <ProjectPurchaseDocuments projectId={project.id} /> }]
+      ? [
+          {
+            ...PROJECT_TABS.purchase,
+            action: <ProjectPurchaseCreateButton projectId={project.id} />,
+            content: <ProjectPurchaseDocuments projectId={project.id} />,
+          },
+        ]
       : []),
     {
       ...PROJECT_TABS.people,
