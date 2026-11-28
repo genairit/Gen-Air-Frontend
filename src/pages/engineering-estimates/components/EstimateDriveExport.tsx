@@ -1,4 +1,5 @@
-import type { FC } from "react";
+import { createPortal } from "react-dom";
+import { useContext, type FC } from "react";
 import { usePageStyles } from "../../page.style";
 import { useMutation } from "@tanstack/react-query";
 import { Box, Link, Typography } from "@mui/material";
@@ -9,6 +10,7 @@ import { ESTIMATE_EXPORT_COPY } from "../../../constants/engineering-estimate.co
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { engineeringEstimateService } from "../../../services/engineering-estimate.service";
 import { PUBLICATION_DRIVE_URL_PATTERNS } from "../../../constants/quotation-publication.constant";
+import { WorkspaceToolbarContext } from "../../../components/ProjectWorkspace/WorkspaceToolbar.context";
 
 interface IEstimateDriveExportProps {
   id: string;
@@ -30,22 +32,27 @@ const EstimateDriveExport: FC<IEstimateDriveExportProps> = ({
   projectId,
 }) => {
   const styles = usePageStyles();
+  const toolbar = useContext(WorkspaceToolbarContext);
   const exportToDrive = useMutation({
     mutationFn: () => engineeringEstimateService.exportToDrive(id, version),
   });
   const missingProject = projectId === null;
   const fileUrl = exportToDrive.data?.fileUrl ?? null;
 
+  const action = (
+    <Button
+      variant={BUTTON_VARIANTS.SECONDARY}
+      isLoading={exportToDrive.isPending}
+      onClick={(): void => exportToDrive.mutate()}
+      disabled={disabled || busy || missingProject || exportToDrive.isPending}
+      text={exportToDrive.isPending ? ESTIMATE_EXPORT_COPY.BUSY : ESTIMATE_EXPORT_COPY.BUTTON}
+    />
+  );
+
   return (
     <Box sx={styles.stack({ gap: "8px" })}>
+      {toolbar ? createPortal(action, toolbar) : <Box sx={styles.endRow}>{action}</Box>}
       <Box sx={styles.row({ gap: "8px" })}>
-        <Button
-          variant={BUTTON_VARIANTS.SECONDARY}
-          isLoading={exportToDrive.isPending}
-          onClick={(): void => exportToDrive.mutate()}
-          disabled={disabled || busy || missingProject || exportToDrive.isPending}
-          text={exportToDrive.isPending ? ESTIMATE_EXPORT_COPY.BUSY : ESTIMATE_EXPORT_COPY.BUTTON}
-        />
         {disabled && !missingProject && (
           <Typography role="status">{ESTIMATE_EXPORT_COPY.SAVE_FIRST}</Typography>
         )}
