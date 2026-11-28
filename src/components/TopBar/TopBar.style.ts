@@ -18,12 +18,6 @@ export const useStyles = () =>
       backdropFilter: theme.glass.blur,
       WebkitBackdropFilter: theme.glass.blur,
     },
-    titleGroup: {
-      display: "flex",
-      alignItems: "center",
-      gap: "12px",
-      flexWrap: "wrap",
-    },
     title: {
       margin: 0,
       fontSize: 18,
