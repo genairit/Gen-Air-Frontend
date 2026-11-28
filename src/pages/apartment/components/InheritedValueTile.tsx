@@ -8,20 +8,11 @@ import type { TInheritanceSourceType } from "../../../interfaces/apartment.inter
 interface IInheritedValueTileProps {
   label: string;
   value: string;
-  notes: string[];
   badge?: ReactNode;
-  children?: ReactNode;
   source: TInheritanceSourceType;
 }
 
-const InheritedValueTile: FC<IInheritedValueTileProps> = ({
-  label,
-  value,
-  notes,
-  badge,
-  source,
-  children,
-}) => {
+const InheritedValueTile: FC<IInheritedValueTileProps> = ({ label, value, badge, source }) => {
   const styles = useStyles();
   const sourceBadge = INHERITANCE_BADGES[source];
 
@@ -39,12 +30,6 @@ const InheritedValueTile: FC<IInheritedValueTileProps> = ({
         </Box>
         {badge}
       </Box>
-      {notes.map(note => (
-        <Box key={note} component="span" sx={styles.note}>
-          {note}
-        </Box>
-      ))}
-      {children}
     </Box>
   );
 };

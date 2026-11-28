@@ -1,3 +1,8 @@
+import {
+  BUTTON_SIZES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import { usePageStyles } from "../../page.style";
@@ -11,7 +16,6 @@ import { APARTMENT_TEAM_COPY } from "../../../constants/apartment.constant";
 import ApartmentTeamPicker from "../../apartment/components/ApartmentTeamPicker";
 import ApartmentTeamMembers from "../../apartment/components/ApartmentTeamMembers";
 import type { IApiProject, IApiProjectMember } from "../../../interfaces/api.interface";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import ApartmentEngineerPicker from "../../apartment/components/ApartmentEngineerPicker";
 
 interface IApartmentTeamDraftCardProps {
@@ -49,7 +53,12 @@ const ApartmentTeamDraftCard: FC<IApartmentTeamDraftCardProps> = ({
           <Box component="b">{APARTMENT_TEAM_COPY.OTHER_TEAM}</Box>
           <Chip label={badge} />
         </Box>
-        <Button text={toggleLabel} onClick={toggleTeam} variant={BUTTON_VARIANTS.NEUTRAL} />
+        <Button
+          text={toggleLabel}
+          onClick={toggleTeam}
+          size={BUTTON_SIZES.COMPACT}
+          variant={BUTTON_VARIANTS.NEUTRAL}
+        />
       </Box>
       <ApartmentTeamMembers isOwn={isOwn} onChange={onChange} members={effectiveMembers} />
       {isOwn && <ApartmentTeamPicker onChange={onChange} members={effectiveMembers} />}

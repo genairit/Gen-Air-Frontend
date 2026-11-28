@@ -11,10 +11,9 @@ import {
 } from "../../../constants/customer-details.constant";
 
 import { Box } from "@mui/material";
+import { type FC, useState } from "react";
 import { usePageStyles } from "../../page.style";
-import Card from "../../../components/Card/Card";
 import Chip from "../../../components/Chip/Chip";
-import { type FC, type ReactNode, useState } from "react";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
 import TextField from "../../../components/TextField/TextField";
@@ -26,7 +25,6 @@ import type { ProjectDetailFieldSetType } from "../../../constants/project-detai
 
 interface IProjectSiteDetailsCardProps {
   typeName: string;
-  notice?: ReactNode;
   isSubmitAttempted: boolean;
   values: TCustomerDetailValues;
   fieldSet: ProjectDetailFieldSetType;
@@ -34,7 +32,6 @@ interface IProjectSiteDetailsCardProps {
 }
 
 const ProjectSiteDetailsCard: FC<IProjectSiteDetailsCardProps> = ({
-  notice,
   values,
   fieldSet,
   typeName,
@@ -68,6 +65,7 @@ const ProjectSiteDetailsCard: FC<IProjectSiteDetailsCardProps> = ({
         infoText={feedback.infoText}
         placeholder={config.placeholder}
         isLtr={isLtrCustomerField(config)}
+        id={`project-site-${config.field}`}
         validator={() => feedback.validation}
         onBlur={() => markTouched(config.field)}
         onChange={value => onChange(config.field, kindConfig.sanitize(value))}
@@ -79,16 +77,14 @@ const ProjectSiteDetailsCard: FC<IProjectSiteDetailsCardProps> = ({
   };
 
   return (
-    <Card gap="22px" padding="28px">
+    <Box sx={styles.stack({ gap: "12px" })}>
       <CardHeader
         icon={ICON_NAMES.HOME}
         title={CUSTOMER_DETAILS_COPY.SITE_TITLE}
-        subtitle={CUSTOMER_DETAILS_COPY.SITE_SUBTITLE}
         action={<Chip label={typeName} size={CHIP_SIZES.MEDIUM} />}
       />
-      {notice}
       <Box sx={styles.grid({ minColumnWidth: 260, gap: "20px" })}>{fields.map(renderField)}</Box>
-    </Card>
+    </Box>
   );
 };
 

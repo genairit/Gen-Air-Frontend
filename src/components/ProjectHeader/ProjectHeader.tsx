@@ -17,8 +17,8 @@ interface IProjectHeaderProps {
   projectId: string;
   badge?: ReactNode;
   actions: ReactNode;
-  syncCaption: string;
   icon?: IconNameType;
+  syncCaption?: string;
   stageNote?: ReactNode;
   stageDotColor?: string;
   stageControl?: ReactNode;
@@ -39,12 +39,12 @@ const ProjectHeader: FC<IProjectHeaderProps> = ({
   const styles = useStyles();
 
   return (
-    <Card gap="20px" padding="24px" sx={styles.card}>
+    <Card gap="10px" sx={styles.card} padding="12px 16px">
       <Box sx={styles.identity}>
         {icon && <IconTile name={icon} size={ICON_TILE_SIZES.LARGE} depth={SURFACE_DEPTHS.INSET} />}
         <Box sx={styles.details}>
           <Box sx={styles.titleRow}>
-            <Box component="h3" sx={styles.title}>
+            <Box component="h1" sx={styles.title}>
               {title}
             </Box>
             <Chip isMonospace label={projectId} variant={CHIP_VARIANTS.INSET} />
@@ -53,10 +53,12 @@ const ProjectHeader: FC<IProjectHeaderProps> = ({
             )}
             {badge}
           </Box>
-          <Box component="span" sx={styles.caption}>
-            <Icon size={20} name={ICON_NAMES.ERP} />
-            {syncCaption}
-          </Box>
+          {syncCaption && (
+            <Box component="span" sx={styles.caption}>
+              <Icon size={20} name={ICON_NAMES.ERP} />
+              {syncCaption}
+            </Box>
+          )}
         </Box>
       </Box>
       <Box sx={styles.actions}>{actions}</Box>
