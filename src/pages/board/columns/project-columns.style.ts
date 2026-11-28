@@ -11,6 +11,8 @@ export const PROJECT_COLUMN_STYLES = createStyles({
     alignItems: "flex-start",
   },
   name: {
+    minWidth: 0,
+    overflowWrap: "anywhere",
     fontSize: 15,
     fontWeight: 700,
     color: theme.palette.charcoal,
@@ -25,6 +27,8 @@ export const PROJECT_COLUMN_STYLES = createStyles({
     fontSize: 12,
   },
   mobileHeader: {
+    minWidth: 0,
+    flexWrap: "wrap",
     gap: "10px",
     display: "flex",
     alignItems: "baseline",
