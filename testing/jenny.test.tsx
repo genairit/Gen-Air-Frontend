@@ -1161,6 +1161,7 @@ test("preview ignores an older response, debounces changes and never fetches inv
     ],
   };
   const latest: { preview: ReturnType<typeof useEstimatePreview> | null } = { preview: null };
+  const currentPreview = () => latest.preview;
   const PreviewHarness = ({
     draft,
     enabled,
@@ -1189,18 +1190,18 @@ test("preview ignores an older response, debounces changes and never fetches inv
     assert.equal(harness.calls.length, 1);
     const next = { ...input, areas: input.areas.map(area => ({ ...area, repeatCount: 4 })) };
     await act(async () => renderer.update(element(next)));
-    assert.equal(latest.preview?.data, void 0);
+    assert.equal(currentPreview()?.data, void 0);
     await harness.respond({ lines: [], subtotal: "600" });
-    assert.equal(latest.preview?.data, void 0);
+    assert.equal(currentPreview()?.data, void 0);
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, SEARCH_DEBOUNCE_MS + 20));
     });
     assert.equal(harness.calls.length, 2);
     await harness.respond({ lines: [], subtotal: "800" });
-    assert.equal(latest.preview?.data?.subtotal, "800");
+    assert.equal(currentPreview()?.data?.subtotal, "800");
     const invalid = { ...next, areas: next.areas.map(area => ({ ...area, repeatCount: 0 })) };
     await act(async () => renderer.update(element(invalid)));
-    assert.equal(latest.preview?.waiting, false);
+    assert.equal(currentPreview()?.waiting, false);
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, SEARCH_DEBOUNCE_MS + 20));
     });
