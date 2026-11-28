@@ -3,11 +3,6 @@ import { Box, Typography } from "@mui/material";
 import Card from "../../../components/Card/Card";
 import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
-import { useNavigate, generatePath } from "react-router-dom";
-import { useSessionUser } from "../../../store/session.store";
-import { ROUTE_PATHS } from "../../../constants/routes.constant";
-import { PERMISSIONS } from "../../../constants/permission.constant";
-import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
@@ -18,8 +13,6 @@ import { useProjectBoqDocumentsQuery } from "../../../hooks/queries/project-boq.
 
 const ProjectPurchaseDocuments: FC<{ projectId: string }> = ({ projectId }) => {
   const styles = usePageStyles();
-  const navigate = useNavigate();
-  const canCreate = hasPermission(useSessionUser(), PERMISSIONS.PROJECT_BOQ_MANAGE);
   const documentStyles = usePurchaseDocumentStyles();
   const query = useProjectBoqDocumentsQuery(projectId);
   const retry = async () => {
@@ -28,15 +21,6 @@ const ProjectPurchaseDocuments: FC<{ projectId: string }> = ({ projectId }) => {
 
   return (
     <Box sx={styles.stack({ gap: "12px" })}>
-      {canCreate && (
-        <Box sx={styles.endRow}>
-          <Button
-            size="compact"
-            text="יצירת כתב רכש"
-            onClick={() => navigate(generatePath(ROUTE_PATHS.PROJECT_BOQ, { projectId }))}
-          />
-        </Box>
-      )}
       {query.isPending && <LoadingState label={PROJECT_PURCHASE_COPY.LOADING} />}
       {query.isError && (
         <Box>
