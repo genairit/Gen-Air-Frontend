@@ -53,7 +53,8 @@ const ProjectPurchaseDocuments: FC<{ projectId: string }> = ({ projectId }) => {
             {document.name}
           </Typography>
           <Typography sx={styles.caption}>
-            {PROJECT_PURCHASE_COPY.COST} · <bdi>{formatBoqEstimate(document.estimatedTotal)}</bdi>
+            {PROJECT_PURCHASE_COPY.COST} ·{" "}
+            <Box component="bdi">{formatBoqEstimate(document.estimatedTotal)}</Box>
           </Typography>
         </Card>
       ))}
