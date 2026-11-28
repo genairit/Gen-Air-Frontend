@@ -23,6 +23,23 @@ await runBundledTest({
   external: ["@tanstack/react-query", "react-router-dom", "axios"],
   plugins: [
     {
+      name: "estimate-preview-surface-boundary",
+      resolveId: source =>
+        source.endsWith("/EstimateQuantities") ? "\0estimate-quantities" : null,
+      load: id =>
+        id === "\0estimate-quantities"
+          ? "export default function EstimateQuantities() { return null; }"
+          : null,
+    },
+    {
+      name: "estimate-scope-boundary",
+      resolveId: source => (source.endsWith("/EstimateScopeField") ? "\0estimate-scope" : null),
+      load: id =>
+        id === "\0estimate-scope"
+          ? "export default function EstimateScopeField() { return null; }"
+          : null,
+    },
+    {
       name: "estimate-autocomplete-boundary",
       resolveId: source =>
         source.endsWith("/Autocomplete/Autocomplete") ? "\0estimate-autocomplete" : null,

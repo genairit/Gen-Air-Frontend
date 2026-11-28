@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
-import { useState, type FC } from "react";
 import { usePageStyles } from "../../page.style";
+import { useState, useEffect, type FC } from "react";
 import EstimateQuantities from "./EstimateQuantities";
 import EstimateScopeField from "./EstimateScopeField";
 import Button from "../../../components/Button/Button";
@@ -33,19 +33,21 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
   const busy = create.isPending;
   const dirty = Boolean(draft.name || draft.projectId || draft.areas.length);
   const valid = Boolean(draft.name.trim()) && validEstimateDraft(draft.areas);
+  useEffect(() => {
+    if (create.isSuccess) {
+      onCreated(create.data);
+    }
+  }, [create.isSuccess, create.data, onCreated]);
   const save = (): void => {
     if (!valid || busy) {
       return;
     }
-    create.mutate(
-      {
-        name: draft.name.trim(),
-        projectId: draft.projectId,
-        scope: draft.scope,
-        areas: draft.areas,
-      },
-      { onSuccess: onCreated },
-    );
+    create.mutate({
+      name: draft.name.trim(),
+      projectId: draft.projectId,
+      scope: draft.scope,
+      areas: draft.areas,
+    });
   };
   const cancel = (): void => {
     if (dirty) {

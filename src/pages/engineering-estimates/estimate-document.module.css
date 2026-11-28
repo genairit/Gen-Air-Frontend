@@ -36,12 +36,6 @@
   gap: 12px;
   align-items: end;
 }
-.line {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 105px;
-  gap: 12px;
-  align-items: start;
-}
 .actions {
   display: flex;
   align-items: center;
@@ -132,17 +126,25 @@
   .editor {
     padding: 12px;
   }
-  .line {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 .editorTable {
-  min-width: 460px;
+  min-width: 540px;
+  table-layout: fixed;
 }
 .editorTable > tbody > tr > td:first-child {
-  width: 56%;
+  width: 240px;
 }
 .editorTable > tbody > tr > td:nth-child(2) {
-  width: 100px;
+  width: 110px;
+}
+
+.editorTable > thead > tr > th:first-child {
+  width: 240px;
+}
+.editorTable > thead > tr > th:nth-child(2) {
+  width: 110px;
+}
+.editorTable > thead > tr > th:nth-child(3) {
+  width: 150px;
 }

@@ -45,10 +45,10 @@ import { test } from "node:test";
 import { Box } from "@mui/material";
 import assert from "node:assert/strict";
 import Jenny from "../src/components/Jenny/Jenny";
-import { useEffect, type ReactElement } from "react";
 import Button from "../src/components/Button/Button";
 import { setSession } from "../src/store/session.store";
 import TextField from "../src/components/TextField/TextField";
+import { useEffect, useState, type ReactElement } from "react";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { isKeyboardEvent } from "../src/utilities/keyboard.utility";
@@ -62,6 +62,7 @@ import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { parseRestrictedMarkdown } from "../src/utilities/markdown.utility";
 import type { IJennyThreadMessage } from "../src/interfaces/jenny.interface";
 import { useScrollPinnedToBottom } from "../src/hooks/scroll-pinned-bottom.hook";
+import { createMemoryRouter, RouterProvider, useSearchParams } from "react-router-dom";
 import EstimateJenny from "../src/pages/engineering-estimates/components/EstimateJenny";
 import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
 import { initialEstimateMeasurements } from "../src/utilities/engineering-estimate.utility";
@@ -69,6 +70,7 @@ import type { IEstimateCalculation } from "../src/interfaces/engineering-estimat
 import type { IEngineeringEstimate } from "../src/interfaces/engineering-estimate.interface";
 import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../src/constants/layout.constant";
 import { validateEstimatePlanSelection } from "../src/utilities/engineering-estimate.utility";
+import EstimateCreateForm from "../src/pages/engineering-estimates/components/EstimateCreateForm";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 import EstimateCatalogueLine from "../src/pages/engineering-estimates/components/EstimateCatalogueLine";
 
@@ -1267,5 +1269,66 @@ test("catalogue rows pick up loaded descriptions and edits keep the input identi
   } finally {
     await act(async () => renderer.unmount());
     client.clear();
+  }
+});
+
+test("creating a dirty estimate opens its saved detail after the navigation guard clears", async () => {
+  const restoreWindow = installMatchMedia([]);
+  Reflect.set(window, "addEventListener", () => {});
+  Reflect.set(window, "removeEventListener", () => {});
+  const harness = createHarness();
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  const Page = () => {
+    const [creating, setCreating] = useState(true);
+    const [params, setParams] = useSearchParams();
+    if (!creating) {
+      return <Box>{params.get("estimate") ?? "list"}</Box>;
+    }
+    return (
+      <EstimateCreateForm
+        canLinkProject={false}
+        onCancel={() => setCreating(false)}
+        onCreated={estimate => {
+          setCreating(false);
+          setParams({ estimate: estimate.id });
+        }}
+      />
+    );
+  };
+  const router = createMemoryRouter([{ path: "/", element: <Page /> }]);
+  const view: { renderer: ReactTestRenderer | null } = { renderer: null };
+  await act(async () => {
+    view.renderer = create(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+  });
+  const renderer = view.renderer;
+  assert.ok(renderer);
+  try {
+    const name = renderer.root
+      .findAllByType(TextField)
+      .find(field => field.props.title === "שם כתב הכמויות");
+    assert.ok(name);
+    await act(async () => name.props.onChange("כתב חדש"));
+    const save = findButton(renderer, "יצירת כתב כמויות");
+    assert.ok(save);
+    assert.equal(save.props.onClick, void 0);
+    const form = renderer.root.find(node => node.type === "form");
+    await act(async () => form.props.onSubmit({ preventDefault() {} }));
+    assert.equal(harness.calls.filter(call => call.url === ESTIMATE_ENDPOINT).length, 1);
+    const estimate = { ...emptyEstimateDraft(), id: "saved-id", name: "כתב חדש", version: 1 };
+    await harness.respond(estimate);
+    assert.equal(router.state.location.search, "?estimate=saved-id");
+    assert.ok(textOf(renderer).includes("saved-id"));
+  } finally {
+    await act(async () => renderer.unmount());
+    router.dispose();
+    client.clear();
+    harness.restore();
+    restoreWindow();
   }
 });
