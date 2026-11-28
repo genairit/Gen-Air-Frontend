@@ -15,11 +15,14 @@ import badgeStyles from "../../quotations/quotation.module.css";
 import { useElementFocus } from "../../../hooks/element-focus.hook";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
 import { PERMISSIONS } from "../../../constants/permission.constant";
+import { formatRelativeTime } from "../../../utilities/date.utility";
+import { quotationMoney } from "../../../utilities/quotation.utility";
 import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useEstimatesQuery } from "../../../hooks/engineering-estimate.hook";
+import { PROJECT_QUOTATIONS_COPY } from "../../../constants/quotation-sharing.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { ESTIMATE_STATUS_LABELS } from "../../../constants/engineering-estimate.constant";
 
@@ -90,11 +93,28 @@ const ProjectEstimatesPanel: FC<IProjectEstimatesPanelProps> = ({ projectId }) =
               ariaLabel={`${estimate.name} · ${ESTIMATE_STATUS_LABELS[estimate.status]}`}
             >
               <Box sx={styles.header}>
-                <Box component="bdi" sx={styles.number}>
-                  {estimate.name}
+                <Box sx={styles.identity}>
+                  <Box component="bdi" sx={styles.number}>
+                    {estimate.name}
+                  </Box>
+                  {estimate.createdByName && (
+                    <Box component="bdi" sx={styles.customer}>
+                      {estimate.createdByName}
+                    </Box>
+                  )}
                 </Box>
                 <Box component="span" className={badgeStyles.badge} data-status={estimate.status}>
                   {ESTIMATE_STATUS_LABELS[estimate.status]}
+                </Box>
+              </Box>
+              <Box sx={styles.footer}>
+                {estimate.subtotal != null && (
+                  <Box component="bdi" sx={styles.amount}>
+                    {quotationMoney(estimate.subtotal)}
+                  </Box>
+                )}
+                <Box component="time" sx={styles.updated} dateTime={estimate.updatedAt}>
+                  {PROJECT_QUOTATIONS_COPY.UPDATED} {formatRelativeTime(estimate.updatedAt)}
                 </Box>
               </Box>
             </Card>

@@ -125,6 +125,8 @@ export interface IEstimateListItem {
   id: string;
   name: string;
   updatedAt: string;
+  subtotal?: string | null;
+  createdByName?: string | null;
   projectId: string | null;
   status: EstimateStatusType;
 }

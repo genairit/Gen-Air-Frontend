@@ -106,6 +106,8 @@ const isEstimateListItem = (value: unknown): value is IEstimateListItem =>
   isRecord(value) &&
   hasStringFields(value, ["id", "name", "updatedAt"]) &&
   isNullableString(value.projectId) &&
+  (value.subtotal === undefined || isNullableString(value.subtotal)) &&
+  (value.createdByName === undefined || isNullableString(value.createdByName)) &&
   isString(value.status) &&
   Object.hasOwn(ESTIMATE_STATUS_LABELS, value.status);
 
