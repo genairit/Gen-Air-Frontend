@@ -16,6 +16,6 @@ concurrency:
 jobs:
   e2e:
     name: End-to-end
-    uses: genairit/Gen-Air-Automation/.github/workflows/e2e.yml@924aeadb96c1faf4eab47f4c721bcd7949e514df
+    uses: genairit/Gen-Air-Automation/.github/workflows/e2e.yml@01925ff94df3c437a741e906c1dc9c568d8edba1
     with:
-      automation-ref: 924aeadb96c1faf4eab47f4c721bcd7949e514df
+      automation-ref: 01925ff94df3c437a741e906c1dc9c568d8edba1
