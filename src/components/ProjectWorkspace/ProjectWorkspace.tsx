@@ -66,6 +66,11 @@ const ProjectWorkspace = ({
   const { params, update } = useProjectWorkspaceQuery();
   const requested = activeTab ?? params.get(PROJECT_TAB_PARAM);
   const selected = panels.find(panel => panel.id === requested)?.id ?? defaultTab;
+  const selectTab = (id: string) => {
+    if (id === selected) return;
+    if (onTabChange) onTabChange(id);
+    else update(PROJECT_TAB_PARAM, id);
+  };
   return (
     <Box sx={styles.workspace} data-project-workspace="">
       {header}
@@ -75,10 +80,10 @@ const ProjectWorkspace = ({
             isScrollable
             items={panels}
             activeId={selected}
+            onChange={selectTab}
             mode={TAB_MODES.TABS}
             panelIdPrefix={prefix}
             ariaLabel="לשוניות הפרויקט"
-            onChange={id => (onTabChange ? onTabChange(id) : update(PROJECT_TAB_PARAM, id))}
           />
         </Box>
         {panels.map(panel => (

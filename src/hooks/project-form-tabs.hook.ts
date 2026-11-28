@@ -9,7 +9,9 @@ export const useProjectFormTabs = () => {
     requested === PROJECT_TABS.technical.id || requested === PROJECT_TABS.people.id
       ? requested
       : PROJECT_TABS.details.id;
-  const setActiveTab = (id: string) => update(PROJECT_TAB_PARAM, id);
+  const setActiveTab = (id: string) => {
+    if (id !== activeTab) update(PROJECT_TAB_PARAM, id);
+  };
   const [target, setTarget] = useState<{ id: string; selector?: string } | null>(null);
 
   const focused = useRef<typeof target>(null);
