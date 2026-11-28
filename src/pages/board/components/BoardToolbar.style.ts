@@ -22,8 +22,8 @@ export const useStyles = () =>
       flex: "1 1 520px",
     },
     search: { minWidth: 0, flex: "2 1 205px" },
-    typeFilter: { minWidth: 0, flex: "1 1 180px" },
-    statusFilter: { minWidth: 0, flex: "1 1 130px" },
+    typeFilter: { minWidth: 0, flex: "1 1 150px" },
+    statusFilter: { minWidth: 0, flex: "1 1 159px" },
     actions: {
       ...row,
       maxWidth: "100%",
