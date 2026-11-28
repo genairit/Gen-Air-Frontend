@@ -1,15 +1,15 @@
 import type { FC } from "react";
 import { Box } from "@mui/material";
-import { Link } from "react-router-dom";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Chip from "../../../components/Chip/Chip";
 import { useStyles } from "./ApartmentNotes.style";
+import { Link, useLocation } from "react-router-dom";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import { hasTamaNote } from "../../../utilities/apartment.utility";
-import { buildProjectPath } from "../../../utilities/route.utility";
 import type { IApiProject } from "../../../interfaces/api.interface";
+import { getApartmentBuildingPath } from "../../../utilities/route.utility";
 import { APARTMENT_PAGE_COPY, BUILDING_PAGE_COPY } from "../../../constants/apartment.constant";
 
 interface IParentNotesCardProps {
@@ -17,6 +17,7 @@ interface IParentNotesCardProps {
 }
 
 const ParentNotesCard: FC<IParentNotesCardProps> = ({ apartment }) => {
+  const location = useLocation();
   const styles = useStyles();
   const pageStyles = usePageStyles();
   const parentNotes = apartment.parentNotes ?? null;
@@ -35,7 +36,14 @@ const ParentNotesCard: FC<IParentNotesCardProps> = ({ apartment }) => {
         </Box>
       </Box>
       <Box sx={styles.notesBox}>{parentNotes ?? BUILDING_PAGE_COPY.NO_NOTES}</Box>
-      <Box component={Link} sx={styles.link} to={buildProjectPath(apartment.parentProjectId ?? "")}>
+      <Box
+        component={Link}
+        sx={styles.link}
+        to={getApartmentBuildingPath(
+          apartment.parentProjectId ?? "",
+          location.state?.buildingSearch,
+        )}
+      >
         {APARTMENT_PAGE_COPY.OPEN_PARENT}
       </Box>
     </Card>

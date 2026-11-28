@@ -1,6 +1,6 @@
 import type {
+  TUserUpdatePayload,
   IUpdatePasswordPayload,
-  IUserRoleUpdatePayload,
 } from "../interfaces/api-request.interface";
 
 import { userService } from "../services/user.service";
@@ -26,12 +26,12 @@ export const addEmployeeAction = async (values: IEmployeeFormValues): Promise<vo
   context.assertCurrent();
 };
 
-export const updateEmployeeRolesAction = async ({
+export const updateEmployeeAction = async ({
   userId,
   changes,
 }: {
   userId: string;
-  changes: IUserRoleUpdatePayload;
+  changes: TUserUpdatePayload;
 }): Promise<void> => {
   const context = new AuthorizationContext();
   await userService.update(userId, changes);

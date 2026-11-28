@@ -1,3 +1,8 @@
+import {
+  BUTTON_SIZES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { usePageStyles } from "../../page.style";
@@ -14,7 +19,6 @@ import InlineError from "../../../components/InlineError/InlineError";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { toApartmentAssignments } from "../../../utilities/apartment.utility";
 import type { IApiProject, IApiProjectMember } from "../../../interfaces/api.interface";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { useUpdateApartmentMutation } from "../../../hooks/mutations/apartment.mutation";
 import { APARTMENT_PAGE_COPY, APARTMENT_TEAM_COPY } from "../../../constants/apartment.constant";
 
@@ -51,11 +55,7 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
     );
   return (
     <Card gap="18px">
-      <CardHeader
-        icon={ICON_NAMES.CONTACTS}
-        title={APARTMENT_PAGE_COPY.CONTACT_TITLE}
-        subtitle={APARTMENT_PAGE_COPY.CONTACT_SUBTITLE}
-      />
+      <CardHeader icon={ICON_NAMES.CONTACTS} title={APARTMENT_PAGE_COPY.CONTACT_TITLE} />
       <ApartmentEngineerPicker
         value={engineerUserId}
         selectedMember={engineerMember}
@@ -64,6 +64,7 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
           updateMutation.mutate({ apartmentId: apartment.id, changes: { engineerUserId: userId } })
         }
       />
+      {canEdit && <Box sx={styles.caption}>שיוך עובד הנדסי נשמר מיד</Box>}
       <Box sx={styles.spacedRow}>
         <Box sx={styles.row({})}>
           <Box component="b">{APARTMENT_TEAM_COPY.OTHER_TEAM}</Box>
@@ -73,6 +74,7 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
           <Box sx={styles.row({ gap: "10px" })}>
             {!isEditing && (
               <Button
+                size={BUTTON_SIZES.COMPACT}
                 variant={BUTTON_VARIANTS.NEUTRAL}
                 disabled={updateMutation.isPending}
                 text={APARTMENT_TEAM_COPY.OVERRIDE}
@@ -82,6 +84,7 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
             {isOwn && (
               <Button
                 onClick={resetTeam}
+                size={BUTTON_SIZES.COMPACT}
                 text={APARTMENT_TEAM_COPY.RESET}
                 variant={BUTTON_VARIANTS.NEUTRAL}
                 isLoading={updateMutation.isPending}
@@ -106,10 +109,12 @@ const ApartmentContactCard: FC<IApartmentContactCardProps> = ({ apartment, canEd
           <Box sx={styles.row({})}>
             <Button
               onClick={saveTeam}
+              size={BUTTON_SIZES.COMPACT}
               text={APARTMENT_TEAM_COPY.SAVE}
               isLoading={updateMutation.isPending}
             />
             <Button
+              size={BUTTON_SIZES.COMPACT}
               onClick={() => setDraft(null)}
               text={APARTMENT_PAGE_COPY.CANCEL}
               variant={BUTTON_VARIANTS.NEUTRAL}

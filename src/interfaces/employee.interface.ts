@@ -6,6 +6,8 @@ export interface IEmployee {
   phone: string;
   email: string;
   person: IPerson;
+  lastName: string;
+  firstName: string;
   role: UserRoleType;
   isDisabled: boolean;
   assignedRoles: UserRoleType[];

@@ -8,12 +8,12 @@ import {
   APARTMENT_SCROLL_ROOT_MARGIN,
 } from "../../../../constants/apartment.constant";
 
-import { type FC, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { type FC } from "react";
 import { Box, useMediaQuery } from "@mui/material";
 import { usePageStyles } from "../../../page.style";
 import Card from "../../../../components/Card/Card";
 import ApartmentMobileRow from "./ApartmentMobileRow";
+import { useLocation, useNavigate } from "react-router-dom";
 import ApartmentSelectionBar from "./ApartmentSelectionBar";
 import { ICON_NAMES } from "../../../../constants/icon.constant";
 import TextField from "../../../../components/TextField/TextField";
@@ -28,6 +28,7 @@ import { MOBILE_LAYOUT_QUERY } from "../../../../constants/layout.constant";
 import LoadingState from "../../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../../utilities/api-error.utility";
 import { useApartmentPagesQuery } from "../../../../hooks/queries/apartment.query";
+import { useProjectWorkspaceQuery } from "../../../../hooks/project-workspace-query.hook";
 import type { IApiProject, IApiProjectStage } from "../../../../interfaces/api.interface";
 import { FIELD_TYPES } from "../../../../components/TextField/constants/textfield.constants";
 import { buildApartmentColumns, APARTMENT_TABLE_MIN_WIDTH } from "./columns/apartment-columns";
@@ -44,7 +45,10 @@ const ApartmentsTable: FC<IApartmentsTableProps> = ({ buildingId, stageId, stage
   const navigate = useNavigate();
   const styles = usePageStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
-  const [search, setSearch] = useState("");
+  const location = useLocation();
+  const { params, update } = useProjectWorkspaceQuery();
+  const search = params.get("apartmentSearch") ?? "";
+  const setSearch = (value: string) => update("apartmentSearch", value, true);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
 
   const apartmentsQuery = useApartmentPagesQuery(buildingId, { search: debouncedSearch, stageId });
@@ -66,7 +70,9 @@ const ApartmentsTable: FC<IApartmentsTableProps> = ({ buildingId, stageId, stage
 
   const columns = buildApartmentColumns({ stages, selection });
   const openApartment = (apartment: IApiProject) =>
-    navigate(buildApartmentPath(buildingId, apartment.id));
+    navigate(buildApartmentPath(buildingId, apartment.id), {
+      state: { buildingSearch: location.search },
+    });
 
   const toolbar = (
     <Box sx={styles.stack({ gap: "16px" })}>
