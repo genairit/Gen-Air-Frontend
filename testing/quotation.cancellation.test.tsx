@@ -13,7 +13,6 @@ import {
   QUOTATION_LIFECYCLE_ACTION,
 } from "../src/constants/quotation.constant";
 
-import { AxiosError } from "axios";
 import { test, mock } from "node:test";
 import assert from "node:assert/strict";
 import { act, create } from "react-test-renderer";
@@ -21,6 +20,7 @@ import { quotationFixture } from "./quotation.fixture";
 import { setSession } from "../src/store/session.store";
 import { logger } from "../src/utilities/logger.utility";
 import { TextField as MuiTextField } from "@mui/material";
+import { AxiosError, type AxiosRequestConfig } from "axios";
 import { setTimeout as settle } from "node:timers/promises";
 import { TIME_UNITS } from "../src/constants/time.constant";
 import { HTTP_STATUS } from "../src/constants/api.constant";
@@ -45,6 +45,7 @@ import QuotationSummary from "../src/pages/quotations/components/QuotationSummar
 import type { TQuotationRestorableStatus } from "../src/constants/quotation.constant";
 import { canCancelQuotation, canRestoreQuotation } from "../src/utilities/permission.utility";
 import { MAX_QUOTATION_CANCELLATION_REASON_LENGTH } from "../src/constants/quotation.constant";
+import type { IQuotationDocumentContext } from "../src/interfaces/quotation-document.interface";
 import ValidationMessageText from "../src/components/ValidationMessageText/ValidationMessageText";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -89,6 +90,33 @@ const cancelledQuotation = (initial: IQuotation): IQuotation => ({
   ],
 });
 
+const documentContext = (quotation: IQuotation): IQuotationDocumentContext => {
+  const party = { name: "Customer", address: null, city: null, email: null, phone: null };
+  return {
+    title: quotation.status === QUOTATION_STATUS.APPROVED ? "הזמנה" : "הצעת מחיר",
+    printDate: quotation.date,
+    issuerName: "Engineer",
+    company: { ...party, name: "GENAIR", businessNumber: "1234", vatFileNumber: "9876" },
+    recipient: { ...party, customerNumber: null },
+    recipientContext: {
+      customerId: quotation.customerId,
+      projectId: quotation.projectId,
+      salesAgentId: quotation.salesAgentId,
+    },
+    project: { name: null, address: null },
+    metadata: {
+      validUntil: null,
+      customerTaxId: null,
+      customerTaxLabel: "מספר",
+      vatFileNumber: "9876",
+      salesAgent: null,
+    },
+    terms: { approval: "אישור", general: [], delivery: [], warranty: [], additional: [] },
+    defaultPayment: [],
+    paymentTermLabels: {},
+  };
+};
+
 const mountQuotation = async (initial: IQuotation, user: IApiAuthorizedUser | null) => {
   setSession(user === null ? null : { user, accessToken: "cancellation-test-token" });
   const customers = mock.method(customerService, "getByFilter", async () => []);
@@ -100,6 +128,18 @@ const mountQuotation = async (initial: IQuotation, user: IApiAuthorizedUser | nu
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false, gcTime: Infinity, staleTime: Infinity } },
   });
+  const get = httpClient.get.bind(httpClient);
+  const preview = mock.method(
+    httpClient,
+    "get",
+    async (url: string, config?: AxiosRequestConfig) => {
+      if (url === `${API_ENDPOINTS.quotationById(initial.id)}/document-preview`) {
+        const saved = client.getQueryData<IQuotation>(QUOTATION_DETAIL_KEY(initial.id)) ?? initial;
+        return { data: documentContext(saved) };
+      }
+      return get(url, config);
+    },
+  );
   client.setQueryData(QUOTATION_DETAIL_KEY(initial.id), initial);
   client.setQueryData(QUOTATION_QUERY_KEY, [initial]);
   client.setQueryData(QUOTATION_COUNTS_KEY, {});
@@ -166,6 +206,7 @@ const mountQuotation = async (initial: IQuotation, user: IApiAuthorizedUser | nu
       customers.mock.restore();
       customer.mock.restore();
       projects.mock.restore();
+      preview.mock.restore();
       setSession(null);
     },
   };
