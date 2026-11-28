@@ -9,7 +9,6 @@ import {
   QUOTATION_SHARING_COPY,
   QUOTATION_PROJECT_KIND,
   QUOTATION_PROJECT_ROLE,
-  PROJECT_QUOTATIONS_COPY,
   QUOTATION_SHARING_LAYOUT,
   QUOTATION_SHARING_ANCHOR,
 } from "../constants/quotation-sharing.constant";
@@ -113,9 +112,6 @@ export const formatBuildingSubtitle = (quotation: IQuotation) => {
 
   return `${building.name} · ${isolateBidiText(building.code)}`;
 };
-
-export const formatProjectQuotationsSubtitle = (total: number) =>
-  `${total} ${PROJECT_QUOTATIONS_COPY.SUBTITLE_SUFFIX}`;
 
 export const buildProjectQuotationPath = (quotation: IProjectQuotation) => {
   const path = buildQuotationPath(quotation.id);

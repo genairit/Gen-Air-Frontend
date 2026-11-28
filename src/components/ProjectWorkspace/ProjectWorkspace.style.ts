@@ -32,10 +32,16 @@ export const useStyles = () =>
       alignItems: "center",
       justifyContent: "space-between",
       flexWrap: "wrap",
+      "&[data-panel-action]": { flexWrap: "nowrap" },
       "@media (min-width:900px)": { flexWrap: "nowrap" },
       flexShrink: 0,
     },
-    actions: { display: "flex", alignItems: "center", "&:empty": { display: "none" } },
+    actions: {
+      display: "flex",
+      flexShrink: 0,
+      alignItems: "center",
+      "&:empty": { display: "none" },
+    },
     tabBar: {
       minWidth: 0,
       maxWidth: "100%",

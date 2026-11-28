@@ -17,7 +17,6 @@ import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { FileDownloadManager } from "../../../managers/file-download.manager";
 import { buildQuotationPath, buildProjectPath } from "../../../utilities/route.utility";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
-import QuotationCustomerPicker from "../../quotations/components/QuotationCustomerPicker";
 import { engineeringEstimateService } from "../../../services/engineering-estimate.service";
 
 interface IEstimateOutputsProps {
@@ -45,7 +44,6 @@ const EstimateOutputs: FC<IEstimateOutputsProps> = ({
 }) => {
   const styles = usePageStyles();
   const navigate = useNavigate();
-  const [customerId, setCustomerId] = useState("");
   const [sampleByArea, setSampleByArea] = useState<Record<string, string>>({});
   const quotationId = estimate.quotationId ?? "";
   const quotation = useQuery({
@@ -93,9 +91,9 @@ const EstimateOutputs: FC<IEstimateOutputsProps> = ({
     quotationAvailable &&
     !estimate.quotationId;
   const linkedProjectId = estimate.projectId;
-  const needsCustomer = linkedProjectId === null;
+  const missingProject = linkedProjectId === null;
   const missingLinkedCustomer = linkedProjectId !== null && estimate.quotationCustomerId === null;
-  const quoteBlocked = busy || missingLinkedCustomer || (needsCustomer && !customerId);
+  const quoteBlocked = busy || missingLinkedCustomer || missingProject;
   const linkedCustomerRepairPath =
     missingLinkedCustomer && linkedProjectId ? buildProjectPath(linkedProjectId) : null;
   const commercialHint = estimate.quotationId
@@ -141,7 +139,7 @@ const EstimateOutputs: FC<IEstimateOutputsProps> = ({
       const quotationId = await engineeringEstimateService.quotation(
         estimate.id,
         estimate.version,
-        customerId || null,
+        estimate.quotationCustomerId,
       );
       navigate(buildQuotationPath(quotationId));
     });
@@ -254,12 +252,18 @@ const EstimateOutputs: FC<IEstimateOutputsProps> = ({
                   />
                 </Box>
               )}
-              {needsCustomer && (
-                <QuotationCustomerPicker
-                  disabled={busy}
-                  value={customerId}
-                  onChange={setCustomerId}
-                />
+              {missingProject && (
+                <Box sx={styles.stack({ gap: "8px" })}>
+                  <Typography role="status">
+                    כדי ליצור הצעת מחיר, פתחו גרסה חדשה, שייכו אותה לפרויקט עם לקוח ואשרו אותה.
+                  </Typography>
+                  <Button
+                    disabled={busy}
+                    onClick={revise}
+                    text="פתיחת גרסה חדשה"
+                    variant={BUTTON_VARIANTS.SECONDARY}
+                  />
+                </Box>
               )}
               <Button
                 disabled={quoteBlocked}

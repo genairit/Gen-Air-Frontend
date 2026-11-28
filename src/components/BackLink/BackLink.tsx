@@ -6,13 +6,14 @@ import { useStyles } from "./BackLink.style";
 interface IBackLinkProps {
   to: string;
   label: string;
+  state?: unknown;
 }
 
-const BackLink: FC<IBackLinkProps> = ({ to, label }) => {
+const BackLink: FC<IBackLinkProps> = ({ to, label, state }) => {
   const styles = useStyles();
 
   return (
-    <Box to={to} component={Link} sx={styles.link}>
+    <Box to={to} state={state} component={Link} sx={styles.link}>
       {`→ ${label}`}
     </Box>
   );
