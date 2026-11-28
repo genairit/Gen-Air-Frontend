@@ -34,6 +34,7 @@ export interface IAutocompleteProps {
   hint?: string;
   label?: string;
   pageSize?: number;
+  ariaLabel?: string;
   required?: boolean;
   disabled?: boolean;
   emptyText?: string;
