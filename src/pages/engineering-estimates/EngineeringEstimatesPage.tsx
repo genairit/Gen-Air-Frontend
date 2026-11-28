@@ -49,6 +49,9 @@ const EngineeringEstimatesPage: FC = () => {
   const retry = async (): Promise<void> => {
     await detail.refetch();
   };
+  const cancelCreate = (): void => {
+    navigate(backPath, { replace: true, state: { focusEstimateCreate: true } });
+  };
   const openCreated = (created: IEngineeringEstimate): void => {
     navigate(buildEstimateDetailPath(created.id), { replace: true });
   };
@@ -75,8 +78,8 @@ const EngineeringEstimatesPage: FC = () => {
         <EstimateCreateForm
           key={createProjectId}
           onCreated={openCreated}
+          onCancel={cancelCreate}
           projectId={createProjectId}
-          onCancel={() => navigate(backPath, { replace: true })}
         />
       )}
       {showLoading && <LoadingState />}
@@ -104,7 +107,6 @@ const EngineeringEstimatesPage: FC = () => {
           canBrowse={canBrowse}
           onCreated={openCreated}
           estimate={estimate ?? null}
-          key={estimateId ?? createProjectId}
         />
       )}
     </Box>

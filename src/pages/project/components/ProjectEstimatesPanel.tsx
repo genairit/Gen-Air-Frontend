@@ -3,14 +3,15 @@ import {
   buildEstimateDetailPath,
 } from "../../../utilities/engineering-estimate.utility";
 
-import type { FC } from "react";
 import { Box } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useRef, type FC } from "react";
 import Card from "../../../components/Card/Card";
 import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
 import { useStyles } from "./ProjectEstimatesPanel.style";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSessionUser } from "../../../store/session.store";
+import { useElementFocus } from "../../../hooks/element-focus.hook";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
@@ -29,8 +30,11 @@ const ProjectEstimatesPanel: FC<IProjectEstimatesPanelProps> = ({ projectId }) =
   const styles = useStyles();
   const page = usePageStyles();
   const navigate = useNavigate();
+  const { state } = useLocation();
+  const createButton = useRef<HTMLButtonElement | null>(null);
   const sessionUser = useSessionUser();
   const canCreate = hasPermission(sessionUser, PERMISSIONS.ENGINEERING_ESTIMATES_MANAGE);
+  useElementFocus(createButton, canCreate && state?.focusEstimateCreate === true);
   const list = useEstimatesQuery(projectId);
   const estimates = list.data?.pages.flatMap(page => page.items) ?? [];
 
@@ -49,6 +53,7 @@ const ProjectEstimatesPanel: FC<IProjectEstimatesPanelProps> = ({ projectId }) =
           <Button
             size="compact"
             text="יצירת כתב כמויות"
+            buttonRef={createButton}
             onClick={() => navigate(buildEstimateCreatePath(projectId))}
           />
         </Box>
