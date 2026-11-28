@@ -239,7 +239,6 @@ test("the edit form shows the inline reason only while changing into waiting", a
     <ProjectDetailsCard
       nameError=""
       stages={stages}
-      projectCode="GA-1"
       onChange={() => {}}
       namePending={false}
       nameCheckFailed={false}

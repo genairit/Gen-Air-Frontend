@@ -3,6 +3,11 @@ import {
   toApartmentLightingValues,
 } from "../../../utilities/apartment.utility";
 
+import {
+  BUTTON_SIZES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import Card from "../../../components/Card/Card";
@@ -14,7 +19,6 @@ import DetailTile from "../../../components/DetailTile/DetailTile";
 import CardHeader from "../../../components/CardHeader/CardHeader";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import type { IApartmentFormValues } from "../../../interfaces/apartment.interface";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import ProjectLightingFields from "../../project-form/components/ProjectLightingFields";
 import { APARTMENT_LIGHTING_COPY, INHERITANCE_BADGES } from "../../../constants/apartment.constant";
 
@@ -51,6 +55,7 @@ const ApartmentLightingDraftCard: FC<IApartmentLightingDraftCardProps> = ({
         <Chip label={badge.label} variant={badge.variant} />
         <Button
           onClick={toggleOverride}
+          size={BUTTON_SIZES.COMPACT}
           variant={BUTTON_VARIANTS.NEUTRAL}
           text={
             values.hasOwnLighting ? APARTMENT_LIGHTING_COPY.RESET : APARTMENT_LIGHTING_COPY.OVERRIDE

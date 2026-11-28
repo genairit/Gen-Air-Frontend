@@ -9,6 +9,7 @@ import type { TaskType } from "../constants/task-type.constant";
 import { ROUTE_PATHS, ROUTE_PARAMS } from "../constants/routes.constant";
 import type { IBackLinkTarget } from "../interfaces/navigation-item.interface";
 import { NEW_TASK_PROJECT_PARAM, NEW_TASK_TYPE_PARAM } from "../constants/task.constant";
+import { PROJECT_TABS, PROJECT_TAB_PARAM } from "../constants/project-workspace.constant";
 
 export const buildProjectPath = (projectId: string) =>
   generatePath(ROUTE_PATHS.PROJECT, { projectId });
@@ -48,7 +49,16 @@ export const buildNewApartmentPath = (buildingId: string) =>
 export const buildCustomerPath = (customerId: string) =>
   generatePath(ROUTE_PATHS.CUSTOMER, { customerId });
 
-export const getBackLinkTarget = (pathname: string): IBackLinkTarget | null => {
+export const getApartmentBuildingPath = (buildingId: string, buildingSearch?: unknown) => {
+  const search = new URLSearchParams(typeof buildingSearch === "string" ? buildingSearch : "");
+  search.set(PROJECT_TAB_PARAM, PROJECT_TABS.apartments.id);
+  return `${buildProjectPath(buildingId)}?${search}`;
+};
+
+export const getBackLinkTarget = (
+  pathname: string,
+  buildingSearch?: unknown,
+): IBackLinkTarget | null => {
   const route = findMatchingRoute(pathname, Object.keys(BACK_LINK_BY_ROUTE));
   const match = route ? matchPath(route, pathname) : null;
 
@@ -58,6 +68,9 @@ export const getBackLinkTarget = (pathname: string): IBackLinkTarget | null => {
 
   const { label, buildPath } = BACK_LINK_BY_ROUTE[route];
 
+  if (route === ROUTE_PATHS.APARTMENT || route === ROUTE_PATHS.NEW_APARTMENT) {
+    return { label, to: getApartmentBuildingPath(match.params.projectId ?? "", buildingSearch) };
+  }
   return { label, to: buildPath(match.params) };
 };
 

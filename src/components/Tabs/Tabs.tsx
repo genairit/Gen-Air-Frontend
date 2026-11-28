@@ -23,6 +23,7 @@ interface ITabsProps {
   ariaLabel?: string;
   mode?: TabsModeType;
   isFullWidth?: boolean;
+  panelIdPrefix?: string;
   isScrollable?: boolean;
   ref?: Ref<HTMLDivElement>;
   variant?: TabsVariantType;
@@ -36,6 +37,7 @@ const Tabs: FC<ITabsProps> = ({
   disabled = false,
   ariaLabel,
   activeId,
+  panelIdPrefix,
   onChange,
   mode = TAB_MODES.FILTER,
   isFullWidth = false,
@@ -87,6 +89,12 @@ const Tabs: FC<ITabsProps> = ({
           const tabStyles = styles.tab({ variant, isFullWidth, isScrollable });
           const isRovingTab = isActive || (activeIndex < 0 && index === 0);
           const tabIndex = isFilter || isRovingTab ? 0 : -1;
+          const panelAttributes = panelIdPrefix
+            ? {
+                id: `${panelIdPrefix}-tab-${item.id}`,
+                "aria-controls": `${panelIdPrefix}-panel-${item.id}`,
+              }
+            : {};
           const buttonSemantics = isFilter
             ? { "aria-pressed": isActive }
             : { role: "tab" as const, "aria-selected": isActive };
@@ -100,6 +108,7 @@ const Tabs: FC<ITabsProps> = ({
               tabIndex={tabIndex}
               onClick={() => onChange(item.id)}
               onKeyDown={event => handleTabKeyDown(event, index)}
+              {...panelAttributes}
               {...buttonSemantics}
             >
               {isActive && (

@@ -12,6 +12,7 @@ import InlineError from "../../../components/InlineError/InlineError";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { APARTMENT_PAGE_COPY } from "../../../constants/apartment.constant";
 import { FIELD_INPUT_LIMITS } from "../../../constants/field-validation.constant";
+import { BUTTON_SIZES } from "../../../components/Button/constants/button.constants";
 import { useUpdateApartmentMutation } from "../../../hooks/mutations/apartment.mutation";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 
@@ -54,6 +55,7 @@ const ApartmentNotesCard: FC<IApartmentNotesCardProps> = ({ canEdit, apartment }
             onClick={saveNotes}
             disabled={!isDirty}
             icon={ICON_NAMES.SAVE}
+            size={BUTTON_SIZES.COMPACT}
             isLoading={updateMutation.isPending}
             text={APARTMENT_PAGE_COPY.SAVE_NOTES}
           />

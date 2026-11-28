@@ -6,9 +6,12 @@ const { palette, glass } = theme;
 
 export const useStyles = () =>
   createStyles({
-    card: (hasError: boolean) => ({
-      boxShadow: hasError ? `inset 0 0 0 2px ${palette.danger}` : glass.shadowSmall,
-    }),
+    picker: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "8px",
+      minWidth: 0,
+    },
     highlightedSelected: {
       gap: "16px",
       display: "flex",
@@ -108,13 +111,14 @@ export const useStyles = () =>
       gap: "10px",
       fontSize: 15,
       fontWeight: 600,
-      padding: "0 22px",
+      padding: "0 12px",
       alignItems: "center",
       display: "inline-flex",
       textDecoration: "none",
       color: palette.charcoal,
       borderRadius: theme.radius.pill,
-      height: theme.controlHeight.medium,
+      height: theme.controlHeight.compact,
+      "@media (pointer: coarse)": { minHeight: 44 },
       boxShadow: glass.edge,
       backgroundColor: palette.iceWhite,
     },

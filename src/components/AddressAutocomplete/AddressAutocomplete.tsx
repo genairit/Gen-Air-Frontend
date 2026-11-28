@@ -16,6 +16,7 @@ import {
 import Icon from "../Icon/Icon";
 import { Box, InputBase } from "@mui/material";
 import FieldLabel from "../FieldLabel/FieldLabel";
+import InlineError from "../InlineError/InlineError";
 import { useStyles } from "./AddressAutocomplete.style";
 import { theme } from "../../constants/theme.constants";
 import { type FC, useId, useRef, useState } from "react";
@@ -48,6 +49,7 @@ const AddressAutocomplete: FC<IAddressAutocompleteProps> = ({
   showMissingError,
 }) => {
   const listId = useId();
+  const errorId = useId();
   const styles = useStyles();
   const inputRef = useRef<HTMLInputElement>(null);
   const { sessionToken, renewSessionToken } = useSessionToken();
@@ -69,6 +71,14 @@ const AddressAutocomplete: FC<IAddressAutocompleteProps> = ({
   };
 
   const status = getAddressFieldStatus(fieldState);
+  const showFocusedError =
+    showMissingError &&
+    isFocused &&
+    !verifyMutation.isPending &&
+    status !== ADDRESS_FIELD_STATUSES.VERIFIED;
+  const validationProps = showFocusedError
+    ? { "aria-invalid": true, "aria-describedby": errorId }
+    : {};
   const isDebouncing = input.trim() !== searchInput;
   const isSuggestionsOpen = status === ADDRESS_FIELD_STATUSES.SUGGESTIONS;
 
@@ -145,6 +155,7 @@ const AddressAutocomplete: FC<IAddressAutocompleteProps> = ({
           placeholder={PROJECT_ADDRESS_COPY.PLACEHOLDER}
           onChange={event => handleInputChange(event.target.value)}
           inputProps={{
+            ...validationProps,
             role: "combobox",
             "aria-label": title,
             autoComplete: "off",
@@ -161,6 +172,11 @@ const AddressAutocomplete: FC<IAddressAutocompleteProps> = ({
           typingHint={getAddressTypingHint(input)}
         />
       </Box>
+      {showFocusedError && (
+        <Box id={errorId}>
+          <InlineError message={getAddressFailureTitle(fieldState)} />
+        </Box>
+      )}
       {isSuggestionsOpen && (
         <AddressSuggestionList
           listId={listId}

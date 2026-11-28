@@ -3,7 +3,6 @@ import {
   getTaskCustomer,
   formatTaskDueLabel,
   formatAssigneeLabel,
-  formatProjectTasksSubtitle,
 } from "../../../utilities/task.utility";
 
 import { Box } from "@mui/material";
@@ -12,10 +11,9 @@ import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
 import { type FC, useState, type MouseEvent } from "react";
-import { ICON_NAMES } from "../../../constants/icon.constant";
+import { theme } from "../../../constants/theme.constants";
 import { useSessionUser } from "../../../store/session.store";
 import ChoiceMenu from "../../../components/ChoiceMenu/ChoiceMenu";
-import CardHeader from "../../../components/CardHeader/CardHeader";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
@@ -73,6 +71,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
   const action = isManager ? (
     <>
       <Button
+        size="compact"
         variant={BUTTON_VARIANTS.NEUTRAL}
         text={PROJECT_TASKS_COPY.NEW_TASK}
         onClick={(event: MouseEvent<HTMLButtonElement>) => setMenuAnchor(event.currentTarget)}
@@ -84,30 +83,26 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ projectId }) => {
         title={PROJECT_TASKS_COPY.CHOOSE_TYPE}
       />
     </>
-  ) : (
-    <Box component="span" sx={styles.caption}>
-      {PROJECT_TASKS_COPY.MANAGERS_ONLY}
-    </Box>
-  );
-
+  ) : null;
   return (
-    <Card gap="16px">
-      <CardHeader
-        action={action}
-        icon={ICON_NAMES.TASKS}
-        title={PROJECT_TASKS_COPY.TITLE}
-        subtitle={formatProjectTasksSubtitle(tasks.length)}
-      />
+    <Card gap="4px" ariaLabel={PROJECT_TASKS_COPY.TITLE}>
+      {action && <Box sx={styles.endRow}>{action}</Box>}
       {tasksQuery.isPending && <LoadingState label={PROJECT_TASKS_COPY.TITLE} />}
       {tasksQuery.isError && <InlineError message={getApiErrorMessage(tasksQuery.error)} />}
       {tasks.map(task => (
         <Card
           gap="8px"
           key={task.id}
-          padding="14px 18px"
+          padding="9px 12px"
           ariaLabel={task.title}
           depth={SURFACE_DEPTHS.INSET}
           onClick={() => navigate(buildTaskPath(task.id))}
+          sx={{
+            boxShadow: "none",
+            borderRadius: 0,
+            border: 0,
+            borderBottom: `1px solid ${theme.glass.border}`,
+          }}
         >
           <Box sx={TASK_COLUMN_STYLES.mobileRow}>
             <Box sx={TASK_COLUMN_STYLES.cell}>

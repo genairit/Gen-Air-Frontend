@@ -1,8 +1,12 @@
 # GenAir — Design Language
 
-> **Design specification, updated 6 November 2026.** Use the component vocabulary in the local `Smartbase-Client-Package` repository at commit `8f14318f823603e66e03e3592a6693678cd8d245`, adapted to a **blue and white** GenAir brand. Check each component and business screen against the reference as it is touched.
+> **Design specification, updated 27 November 2026.** Use the component vocabulary in the local `Smartbase-Client-Package` repository at commit `8f14318f823603e66e03e3592a6693678cd8d245`, adapted to a **blue and white** GenAir brand. Check each component and business screen against the reference as it is touched.
 >
 > **Scope:** visual language, component behavior, responsive composition, RTL, accessibility, and implementation guidance. The Smartbase package is a design reference; GenAir does not currently depend on it. Reuse or adapt a component only after checking its API, dependencies, accessibility, and fit with the current app.
+
+## Lead principle — Minimalism
+
+Design every page around the employee's current task. Minimize visible copy, containers, controls, and steps. Aim for **zero page-level scrolling at supported viewport sizes**. Use tabs to give distinct work areas their own view when stacking them would make the page longer. Keep buttons compact and make the most important action easy to find.
 
 ## 1. Identity and source of truth
 
@@ -21,11 +25,18 @@ Smartbase contains older solid buttons and fields alongside newer glass and choi
 
 ## 2. Product and workflow principles
 
-Each screen should expose the smallest clear set of information and actions needed for the employee's current task. Keep one primary next action prominent. Place frequent actions beside the record or field they affect; show secondary actions with lower emphasis. Use known customer, project, or document context to avoid repeated selection.
+### Show only what helps the current task
 
-Keep search directly editable, preserve filters and return position where practical, and retain entered work after validation or request failures. Use columns when they help comparison; do not add cards only to fill space. A card marks a meaningful information group or interaction boundary. Prefer alignment, typography, and a fine divider over nested cards.
+Keep the page title, labels, and the information needed to make a decision or take action. Remove headings repeated by the app shell, subtitles that repeat the title, decorative badges, and instructions that restate a visible control. Keep essential field labels, meaningful errors, status feedback, and consequences the user needs to understand before acting.
 
-Reduce unnecessary clicks and scrolling while keeping destructive, financial, and other consequential actions appropriately safeguarded. Do not hide frequent actions, errors, or required information inside an overflow menu. Judge a design by the user journey, not by a universal card or click count.
+Keep one primary next action visible. Place frequent actions beside the records or fields they affect and give secondary actions quieter styling. Prefill known customer, project, or document context. Keep search directly editable and preserve filters, return position, and entered work after errors. Every card should mark a meaningful group or interaction boundary. Prefer alignment, typography, and a fine divider for smaller groupings.
+
+### Fit the task to the viewport
+
+- Keep the page title, active work area, and primary action in view at default zoom on supported desktop and mobile layouts. Start by removing redundant copy and containers and tightening empty space.
+- Use a single row of clear, short tabs when a record has distinct peer work areas, such as project details, tasks, and files. Show only the selected panel and open the one that best supports the usual task. Keep search, filters, and unsaved input when switching tabs. Keep essential actions, validation feedback, and save status discoverable across tabs.
+- Keep steps that must be completed together in one view. Group a short set of related fields with spacing or a divider. Use tabs for meaningful work areas so switching tabs does not become an extra step in every workflow.
+- Give intrinsically long content, such as record tables and document previews, a single usable scrolling region when needed. Keep the page shell and key controls in view. At high zoom or on short screens, let content scroll when needed to keep all controls reachable. Avoid overlapping scroll regions, clipped information, and forced horizontal page scrolling.
 
 ## 3. Blue and white color system
 
@@ -89,7 +100,9 @@ For spacing, start with the component's own dimensions: card padding **16px**, c
 
 ### Buttons and action hierarchy
 
-Smartbase's base `Button` has an older **7px** primary/secondary variant, while its newer `active` and `outlined` choice treatments use a **16px** radius and at least **48px** height. `FlowFooter` uses **54px** pill actions. Match the selected component's purpose and geometry; do not mix these styles arbitrarily within one action group. Translate every purple gradient, border, and glow to blue. The main positive action uses the deep-to-primary blue fill with white text. Secondary actions use white with a subtle border and ink text. Selection actions can use pale blue fill and a clear blue border.
+Use the shared **compact** button size for everyday form, table, card, and toolbar actions. Aim for a visual height around **32–36px** on desktop. Compact buttons normally size to their label and sit together. Use a larger footprint when a primary action in a focused flow needs it, or when an approved layout calls for it. On touch screens, provide a hit area of at least **44×44px** and leave enough space between targets.
+
+Use deep-to-primary blue fill and white text for the primary action. Use a quiet white or outlined style for secondary actions. Use pale blue fill and a blue edge for selection. Keep labels short and specific. Give icon-only actions accessible names. Keep one primary style in each action group and apply the same visual size to related controls.
 
 Hover and press states may slightly lift or scale a choice button; the Smartbase choice treatment uses a restrained spring and a white top highlight. Keep the footprint stable, avoid moving neighboring controls, and remove transform motion under `prefers-reduced-motion`. Loading keeps the button's label space, prevents duplicate submission, and provides a readable pending state. Destructive actions need explicit consequence text and confirmation.
 
@@ -115,11 +128,11 @@ Use `MorphSurface` and `MorphOverlay` for contextual transitions where the user 
 
 Smartbase is a component library, so its components do **not** define GenAir's application shell, permissions, business pages, or quotation layout. Retain GenAir's right-side desktop navigation, RTL content order, permission-aware destinations, and mobile bottom navigation. The current app switches its shell at **899px and below**; maintain that functional breakpoint until a responsive redesign is explicitly approved. Restyle shell surfaces to the new pale canvas, white/glass panel, slate text, and blue active state. The current charcoal bottom bar is a legacy visual treatment, not the new target.
 
-A page should generally present: context and title; visible search/filter/primary action; the working records or form; then supporting detail. Use cards for meaningful groups and compact rows for repetitive records. Smartbase does not supply a general data table, so keep GenAir's table behavior and reskin it with white/soft surfaces, fine dividers, clear hover/focus, and deliberate overflow. Avoid a heavy bordered spreadsheet and avoid a large raised card for every record when comparison is the main task.
+Place the page context and task controls beside the active working area. Use tabs for substantial supporting work areas so placing them below the main area does not extend the page. Use cards for meaningful groups and compact rows for repetitive records. Smartbase does not supply a general data table, so keep GenAir's table behavior and reskin it with white/soft surfaces, fine dividers, clear hover/focus, and deliberate overflow. Avoid a heavy bordered spreadsheet and avoid a large raised card for every record when comparison is the main task.
 
 **Approved quotation-footer layout remains authoritative:** on desktop, exactly two equal summary cards share the first row, totals on the right and review/approval on the left. The delete action occupies its own full-width row below them. Keep the **24px** gap and stack on mobile. Adapt the surfaces and controls to this guide without changing the approved composition or making the delete action visually primary.
 
-For forms, group fields by the user's task, keep labels outside inputs, and prefill known context. On mobile, stack columns before fields become cramped. Keep frequent actions visible above the bottom navigation or in a clear action dock with enough scroll clearance. Preserve the app's routes and permissions; UI visibility never replaces server authorization.
+For forms, group fields by the user's task, keep labels outside inputs, and prefill known context. On mobile, stack columns before fields become cramped. Keep frequent actions visible above the bottom navigation or in a compact action dock with enough clearance. Preserve the app's routes and permissions. Enforce authorization on the server.
 
 ## 8. Motion and responsive behavior
 
@@ -162,7 +175,10 @@ Paths in the Smartbase column are relative to `Smartbase-Client-Package`; paths 
 ## 11. Design review checklist
 
 - [ ] The screen follows the current task requirements and approved screen layout.
-- [ ] Frequent actions are visible; known context is reused; cards and steps have a purpose.
+- [ ] Every visible line of copy, card, and control supports the current task.
+- [ ] The default view fits the viewport, with the primary action visible. Distinct work areas use tabs when needed. Any scrolling is limited to content that needs it, with all controls reachable on mobile and at zoom.
+- [ ] Standard buttons use compact styling, with usable touch targets and clear keyboard focus.
+- [ ] Frequent actions are visible, known context is reused, and navigation takes as few steps as practical.
 - [ ] Purple brand values are translated to the shared blue palette; white text sits on a dark enough blue.
 - [ ] Cards, fields, choices, notices, overlays, and footers use the corresponding Smartbase component treatment.
 - [ ] Glass and blur retain readable text and an opaque fallback.
@@ -174,4 +190,4 @@ Paths in the Smartbase column are relative to `Smartbase-Client-Package`; paths 
 
 ## 12. Reusable design brief
 
-> Design this GenAir screen for a Hebrew-first RTL CRM using the Smartbase component language at commit `8f14318f823603e66e03e3592a6693678cd8d245`: pale `#F8FAFC` canvas, white or lightly translucent rounded cards, fine borders and highlights, slate text, floating shadows, clear blue selection, and purposeful local motion. Replace purple brand accents with a deep-to-primary blue gradient (`#0F5CA8` to `#1668BD`), pale `#E1EDFA` tints, and blue focus rings. Use Rubik for the main UI and Heebo selectively for dense Hebrew content. Match the relevant Smartbase component's geometry and states; keep GenAir's right-side navigation, RTL workflows, permissions, and approved screen composition. Reduce unnecessary clicks and visual clutter, keep frequent actions visible, and verify accessible focus, contrast, reduced motion, and mobile clearance in the rendered UI. Treat this as the target direction; check existing GenAir components for migration work before claiming the screen matches it.
+> Lead with minimalism. Keep only task-relevant copy and controls. Aim for zero page-level scrolling, use tabs for distinct work areas, and use compact buttons with generous touch targets. Design this GenAir screen for a Hebrew-first RTL CRM using the Smartbase component language at commit `8f14318f823603e66e03e3592a6693678cd8d245`: pale `#F8FAFC` canvas, white or lightly translucent rounded cards, fine borders and highlights, slate text, floating shadows, clear blue selection, and purposeful local motion. Replace purple brand accents with a deep-to-primary blue gradient (`#0F5CA8` to `#1668BD`), pale `#E1EDFA` tints, and blue focus rings. Use Rubik for the main UI and Heebo selectively for dense Hebrew content. Match the relevant Smartbase component's geometry and states; keep GenAir's right-side navigation, RTL workflows, permissions, and approved screen composition. Reduce unnecessary clicks and visual clutter, keep frequent actions visible, and verify accessible focus, contrast, reduced motion, and mobile clearance in the rendered UI. Treat this as the target direction; check existing GenAir components for migration work before claiming the screen matches it.
