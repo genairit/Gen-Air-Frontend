@@ -26,7 +26,6 @@ import { switchActiveRoleAction } from "../actions/role-switch.action";
 import MobileBottomNav from "../components/MobileBottomNav/MobileBottomNav";
 import { refreshSessionUserAction } from "../actions/session-refresh.action";
 import { SessionBroadcastManager } from "../managers/session-broadcast.manager";
-import CustomerCreateAction from "../pages/customers/components/CustomerCreateAction";
 import { filterNavigationByPermissions } from "../utilities/navigation-permission.utility";
 import { Outlet, matchPath, useLocation, useNavigate, ScrollRestoration } from "react-router-dom";
 import { getPageTitle, getBackLinkTarget, getActiveNavigationId } from "../utilities/route.utility";
@@ -59,9 +58,7 @@ const AppLayout = () => {
     return null;
   }
 
-  const customerCreateAction = matchPath(ROUTE_PATHS.CUSTOMERS, pathname) ? (
-    <CustomerCreateAction />
-  ) : null;
+  const titleComponent = matchPath(ROUTE_PATHS.CUSTOMERS, pathname) ? "h1" : "b";
   const boardOwnsHeader =
     pathname === ROUTE_PATHS.BOARD && hasPermission(sessionUser, PERMISSIONS.PROJECTS_READ);
   const accountMenuProps = {
@@ -101,7 +98,7 @@ const AppLayout = () => {
           <TopBar
             leading={topBarLeading}
             title={getPageTitle(pathname)}
-            titleAction={customerCreateAction}
+            titleComponent={titleComponent}
             {...accountMenuProps}
           />
         )}

@@ -22,7 +22,9 @@ import { usePageStyles } from "../../page.style";
 import Tabs from "../../../components/Tabs/Tabs";
 import Card from "../../../components/Card/Card";
 import { Box, useMediaQuery } from "@mui/material";
+import { useStyles } from "./CustomersTable.style";
 import CustomerMobileRow from "./CustomerMobileRow";
+import CustomerCreateAction from "./CustomerCreateAction";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import TextField from "../../../components/TextField/TextField";
 import DataTable from "../../../components/DataTable/DataTable";
@@ -41,12 +43,14 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 import CustomerEditButton from "../../../components/CustomerEditButton/CustomerEditButton";
 
 interface ICustomersTableProps {
+  onCreate: () => void;
   onEdit: ((customer: IApiCustomer) => void) | null;
 }
 
-const CustomersTable = ({ onEdit }: ICustomersTableProps) => {
+const CustomersTable = ({ onEdit, onCreate }: ICustomersTableProps) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
+  const tableStyles = useStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -109,14 +113,17 @@ const CustomersTable = ({ onEdit }: ICustomersTableProps) => {
     <Box sx={styles.stack({ gap: "16px" })}>
       <Box sx={styles.spacedRow}>
         <Tabs items={filterTabs} activeId={filterId} onChange={handleFilterChange} />
-        <Box sx={styles.flexItem({ basis: "0 1 420px" })}>
-          <TextField
-            value={search}
-            type={FIELD_TYPES.SEARCH}
-            onChange={handleSearchChange}
-            startIcon={ICON_NAMES.SEARCH}
-            placeholder={CUSTOMERS_COPY.SEARCH_PLACEHOLDER}
-          />
+        <Box sx={tableStyles.searchActions}>
+          <CustomerCreateAction onClick={onCreate} />
+          <Box sx={tableStyles.search}>
+            <TextField
+              value={search}
+              type={FIELD_TYPES.SEARCH}
+              onChange={handleSearchChange}
+              startIcon={ICON_NAMES.SEARCH}
+              placeholder={CUSTOMERS_COPY.SEARCH_PLACEHOLDER}
+            />
+          </Box>
         </Box>
       </Box>
       {queryError && <InlineError message={getApiErrorMessage(queryError)} />}

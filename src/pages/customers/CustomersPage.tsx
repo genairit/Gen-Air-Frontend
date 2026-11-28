@@ -9,6 +9,9 @@ import { hasPermission } from "../../utilities/permission.utility";
 const CustomersPage = () => {
   const user = useSessionUser();
   const [editing, setEditing] = useState<IApiCustomer | null>(null);
+  const [isCreating, setCreating] = useState(false);
+  const canCreate = hasPermission(user, PERMISSIONS.CUSTOMERS_CREATE);
+  const showCreate = isCreating && canCreate;
   const canEdit = hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
 
   const openEditor = canEdit ? setEditing : null;
@@ -17,7 +20,8 @@ const CustomersPage = () => {
 
   return (
     <>
-      <CustomersTable onEdit={openEditor} />
+      <CustomersTable onEdit={openEditor} onCreate={() => setCreating(true)} />
+      {showCreate && <CustomerFormPopup onClose={() => setCreating(false)} />}
       {editableCustomer && (
         <CustomerFormPopup customer={editableCustomer} onClose={() => setEditing(null)} />
       )}

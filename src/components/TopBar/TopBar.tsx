@@ -9,8 +9,8 @@ interface ITopBarProps {
   title: string;
   user: IPerson;
   leading?: ReactNode;
-  titleAction?: ReactNode;
   activeRole: UserRoleType;
+  titleComponent?: "h1" | "b";
   assignedRoles: UserRoleType[];
   onRoleChange: (role: UserRoleType) => Promise<void>;
 }
@@ -19,21 +19,14 @@ const TopBar: FC<ITopBarProps> = ({
   title,
   user,
   leading,
-  titleAction,
+  titleComponent = "b",
   activeRole,
   assignedRoles,
   onRoleChange,
 }) => {
   const styles = useStyles();
-  const titleElement = titleAction ? (
-    <Box sx={styles.titleGroup}>
-      <Box component="h1" sx={styles.title}>
-        {title}
-      </Box>
-      {titleAction}
-    </Box>
-  ) : (
-    <Box component="b" sx={styles.title}>
+  const titleElement = (
+    <Box sx={styles.title} component={titleComponent}>
       {title}
     </Box>
   );
