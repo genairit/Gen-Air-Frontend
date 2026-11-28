@@ -1,3 +1,13 @@
+import {
+  buildEstimateDetailPath,
+  buildProjectEstimatesPath,
+} from "../../utilities/engineering-estimate.utility";
+
+import {
+  ESTIMATE_PARAM,
+  ESTIMATE_CREATE_PROJECT_PARAM,
+} from "../../constants/engineering-estimate.constant";
+
 import type { FC } from "react";
 import { usePageStyles } from "../page.style";
 import { Box, Typography } from "@mui/material";
@@ -17,14 +27,6 @@ import { useEstimateQuery } from "../../hooks/engineering-estimate.hook";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import type { IEngineeringEstimate } from "../../interfaces/engineering-estimate.interface";
-import {
-  ESTIMATE_PARAM,
-  ESTIMATE_CREATE_PROJECT_PARAM,
-} from "../../constants/engineering-estimate.constant";
-import {
-  buildEstimateDetailPath,
-  buildProjectEstimatesPath,
-} from "../../utilities/engineering-estimate.utility";
 
 const EngineeringEstimatesPage: FC = () => {
   const styles = usePageStyles();
@@ -41,6 +43,12 @@ const EngineeringEstimatesPage: FC = () => {
   const canCreate = canEdit && hasPermission(user, PERMISSIONS.PROJECTS_READ);
   const projectId = estimate?.projectId ?? createProjectId;
   const backPath = projectId ? buildProjectEstimatesPath(projectId) : ROUTE_PATHS.BOARD;
+  const showLoading = Boolean(estimateId) && detail.isPending;
+  const showError = Boolean(estimateId) && detail.isError;
+  const showJenny = canEdit && Boolean(createProjectId || estimate);
+  const retry = async (): Promise<void> => {
+    await detail.refetch();
+  };
   const openCreated = (created: IEngineeringEstimate): void => {
     navigate(buildEstimateDetailPath(created.id), { replace: true });
   };
@@ -71,11 +79,11 @@ const EngineeringEstimatesPage: FC = () => {
           onCancel={() => navigate(backPath, { replace: true })}
         />
       )}
-      {estimateId && detail.isPending && <LoadingState />}
-      {estimateId && detail.isError && (
+      {showLoading && <LoadingState />}
+      {showError && (
         <Box sx={styles.stack({ gap: "12px" })}>
           <InlineError message={getApiErrorMessage(detail.error)} />
-          <Button text="נסו שוב" onClick={() => void detail.refetch()} />
+          <Button text="נסו שוב" onClick={retry} />
         </Box>
       )}
       {estimate && (
@@ -90,7 +98,7 @@ const EngineeringEstimatesPage: FC = () => {
           canApprove={hasPermission(user, PERMISSIONS.ENGINEERING_ESTIMATES_APPROVE)}
         />
       )}
-      {canEdit && (createProjectId || estimate) && (
+      {showJenny && (
         <EstimateJenny
           projectId={projectId}
           canBrowse={canBrowse}

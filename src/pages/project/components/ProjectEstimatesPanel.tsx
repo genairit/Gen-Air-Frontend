@@ -34,6 +34,14 @@ const ProjectEstimatesPanel: FC<IProjectEstimatesPanelProps> = ({ projectId }) =
   const list = useEstimatesQuery(projectId);
   const estimates = list.data?.pages.flatMap(page => page.items) ?? [];
 
+  const isEmpty = list.isSuccess && estimates.length === 0;
+  const retry = async (): Promise<void> => {
+    await list.refetch();
+  };
+  const loadMore = async (): Promise<void> => {
+    await list.fetchNextPage();
+  };
+
   return (
     <Box sx={page.stack({ gap: "12px" })}>
       {canCreate && (
@@ -53,15 +61,13 @@ const ProjectEstimatesPanel: FC<IProjectEstimatesPanelProps> = ({ projectId }) =
             <Button
               size="compact"
               text="נסו שוב"
+              onClick={retry}
               variant={BUTTON_VARIANTS.NEUTRAL}
-              onClick={() => {
-                void list.refetch();
-              }}
             />
           )}
         </Box>
       )}
-      {list.isSuccess && estimates.length === 0 && (
+      {isEmpty && (
         <Box role="status" sx={page.caption}>
           עדיין אין כתבי כמויות בפרויקט זה
         </Box>
@@ -90,12 +96,10 @@ const ProjectEstimatesPanel: FC<IProjectEstimatesPanelProps> = ({ projectId }) =
         <Box sx={page.endRow}>
           <Button
             size="compact"
+            onClick={loadMore}
             variant={BUTTON_VARIANTS.NEUTRAL}
             disabled={list.isFetchingNextPage}
             isLoading={list.isFetchingNextPage}
-            onClick={() => {
-              void list.fetchNextPage();
-            }}
             text={list.isFetchNextPageError ? "נסו שוב" : "טענו עוד"}
           />
         </Box>
