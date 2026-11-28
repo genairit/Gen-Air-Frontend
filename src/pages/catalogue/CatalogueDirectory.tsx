@@ -29,6 +29,7 @@ interface ICatalogueDirectoryProps {
 
 const SEARCH_LABEL = "חיפוש לפי מק״ט, תיאור או BTU";
 const LIST_LABEL = "רשימת פריטי קטלוג";
+const TABLE_SCROLL_MAX_HEIGHT = "max(360px, calc(100vh - 380px))";
 
 const CatalogueDirectory = ({ canManage, onOpen }: ICatalogueDirectoryProps) => {
   const page = usePageStyles();
@@ -142,6 +143,7 @@ const CatalogueDirectory = ({ canManage, onOpen }: ICatalogueDirectoryProps) => 
       getRowId={item => item.id}
       columns={CATALOGUE_COLUMNS}
       getRowLabel={catalogueRowLabel}
+      scrollMaxHeight={TABLE_SCROLL_MAX_HEIGHT}
     />
   );
 };
