@@ -104,7 +104,5 @@ export const toProjectPayload = ({
 export const formatVisibleProjects = ({ visible, total }: { visible: number; total: number }) =>
   `מציג ${visible} מתוך ${total} פרויקטים · ${BOARD_COPY.AUTO_LOAD_NOTE}`;
 
-export const formatProjectResults = (count: number) => `· ${count} תוצאות`;
-
 export const findStageByName = (stages: IApiProjectStage[], name: string | null) =>
   stages.find(stage => stage.name === name) ?? null;

@@ -15,7 +15,8 @@ export const BOARD_COPY = {
   LOADING_MORE: "טוען עוד פרויקטים...",
   SEARCH_PLACEHOLDER: "חיפוש פרויקטים, מזהה או קבלן...",
   TABLE_TITLE: "פרויקטים",
-  TABLE_SUBTITLE: "בניינים ופרויקטים עצמאיים בלבד · דירות נפתחות דרך הבניין",
+  STATUS_FILTER: "סטטוס",
+  TYPE_FILTER: "סוג פרויקט",
   NO_RESULTS: "לא נמצאו פרויקטים שמתאימים לחיפוש או לשלב שנבחר",
   AUTO_LOAD_NOTE: "הרשימה נטענת אוטומטית בגלילה",
 } as const;

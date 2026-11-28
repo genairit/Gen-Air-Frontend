@@ -1,8 +1,8 @@
 import { theme } from "../constants/theme.constants";
-import type { ITabItem } from "../interfaces/tab-item.interface";
 import type { IStageTile } from "../interfaces/stage-tile.interface";
 import { ALL_STAGES_LABEL, ALL_STAGES_TILE_ID } from "../constants/stage-tile.constant";
 import type { IApiProjectStage, IProjectStageCounts } from "../interfaces/api.interface";
+import type { IAutocompleteOption } from "../vendor/smartbase/interfaces/autocomplete.interface";
 
 export const toStageTiles = (
   stages: IApiProjectStage[],
@@ -46,7 +46,12 @@ export const countInStageFilter = (counts: IProjectStageCounts | null, stageId: 
   return counts?.byStage[stageId] ?? 0;
 };
 
-export const toStageFilterTabs = (
+export const toStageFilterOptions = (
   stages: IApiProjectStage[],
   counts: IProjectStageCounts | null,
-): ITabItem[] => toStageTiles(stages, counts).map(({ id, label, count }) => ({ id, label, count }));
+): IAutocompleteOption[] =>
+  toStageTiles(stages, counts).map(({ id, label, count }) => ({
+    value: id,
+    label,
+    subtitle: String(count),
+  }));
