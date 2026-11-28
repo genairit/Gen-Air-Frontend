@@ -79,3 +79,9 @@ export interface IBoqLineAdd extends IBoqLineEdit {
   systemTitle: string;
   componentTitle: string;
 }
+
+export interface IProjectBoqSummary {
+  id: string;
+  name: string;
+  estimatedTotal: string;
+}
