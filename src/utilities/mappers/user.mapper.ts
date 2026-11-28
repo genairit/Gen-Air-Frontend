@@ -30,6 +30,8 @@ export const toEmployee = (user: IApiUser): IEmployee => ({
   phone: user.phone,
   email: user.email,
   isDisabled: user.deletedAt != null,
+  firstName: user.firstName,
+  lastName: user.lastName,
   person: { ...toPerson(user), caption: `מזהה: ${user.employeeNumber}` },
 });
 
