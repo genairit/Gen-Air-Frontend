@@ -8,6 +8,7 @@ import { Fragment, type FC } from "react";
 import styles from "../estimate-document.module.css";
 import BrandLogo from "../../../components/BrandLogo/BrandLogo";
 import { quotationMoney } from "../../../utilities/quotation.utility";
+import { quotationDecimalInput } from "../../../utilities/quotation-presentation.utility";
 
 interface IEstimateDocumentProps {
   name: string;
@@ -73,7 +74,7 @@ const EstimateDocument: FC<IEstimateDocumentProps> = ({ name, areas, pricing }) 
                       </Box>
                       <Box component="td" className={styles.number}>
                         <Box component="bdi">
-                          {line.quantity} {line.unit}
+                          {quotationDecimalInput(line.quantity)} {line.unit}
                         </Box>
                       </Box>
                       <Box component="td" className={styles.number}>

@@ -9,6 +9,7 @@ import styles from "../quotation-document.module.css";
 import type { IQuotation } from "../../../interfaces/quotation.interface";
 import { QUOTATION_ROW_COPY } from "../../../constants/quotation.constant";
 import { quotationLineAmount } from "../../../utilities/quotation-document.utility";
+import { quotationDecimalInput } from "../../../utilities/quotation-presentation.utility";
 
 const QuotationDocumentItems: FC<{ quotation: IQuotation }> = ({ quotation }) => (
   <Box component="table" className={styles.lines} aria-label="פריטים במסמך">
@@ -73,7 +74,7 @@ const QuotationDocumentItems: FC<{ quotation: IQuotation }> = ({ quotation }) =>
                     </Box>
                     <Box component="td">
                       <Box component="bdi">
-                        {line.quantity} {line.unit}
+                        {quotationDecimalInput(line.quantity)} {line.unit}
                       </Box>
                     </Box>
                     <Box component="td">
