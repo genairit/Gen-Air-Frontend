@@ -27,12 +27,14 @@ import { useEstimateQuery } from "../../hooks/engineering-estimate.hook";
 import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 import type { IEngineeringEstimate } from "../../interfaces/engineering-estimate.interface";
+import { WorkspaceToolbarContext } from "../../components/ProjectWorkspace/WorkspaceToolbar.context";
 
 const EngineeringEstimatesPage: FC = () => {
   const styles = usePageStyles();
   const estimateStyles = useEstimateStyles();
   const user = useSessionUser();
   const navigate = useNavigate();
+  const [toolbar, setToolbar] = useState<HTMLElement | null>(null);
   const [editing, setEditing] = useState(false);
   const [creatingDirty, setCreatingDirty] = useState(false);
   const [params] = useSearchParams();
@@ -69,11 +71,13 @@ const EngineeringEstimatesPage: FC = () => {
           {createProjectId ? "כתב כמויות חדש" : (estimate?.name ?? "כתב כמויות")}
         </Typography>
         {estimateId && (
-          <Button
-            onClick={() => navigate(backPath)}
-            variant={BUTTON_VARIANTS.SECONDARY}
-            text={projectId ? "חזרה לכתבי הכמויות בפרויקט" : "חזרה לתיקים"}
-          />
+          <Box ref={setToolbar} sx={estimateStyles.headerActions}>
+            <Button
+              onClick={() => navigate(backPath)}
+              variant={BUTTON_VARIANTS.SECONDARY}
+              text={projectId ? "חזרה לכתבי הכמויות בפרויקט" : "חזרה לתיקים"}
+            />
+          </Box>
         )}
       </Box>
       {createProjectId && (
@@ -93,17 +97,19 @@ const EngineeringEstimatesPage: FC = () => {
         </Box>
       )}
       {estimate && (
-        <EstimateWorkspace
-          key={estimate.id}
-          canEdit={canEdit}
-          estimate={estimate}
-          canBrowse={canBrowse}
-          onEditingChange={setEditing}
-          canReadQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_READ)}
-          canCreateQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE)}
-          canExportQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_EXPORT)}
-          canApprove={hasPermission(user, PERMISSIONS.ENGINEERING_ESTIMATES_APPROVE)}
-        />
+        <WorkspaceToolbarContext.Provider value={toolbar}>
+          <EstimateWorkspace
+            key={estimate.id}
+            canEdit={canEdit}
+            estimate={estimate}
+            canBrowse={canBrowse}
+            onEditingChange={setEditing}
+            canReadQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_READ)}
+            canCreateQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE)}
+            canExportQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_EXPORT)}
+            canApprove={hasPermission(user, PERMISSIONS.ENGINEERING_ESTIMATES_APPROVE)}
+          />
+        </WorkspaceToolbarContext.Provider>
       )}
       {showJenny && (
         <EstimateJenny
