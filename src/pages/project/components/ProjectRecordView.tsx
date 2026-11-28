@@ -17,6 +17,7 @@ import { PERMISSIONS } from "../../../constants/permission.constant";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { getProjectKind } from "../../../utilities/apartment.utility";
 import { hasPermission } from "../../../utilities/permission.utility";
+import ProjectEstimateCreateButton from "./ProjectEstimateCreateButton";
 import BuildingApartmentsPanel from "./building/BuildingApartmentsPanel";
 import ProjectQuotationCreateButton from "./ProjectQuotationCreateButton";
 import { PROJECT_TABS } from "../../../constants/project-workspace.constant";
@@ -104,6 +105,7 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
       ? [
           {
             ...PROJECT_TABS.estimates,
+            action: <ProjectEstimateCreateButton projectId={project.id} />,
             content: <ProjectEstimatesPanel projectId={project.id} />,
           },
         ]
