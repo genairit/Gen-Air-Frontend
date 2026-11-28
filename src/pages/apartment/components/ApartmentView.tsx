@@ -18,6 +18,7 @@ import ProjectTasksCard from "../../project/components/ProjectTasksCard";
 import { PROJECT_TABS } from "../../../constants/project-workspace.constant";
 import ProjectTimelineCard from "../../project/components/ProjectTimelineCard";
 import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
+import ProjectEstimatesPanel from "../../project/components/ProjectEstimatesPanel";
 import ProjectQuotationsCard from "../../project/components/ProjectQuotationsCard";
 import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
@@ -38,6 +39,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
 
+  const canReadEstimates = hasPermission(sessionUser, PERMISSIONS.ENGINEERING_ESTIMATES_READ);
   const canReadPurchase = hasPermission(sessionUser, PERMISSIONS.PROJECT_BOQ_READ);
   const panels = [
     ...(canReadTasks
@@ -66,6 +68,14 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
           {
             ...PROJECT_TABS.quotations,
             content: <ProjectQuotationsCard projectId={apartment.id} />,
+          },
+        ]
+      : []),
+    ...(canReadEstimates
+      ? [
+          {
+            ...PROJECT_TABS.estimates,
+            content: <ProjectEstimatesPanel projectId={apartment.id} />,
           },
         ]
       : []),

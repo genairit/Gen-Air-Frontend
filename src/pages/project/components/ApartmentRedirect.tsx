@@ -8,11 +8,12 @@ interface IApartmentRedirectProps {
 }
 
 const ApartmentRedirect: FC<IApartmentRedirectProps> = ({ project }) => {
-  const location = useLocation();
+  const { search, state } = useLocation();
   return (
     <Navigate
       replace
-      to={buildApartmentPath(project.parentProjectId ?? "", project.id) + location.search}
+      state={state}
+      to={{ pathname: buildApartmentPath(project.parentProjectId ?? "", project.id), search }}
     />
   );
 };

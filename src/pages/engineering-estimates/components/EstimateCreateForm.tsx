@@ -2,7 +2,6 @@ import { Box } from "@mui/material";
 import EstimateSection from "./EstimateSection";
 import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
-import EstimateProjectPicker from "./EstimateProjectPicker";
 import TextField from "../../../components/TextField/TextField";
 import { useRef, useState, type FC, type FormEvent } from "react";
 import { useElementFocus } from "../../../hooks/element-focus.hook";
@@ -16,20 +15,15 @@ import { ESTIMATE_NAME_MAX_LENGTH } from "../../../constants/engineering-estimat
 import type { IEngineeringEstimate } from "../../../interfaces/engineering-estimate.interface";
 
 interface IEstimateCreateFormProps {
+  projectId: string;
   onCancel: () => void;
-  canLinkProject: boolean;
   onCreated: (estimate: IEngineeringEstimate) => void;
 }
 
-const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
-  canLinkProject,
-  onCancel,
-  onCreated,
-}) => {
+const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({ projectId, onCancel, onCreated }) => {
   const styles = usePageStyles();
   const nameRef = useRef<HTMLInputElement | null>(null);
   const [name, setName] = useState("");
-  const [projectId, setProjectId] = useState<string | null>(null);
   const create = useCreateEstimate();
   const trimmedName = name.trim();
   const canSubmit = trimmedName.length > 0 && !create.isPending;
@@ -65,13 +59,6 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
             disabled={create.isPending}
             maxLength={ESTIMATE_NAME_MAX_LENGTH}
           />
-          {canLinkProject && (
-            <EstimateProjectPicker
-              value={projectId}
-              onChange={setProjectId}
-              disabled={create.isPending}
-            />
-          )}
         </Box>
         {create.isError && <InlineError message={getApiErrorMessage(create.error)} />}
         <Box sx={styles.row({ gap: "8px" })}>
