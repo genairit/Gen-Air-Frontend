@@ -1,3 +1,8 @@
+import {
+  quotationPaymentLabel,
+  quotationHasPaymentConflict,
+} from "../../../utilities/quotation-payment.utility";
+
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import Button from "./QuotationButton";
@@ -11,10 +16,6 @@ import { QUOTATION_LIFECYCLE_BUTTON_SX } from "../../../constants/quotation.cons
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { quotationDecimalInput } from "../../../utilities/quotation-presentation.utility";
 import type { IQuotation, TQuotationStatus } from "../../../interfaces/quotation.interface";
-import {
-  quotationHasPaymentConflict,
-  quotationPaymentLabel,
-} from "../../../utilities/quotation-payment.utility";
 
 interface IQuotationSummaryProps {
   blocked: boolean;
