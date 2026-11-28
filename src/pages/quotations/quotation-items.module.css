@@ -225,3 +225,9 @@
     gap: 6px;
   }
 }
+
+.capacity {
+  display: inline-block;
+  white-space: nowrap;
+  unicode-bidi: isolate;
+}

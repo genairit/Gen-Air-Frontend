@@ -11,6 +11,10 @@ import { QUOTATION_LIFECYCLE_BUTTON_SX } from "../../../constants/quotation.cons
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { quotationDecimalInput } from "../../../utilities/quotation-presentation.utility";
 import type { IQuotation, TQuotationStatus } from "../../../interfaces/quotation.interface";
+import {
+  quotationHasPaymentConflict,
+  quotationPaymentLabel,
+} from "../../../utilities/quotation-payment.utility";
 
 interface IQuotationSummaryProps {
   blocked: boolean;
@@ -90,6 +94,11 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
         <Box component="p" className={styles.muted}>
           {openWarnings.length > 0 ? `${openWarnings.length} התראות פתוחות` : "אין התראות פתוחות"}
         </Box>
+        {quotationHasPaymentConflict(quotation) && (
+          <Box role="alert" className={styles.error}>
+            {quotationPaymentLabel(quotation)}
+          </Box>
+        )}
         {blocked && (
           <Box component="p" role="status">
             יש להמתין לשמירה מוצלחת לפני בדיקה ואישור.

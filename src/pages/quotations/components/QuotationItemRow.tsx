@@ -41,7 +41,6 @@ const QuotationItemRow: FC<IQuotationItemRowProps> = ({
     line.location,
     line.circuit && `מעגל ${line.circuit}`,
     parent && `בקר עבור ${parent.location || parent.sku}`,
-    line.capacityBtu && `${line.capacityBtu.toLocaleString("he-IL")} BTU`,
     line.includesRemote && "כולל שלט",
     line.includesThermostat && "כולל טרמוסטט",
   ]
@@ -76,6 +75,13 @@ const QuotationItemRow: FC<IQuotationItemRowProps> = ({
             </Box>
           </Box>
           {details && <Box component="small">{details}</Box>}
+          {line.capacityBtu && (
+            <Box component="small">
+              <Box dir="ltr" component="bdi" className={styles.capacity}>
+                {line.capacityBtu.toLocaleString("he-IL")} BTU
+              </Box>
+            </Box>
+          )}
         </Box>
         <Box component="td">
           {showFields && !parent ? (
