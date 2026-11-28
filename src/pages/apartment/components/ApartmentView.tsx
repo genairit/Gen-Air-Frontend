@@ -22,6 +22,7 @@ import ProjectEstimatesPanel from "../../project/components/ProjectEstimatesPane
 import ProjectQuotationsCard from "../../project/components/ProjectQuotationsCard";
 import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
+import ProjectPurchaseDocuments from "../../project/components/ProjectPurchaseDocuments";
 import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
 
 interface IApartmentViewProps {
@@ -34,11 +35,12 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
   const styles = usePageStyles();
   const sessionUser = useSessionUser();
   const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
-  const canReadEstimates = hasPermission(sessionUser, PERMISSIONS.ENGINEERING_ESTIMATES_READ);
   const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
 
+  const canReadEstimates = hasPermission(sessionUser, PERMISSIONS.ENGINEERING_ESTIMATES_READ);
+  const canReadPurchase = hasPermission(sessionUser, PERMISSIONS.PROJECT_BOQ_READ);
   const panels = [
     ...(canReadTasks
       ? [
@@ -74,6 +76,14 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
           {
             ...PROJECT_TABS.estimates,
             content: <ProjectEstimatesPanel projectId={apartment.id} />,
+          },
+        ]
+      : []),
+    ...(canReadPurchase
+      ? [
+          {
+            ...PROJECT_TABS.purchase,
+            content: <ProjectPurchaseDocuments projectId={apartment.id} />,
           },
         ]
       : []),

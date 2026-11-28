@@ -1,11 +1,11 @@
 import { ICON_NAMES } from "./icon.constant";
 import { generatePath, type Params } from "react-router-dom";
 import { ROUTE_PARAMS, ROUTE_PATHS } from "./routes.constant";
+import { PROJECT_TAB_PARAM, PROJECT_TABS } from "./project-workspace.constant";
 import type { IBackLinkRoute, INavigationItem } from "../interfaces/navigation-item.interface";
 
 export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
   { id: ROUTE_PATHS.BOARD, label: "תיקים", icon: ICON_NAMES.PROJECTS },
-  { id: ROUTE_PATHS.PROJECT_BOQS, label: "כתבי רכש", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
   { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
   { id: ROUTE_PATHS.TASKS, label: "משימות", icon: ICON_NAMES.TASKS },
@@ -15,7 +15,6 @@ export const APP_NAVIGATION_ITEMS: INavigationItem[] = [
 
 export const MOBILE_NAVIGATION_ITEMS: INavigationItem[] = [
   { id: ROUTE_PATHS.BOARD, label: "תיקים", icon: ICON_NAMES.PROJECTS },
-  { id: ROUTE_PATHS.PROJECT_BOQS, label: "כתבי רכש", icon: ICON_NAMES.PROJECTS },
   { id: ROUTE_PATHS.CUSTOMERS, label: "לקוחות", icon: ICON_NAMES.CUSTOMER },
   { id: ROUTE_PATHS.QUOTATIONS, label: "הצעות מחיר", icon: ICON_NAMES.QUOTE },
   { id: ROUTE_PATHS.TASKS, label: "משימות", icon: ICON_NAMES.TASKS },
@@ -52,8 +51,8 @@ export const ACTIVE_NAVIGATION_BY_ROUTE: Record<string, string> = {
   [ROUTE_PATHS.QUOTATION]: ROUTE_PATHS.QUOTATIONS,
   [ROUTE_PATHS.BOARD]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.ENGINEERING_ESTIMATES]: ROUTE_PATHS.BOARD,
-  [ROUTE_PATHS.PROJECT_BOQS]: ROUTE_PATHS.PROJECT_BOQS,
-  [ROUTE_PATHS.PROJECT_BOQ]: ROUTE_PATHS.PROJECT_BOQS,
+  [ROUTE_PATHS.PROJECT_BOQS]: ROUTE_PATHS.BOARD,
+  [ROUTE_PATHS.PROJECT_BOQ]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.PROJECT]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.NEW_PROJECT]: ROUTE_PATHS.BOARD,
   [ROUTE_PATHS.EDIT_PROJECT]: ROUTE_PATHS.BOARD,
@@ -90,7 +89,8 @@ const toBuildingPath = (params: Params) =>
 export const BACK_LINK_BY_ROUTE: Record<string, IBackLinkRoute> = {
   [ROUTE_PATHS.PROJECT_BOQ]: {
     label: "חזרה לכתבי רכש",
-    buildPath: () => ROUTE_PATHS.PROJECT_BOQS,
+    buildPath: params =>
+      `${toBuildingPath(params)}?${PROJECT_TAB_PARAM}=${PROJECT_TABS.purchase.id}`,
   },
   [ROUTE_PATHS.QUOTATION]: {
     label: NAVIGATION_LABELS.BACK_TO_QUOTATIONS,
