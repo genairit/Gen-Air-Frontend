@@ -73,8 +73,8 @@ const EstimateGuide: FC<IEstimateGuideProps> = ({
         />
         <Button
           disabled={busy}
-          text="המשך ללא פרויקט"
-          onClick={(): void => patch({ projectId: null, setupStep: ESTIMATE_SETUP.PLANS })}
+          onClick={(): void => move(ESTIMATE_SETUP.PLANS)}
+          text={estimate.projectId ? "המשך לתוכניות" : "המשך ללא פרויקט"}
         />
       </>
     ),

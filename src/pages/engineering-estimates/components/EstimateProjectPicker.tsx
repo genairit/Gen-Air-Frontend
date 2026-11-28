@@ -29,15 +29,15 @@ const EstimateProjectPicker: FC<IEstimateProjectPickerProps> = ({ value, disable
   return (
     <>
       <Autocomplete
-        isClearable
         value={value}
         items={items}
+        title="פרויקט"
+        isClearable={false}
         disabled={disabled}
         onChange={onChange}
         onSearch={setSearch}
         selectedItem={selected}
         isClientFiltered={false}
-        title="פרויקט (אופציונלי)"
         isLoading={projects.isFetching}
         placeholder="חיפוש לפי שם או קוד"
       />

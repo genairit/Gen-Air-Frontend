@@ -5,6 +5,7 @@ export const PROJECT_TABS = {
   files: { id: "files", label: "קבצים" },
   apartments: { id: "apartments", label: "דירות" },
   quotations: { id: "quotations", label: "הצעות מחיר" },
+  estimates: { id: "estimates", label: "כתבי כמויות" },
   purchase: { id: "purchase", label: "כתבי רכש" },
   details: { id: "details", label: "פרטים" },
   technical: { id: "technical", label: "נתונים טכניים" },

@@ -1002,7 +1002,7 @@ test("thread auto-scroll jumps instantly under reduced motion", async () => {
   }
 });
 
-test("Jenny starts a standalone estimate and opens the persisted setup step on resume", async (): Promise<void> => {
+test("Jenny starts an estimate in the current project and opens the persisted setup step on resume", async (): Promise<void> => {
   const harness = createHarness();
   const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   const estimate: IEngineeringEstimate = {
@@ -1014,7 +1014,7 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
     areas: [],
     scope: "hvac",
     status: "draft",
-    projectId: null,
+    projectId: "current-project",
     quotationId: null,
     quotationCustomerId: null,
     quotationUnavailable: false,
@@ -1029,7 +1029,12 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
   };
   const renderGuide = (resume: IEngineeringEstimate | null): ReactElement => (
     <QueryClientProvider client={queryClient}>
-      <EstimateJenny estimate={resume} canBrowse={false} onCreated={onCreated} />
+      <EstimateJenny
+        estimate={resume}
+        canBrowse={false}
+        onCreated={onCreated}
+        projectId={estimate.projectId}
+      />
     </QueryClientProvider>
   );
   const view: { renderer: ReactTestRenderer | null } = { renderer: null };
@@ -1045,7 +1050,7 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
     assert.ok(start);
     await act(async (): Promise<void> => start.props.onClick());
     assert.equal(harness.calls[0]?.url, ESTIMATE_ENDPOINT);
-    assert.deepEqual(harness.calls[0]?.body, { name: "מלון" });
+    assert.deepEqual(harness.calls[0]?.body, { name: "מלון", projectId: "current-project" });
     await harness.respond(estimate);
     assert.deepEqual(saved.estimate, estimate);
 

@@ -1,10 +1,12 @@
 import {
+  ESTIMATE_PARAM,
   ESTIMATE_IMAGE_TYPES,
   ESTIMATE_SCOPE_LABELS,
   ESTIMATE_MAX_PLAN_BYTES,
   ESTIMATE_MAX_MARKED_BYTES,
   ESTIMATE_EQUIPMENT_LABELS,
   ESTIMATE_DISTRIBUTION_LABELS,
+  ESTIMATE_CREATE_PROJECT_PARAM,
   ESTIMATE_PLAN_TYPE_BY_EXTENSION,
 } from "../constants/engineering-estimate.constant";
 
@@ -14,6 +16,10 @@ import type {
   IEstimateMeasurements,
   EstimateDistributionType,
 } from "../interfaces/engineering-estimate.interface";
+
+import { buildProjectPath } from "./route.utility";
+import { ROUTE_PATHS } from "../constants/routes.constant";
+import { PROJECT_TAB_PARAM, PROJECT_TABS } from "../constants/project-workspace.constant";
 
 export const isEstimateScope = (value: string): value is EstimateScopeType =>
   Object.hasOwn(ESTIMATE_SCOPE_LABELS, value);
@@ -82,3 +88,12 @@ export const validateEstimatePlanSelection = (file: File, marked: boolean): stri
 
   return null;
 };
+
+export const buildEstimateDetailPath = (estimateId: string): string =>
+  `${ROUTE_PATHS.ENGINEERING_ESTIMATES}?${new URLSearchParams({ [ESTIMATE_PARAM]: estimateId })}`;
+
+export const buildEstimateCreatePath = (projectId: string): string =>
+  `${ROUTE_PATHS.ENGINEERING_ESTIMATES}?${new URLSearchParams({ [ESTIMATE_CREATE_PROJECT_PARAM]: projectId })}`;
+
+export const buildProjectEstimatesPath = (projectId: string): string =>
+  `${buildProjectPath(projectId)}?${new URLSearchParams({ [PROJECT_TAB_PARAM]: PROJECT_TABS.estimates.id })}`;
