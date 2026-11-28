@@ -46,7 +46,6 @@ export const QUOTATION_COMMAND = {
 } as const;
 export const QUOTATION_ALL_TAB_ID = "all";
 export const MAX_QUOTATION_CANCELLATION_REASON_LENGTH = 1000;
-export const QUOTATION_GENERAL_TAB_ID = "__general__";
 export const QUOTATION_SYSTEM = {
   VRF: "VRF",
   MULTI: "MULTI",
@@ -185,3 +184,8 @@ export const QUOTATION_LIFECYCLE_COPY = {
   SOURCE_CHANGED:
     "מצב המסמך השתנה והפעולה אינה זמינה עוד. אפשר לסגור את החלון או לטעון את פרטי המסמך מחדש.",
 } as const;
+
+export const QUOTATION_WORKSPACE_TABS = [
+  { id: "items", label: "פריטים" },
+  { id: "document", label: "מסמך" },
+];

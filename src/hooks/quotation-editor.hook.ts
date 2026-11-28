@@ -21,6 +21,7 @@ import { HTTP_STATUS } from "../constants/api.constant";
 import { useDelayedAsyncTask } from "./delayed-async-task.hook";
 import { quotationService } from "../services/quotation.service";
 import { getApiErrorMessage } from "../utilities/api-error.utility";
+import { quotationDraftTotals } from "../utilities/quotation-document.utility";
 import { validateQuotationReason } from "../utilities/quotation-reason.utility";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
 
@@ -61,7 +62,7 @@ export const useQuotationEditor = (
       return;
     }
     generation.current += 1;
-    setQuotation(next);
+    setQuotation({ ...next, totals: quotationDraftTotals(next) });
     setDirty(true);
     setError(null);
     setHasVersionConflict(false);

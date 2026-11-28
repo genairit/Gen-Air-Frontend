@@ -158,7 +158,7 @@ const QuotationsPage: FC = () => {
           </Box>
         )}
         {creating && !cloneFrom && (
-          <Box component="div" className={styles.stack}>
+          <Box component="section" aria-label="הצעה חדשה" className={styles.createQuotation}>
             <QuotationCustomerPicker value={customerId} onChange={setCustomerId} />
             <QuotationSalesAgentPicker
               value={salesAgentId}

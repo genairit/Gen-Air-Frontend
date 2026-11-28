@@ -164,6 +164,12 @@ export const isQuotationSection = (value: unknown): value is IQuotationSection =
   hasStringFields(value, ["id", "title"]) &&
   isQuotationSystem(value.systemType) &&
   isNullableString(value.brand) &&
+  ((value.floorId == null && value.floorName == null) ||
+    (typeof value.brand === "string" &&
+      typeof value.floorId === "string" &&
+      value.floorId.length > 0 &&
+      typeof value.floorName === "string" &&
+      value.floorName.trim().length > 0)) &&
   Array.isArray(value.items) &&
   value.items.every(isQuotationLine);
 export const isQuotationWarning = (value: unknown): value is IQuotationWarning =>

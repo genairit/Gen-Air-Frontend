@@ -56,6 +56,24 @@ export const quotationLifecycleTimeline = (
       dotColor: theme.palette.danger,
     }),
   );
+  // Older rejections and their audit events were timestamped by separate writes.
+  const matchedRejections = new Map<string, IQuotationTimelineEntry>();
+  const matchedLegacyIds = new Set<string>();
+  for (const event of quotation.lifecycleHistory ?? []) {
+    if (event.action !== QUOTATION_LIFECYCLE_ACTION.REJECT) continue;
+    const match = quotation.rejectionHistory.findIndex(
+      (record, index) =>
+        !matchedLegacyIds.has(legacyRejections[index].id) &&
+        record.rejectedById === event.actorId &&
+        record.reason === event.reason &&
+        Math.abs(Date.parse(record.rejectedAt) - Date.parse(event.occurredAt)) < 1000,
+    );
+    if (match >= 0) {
+      const legacy = legacyRejections[match];
+      matchedLegacyIds.add(legacy.id);
+      matchedRejections.set(event.id, legacy);
+    }
+  }
   const lifecycle = (quotation.lifecycleHistory ?? []).map((event): IQuotationTimelineEntry => {
     const stages =
       publication?.history.filter((stage): boolean => stage.lifecycleEventId === event.id) ?? [];
@@ -75,6 +93,7 @@ export const quotationLifecycleTimeline = (
       detail,
       fileLink,
       dotColor: theme.palette.statusBlue,
+      ...matchedRejections.get(event.id),
     };
   });
   const legacy = [...legacyCancellations, ...legacyRejections].filter(

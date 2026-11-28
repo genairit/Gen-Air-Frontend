@@ -21,6 +21,13 @@ import {
 } from "../src/utilities/guards/quotation.guard";
 
 import {
+  moveQuotationFloor,
+  assignSectionFloor,
+  quotationFloorGroups,
+  renameQuotationFloor,
+} from "../src/utilities/quotation-floor.utility";
+
+import {
   quotationPaymentLabel,
   quotationHasPaymentConflict,
   quotationPaymentConfiguration,
@@ -37,7 +44,6 @@ import { quotationFixture, catalogueFixture } from "./quotation.fixture";
 import { QUOTATION_LIFECYCLE_ACTION } from "../src/constants/quotation.constant";
 import { quotationNeedsCorrection } from "../src/utilities/quotation-rejection.utility";
 import { quotationLifecycleTimeline } from "../src/utilities/quotation-lifecycle.utility";
-import { quotationReviewSections } from "../src/utilities/quotation-presentation.utility";
 import type { IQuotation, IQuotationStatusCounts } from "../src/interfaces/quotation.interface";
 import { selectPaymentConfigurationStages } from "../src/utilities/payment-configuration.utility";
 
@@ -222,7 +228,7 @@ test("section reordering preserves identities and bounds", () => {
   );
   assert.equal(moveQuotationSection(quotation, 0, -1), quotation);
 });
-test("brand tabs persist with section ownership and reordering stays inside a tab", () => {
+test("section ordering stays within its company and General follows all companies", () => {
   const quotation = quotationFixture();
   quotation.brands = ["אלקטרה", "תדיראן"];
   quotation.sections = [
@@ -243,7 +249,9 @@ test("brand tabs persist with section ownership and reordering stays inside a ta
     ["אלקטרה", null, "תדיראן", "אלקטרה"],
   );
   assert.deepEqual(
-    quotationReviewSections(quotation).map(section => section.id),
+    quotationFloorGroups(quotation).flatMap(group =>
+      group.companies.flatMap(company => company.sections.map(section => section.id)),
+    ),
     ["a", "d", "c", "b"],
   );
 });
@@ -626,4 +634,78 @@ test("retained legacy rejection reasons remain chronological beside new lifecycl
     isQuotation({ ...quotation, lifecycleHistory: [{ ...event, action: "invalid" }] }),
     false,
   );
+});
+
+test("floor groups survive reassignment, renaming, reordering and the save payload", () => {
+  const quotation = quotationFixture();
+  const first = { floorId: "floor-1", floorName: "First" };
+  const roof = { floorId: "roof", floorName: "Roof" };
+  const alpha = {
+    id: "alpha",
+    title: "Lobby",
+    systemType: "VRF" as const,
+    brand: "A",
+    items: [],
+    ...first,
+  };
+  const beta = { ...alpha, id: "beta", brand: "B", title: "Office" };
+  const roofSystem = { ...alpha, id: "roof-system", ...roof };
+  const legacy = {
+    id: "legacy",
+    title: "Meeting room",
+    brand: "B",
+    systemType: "VRF" as const,
+    items: [],
+  };
+  const general = { ...legacy, id: "general", title: "", brand: null, systemType: "GEN" as const };
+  quotation.brand = "A";
+  quotation.brands = ["A", "B"];
+  quotation.sections = [beta, general, roofSystem, legacy, alpha];
+  const groups = quotationFloorGroups(quotation);
+  assert.deepEqual(
+    groups.map(group => group.floorName),
+    ["First", "Roof", null, null],
+  );
+  assert.deepEqual(
+    groups.map(group =>
+      group.companies.map(company => company.sections.map(section => section.id)),
+    ),
+    [[["alpha"], ["beta"]], [["roof-system"]], [["legacy"]], [["general"]]],
+  );
+  const renamed = renameQuotationFloor(quotation, { ...first, floorName: "First floor" });
+  assert.deepEqual(
+    renamed.sections
+      .filter(section => section.floorId === first.floorId)
+      .map(section => section.floorName),
+    ["First floor", "First floor"],
+  );
+  assert.deepEqual(
+    moveQuotationFloor(renamed, roof.floorId, -1).sections.map(section => section.id),
+    ["roof-system", "alpha", "beta", "legacy", "general"],
+  );
+  assert.equal(isQuotation({ ...quotation, sections: [{ ...alpha, floorName: null }] }), false);
+  assert.equal(isQuotation({ ...quotation, sections: [{ ...general, ...first }] }), false);
+  assert.equal(
+    isQuotation({
+      ...quotation,
+      brand: "תדיראן",
+      brands: ["תדיראן"],
+      sections: [{ ...legacy, brand: "תדיראן" }],
+    }),
+    true,
+  );
+  const assigned = assignSectionFloor(renamed, { ...legacy, ...roof });
+  assert.deepEqual(
+    quotationFloorGroups(assigned)[1].companies.map(company => company.brand),
+    ["A", "B"],
+  );
+  assert.equal(
+    quotationPayload(assigned).sections.find(section => section.id === "legacy")?.floorId,
+    roof.floorId,
+  );
+  assert.equal(
+    quotationPayload(quotation).sections.find(section => section.id === "legacy")?.floorId,
+    null,
+  );
+  assert.equal(moveQuotationSection(quotation, 4, -1), quotation);
 });

@@ -1,0 +1,192 @@
+.paper {
+  container: quotation-paper / inline-size;
+  box-sizing: border-box;
+  max-width: 210mm;
+  margin: 12px auto;
+  width: calc(100% - 20px);
+  min-height: 38rem;
+  padding: clamp(12px, 3%, 32px);
+  background: white;
+  color: #151515;
+  font:
+    12px/1.4 Arial,
+    sans-serif;
+  box-shadow: 0 1px 5px rgb(15 23 42 / 12%);
+  overflow-wrap: anywhere;
+}
+.paper bdi {
+  unicode-bidi: isolate;
+}
+.title {
+  margin: 0 0 10px;
+  font-size: 1.25em;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: underline;
+}
+.letterhead {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-block-end: 12px;
+}
+.brand {
+  width: 29%;
+  text-align: left;
+  align-self: start;
+}
+.brand small {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.8em;
+}
+.identifiers {
+  display: grid;
+  grid-template-columns: 1.3fr 0.95fr 1fr;
+  gap: 8px;
+  border-top: 1px solid #c5d9f0;
+  padding-block: 10px 16px;
+}
+.identifiers > :nth-child(2) {
+  text-align: center;
+}
+.identifiers > :last-child {
+  text-align: end;
+}
+.lines {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+.lines th,
+.lines td {
+  border: 1px solid #777;
+  padding: 4px 3px;
+  vertical-align: top;
+}
+.lines thead th {
+  background: #dce9fa;
+  text-align: center;
+}
+.lines thead th:nth-child(1) {
+  width: 16%;
+}
+.lines thead th:nth-child(2) {
+  width: 28%;
+}
+.lines thead th:nth-child(3) {
+  width: 13%;
+}
+.lines thead th:nth-child(4) {
+  width: 13%;
+}
+.lines tbody th {
+  text-align: start;
+}
+.floor {
+  background: #dce9fa;
+}
+.company {
+  background: #f0f3f6;
+}
+.system {
+  background: #fff;
+}
+.lines .system th {
+  padding-inline-start: 3mm;
+}
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 12px 0 20px;
+  align-items: start;
+}
+.totals {
+  margin: 0;
+  border: 1px solid #666;
+}
+.totals > div {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0 4px;
+  border-bottom: 1px solid #aaa;
+  padding: 3px 5px;
+}
+.totals > :last-child {
+  font-weight: bold;
+  border: 0;
+}
+.totals dd {
+  margin: 0;
+}
+.term {
+  margin-block: 9px;
+}
+.term h3,
+.approval h3 {
+  font-size: 1em;
+  margin: 0 0 3px;
+}
+.term p,
+.approval p {
+  margin: 0 0 4px;
+  white-space: pre-wrap;
+}
+.term ul {
+  padding-inline-start: 18px;
+  margin-block: 4px;
+  font-weight: bold;
+}
+.approval {
+  margin-block-start: 18px;
+}
+.signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-block-start: 12px;
+}
+.signatures span {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3em;
+}
+.signatures span::after {
+  content: "";
+  flex: 1;
+  min-width: 1em;
+  border-bottom: 1px solid currentColor;
+}
+.issuer {
+  margin-block-start: 24px;
+}
+.issuer strong {
+  display: block;
+}
+.feedback {
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+}
+@container quotation-paper (max-width: 350px) {
+  .identifiers {
+    grid-template-columns: 1fr 1fr;
+  }
+  .identifiers > :last-child {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    text-align: start;
+  }
+  .lines th,
+  .lines td {
+    padding-inline: 2px;
+  }
+  .summary {
+    gap: 6px;
+  }
+}

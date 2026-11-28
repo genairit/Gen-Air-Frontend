@@ -79,9 +79,22 @@ export interface IQuotationSection {
   id: string;
   title: string;
   brand: string | null;
+  floorId?: string | null;
   items: IQuotationLine[];
+  floorName?: string | null;
   systemType: TQuotationSystem;
 }
+export interface IQuotationFloor {
+  floorId: string;
+  floorName: string;
+}
+
+export interface IQuotationFloorGroup {
+  floorId: string | null;
+  floorName: string | null;
+  companies: { brand: string | null; sections: IQuotationSection[] }[];
+}
+
 export interface IQuotationWarning {
   key: string;
   text: string;
@@ -243,7 +256,7 @@ export type TQuotationSaveLine = Pick<
 >;
 export interface IQuotationSaveSection extends Pick<
   IQuotationSection,
-  "id" | "title" | "systemType" | "brand"
+  "id" | "title" | "systemType" | "brand" | "floorId" | "floorName"
 > {
   items: TQuotationSaveLine[];
 }
@@ -286,12 +299,6 @@ export interface IQuotationPaymentRow {
   amount: string;
   percent: string;
 }
-export interface IQuotationReviewSection {
-  id: string;
-  title: string;
-  items: (IQuotationLine & { amount: string; priceLabel: string; quantityLabel: string })[];
-}
-
 export interface IQuotationLineGroup {
   line: IQuotationLine;
   controls: IQuotationLine[];
