@@ -32,6 +32,7 @@ export const useStyles = () =>
       alignItems: "center",
       justifyContent: "space-between",
       flexWrap: "wrap",
+      "@media (min-width:900px)": { flexWrap: "nowrap" },
       flexShrink: 0,
     },
     actions: { display: "flex", alignItems: "center", "&:empty": { display: "none" } },
