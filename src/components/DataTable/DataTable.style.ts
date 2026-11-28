@@ -63,6 +63,20 @@ export const useStyles = () =>
       position: options.isSticky ? "sticky" : "static",
       backgroundColor: theme.glass.strong,
     }),
+    actionWrapper: ({ minWidth }: { minWidth: number }) => ({
+      minWidth,
+      display: "flex",
+      position: "relative",
+      flexDirection: "column",
+    }),
+    rowAction: {
+      top: 0,
+      bottom: 0,
+      display: "flex",
+      position: "absolute",
+      alignItems: "center",
+      insetInlineEnd: "20px",
+    },
     row: ({ isDimmed, isClickable, ...options }: IRowStyleOptions) => ({
       ...createGridRow(options),
       ...getTableRowSurfaceStyle({ isDimmed, isClickable }),

@@ -11,19 +11,23 @@ import { ICON_NAMES } from "../../constants/icon.constant";
 import ChoiceRow from "../../components/ChoiceRow/ChoiceRow";
 import DataTable from "../../components/DataTable/DataTable";
 import TextField from "../../components/TextField/TextField";
+import CatalogueArchiveDialog from "./CatalogueArchiveDialog";
 import InlineError from "../../components/InlineError/InlineError";
 import { useCatalogueDirectory } from "../../hooks/catalogue.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../constants/search.constant";
 import { useDebouncedValue } from "../../hooks/debounced-value.hook";
+import { CATALOGUE_STATUS } from "../../constants/quotation.constant";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { MOBILE_LAYOUT_QUERY } from "../../constants/layout.constant";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
 import type { ICatalogueItem } from "../../interfaces/quotation.interface";
 import { FIELD_TYPES } from "../../components/TextField/constants/textfield.constants";
 import { cataloguePrice, catalogueCapacity, catalogueRowLabel } from "./catalogue-display.utility";
+import { BUTTON_SHAPES, BUTTON_VARIANTS } from "../../components/Button/constants/button.constants";
 
 interface ICatalogueDirectoryProps {
   canManage: boolean;
+  onRemoved: (message: string) => void;
   onOpen: (item: ICatalogueItem) => void;
 }
 
@@ -31,15 +35,39 @@ const SEARCH_LABEL = "חיפוש לפי מק״ט, תיאור או BTU";
 const LIST_LABEL = "רשימת פריטי קטלוג";
 const TABLE_SCROLL_MAX_HEIGHT = "max(360px, calc(100vh - 380px))";
 
-const CatalogueDirectory = ({ canManage, onOpen }: ICatalogueDirectoryProps) => {
+const CatalogueDirectory = ({ canManage, onOpen, onRemoved }: ICatalogueDirectoryProps) => {
   const page = usePageStyles();
   const styles = useCatalogueStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
   const [search, setSearch] = useState("");
   const [pricedOnly, setPricedOnly] = useState(false);
+  const [removing, setRemoving] = useState<ICatalogueItem | null>(null);
   const debouncedSearch = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
   const query = useCatalogueDirectory({ search: debouncedSearch, pricedOnly, canManage });
   const rows = query.data?.pages.flatMap(batch => batch.items) ?? [];
+
+  const canRemove = (item: ICatalogueItem) =>
+    canManage && item.status !== CATALOGUE_STATUS.ARCHIVED;
+  const removeButton = (item: ICatalogueItem) =>
+    canRemove(item) ? (
+      <Button
+        icon={ICON_NAMES.DELETE}
+        shape={BUTTON_SHAPES.CIRCLE}
+        variant={BUTTON_VARIANTS.NEUTRAL}
+        onClick={() => setRemoving(item)}
+        ariaLabel={`הסרת ${item.sku} מהקטלוג`}
+      />
+    ) : null;
+  const removeDialog = removing && (
+    <CatalogueArchiveDialog
+      item={removing}
+      onClose={() => setRemoving(null)}
+      onArchived={message => {
+        setRemoving(null);
+        onRemoved(message);
+      }}
+    />
+  );
 
   const toolbar = (
     <Box sx={styles.filters}>
@@ -107,44 +135,50 @@ const CatalogueDirectory = ({ canManage, onOpen }: ICatalogueDirectoryProps) => 
       <Card ariaLabel={LIST_LABEL}>
         {toolbar}
         {rows.map(item => (
-          <ChoiceRow
-            key={item.id}
-            sx={styles.mobileRow}
-            data-row-id={item.id}
-            onClick={() => onOpen(item)}
-            aria-label={catalogueRowLabel(item)}
-          >
-            <CatalogueItemName item={item} />
-            <Box component="bdi">{item.sku}</Box>
-            <Box component="span" sx={styles.mobileMetadata}>
-              <Box component="bdi">{catalogueCapacity(item.capacityBtu)}</Box>
-              <Box component="span">{item.unit || "—"}</Box>
-              <Box component="strong">
-                <Box component="bdi">{cataloguePrice(item.price)}</Box>
+          <Box key={item.id} sx={styles.mobileRowWrapper}>
+            <ChoiceRow
+              sx={styles.mobileRow}
+              data-row-id={item.id}
+              onClick={() => onOpen(item)}
+              aria-label={catalogueRowLabel(item)}
+            >
+              <CatalogueItemName item={item} />
+              <Box component="bdi">{item.sku}</Box>
+              <Box component="span" sx={styles.mobileMetadata}>
+                <Box component="bdi">{catalogueCapacity(item.capacityBtu)}</Box>
+                <Box component="strong">
+                  <Box component="bdi">{cataloguePrice(item.price)}</Box>
+                </Box>
               </Box>
-            </Box>
-          </ChoiceRow>
+            </ChoiceRow>
+            {canRemove(item) && <Box sx={styles.mobileRowAction}>{removeButton(item)}</Box>}
+          </Box>
         ))}
         {feedback}
         {footer}
+        {removeDialog}
       </Card>
     );
   }
 
   return (
-    <DataTable
-      rows={rows}
-      minWidth={625}
-      footer={footer}
-      toolbar={toolbar}
-      onRowClick={onOpen}
-      ariaLabel={LIST_LABEL}
-      endAdornment={feedback}
-      getRowId={item => item.id}
-      columns={CATALOGUE_COLUMNS}
-      getRowLabel={catalogueRowLabel}
-      scrollMaxHeight={TABLE_SCROLL_MAX_HEIGHT}
-    />
+    <>
+      <DataTable
+        rows={rows}
+        minWidth={625}
+        footer={footer}
+        toolbar={toolbar}
+        onRowClick={onOpen}
+        ariaLabel={LIST_LABEL}
+        endAdornment={feedback}
+        getRowId={item => item.id}
+        columns={CATALOGUE_COLUMNS}
+        getRowLabel={catalogueRowLabel}
+        scrollMaxHeight={TABLE_SCROLL_MAX_HEIGHT}
+        renderRowAction={canManage ? removeButton : undefined}
+      />
+      {removeDialog}
+    </>
   );
 };
 

@@ -25,11 +25,7 @@ const CREATE_TITLE = "פריט קטלוג חדש";
 const ITEM_PARAM = "item";
 const CREATE_VALUE = "new";
 
-const cataloguePageTitle = (creating: boolean, editing: boolean, hasItem: boolean) => {
-  if (creating) return CREATE_TITLE;
-  if (editing) return "עריכת פריט קטלוג";
-  return hasItem ? "כרטיס פריט" : LIST_TITLE;
-};
+const cataloguePageTitle = (readOnlyItem: boolean) => (readOnlyItem ? "כרטיס פריט" : LIST_TITLE);
 
 const CataloguePage = () => {
   const page = usePageStyles();
@@ -50,10 +46,12 @@ const CataloguePage = () => {
   const list = useRef<HTMLDivElement>(null);
   const returnFocusId = useRef<string | null>(null);
   const [notice, setNotice] = useState("");
-  const title = cataloguePageTitle(creating, editing, Boolean(item));
-  const showCreateAction = showingList && canManage;
-  const showBackAction = !showingList && !editing && !creating;
   const showReadOnly = item && !editing;
+  const popupOpen = creating || Boolean(item && editing);
+  const listVisible = showingList || creating || (canManage && itemId !== null && !showReadOnly);
+  const title = cataloguePageTitle(Boolean(showReadOnly));
+  const showCreateAction = listVisible && canManage;
+  const showBackAction = !showingList && !editing && !creating && !listVisible;
   const loading = itemId !== null && detail.isPending;
   const loadError = itemId !== null && detail.isError && !item;
   const detailRows = showReadOnly ? catalogueDetailRows(item) : [];
@@ -67,6 +65,7 @@ const CataloguePage = () => {
   }, [locationKey]);
 
   useEffect(() => {
+    if (popupOpen) return;
     if (!showingList) {
       focusConnectedElement(heading.current);
       return;
@@ -82,7 +81,7 @@ const CataloguePage = () => {
       focusConnectedElement(row ?? createButton.current ?? heading.current);
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [selection, showingList]);
+  }, [selection, showingList, popupOpen]);
 
   const open = (value: string) => {
     returnFocusId.current = value;
@@ -119,13 +118,21 @@ const CataloguePage = () => {
           <Button onClick={close} text="חזרה לקטלוג" variant={BUTTON_VARIANTS.NEUTRAL} />
         )}
       </Box>
-      {showingList && notice && (
+      {listVisible && notice && (
         <Box role="status" sx={page.caption}>
           {notice}
         </Box>
       )}
-      <Box ref={list} hidden={!showingList}>
-        <CatalogueDirectory canManage={canManage} onOpen={row => open(row.id)} />
+      <Box ref={list} hidden={!listVisible}>
+        <CatalogueDirectory
+          canManage={canManage}
+          onOpen={row => open(row.id)}
+          onRemoved={message => {
+            returnFocusId.current = null;
+            setNotice(message);
+            focusConnectedElement(createButton.current ?? heading.current);
+          }}
+        />
       </Box>
       {loading && <LoadingState label="טוען פרטי פריט" />}
       {loadError && <InlineError message={getApiErrorMessage(detail.error)} />}
