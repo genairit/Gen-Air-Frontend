@@ -1,25 +1,18 @@
 import type {
   IEstimateArea,
-  IEstimateInputLine,
   IEngineeringEstimate,
 } from "../../../interfaces/engineering-estimate.interface";
 
+import { Box } from "@mui/material";
 import { useState, type FC } from "react";
-import { Box, Typography } from "@mui/material";
-import EstimateSection from "./EstimateSection";
-import { usePageStyles } from "../../page.style";
-import EstimateAreaUpdate from "./EstimateAreaUpdate";
-import EstimateAreaEditor from "./EstimateAreaEditor";
+import Tabs from "../../../components/Tabs/Tabs";
+import EstimateDocument from "./EstimateDocument";
+import styles from "../estimate-document.module.css";
 import Button from "../../../components/Button/Button";
-import EstimateCatalogueLine from "./EstimateCatalogueLine";
-import DataTable from "../../../components/DataTable/DataTable";
-import { useEstimateStyles } from "../engineering-estimates.style";
-import SelectField from "../../../components/SelectField/SelectField";
-import { quotationMoney } from "../../../utilities/quotation.utility";
-import { CommandIdentityManager } from "../../../managers/command-identity.manager";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
-import { ESTIMATE_TYPOGRAPHY } from "../../../styles/engineering-estimate-typography.style";
-import { ESTIMATE_COLUMNS } from "../../../constants/engineering-estimate-columns.constant";
+import EstimateEditorTable from "./EstimateEditorTable";
+import InlineError from "../../../components/InlineError/InlineError";
+import { useEstimatePreview } from "../../../hooks/estimate-preview.hook";
+import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 
 interface IEstimateQuantitiesProps {
   busy: boolean;
@@ -27,157 +20,71 @@ interface IEstimateQuantitiesProps {
   estimate: IEngineeringEstimate;
   onChange: (areas: IEstimateArea[]) => void;
 }
-
 const EstimateQuantities: FC<IEstimateQuantitiesProps> = ({
   busy,
   canEdit,
   estimate,
   onChange,
 }) => {
-  const styles = usePageStyles();
-  const estimateStyles = useEstimateStyles();
-  const [areaId, setAreaId] = useState("");
-  const [lineId, setLineId] = useState("");
-  const areas = estimate.areas;
-  const selectedArea = areas.find(area => area.id === areaId) ?? areas[0] ?? null;
-  const selectedAreaId = selectedArea?.id ?? "";
-  const inputLines = selectedArea?.lines ?? [];
-  const selectedLine = inputLines.find(line => line.id === lineId);
-  const matchingPrice = estimate.lines.find(
-    line =>
-      line.areaId === selectedAreaId && line.catalogueItemId === selectedLine?.catalogueItemId,
-  );
-  const selectedLineLabel = matchingPrice?.description ?? selectedLine?.catalogueItemId;
-  const items = areas.map(area => ({ value: area.id, label: area.name }));
-  const updateArea = (area: IEstimateArea): void => {
-    onChange(areas.map(current => (current.id === area.id ? area : current)));
-  };
-  const saveLine = (line: IEstimateInputLine): void => {
-    if (!selectedArea) {
-      onChange([
-        { id: CommandIdentityManager.create(), name: "כללי", repeatCount: 1, lines: [line] },
-      ]);
-      return;
-    }
-
-    const nextLines = selectedLine
-      ? inputLines.map(input => (input.id === selectedLine.id ? line : input))
-      : [...inputLines, line];
-    updateArea({ ...selectedArea, lines: nextLines });
-  };
-  const removeLine = (): void => {
-    if (!selectedArea || !selectedLine) {
-      return;
-    }
-
-    updateArea({ ...selectedArea, lines: inputLines.filter(line => line.id !== selectedLine.id) });
-  };
-  const chooseArea = (id: string): void => {
-    setAreaId(id);
-    setLineId("");
-  };
-  const lineOptions = [
-    { value: "", label: "פריט חדש" },
-    ...inputLines.map((line, index) => {
-      const pricedLine = estimate.lines.find(
-        price => price.areaId === selectedAreaId && price.catalogueItemId === line.catalogueItemId,
-      );
-      const label = pricedLine
-        ? `${pricedLine.description} · שורה ${index + 1}`
-        : `שורה ${index + 1}`;
-      return { value: line.id, label };
-    }),
-  ];
-  const lineEditorKey = selectedLine
-    ? `line-editor:${selectedLine.id}`
-    : `new-line:${selectedAreaId}:${inputLines.length}`;
-  const editorProps =
-    selectedLine && selectedLineLabel
-      ? { initial: selectedLine, itemLabel: selectedLineLabel }
-      : {};
-
+  const [panel, setPanel] = useState("editor");
+  const preview = useEstimatePreview({ areas: estimate.areas, scope: estimate.scope }, canEdit);
+  const pricing = canEdit ? preview.data : estimate;
+  const editorClass = panel === "editor" ? "" : styles.hidden;
+  const previewClass = panel === "preview" ? "" : styles.hidden;
   return (
-    <Box sx={styles.stack({ gap: "12px" })}>
+    <>
       {canEdit && (
-        <EstimateSection title="פריטים מהקטלוג">
-          {areas.length > 1 && (
-            <SelectField
-              items={items}
-              disabled={busy}
-              title="אזור לעריכה"
-              value={selectedAreaId}
-              ariaLabel="אזור לעריכה"
-              onChange={(event): void => chooseArea(event.target.value)}
-            />
-          )}
-          {inputLines.length > 0 && (
-            <SelectField
-              disabled={busy}
-              items={lineOptions}
-              title="פריט לעריכה"
-              ariaLabel="פריט לעריכה"
-              value={selectedLine?.id ?? ""}
-              onChange={(event): void => setLineId(event.target.value)}
-            />
-          )}
-          <EstimateCatalogueLine
-            busy={busy}
-            onSave={saveLine}
-            key={lineEditorKey}
-            {...editorProps}
+        <Box component="div" className={styles.mobileTabs}>
+          <Tabs
+            activeId={panel}
+            onChange={setPanel}
+            ariaLabel="עורך ותצוגה מקדימה"
+            items={[
+              { id: "editor", label: "עריכה" },
+              { id: "preview", label: "תצוגה מקדימה" },
+            ]}
           />
-          {selectedLine && (
-            <Button
-              disabled={busy}
-              text="הסרת פריט"
-              onClick={removeLine}
-              variant={BUTTON_VARIANTS.DANGER}
-            />
-          )}
-        </EstimateSection>
-      )}
-      {areas.map((area): React.JSX.Element => {
-        const rows = estimate.lines
-          .filter(line => line.areaId === area.id)
-          .map((line, index) => ({ ...line, rowId: String(index) }));
-        return (
-          <Box key={area.id} sx={styles.stack({ gap: "8px" })}>
-            <Typography component="h3" sx={ESTIMATE_TYPOGRAPHY.group}>
-              {area.name} · {area.repeatCount} חזרות
-            </Typography>
-            <DataTable
-              rows={rows}
-              columns={ESTIMATE_COLUMNS}
-              getRowId={(line): string => line.rowId}
-              endAdornment={rows.length === 0 && <Typography>אין פריטים באזור הזה.</Typography>}
-            />
-          </Box>
-        );
-      })}
-      <Box sx={[styles.spacedRow, estimateStyles.totals]}>
-        <Typography component="span" sx={ESTIMATE_TYPOGRAPHY.label}>
-          סה״כ לפני מע״מ
-        </Typography>
-        <Typography component="bdi" sx={ESTIMATE_TYPOGRAPHY.total}>
-          {quotationMoney(estimate.subtotal)}
-        </Typography>
-      </Box>
-
-      {canEdit && (
-        <Box sx={styles.grid({ minColumnWidth: 250 })}>
-          {selectedArea && (
-            <EstimateAreaUpdate
-              busy={busy}
-              area={selectedArea}
-              onChange={updateArea}
-              key={`area-editor:${selectedArea.id}`}
-            />
-          )}
-          <EstimateAreaEditor busy={busy} areas={areas} key={areas.length} onChange={onChange} />
         </Box>
       )}
-    </Box>
+      <Box className={canEdit ? styles.layout : styles.single}>
+        {canEdit && (
+          <Box component="div" className={editorClass}>
+            <EstimateEditorTable
+              busy={busy}
+              onChange={onChange}
+              areas={estimate.areas}
+              lines={preview.data?.lines ?? []}
+            />
+          </Box>
+        )}
+        <Box component="div" aria-busy={preview.waiting} className={canEdit ? previewClass : ""}>
+          {canEdit && preview.waiting && (
+            <Box component="p" role="status">
+              מחשב כמויות ומחירים…
+            </Box>
+          )}
+          {canEdit && preview.isError && (
+            <>
+              <InlineError message={getApiErrorMessage(preview.error)} />
+              <Button
+                text="חישוב מחדש"
+                onClick={() => {
+                  void preview.refetch();
+                }}
+              />
+            </>
+          )}
+          {pricing && !preview.waiting && (
+            <EstimateDocument pricing={pricing} name={estimate.name} areas={estimate.areas} />
+          )}
+          {!pricing && !preview.waiting && !preview.isError && (
+            <Box component="p" role="status">
+              השלימו את פרטי האזור והפריטים להצגת החישוב.
+            </Box>
+          )}
+        </Box>
+      </Box>
+    </>
   );
 };
-
 export default EstimateQuantities;

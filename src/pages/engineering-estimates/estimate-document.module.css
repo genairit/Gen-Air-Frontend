@@ -1,0 +1,138 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.editor {
+  min-width: 0;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 16px;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+  font-size: 13px;
+}
+.table th,
+.table td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+}
+.table th {
+  color: #64748b;
+  font-weight: 500;
+}
+.area {
+  background: #f8fafc;
+}
+.areaFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 100px;
+  gap: 12px;
+  align-items: end;
+}
+.line {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 105px;
+  gap: 12px;
+  align-items: start;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.options {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  display: grid;
+  gap: 12px;
+}
+.sheet {
+  min-width: 0;
+  background: white;
+  color: #0f172a;
+  padding: 28px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 28px #0f172a08;
+  font-family: Heebo, Rubik, sans-serif;
+}
+.documentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+  border-bottom: 2px solid #0f172a;
+  padding-bottom: 18px;
+  margin-bottom: 20px;
+}
+.documentHeader h2 {
+  font-size: 20px;
+  margin: 0 0 8px;
+}
+.documentHeader p {
+  font-size: 13px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.scroll {
+  overflow-x: auto;
+}
+.documentTable {
+  min-width: 460px;
+}
+.documentTable td {
+  overflow-wrap: anywhere;
+}
+.number {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.total {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 24px;
+  border-top: 2px solid #0f172a;
+  padding-top: 14px;
+  font-weight: 700;
+}
+.mobileTabs {
+  display: none;
+}
+.single {
+  max-width: 960px;
+  margin-inline: auto;
+  width: 100%;
+}
+@media (max-width: 1199px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mobileTabs {
+    display: block;
+  }
+  .hidden {
+    display: none;
+  }
+}
+@media (max-width: 599px) {
+  .sheet {
+    padding: 16px;
+  }
+  .editor {
+    padding: 12px;
+  }
+  .line {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

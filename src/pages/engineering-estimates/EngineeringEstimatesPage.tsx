@@ -30,6 +30,7 @@ const EngineeringEstimatesPage: FC = () => {
   const estimateStyles = useEstimateStyles();
   const user = useSessionUser();
   const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState(false);
   const restoreCreateFocus = useRef(false);
   const createTrigger = useRef<HTMLButtonElement | null>(null);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,7 +50,7 @@ const EngineeringEstimatesPage: FC = () => {
   const items = list.data?.pages.flatMap(page => page.items) ?? [];
   const showList = isList && list.isSuccess && !showCreateForm;
   const showCreateAction = canStartEstimate && !showCreateForm;
-  const showJenny = canEdit && (isList || estimate !== null);
+  const showJenny = canEdit && !creating && !editing && (isList || estimate !== null);
   const pageTitle = showCreateForm ? "כתב כמויות חדש" : (estimate?.name ?? "כתבי כמויות");
   const activeQuery = isList ? list : detail;
   const showLoading = !showCreateForm && activeQuery.isPending;
@@ -142,6 +143,7 @@ const EngineeringEstimatesPage: FC = () => {
           estimate={estimate}
           canBrowse={canBrowse}
           canApprove={canApprove}
+          onEditingChange={setEditing}
           canReadQuotation={canReadQuotation}
           canCreateQuotation={canCreateQuotation}
           canExportQuotation={canExportQuotation}

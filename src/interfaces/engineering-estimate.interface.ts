@@ -94,8 +94,20 @@ export interface IEstimateSample {
   planId: string;
 }
 
+export interface IEstimatePreview {
+  subtotal: string;
+  lines: IEstimatePricedLine[];
+}
+
+export interface IEstimateCalculation {
+  areas: IEstimateArea[];
+  scope: EstimateScopeType;
+}
+
 export interface IEstimateCreate {
   name: string;
+  areas?: IEstimateArea[];
+  scope?: EstimateScopeType;
   projectId?: string | null;
 }
 

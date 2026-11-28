@@ -8,11 +8,14 @@ import type {
   TEstimatePatch,
   IEstimateCreate,
   IEstimateSample,
+  IEstimatePreview,
+  IEstimateCalculation,
   IEngineeringEstimate,
 } from "../interfaces/engineering-estimate.interface";
 
 import {
   isEstimatePage,
+  isEstimatePreview,
   isEstimateQuotation,
   isEngineeringEstimate,
 } from "../utilities/guards/engineering-estimate.guard";
@@ -23,6 +26,11 @@ import { ESTIMATE_ENDPOINT } from "../constants/engineering-estimate.constant";
 const detail = (id: string): string => `${ESTIMATE_ENDPOINT}/${encodeURIComponent(id)}`;
 
 export const engineeringEstimateService = {
+  preview: async (input: IEstimateCalculation): Promise<IEstimatePreview> => {
+    const endpoint = `${ESTIMATE_ENDPOINT}/preview`;
+    const response = await httpClient.post<unknown>(endpoint, input);
+    return ensureResponse(endpoint, response.data, isEstimatePreview);
+  },
   list: async (batchCursor: string | null): Promise<IEstimatePage> => {
     const response = await httpClient.get<unknown>(ESTIMATE_ENDPOINT, { params: { batchCursor } });
     return ensureResponse(ESTIMATE_ENDPOINT, response.data, isEstimatePage);
