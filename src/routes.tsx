@@ -22,7 +22,6 @@ import NewCustomerPage from "./pages/customer-form/NewCustomerPage";
 import QuotationClonePage from "./pages/quotations/QuotationClonePage";
 import NewApartmentPage from "./pages/apartment-form/NewApartmentPage";
 import { PROJECT_FORM_MODES } from "./constants/project-form.constant";
-import ProjectBoqIndexPage from "./pages/project-boq/ProjectBoqIndexPage";
 import LegacyQuotationsRedirect from "./pages/quotations/LegacyQuotationsRedirect";
 import ProjectQuotationCreatePage from "./pages/quotations/ProjectQuotationCreatePage";
 import EngineeringEstimatesPage from "./pages/engineering-estimates/EngineeringEstimatesPage";
@@ -82,7 +81,7 @@ export const routes: RouteObject[] = [
             path: ROUTE_PATHS.PROJECT_BOQS,
             element: (
               <RequireFeature permission={PERMISSIONS.PROJECT_BOQ_READ}>
-                <ProjectBoqIndexPage />
+                <Navigate replace to={ROUTE_PATHS.BOARD} />
               </RequireFeature>
             ),
           },

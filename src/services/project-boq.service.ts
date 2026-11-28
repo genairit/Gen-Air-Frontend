@@ -6,6 +6,7 @@ import type {
   IBoqLineEdit,
   IBoqMaterial,
   IBoqRevision,
+  IProjectBoqSummary,
 } from "../interfaces/project-boq.interface";
 
 import { httpClient } from "./http-client.service";
@@ -13,6 +14,10 @@ import { httpClient } from "./http-client.service";
 const path = (projectId: string) => `/project-boq/${projectId}`;
 
 export const projectBoqService = {
+  async documents(projectId: string): Promise<IProjectBoqSummary[]> {
+    const response = await httpClient.get<IProjectBoqSummary[]>(`${path(projectId)}/documents`);
+    return response.data;
+  },
   async revision(projectId: string, revision: number): Promise<IBoqRevision> {
     const response = await httpClient.get<IBoqRevision>(`${path(projectId)}/revisions/${revision}`);
     return response.data;

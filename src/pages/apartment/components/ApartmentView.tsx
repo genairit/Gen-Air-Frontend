@@ -22,6 +22,7 @@ import ProjectQuotationsCard from "../../project/components/ProjectQuotationsCar
 import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 import ProjectQuotationCreateButton from "../../project/components/ProjectQuotationCreateButton";
+import ProjectPurchaseDocuments from "../../project/components/ProjectPurchaseDocuments";
 import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
 
 interface IApartmentViewProps {
@@ -38,6 +39,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
 
+  const canReadPurchase = hasPermission(sessionUser, PERMISSIONS.PROJECT_BOQ_READ);
   const panels = [
     ...(canReadTasks
       ? [
@@ -66,6 +68,14 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
             ...PROJECT_TABS.quotations,
             action: <ProjectQuotationCreateButton projectId={apartment.id} />,
             content: <ProjectQuotationsCard projectId={apartment.id} />,
+          },
+        ]
+      : []),
+    ...(canReadPurchase
+      ? [
+          {
+            ...PROJECT_TABS.purchase,
+            content: <ProjectPurchaseDocuments projectId={apartment.id} />,
           },
         ]
       : []),
