@@ -16,6 +16,7 @@ import type {
   IEngineeringEstimate,
 } from "../../../interfaces/engineering-estimate.interface";
 
+import { createPortal } from "react-dom";
 import { Box, Typography } from "@mui/material";
 import EstimateOutputs from "./EstimateOutputs";
 import Chip from "../../../components/Chip/Chip";
@@ -26,7 +27,6 @@ import EstimateQuestions from "./EstimateQuestions";
 import EstimateQuantities from "./EstimateQuantities";
 import EstimateScopeField from "./EstimateScopeField";
 import Button from "../../../components/Button/Button";
-import { useId, useState, useEffect, type FC } from "react";
 import EstimateProjectPicker from "./EstimateProjectPicker";
 import { TAB_MODES } from "../../../constants/tabs.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
@@ -34,11 +34,13 @@ import EstimateDraftNavigation from "./EstimateDraftNavigation";
 import TextField from "../../../components/TextField/TextField";
 import { useEstimateStyles } from "../engineering-estimates.style";
 import InlineError from "../../../components/InlineError/InlineError";
+import { useId, useState, useEffect, useContext, type FC } from "react";
 import { validEstimateDraft } from "../../../utilities/estimate-draft.utility";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import { ESTIMATE_TYPOGRAPHY } from "../../../styles/engineering-estimate-typography.style";
 import { engineeringEstimateService } from "../../../services/engineering-estimate.service";
+import { WorkspaceToolbarContext } from "../../../components/ProjectWorkspace/WorkspaceToolbar.context";
 
 interface IEstimateWorkspaceProps {
   canEdit: boolean;
@@ -64,6 +66,7 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
   useEffect(() => () => onEditingChange(false), [onEditingChange]);
   const styles = usePageStyles();
   const estimateStyles = useEstimateStyles();
+  const toolbar = useContext(WorkspaceToolbarContext);
   const detailsId = useId();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(ESTIMATE_WORKSPACE_TAB.QUANTITIES);
@@ -112,6 +115,10 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
   const patch = (delta: Omit<TEstimatePatch, "version">): void => {
     setDraft({ ...draft, ...delta });
   };
+  const editAction =
+    canEdit && !editing ? (
+      <Button disabled={busy} onClick={startEditing} text="עריכת כתב כמויות" />
+    ) : null;
   const panels: Record<string, React.JSX.Element> = {
     [ESTIMATE_WORKSPACE_TAB.QUANTITIES]: (
       <EstimateQuantities
@@ -201,9 +208,8 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
           </Card>
         </Box>
       )}
-      {canEdit && !editing && (
-        <Button disabled={busy} onClick={startEditing} text="עריכת כתב כמויות" />
-      )}
+      {editAction &&
+        (toolbar ? createPortal(editAction, toolbar) : <Box sx={styles.endRow}>{editAction}</Box>)}
       {editing && (
         <Box sx={styles.row({ gap: "8px" })}>
           <Button
