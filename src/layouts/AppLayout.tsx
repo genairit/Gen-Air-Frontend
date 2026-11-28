@@ -58,6 +58,7 @@ const AppLayout = () => {
     return null;
   }
 
+  const titleComponent = pathname === ROUTE_PATHS.CUSTOMERS ? "h1" : "b";
   const boardOwnsHeader =
     pathname === ROUTE_PATHS.BOARD && hasPermission(sessionUser, PERMISSIONS.PROJECTS_READ);
   const accountMenuProps = {
@@ -94,7 +95,12 @@ const AppLayout = () => {
 
       <Box component="main" sx={styles.main}>
         {!boardOwnsHeader && (
-          <TopBar leading={topBarLeading} title={getPageTitle(pathname)} {...accountMenuProps} />
+          <TopBar
+            leading={topBarLeading}
+            title={getPageTitle(pathname)}
+            titleComponent={titleComponent}
+            {...accountMenuProps}
+          />
         )}
         <Outlet context={<UserMenuButton {...accountMenuProps} />} />
       </Box>

@@ -43,10 +43,11 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 import CustomerEditButton from "../../../components/CustomerEditButton/CustomerEditButton";
 
 interface ICustomersTableProps {
+  onCreate: () => void;
   onEdit: ((customer: IApiCustomer) => void) | null;
 }
 
-const CustomersTable = ({ onEdit }: ICustomersTableProps) => {
+const CustomersTable = ({ onEdit, onCreate }: ICustomersTableProps) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
   const tableStyles = useStyles();
@@ -113,7 +114,7 @@ const CustomersTable = ({ onEdit }: ICustomersTableProps) => {
       <Box sx={styles.spacedRow}>
         <Tabs items={filterTabs} activeId={filterId} onChange={handleFilterChange} />
         <Box sx={tableStyles.searchActions}>
-          <CustomerCreateAction />
+          <CustomerCreateAction onClick={onCreate} />
           <Box sx={tableStyles.search}>
             <TextField
               value={search}
