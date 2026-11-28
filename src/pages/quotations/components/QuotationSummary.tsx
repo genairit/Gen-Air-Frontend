@@ -80,7 +80,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
           }
         />
         <Box component="span" className={styles.muted}>
-          סכום היעד גובר על אחוז ההנחה. הסכומים מתעדכנים לאחר שמירה בשרת.
+          סכום היעד גובר על אחוז ההנחה.
         </Box>
       </Card>
       <Card>

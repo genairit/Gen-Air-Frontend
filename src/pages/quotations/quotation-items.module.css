@@ -1,0 +1,227 @@
+.workspace {
+  min-width: 0;
+  color: #0f172a;
+  text-align: start;
+}
+.toolbar,
+.headingRow,
+.actions,
+.floorForm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.toolbar,
+.headingRow {
+  justify-content: space-between;
+}
+.toolbar {
+  padding-block-end: 14px;
+}
+.toolbar h2 {
+  margin: 0;
+  font-size: 1.12rem;
+}
+.textButton,
+.itemAction {
+  color: #1668bd;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: transparent;
+  border: 0;
+  padding: 4px 2px;
+  cursor: pointer;
+  text-align: start;
+}
+.textButton:focus-visible,
+.itemAction:focus-visible {
+  outline: 2px solid #1668bd;
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+.textButton:hover,
+.itemAction:hover {
+  text-decoration: underline;
+}
+.textButton:disabled,
+.itemAction:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.scroller {
+  overflow-x: auto;
+}
+.table {
+  width: 100%;
+  min-width: 540px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.875rem;
+}
+.descriptionCol {
+  width: 42%;
+}
+.quantityCol {
+  width: 16%;
+}
+.priceCol {
+  width: 21%;
+}
+.totalCol {
+  width: 21%;
+}
+.table :is(th, td) {
+  text-align: start;
+  padding: 8px;
+  overflow-wrap: anywhere;
+}
+.table thead th {
+  background: #f8fafc;
+  border-block: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.floor th {
+  border-block-start: 1px solid #cbd5e1;
+  background: #eff6fd;
+}
+.company th {
+  padding-block: 10px 4px;
+  color: #0f5ca8;
+}
+.system > th {
+  padding-inline-start: 14px;
+  font-weight: 600;
+}
+.system > :is(th, td) {
+  border-block-end: 1px solid #e2e8f0;
+}
+.system .amount {
+  font-size: 0.8rem;
+  color: #475569;
+}
+.item > :is(th, td) {
+  border-block-end: 1px solid #edf1f5;
+  vertical-align: middle;
+}
+.item > th {
+  padding-inline-start: 16px;
+  font-weight: 500;
+}
+.itemAction {
+  color: inherit;
+  font-size: inherit;
+  padding: 4px 0;
+}
+.itemAction span {
+  margin-inline-start: 5px;
+  font-size: 0.75em;
+  color: #64748b;
+}
+.item small {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #475569;
+  margin-block-start: 2px;
+}
+.sku {
+  font-variant-numeric: tabular-nums;
+}
+.amount {
+  white-space: nowrap;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.item :global(.MuiInputBase-root) {
+  min-height: 32px;
+  height: 32px;
+}
+.item input {
+  padding-inline: 4px;
+  min-width: 0;
+}
+.item td > div > span:empty {
+  display: none;
+}
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(130px, 100%), 1fr));
+  gap: 10px;
+}
+.form,
+.panel {
+  background: #f8fafc;
+  padding: 12px;
+}
+.form {
+  border-radius: 8px;
+  margin-block-end: 12px;
+  display: grid;
+  gap: 12px;
+}
+.floorForm {
+  margin-block-start: 8px;
+}
+.confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-block-start: 12px;
+}
+.table .empty {
+  padding: 24px 8px;
+  text-align: center;
+  color: #64748b;
+}
+.table .picker {
+  padding: 4px 12px 10px;
+}
+.catalogue {
+  border: 0;
+  padding: 0;
+  margin: 8px 0;
+  min-width: 0;
+}
+.catalogue > div {
+  background: #f8fafc;
+  border-radius: 8px;
+}
+.details > td > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  box-shadow: none;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 12px;
+}
+.details > td > div > div {
+  flex: 1 1 110px;
+  min-width: 0;
+}
+.details > td > div > b {
+  white-space: nowrap;
+}
+@media (max-width: 600px) {
+  .table :is(th, td) {
+    padding-inline: 4px;
+  }
+  .descriptionCol {
+    width: 38%;
+  }
+  .quantityCol {
+    width: 18%;
+  }
+  .priceCol {
+    width: 23%;
+  }
+  .toolbar {
+    gap: 6px;
+  }
+}

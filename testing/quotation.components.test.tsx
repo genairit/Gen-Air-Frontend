@@ -26,9 +26,9 @@ import { QUOTATION_SALES_AGENTS_KEY } from "../src/constants/quotation.constant"
 import QuotationDelete from "../src/pages/quotations/components/QuotationDelete";
 import QuotationButton from "../src/pages/quotations/components/QuotationButton";
 import QuotationEditor from "../src/pages/quotations/components/QuotationEditor";
-import QuotationReview from "../src/pages/quotations/components/QuotationReview";
 import QuotationSection from "../src/pages/quotations/components/QuotationSection";
 import QuotationSummary from "../src/pages/quotations/components/QuotationSummary";
+import QuotationWorkspace from "../src/pages/quotations/components/QuotationWorkspace";
 import type { IQuotation, IQuotationLine } from "../src/interfaces/quotation.interface";
 import QuotationDecimalInput from "../src/pages/quotations/components/QuotationDecimalInput";
 import QuotationProjectPicker from "../src/pages/quotations/components/QuotationProjectPicker";
@@ -59,7 +59,7 @@ const setSalesAgentTestSession = (
     },
   });
 const salesAgentTestQueryKey = [...QUOTATION_SALES_AGENTS_KEY, salesAgentTestUserId];
-test("brand and General tabs show only their own catalogue sections", async () => {
+test("one table shows sections from both companies and the quotation-wide General group", async () => {
   const base = quotationFixture();
   base.brands = ["אלקטרה", "תדיראן"];
   base.sections = [
@@ -91,16 +91,16 @@ test("brand and General tabs show only their own catalogue sections", async () =
     });
     const sections = () =>
       state.renderer!.root.findAllByType(QuotationSection).map(node => node.props.section.id);
-    const tab = (name: string) =>
-      state
-        .renderer!.root.findAllByProps({ role: "tab" })
-        .find(node => node.children.includes(name));
-    assert.deepEqual(sections(), ["alpha"]);
-    await act(() => tab("תדיראן")!.props.onClick());
-    assert.deepEqual(sections(), ["beta"]);
-    await act(() => tab("כללי")!.props.onClick());
-    assert.deepEqual(sections(), ["general"]);
-    assert.equal(state.renderer!.root.findByType(QuotationCataloguePicker).props.brand, "");
+    assert.deepEqual(sections(), ["alpha", "beta", "general"]);
+    const table = state.renderer!.root.findByProps({ "aria-label": "פריטי ההצעה" });
+    const sectionNodes = table.findAllByType(QuotationSection);
+    for (const [index, brand] of ["אלקטרה", "תדיראן", ""].entries()) {
+      const trigger = sectionNodes[index].find(
+        node => node.type === "button" && node.children.includes("+ הוסף פריט מהקטלוג"),
+      );
+      await act(() => trigger.props.onClick());
+      assert.equal(sectionNodes[index].findByType(QuotationCataloguePicker).props.brand, brand);
+    }
   } finally {
     await act(async () => {
       state.renderer?.unmount();
@@ -149,7 +149,10 @@ for (const [initialStatus, nextStatus, expectedReviews] of [
       const summary = state.renderer!.root.findByType(QuotationSummary);
       await act(() => summary.props.onTransition(nextStatus));
       assert.equal(transition.mock.callCount(), 1);
-      assert.equal(state.renderer!.root.findAllByType(QuotationReview).length, expectedReviews);
+      assert.equal(
+        Number(state.renderer!.root.findByType(QuotationWorkspace).props.readOnly),
+        expectedReviews,
+      );
     } finally {
       await act(async () => state.renderer?.unmount());
       client.clear();
@@ -265,6 +268,16 @@ test("autosave keeps quotation fields and catalogue picker mounted and editable"
       state.renderer = create(<RouterProvider router={router} />);
     });
     const root = () => state.renderer!.root;
+    await act(() =>
+      root()
+        .find(node => node.type === "button" && node.children.includes("+ הוסף פריט מהקטלוג"))
+        .props.onClick(),
+    );
+    await act(() =>
+      root()
+        .findByProps({ "aria-label": `עריכת פריט ${base.sections[0].items[0].description}` })
+        .props.onClick(),
+    );
     const location = () => root().findByProps({ "aria-label": "מיקום" });
     const quantityToAdd = () => root().findByProps({ "aria-label": "כמות להוספה" });
     await act(() => quantityToAdd().props.onChange({ target: { value: "3" } }));
@@ -343,14 +356,17 @@ test("review edit, reopen and resubmit resets the explicit edit view", async () 
       state.renderer = create(<RouterProvider router={router} />);
     });
     await act(async () => {
-      root().findByType(QuotationReview).props.onEdit();
+      root()
+        .findAllByType(QuotationButton)
+        .find(button => button.props.text === "עריכה")!
+        .props.onClick();
     });
-    assert.equal(root().findAllByType(QuotationReview).length, 0);
+    assert.equal(root().findByType(QuotationWorkspace).props.readOnly, false);
     await act(() => root().findByType(QuotationSummary).props.onTransition("draft"));
-    assert.equal(root().findAllByType(QuotationReview).length, 0);
+    assert.equal(root().findByType(QuotationWorkspace).props.readOnly, false);
     await act(() => root().findByType(QuotationSummary).props.onTransition("review"));
     assert.equal(transition.mock.callCount(), 2);
-    assert.equal(root().findAllByType(QuotationReview).length, 1);
+    assert.equal(root().findByType(QuotationWorkspace).props.readOnly, true);
     assert.equal(root().findByType(QuotationSummary).props.quotation.version, 3);
   } finally {
     await act(async () => {

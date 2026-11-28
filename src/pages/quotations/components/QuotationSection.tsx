@@ -1,136 +1,190 @@
 import {
+  quotationMoney,
+  updateQuotationLine,
+  removeQuotationLine,
+} from "../../../utilities/quotation.utility";
+
+import {
   BUTTON_SIZES,
-  BUTTON_SHAPES,
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
-import type { FC } from "react";
-import { useState } from "react";
 import { Box } from "@mui/material";
 import Button from "./QuotationButton";
-import QuotationLine from "./QuotationLine";
-import styles from "../quotation.module.css";
-import QuotationInput from "./QuotationInput";
-import QuotationLinkedControl from "./QuotationLinkedControl";
+import { useState, type FC } from "react";
+import QuotationItemRow from "./QuotationItemRow";
+import styles from "../quotation-items.module.css";
+import QuotationSystemForm from "./QuotationSystemForm";
 import QuotationCataloguePicker from "./QuotationCataloguePicker";
-import { quotationMoney } from "../../../utilities/quotation.utility";
-import { QUOTATION_SYSTEM_LABELS } from "../../../constants/quotation.constant";
-import type { IQuotationSection } from "../../../interfaces/quotation.interface";
-import { quotationLineGroups } from "../../../utilities/quotation-presentation.utility";
+import { quotationSectionHeading } from "../../../utilities/quotation-floor.utility";
 import { quotationSectionAmount } from "../../../utilities/quotation-presentation.utility";
-import { updateQuotationLine, removeQuotationLine } from "../../../utilities/quotation.utility";
+import type { IQuotation, IQuotationSection } from "../../../interfaces/quotation.interface";
 
 interface IQuotationSectionProps {
-  brand: string;
+  last: boolean;
+  first: boolean;
   disabled: boolean;
+  readOnly: boolean;
+  newSection: boolean;
   onRemove: () => void;
+  quotation: IQuotation;
   section: IQuotationSection;
   onMove: (direction: number) => void;
+  onEdit: (quotation: IQuotation) => void;
   onChange: (section: IQuotationSection) => void;
 }
 const QuotationSection: FC<IQuotationSectionProps> = ({
   section,
-  brand,
+  quotation,
+  newSection,
   disabled,
+  readOnly,
+  first,
+  last,
   onChange,
-  onRemove,
   onMove,
-}: IQuotationSectionProps) => {
-  const groups = quotationLineGroups(section);
-  const amount = quotationMoney(quotationSectionAmount(section));
+  onRemove,
+  onEdit,
+}) => {
+  const [configuring, setConfiguring] = useState(false);
+  const [adding, setAdding] = useState(newSection);
   const [confirm, setConfirm] = useState(false);
   const [addedLineId, setAddedLineId] = useState<string | null>(null);
+  const heading = quotationSectionHeading(section);
+  const amount = quotationMoney(quotationSectionAmount(section));
   return (
-    <Box component="section" className={styles.systemSection}>
-      <Box component="div" className={styles.sectionHeader}>
-        <Box component="span" className={styles.systemBadge}>
-          {QUOTATION_SYSTEM_LABELS[section.systemType]}
-        </Box>
-        <QuotationInput
-          maxLength={200}
-          disabled={disabled}
-          value={section.title}
-          label="כותרת מערכת / קומה"
-          placeholder="כותרת מערכת / קומה"
-          onChange={event => onChange({ ...section, title: event.target.value })}
-        />
-        <Box component="b">{amount}</Box>
-        {!disabled && (
-          <Box component="div" className={styles.sectionButtons}>
-            <Button
-              text="↑"
-              ariaLabel="הזז למעלה"
-              onClick={() => onMove(-1)}
-              size={BUTTON_SIZES.COMPACT}
-              shape={BUTTON_SHAPES.CIRCLE}
-              variant={BUTTON_VARIANTS.NEUTRAL}
-            />
-            <Button
-              text="↓"
-              ariaLabel="הזז למטה"
-              onClick={() => onMove(1)}
-              size={BUTTON_SIZES.COMPACT}
-              shape={BUTTON_SHAPES.CIRCLE}
-              variant={BUTTON_VARIANTS.NEUTRAL}
-            />
-            <Button
-              text="מחק מקטע"
-              ariaLabel="מחיקת מערכת"
-              size={BUTTON_SIZES.COMPACT}
-              onClick={() => setConfirm(true)}
-              variant={BUTTON_VARIANTS.NEUTRAL}
-            />
+    <>
+      {(heading || !readOnly) && (
+        <Box component="tr" className={styles.system}>
+          <Box scope="row" colSpan={3} component="th">
+            <Box className={styles.headingRow}>
+              {heading && <Box component="span">{heading}</Box>}
+              {!readOnly && (
+                <Box
+                  type="button"
+                  component="button"
+                  disabled={disabled}
+                  aria-expanded={configuring}
+                  className={styles.textButton}
+                  aria-label={`עריכת מערכת ${heading || "כללי"}`}
+                  onClick={() => {
+                    setConfiguring(!configuring);
+                    setConfirm(false);
+                  }}
+                >
+                  עריכה
+                </Box>
+              )}
+            </Box>
           </Box>
-        )}
-      </Box>
-      {confirm && (
-        <Box component="div" className={styles.error}>
-          למחוק את המערכת וכל השורות שלה?
-          <Box component="div" className={styles.row}>
-            <Button text="אישור מחיקה" onClick={onRemove} />
-            <Button text="ביטול" onClick={() => setConfirm(false)} />
+          <Box component="td" className={styles.amount}>
+            <Box component="bdi">{amount}</Box>
           </Box>
         </Box>
       )}
-      {!section.items.length && (
-        <Box component="p" className={styles.muted}>
-          אין עדיין פריטים במערכת
+      {!readOnly && configuring && (
+        <Box component="tr">
+          <Box colSpan={4} component="td" className={styles.panel}>
+            <QuotationSystemForm
+              section={section}
+              disabled={disabled}
+              quotation={quotation}
+              onClose={() => setConfiguring(false)}
+              onSave={next => {
+                onEdit(next);
+                setConfiguring(false);
+              }}
+            />
+            <Box className={styles.actions}>
+              <Button
+                text="הזז למעלה"
+                onClick={() => onMove(-1)}
+                size={BUTTON_SIZES.COMPACT}
+                disabled={disabled || first}
+                variant={BUTTON_VARIANTS.NEUTRAL}
+              />
+              <Button
+                text="הזז למטה"
+                onClick={() => onMove(1)}
+                disabled={disabled || last}
+                size={BUTTON_SIZES.COMPACT}
+                variant={BUTTON_VARIANTS.NEUTRAL}
+              />
+              <Button
+                text="מחק מקטע"
+                disabled={disabled}
+                ariaLabel="מחיקת מערכת"
+                size={BUTTON_SIZES.COMPACT}
+                onClick={() => setConfirm(true)}
+                variant={BUTTON_VARIANTS.NEUTRAL}
+              />
+            </Box>
+            {confirm && (
+              <Box role="alert" className={styles.confirm}>
+                למחוק את המערכת וכל השורות שלה?
+                <Button
+                  text="אישור מחיקה"
+                  onClick={onRemove}
+                  disabled={disabled}
+                  size={BUTTON_SIZES.COMPACT}
+                  variant={BUTTON_VARIANTS.DANGER}
+                />
+                <Button
+                  text="ביטול מחיקה"
+                  size={BUTTON_SIZES.COMPACT}
+                  variant={BUTTON_VARIANTS.NEUTRAL}
+                  onClick={() => setConfirm(false)}
+                />
+              </Box>
+            )}
+          </Box>
         </Box>
       )}
-      {groups.map(({ line, controls }) => (
-        <QuotationLine
+      {section.items.map(line => (
+        <QuotationItemRow
           line={line}
           key={line.id}
           disabled={disabled}
+          readOnly={readOnly}
           items={section.items}
           focusQuantity={line.id === addedLineId}
           onQuantityFocused={() => setAddedLineId(null)}
           onChange={next => onChange(updateQuotationLine(section, next))}
           onRemove={() => onChange(removeQuotationLine(section, line.id))}
-        >
-          {controls.map(control => (
-            <QuotationLinkedControl
-              line={control}
-              key={control.id}
-              disabled={disabled}
-              items={section.items}
-              onChange={next => onChange(updateQuotationLine(section, next))}
-              onRemove={() => onChange(removeQuotationLine(section, control.id))}
-            />
-          ))}
-        </QuotationLine>
-      ))}
-      {!disabled && (
-        <QuotationCataloguePicker
-          brand={brand}
-          section={section}
-          onSelect={line => {
-            setAddedLineId(line.id);
-            onChange({ ...section, items: [...section.items, line] });
-          }}
         />
+      ))}
+      {!readOnly && (
+        <Box component="tr">
+          <Box colSpan={4} component="td" className={styles.picker}>
+            <Box
+              type="button"
+              component="button"
+              disabled={disabled}
+              aria-expanded={adding}
+              className={styles.textButton}
+              onClick={() => setAdding(!adding)}
+            >
+              {adding ? "סגירת הקטלוג" : "+ הוסף פריט מהקטלוג"}
+            </Box>
+            {adding && (
+              <Box disabled={disabled} component="fieldset" className={styles.catalogue}>
+                <QuotationCataloguePicker
+                  section={section}
+                  brand={section.brand ?? ""}
+                  onSelect={line => {
+                    if (disabled) {
+                      return;
+                    }
+                    setAddedLineId(line.id);
+                    onChange({ ...section, items: [...section.items, line] });
+                  }}
+                />
+              </Box>
+            )}
+          </Box>
+        </Box>
       )}
-    </Box>
+    </>
   );
 };
 export default QuotationSection;

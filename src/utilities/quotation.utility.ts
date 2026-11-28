@@ -3,7 +3,6 @@ import {
   EQUIPMENT_ROLE,
   QUOTATION_TYPES,
   QUOTATION_SYSTEM,
-  QUOTATION_GENERAL_TAB_ID,
 } from "../constants/quotation.constant";
 
 import type {
@@ -13,6 +12,7 @@ import type {
   IQuotationSection,
 } from "../interfaces/quotation.interface";
 
+import { quotationLineAmount } from "./quotation-document.utility";
 import { QUOTATION_DECIMAL } from "../constants/quotation.constant";
 import type { TQuotationSystem } from "../interfaces/quotation.interface";
 import type { IQuotationSavePayload } from "../interfaces/quotation.interface";
@@ -24,7 +24,7 @@ export const quotationMoney = (value: string): string => {
   return `${sign}₪${BigInt(whole).toLocaleString("he-IL")}.${fraction}`;
 };
 export const quotationLineMoney = (line: IQuotationLine): string =>
-  quotationMoney(new QUOTATION_DECIMAL(line.quantity).times(line.quotedPrice).toString());
+  quotationMoney(quotationLineAmount(line));
 export const quotationPayload = (quotation: IQuotation): IQuotationSavePayload => {
   const {
     version,
@@ -60,6 +60,8 @@ export const quotationPayload = (quotation: IQuotation): IQuotationSavePayload =
       title: section.title,
       systemType: section.systemType,
       brand: section.brand,
+      floorId: section.floorId ?? null,
+      floorName: section.floorName ?? null,
       items: section.items.map(item => ({
         id: item.id,
         catalogueItemId: item.catalogueItemId,
@@ -146,7 +148,9 @@ export const moveQuotationSection = (
     return quotation;
   }
   const siblingIndexes = quotation.sections.flatMap((current, position) =>
-    current.brand === section.brand ? [position] : [],
+    current.brand === section.brand && (current.floorId ?? null) === (section.floorId ?? null)
+      ? [position]
+      : [],
   );
   const siblingPosition = siblingIndexes.indexOf(index);
   const targetPosition = siblingPosition + direction;
@@ -157,25 +161,6 @@ export const moveQuotationSection = (
   const sections = [...quotation.sections];
   [sections[index], sections[target]] = [sections[target], sections[index]];
   return { ...quotation, sections };
-};
-
-export const quotationBrandTabs = (quotation: IQuotation, activeId: string) => {
-  const selectedId =
-    activeId === QUOTATION_GENERAL_TAB_ID || quotation.brands.includes(activeId)
-      ? activeId
-      : (quotation.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
-  const brand = selectedId === QUOTATION_GENERAL_TAB_ID ? null : selectedId;
-  return {
-    brand,
-    selectedId,
-    items: [
-      ...quotation.brands.map(value => ({ id: value, label: value })),
-      { id: QUOTATION_GENERAL_TAB_ID, label: "כללי" },
-    ],
-    sections: quotation.sections
-      .map((section, index) => ({ section, index }))
-      .filter(({ section }) => section.brand === brand),
-  };
 };
 
 export const addQuotationBrand = (quotation: IQuotation, brand: string): IQuotation => {
