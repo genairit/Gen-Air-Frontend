@@ -1,5 +1,6 @@
 import { createStyles } from "../../create-styles";
 import { theme } from "../../constants/theme.constants";
+import { MOBILE_LAYOUT_QUERY } from "../../constants/layout.constant";
 
 export const useEstimateStyles = () =>
   createStyles({
@@ -8,6 +9,15 @@ export const useEstimateStyles = () =>
       fontSize: { xs: 28, sm: 32 },
       fontWeight: 800,
       overflowWrap: "anywhere",
+    },
+    headerActions: {
+      gap: "8px",
+      display: "flex",
+      flexWrap: "wrap",
+      alignItems: "center",
+      [`@media ${MOBILE_LAYOUT_QUERY}`]: {
+        "& button": { paddingInline: "10px" },
+      },
     },
     primaryEditor: {
       gap: "16px",

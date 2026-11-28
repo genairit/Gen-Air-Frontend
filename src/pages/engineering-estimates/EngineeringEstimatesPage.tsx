@@ -71,7 +71,7 @@ const EngineeringEstimatesPage: FC = () => {
           {createProjectId ? "כתב כמויות חדש" : (estimate?.name ?? "כתב כמויות")}
         </Typography>
         {estimateId && (
-          <Box ref={setToolbar} sx={styles.row({ gap: "8px" })}>
+          <Box ref={setToolbar} sx={estimateStyles.headerActions}>
             <Button
               onClick={() => navigate(backPath)}
               variant={BUTTON_VARIANTS.SECONDARY}
