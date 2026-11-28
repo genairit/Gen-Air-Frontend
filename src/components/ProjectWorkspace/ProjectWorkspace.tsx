@@ -76,6 +76,7 @@ const ProjectWorkspace = ({
   const activePanel =
     panels.find(panel => panel.id === requested) ?? panels.find(panel => panel.id === defaultTab);
   const selected = activePanel?.id ?? defaultTab;
+  const panelActionAttribute = activePanel?.action ? "" : null;
   const tabScroll = useVisibleActiveTab(selected);
   const selectTab = (id: string) => {
     if (id === selected) return;
@@ -86,7 +87,7 @@ const ProjectWorkspace = ({
     <Box sx={styles.workspace} data-project-workspace="">
       {header}
       <Card gap="4px" padding="8px" sx={styles.surface}>
-        <Box sx={styles.toolbar} data-panel-action={activePanel?.action ? "" : undefined}>
+        <Box sx={styles.toolbar} data-panel-action={panelActionAttribute}>
           <Box ref={tabScroll} sx={styles.tabBar}>
             <Tabs
               isScrollable
