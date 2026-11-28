@@ -23,12 +23,12 @@ const listKey = [ESTIMATE_QUERY_KEY, "list"];
 const commandKey = (id: string): string[] => [ESTIMATE_QUERY_KEY, "command", id];
 const detailKey = (id: string): string[] => [ESTIMATE_QUERY_KEY, "detail", id];
 
-export const useEstimatesQuery = () =>
+export const useEstimatesQuery = (projectId: string) =>
   useInfiniteQuery({
-    queryKey: listKey,
+    queryKey: [...listKey, projectId],
     initialPageParam: FIRST_ESTIMATE_CURSOR,
     getNextPageParam: (page: IEstimatePage): string | null => page.nextCursor,
-    queryFn: ({ pageParam }) => engineeringEstimateService.list(pageParam),
+    queryFn: ({ pageParam }) => engineeringEstimateService.list(projectId, pageParam),
   });
 
 export const useEstimateQuery = (id: string | null) =>

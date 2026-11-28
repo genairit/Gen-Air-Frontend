@@ -62,7 +62,6 @@ import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { parseRestrictedMarkdown } from "../src/utilities/markdown.utility";
 import type { IJennyThreadMessage } from "../src/interfaces/jenny.interface";
 import { useScrollPinnedToBottom } from "../src/hooks/scroll-pinned-bottom.hook";
-import { createMemoryRouter, RouterProvider, useSearchParams } from "react-router-dom";
 import EstimateJenny from "../src/pages/engineering-estimates/components/EstimateJenny";
 import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
 import { initialEstimateMeasurements } from "../src/utilities/engineering-estimate.utility";
@@ -72,6 +71,7 @@ import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../src/constants/layo
 import { validateEstimatePlanSelection } from "../src/utilities/engineering-estimate.utility";
 import EstimateCreateForm from "../src/pages/engineering-estimates/components/EstimateCreateForm";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
+import { createMemoryRouter, RouterProvider, useSearchParams, useNavigate } from "react-router-dom";
 import EstimateCatalogueLine from "../src/pages/engineering-estimates/components/EstimateCatalogueLine";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -1016,7 +1016,7 @@ test("thread auto-scroll jumps instantly under reduced motion", async () => {
   }
 });
 
-test("Jenny starts a standalone estimate and opens the persisted setup step on resume", async (): Promise<void> => {
+test("Jenny starts an estimate in the current project and opens the persisted setup step on resume", async (): Promise<void> => {
   const harness = createHarness();
   const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   const estimate: IEngineeringEstimate = {
@@ -1028,7 +1028,7 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
     areas: [],
     scope: "hvac",
     status: "draft",
-    projectId: null,
+    projectId: "current-project",
     quotationId: null,
     quotationCustomerId: null,
     quotationUnavailable: false,
@@ -1043,7 +1043,12 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
   };
   const renderGuide = (resume: IEngineeringEstimate | null): ReactElement => (
     <QueryClientProvider client={queryClient}>
-      <EstimateJenny estimate={resume} canBrowse={false} onCreated={onCreated} />
+      <EstimateJenny
+        estimate={resume}
+        canBrowse={false}
+        onCreated={onCreated}
+        projectId={estimate.projectId}
+      />
     </QueryClientProvider>
   );
   const view: { renderer: ReactTestRenderer | null } = { renderer: null };
@@ -1059,7 +1064,7 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
     assert.ok(start);
     await act(async (): Promise<void> => start.props.onClick());
     assert.equal(harness.calls[0]?.url, ESTIMATE_ENDPOINT);
-    assert.deepEqual(harness.calls[0]?.body, { name: "מלון" });
+    assert.deepEqual(harness.calls[0]?.body, { name: "מלון", projectId: "current-project" });
     await harness.respond(estimate);
     assert.deepEqual(saved.estimate, estimate);
 
@@ -1288,7 +1293,7 @@ test("creating a dirty estimate opens its saved detail after the navigation guar
     }
     return (
       <EstimateCreateForm
-        canLinkProject={false}
+        projectId="bound-project"
         onCancel={() => setCreating(false)}
         onCreated={estimate => {
           setCreating(false);
@@ -1320,10 +1325,73 @@ test("creating a dirty estimate opens its saved detail after the navigation guar
     const form = renderer.root.find(node => node.type === "form");
     await act(async () => form.props.onSubmit({ preventDefault() {} }));
     assert.equal(harness.calls.filter(call => call.url === ESTIMATE_ENDPOINT).length, 1);
-    const estimate = { ...emptyEstimateDraft(), id: "saved-id", name: "כתב חדש", version: 1 };
+    const estimate = {
+      ...emptyEstimateDraft(),
+      id: "saved-id",
+      name: "כתב חדש",
+      projectId: "bound-project",
+      version: 1,
+    };
     await harness.respond(estimate);
     assert.equal(router.state.location.search, "?estimate=saved-id");
     assert.ok(textOf(renderer).includes("saved-id"));
+  } finally {
+    await act(async () => renderer.unmount());
+    router.dispose();
+    client.clear();
+    harness.restore();
+    restoreWindow();
+  }
+});
+
+test("discarding a dirty project estimate clears the guard before returning to its project", async () => {
+  const restoreWindow = installMatchMedia([]);
+  Reflect.set(window, "addEventListener", () => {});
+  Reflect.set(window, "removeEventListener", () => {});
+  const harness = createHarness();
+  const dirtyStates: boolean[] = [];
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const Page = () => {
+    const navigate = useNavigate();
+    return (
+      <EstimateCreateForm
+        onCreated={() => {}}
+        projectId="bound-project"
+        onCancel={() => navigate("/project")}
+        onDirtyChange={dirty => dirtyStates.push(dirty)}
+      />
+    );
+  };
+  const router = createMemoryRouter([
+    { path: "/", element: <Page /> },
+    { path: "/project", element: <Box>project</Box> },
+  ]);
+  const view: { renderer: ReactTestRenderer | null } = { renderer: null };
+  await act(async () => {
+    view.renderer = create(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+  });
+  const renderer = view.renderer;
+  assert.ok(renderer);
+  try {
+    const name = renderer.root
+      .findAllByType(TextField)
+      .find(field => field.props.title === "שם כתב הכמויות");
+    assert.ok(name);
+    await act(async () => name.props.onChange("טיוטה לביטול"));
+    const cancel = findButton(renderer, "ביטול");
+    assert.ok(cancel);
+    await act(async () => cancel.props.onClick());
+    const discard = findButton(renderer, "יציאה ללא שמירה");
+    assert.ok(discard);
+    await act(async () => discard.props.onClick());
+    assert.equal(router.state.location.pathname, "/project");
+    assert.ok(dirtyStates.includes(true));
+    assert.equal(dirtyStates.at(-1), false);
+    assert.ok(textOf(renderer).includes("project"));
   } finally {
     await act(async () => renderer.unmount());
     router.dispose();

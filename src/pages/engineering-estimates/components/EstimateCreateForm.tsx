@@ -4,7 +4,6 @@ import { useState, useEffect, type FC } from "react";
 import EstimateQuantities from "./EstimateQuantities";
 import EstimateScopeField from "./EstimateScopeField";
 import Button from "../../../components/Button/Button";
-import EstimateProjectPicker from "./EstimateProjectPicker";
 import TextField from "../../../components/TextField/TextField";
 import EstimateDraftNavigation from "./EstimateDraftNavigation";
 import InlineError from "../../../components/InlineError/InlineError";
@@ -17,22 +16,35 @@ import type { IEngineeringEstimate } from "../../../interfaces/engineering-estim
 import { emptyEstimateDraft, validEstimateDraft } from "../../../utilities/estimate-draft.utility";
 
 interface IEstimateCreateFormProps {
+  projectId: string;
   onCancel: () => void;
-  canLinkProject: boolean;
+  onDirtyChange?: (dirty: boolean) => void;
   onCreated: (estimate: IEngineeringEstimate) => void;
 }
 const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
-  canLinkProject,
+  projectId,
   onCancel,
   onCreated,
+  onDirtyChange,
 }) => {
   const styles = usePageStyles();
-  const [draft, setDraft] = useState(emptyEstimateDraft);
+  const [draft, setDraft] = useState(() => ({ ...emptyEstimateDraft(), projectId }));
   const [confirmCancel, setConfirmCancel] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
   const create = useCreateEstimate();
   const busy = create.isPending;
-  const dirty = Boolean(draft.name || draft.projectId || draft.areas.length);
+  const dirty = Boolean(draft.name || draft.areas.length);
   const valid = Boolean(draft.name.trim()) && validEstimateDraft(draft.areas);
+  const pending = dirty && !create.isSuccess && !discarding;
+  useEffect(() => {
+    onDirtyChange?.(pending);
+  }, [pending, onDirtyChange]);
+  useEffect(() => () => onDirtyChange?.(false), [onDirtyChange]);
+  useEffect(() => {
+    if (discarding) {
+      onCancel();
+    }
+  }, [discarding, onCancel]);
   useEffect(() => {
     if (create.isSuccess) {
       onCreated(create.data);
@@ -78,13 +90,6 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
           maxLength={ESTIMATE_NAME_MAX_LENGTH}
           onChange={name => setDraft({ ...draft, name })}
         />
-        {canLinkProject && (
-          <EstimateProjectPicker
-            disabled={busy}
-            value={draft.projectId}
-            onChange={projectId => setDraft({ ...draft, projectId })}
-          />
-        )}
         <EstimateScopeField
           busy={busy}
           value={draft.scope}
@@ -100,7 +105,7 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
         <Box role="alert">
           <Box component="p">לצאת ללא שמירת כתב הכמויות?</Box>
           <Button text="המשך עריכה" onClick={() => setConfirmCancel(false)} />
-          <Button onClick={onCancel} text="יציאה ללא שמירה" />
+          <Button text="יציאה ללא שמירה" onClick={() => setDiscarding(true)} />
         </Box>
       )}
       <EstimateQuantities
@@ -109,7 +114,7 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
         estimate={draft}
         onChange={areas => setDraft({ ...draft, areas })}
       />
-      <EstimateDraftNavigation pending={dirty && !create.isSuccess} />
+      <EstimateDraftNavigation pending={pending} />
     </Box>
   );
 };
