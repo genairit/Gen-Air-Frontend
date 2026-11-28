@@ -33,7 +33,8 @@ const EstimateCreateForm: FC<IEstimateCreateFormProps> = ({
   const [discarding, setDiscarding] = useState(false);
   const create = useCreateEstimate();
   const busy = create.isPending;
-  const dirty = Boolean(draft.name || draft.areas.length);
+  const scopeChanged = draft.scope !== emptyEstimateDraft().scope;
+  const dirty = Boolean(draft.name || draft.areas.length || scopeChanged);
   const valid = Boolean(draft.name.trim()) && validEstimateDraft(draft.areas);
   const pending = dirty && !create.isSuccess && !discarding;
   useEffect(() => {

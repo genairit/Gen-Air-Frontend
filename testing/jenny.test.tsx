@@ -70,6 +70,7 @@ import type { IEngineeringEstimate } from "../src/interfaces/engineering-estimat
 import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../src/constants/layout.constant";
 import { validateEstimatePlanSelection } from "../src/utilities/engineering-estimate.utility";
 import EstimateCreateForm from "../src/pages/engineering-estimates/components/EstimateCreateForm";
+import EstimateScopeField from "../src/pages/engineering-estimates/components/EstimateScopeField";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
 import { createMemoryRouter, RouterProvider, useSearchParams, useNavigate } from "react-router-dom";
 import EstimateCatalogueLine from "../src/pages/engineering-estimates/components/EstimateCatalogueLine";
@@ -1377,11 +1378,8 @@ test("discarding a dirty project estimate clears the guard before returning to i
   const renderer = view.renderer;
   assert.ok(renderer);
   try {
-    const name = renderer.root
-      .findAllByType(TextField)
-      .find(field => field.props.title === "שם כתב הכמויות");
-    assert.ok(name);
-    await act(async () => name.props.onChange("טיוטה לביטול"));
+    const scope = renderer.root.findByType(EstimateScopeField);
+    await act(async () => scope.props.onChange("hvac_ventilation"));
     const cancel = findButton(renderer, "ביטול");
     assert.ok(cancel);
     await act(async () => cancel.props.onClick());
