@@ -19,6 +19,7 @@ export const EMPLOYEE_FILTERS: IEmployeeFilter[] = [
 ];
 
 export const EMPLOYEE_PAGE_SIZE = 5;
+export const MAX_VISIBLE_ROLE_CHIPS = 2;
 
 export const EMPLOYEES_COPY = {
   ADD_TITLE: "הוספת עובד",
@@ -43,8 +44,7 @@ export const EMPLOYEES_COPY = {
   NAME_HINT: "שם פרטי ושם משפחה",
   SEARCH_PLACEHOLDER: "חיפוש עובד לפי שם, מייל, טלפון או תפקיד...",
   EDIT: "עריכת עובד",
-  EDIT_ROLES_TITLE: "עריכת תפקידים והרשאות",
-  SAVE_ROLE_CHANGES: "שמירת שינויים",
+  SAVE_CHANGES: "שמירת שינויים",
   CANCEL: "ביטול",
   DELETE: "מחיקת עובד",
   NEXT_PAGE: "העמוד הבא",

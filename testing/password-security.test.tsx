@@ -19,9 +19,9 @@ import PasswordCard from "../src/pages/settings/components/PasswordCard";
 import { act, create, type ReactTestInstance } from "react-test-renderer";
 import { canSubmitEmployeeForm } from "../src/utilities/employee.utility";
 import { QueryClientProvider, notifyManager } from "@tanstack/react-query";
+import EmployeePopup from "../src/pages/employees/components/EmployeePopup";
 import { API_ERROR_CODES, HTTP_STATUS } from "../src/constants/api.constant";
 import { SESSION_USER_QUERY_KEY } from "../src/constants/permission.constant";
-import AddEmployeePopup from "../src/pages/employees/components/AddEmployeePopup";
 import { EMPLOYEES_COPY, EMPTY_EMPLOYEE_FORM } from "../src/constants/employee.constant";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -76,7 +76,7 @@ test("employee creation requires an entered password and matching confirmation",
 
   const renderer = await renderComponent(
     <QueryClientProvider client={queryClient}>
-      <AddEmployeePopup onClose={() => {}} />
+      <EmployeePopup employee={null} onClose={() => {}} />
     </QueryClientProvider>,
   );
   try {

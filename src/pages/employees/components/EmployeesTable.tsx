@@ -13,13 +13,12 @@ import {
 
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
+import EmployeePopup from "./EmployeePopup";
 import { usePageStyles } from "../../page.style";
 import Tabs from "../../../components/Tabs/Tabs";
-import AddEmployeePopup from "./AddEmployeePopup";
 import Button from "../../../components/Button/Button";
 import { useEmployeeStyles } from "./EmployeesTable.style";
 import { ICON_NAMES } from "../../../constants/icon.constant";
-import EditEmployeeRolesPopup from "./EditEmployeeRolesPopup";
 import TextField from "../../../components/TextField/TextField";
 import DataTable from "../../../components/DataTable/DataTable";
 import Pagination from "../../../components/Pagination/Pagination";
@@ -46,11 +45,11 @@ interface IEmployeesTableProps {
 const EmployeesTable: FC<IEmployeesTableProps> = ({ canCreate, canDeleteUsers, canEditRoles }) => {
   const styles = usePageStyles();
   const employeeStyles = useEmployeeStyles();
-  const [isCreating, setIsCreating] = useState(false);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filterId, setFilterId] = useState<string>(ALL_EMPLOYEES_FILTER_ID);
-  const [editingEmployee, setEditingEmployee] = useState<IEmployee | null>(null);
+  const [editor, setEditor] = useState<{ employee: IEmployee | null } | null>(null);
+  const canOpenEditor = editor?.employee ? canEditRoles : canCreate;
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
 
   const activeFilter =
@@ -78,7 +77,7 @@ const EmployeesTable: FC<IEmployeesTableProps> = ({ canCreate, canDeleteUsers, c
   const columns = createEmployeeColumns({
     canDelete: canDeleteUsers,
     canEdit: canEditRoles,
-    onEdit: setEditingEmployee,
+    onEdit: employee => setEditor({ employee }),
     onDelete: employee => removeMutation.mutate(employee.id),
   });
 
@@ -130,7 +129,7 @@ const EmployeesTable: FC<IEmployeesTableProps> = ({ canCreate, canDeleteUsers, c
                 <Button
                   icon={ICON_NAMES.ADD}
                   text={EMPLOYEES_COPY.ADD_TITLE}
-                  onClick={() => setIsCreating(true)}
+                  onClick={() => setEditor({ employee: null })}
                 />
               )}
             </Box>
@@ -148,13 +147,8 @@ const EmployeesTable: FC<IEmployeesTableProps> = ({ canCreate, canDeleteUsers, c
           </Box>
         }
       />
-      {canCreate && isCreating && <AddEmployeePopup onClose={() => setIsCreating(false)} />}
-      {editingEmployee && (
-        <EditEmployeeRolesPopup
-          key={editingEmployee.id}
-          employee={editingEmployee}
-          onClose={() => setEditingEmployee(null)}
-        />
+      {editor && canOpenEditor && (
+        <EmployeePopup employee={editor.employee} onClose={() => setEditor(null)} />
       )}
     </>
   );

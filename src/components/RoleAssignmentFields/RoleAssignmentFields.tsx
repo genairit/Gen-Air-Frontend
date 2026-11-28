@@ -8,8 +8,9 @@ import { useId, type FC } from "react";
 import FieldLabel from "../FieldLabel/FieldLabel";
 import InlineError from "../InlineError/InlineError";
 import { useStyles } from "./RoleAssignmentFields.style";
-import { Box, Autocomplete, TextField } from "@mui/material";
-import { EMPLOYEES_COPY } from "../../constants/employee.constant";
+import { Box, Chip, Autocomplete, TextField } from "@mui/material";
+import { getAssignableRoles } from "../../utilities/user-role.utility";
+import { EMPLOYEES_COPY, MAX_VISIBLE_ROLE_CHIPS } from "../../constants/employee.constant";
 
 interface IRoleAssignmentFieldsProps {
   assignedRoles: UserRoleType[];
@@ -23,7 +24,7 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
   const styles = useStyles();
   const inputId = useId();
   const errorId = useId();
-  const selectableRoles = assignedRoles.filter(role => ASSIGNABLE_USER_ROLE_VALUES.includes(role));
+  const selectableRoles = getAssignableRoles(assignedRoles);
   const hasNoRoles = selectableRoles.length === 0;
 
   return (
@@ -39,7 +40,6 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
         openOnFocus
         id={inputId}
         size="small"
-        limitTags={2}
         openText="פתיחה"
         closeText="סגירה"
         clearText="ניקוי"
@@ -65,6 +65,25 @@ const RoleAssignmentFields: FC<IRoleAssignmentFieldsProps> = ({
             }}
           />
         )}
+        renderValue={(roles, getItemProps, { expanded }) => {
+          const visibleRoles = expanded ? roles : roles.slice(0, MAX_VISIBLE_ROLE_CHIPS);
+          const remaining = roles.length - visibleRoles.length;
+          return (
+            <>
+              {visibleRoles.map((role, index) => {
+                const { key, ...chipProps } = getItemProps({ index });
+                return (
+                  <Chip key={key} size="small" label={USER_ROLE_LABELS[role]} {...chipProps} />
+                );
+              })}
+              {remaining > 0 && (
+                <Box component="bdi" dir="ltr">
+                  +{remaining}
+                </Box>
+              )}
+            </>
+          );
+        }}
       />
       {hasNoRoles && (
         <Box id={errorId}>

@@ -29,11 +29,11 @@ import { APARTMENT_TEAM_COPY } from "../src/constants/apartment.constant";
 import { switchActiveRoleAction } from "../src/actions/role-switch.action";
 import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
 import { toEmployee, toPerson } from "../src/utilities/mappers/user.mapper";
+import EmployeePopup from "../src/pages/employees/components/EmployeePopup";
 import { SESSION_USER_QUERY_KEY } from "../src/constants/permission.constant";
 import { verifySessionUserAction } from "../src/actions/session-refresh.action";
 import { EMPLOYEES_COPY, EMPLOYEE_FILTERS } from "../src/constants/employee.constant";
 import { QueryClient, QueryClientProvider, notifyManager } from "@tanstack/react-query";
-import EditEmployeeRolesPopup from "../src/pages/employees/components/EditEmployeeRolesPopup";
 import RoleAssignmentFields from "../src/components/RoleAssignmentFields/RoleAssignmentFields";
 import ApartmentEngineerPicker from "../src/pages/apartment/components/ApartmentEngineerPicker";
 
@@ -334,7 +334,7 @@ for (const failure of [
     };
     const renderer = await renderComponent(
       <QueryClientProvider client={queryClient}>
-        <EditEmployeeRolesPopup
+        <EmployeePopup
           employee={toEmployee(user)}
           onClose={() => {
             state.closed += 1;
@@ -344,10 +344,15 @@ for (const failure of [
     );
 
     try {
+      await act(async () =>
+        renderer.root
+          .findByType(RoleAssignmentFields)
+          .props.onAssignedRolesChange([USER_ROLES.ENGINEER]),
+      );
       const getSaveButton = (): ReactTestInstance | null =>
         renderer.root
           .findAllByType(Button)
-          .find(button => button.props.text === EMPLOYEES_COPY.SAVE_ROLE_CHANGES) ?? null;
+          .find(button => button.props.text === EMPLOYEES_COPY.SAVE_CHANGES) ?? null;
       const button = getSaveButton();
       assert.ok(button);
       const pending: { action: Promise<void> | null } = { action: null };
@@ -395,7 +400,7 @@ test("successful role save closes only after the awaited server mutation", async
   };
   const renderer = await renderComponent(
     <QueryClientProvider client={queryClient}>
-      <EditEmployeeRolesPopup
+      <EmployeePopup
         employee={toEmployee(user)}
         onClose={() => {
           state.closed += 1;
@@ -405,15 +410,20 @@ test("successful role save closes only after the awaited server mutation", async
   );
 
   try {
+    await act(async () =>
+      renderer.root
+        .findByType(RoleAssignmentFields)
+        .props.onAssignedRolesChange([USER_ROLES.ENGINEER]),
+    );
     const button = renderer.root
       .findAllByType(Button)
-      .find(button => button.props.text === EMPLOYEES_COPY.SAVE_ROLE_CHANGES);
+      .find(button => button.props.text === EMPLOYEES_COPY.SAVE_CHANGES);
     assert.ok(button);
     const pending: { action: Promise<void> | null } = { action: null };
     await act(async () => {
       pending.action = button.props.onClick();
     });
-    assert.deepEqual(calls, [[user.id, { assignedRoles: user.assignedRoles }]]);
+    assert.deepEqual(calls, [[user.id, { assignedRoles: [USER_ROLES.ENGINEER] }]]);
     assert.equal(state.closed, 0);
     await act(async () => {
       response.resolve(user);
@@ -478,13 +488,13 @@ test("an authorization change while a popup action is pending prevents its succe
   const renderer = await renderComponent(
     <GenericPopup
       open
-      title={EMPLOYEES_COPY.EDIT_ROLES_TITLE}
+      title={EMPLOYEES_COPY.EDIT}
       onClose={() => {
         state.closed += 1;
       }}
       buttons={{
         primary: {
-          text: EMPLOYEES_COPY.SAVE_ROLE_CHANGES,
+          text: EMPLOYEES_COPY.SAVE_CHANGES,
           onClick: () => response.promise,
         },
       }}
@@ -494,7 +504,7 @@ test("an authorization change while a popup action is pending prevents its succe
   try {
     const button = renderer.root
       .findAllByType(Button)
-      .find(button => button.props.text === EMPLOYEES_COPY.SAVE_ROLE_CHANGES);
+      .find(button => button.props.text === EMPLOYEES_COPY.SAVE_CHANGES);
     assert.ok(button);
     const pending: { action: Promise<void> | null } = { action: null };
     await act(async () => {
