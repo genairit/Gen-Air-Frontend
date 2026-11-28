@@ -23,8 +23,10 @@ import { ESTIMATE_ENDPOINT } from "../constants/engineering-estimate.constant";
 const detail = (id: string): string => `${ESTIMATE_ENDPOINT}/${encodeURIComponent(id)}`;
 
 export const engineeringEstimateService = {
-  list: async (batchCursor: string | null): Promise<IEstimatePage> => {
-    const response = await httpClient.get<unknown>(ESTIMATE_ENDPOINT, { params: { batchCursor } });
+  list: async (projectId: string, batchCursor: string | null): Promise<IEstimatePage> => {
+    const response = await httpClient.get<unknown>(ESTIMATE_ENDPOINT, {
+      params: { projectId, batchCursor },
+    });
     return ensureResponse(ESTIMATE_ENDPOINT, response.data, isEstimatePage);
   },
   get: async (id: string): Promise<IEngineeringEstimate> => {

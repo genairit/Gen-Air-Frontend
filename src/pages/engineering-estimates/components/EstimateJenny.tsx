@@ -18,11 +18,12 @@ import type { IEngineeringEstimate } from "../../../interfaces/engineering-estim
 
 interface IEstimateJennyProps {
   canBrowse: boolean;
+  projectId: string | null;
   estimate: IEngineeringEstimate | null;
   onCreated: (estimate: IEngineeringEstimate) => void;
 }
 
-const EstimateJenny: FC<IEstimateJennyProps> = ({ estimate, canBrowse, onCreated }) => {
+const EstimateJenny: FC<IEstimateJennyProps> = ({ estimate, projectId, canBrowse, onCreated }) => {
   const styles = usePageStyles();
   const threadStyles = useThreadStyles();
   const [name, setName] = useState("");
@@ -32,12 +33,12 @@ const EstimateJenny: FC<IEstimateJennyProps> = ({ estimate, canBrowse, onCreated
   const trimmedName = name.trim();
   const disabled = create.isPending || trimmedName.length === 0;
   const start = (): void => {
-    if (disabled) {
+    if (disabled || !projectId) {
       return;
     }
 
     create.mutate(
-      { name: trimmedName },
+      { name: trimmedName, projectId },
       {
         onSuccess: (created): void => {
           setName("");

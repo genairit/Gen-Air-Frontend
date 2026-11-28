@@ -8,6 +8,7 @@ import ProjectPageHeader from "./ProjectPageHeader";
 import ProjectIntakeCard from "./ProjectIntakeCard";
 import ProjectTimelineCard from "./ProjectTimelineCard";
 import ProjectCustomerCard from "./ProjectCustomerCard";
+import ProjectEstimatesPanel from "./ProjectEstimatesPanel";
 import ProjectQuotationsCard from "./ProjectQuotationsCard";
 import { useSessionUser } from "../../../store/session.store";
 import BuildingInheritedCard from "./building/BuildingInheritedCard";
@@ -32,6 +33,7 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
   const sessionUser = useSessionUser();
   const fieldSet = project.projectType?.detailFieldSet ?? null;
   const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
+  const canReadEstimates = hasPermission(sessionUser, PERMISSIONS.ENGINEERING_ESTIMATES_READ);
   const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canReadQuotations = building && hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
@@ -65,6 +67,14 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
           {
             ...PROJECT_TABS.quotations,
             content: <ProjectQuotationsCard projectId={project.id} />,
+          },
+        ]
+      : []),
+    ...(canReadEstimates
+      ? [
+          {
+            ...PROJECT_TABS.estimates,
+            content: <ProjectEstimatesPanel projectId={project.id} />,
           },
         ]
       : []),
