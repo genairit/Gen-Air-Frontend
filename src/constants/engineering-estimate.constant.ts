@@ -1,6 +1,7 @@
 export const ESTIMATE_ENDPOINT = "/engineering-estimates";
 export const ESTIMATE_QUERY_KEY = "engineering-estimates";
 export const ESTIMATE_PARAM = "estimate";
+export const ESTIMATE_CREATE_PROJECT_PARAM = "createForProject";
 
 export const ESTIMATE_SCOPE_LABELS = {
   hvac: "מיזוג בלבד",
