@@ -1,135 +1,146 @@
-import {
-  isValidEstimateQuantity,
-  validEstimateMeasurements,
-  initialEstimateMeasurements,
-} from "../../../utilities/engineering-estimate.utility";
-
 import { Box } from "@mui/material";
-import { useState, type FC } from "react";
-import { usePageStyles } from "../../page.style";
+import { useId, useState, type FC } from "react";
+import styles from "../estimate-document.module.css";
 import Button from "../../../components/Button/Button";
 import TextField from "../../../components/TextField/TextField";
-import { useEstimateStyles } from "../engineering-estimates.style";
 import EstimateMeasurementFields from "./EstimateMeasurementFields";
 import InlineError from "../../../components/InlineError/InlineError";
 import { useDebouncedValue } from "../../../hooks/debounced-value.hook";
 import { SEARCH_DEBOUNCE_MS } from "../../../constants/search.constant";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { validEstimateLine } from "../../../utilities/estimate-draft.utility";
 import { useQuotationCatalogueQuery } from "../../../hooks/queries/quotation.query";
-import { CommandIdentityManager } from "../../../managers/command-identity.manager";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import type { IEstimateInputLine } from "../../../interfaces/engineering-estimate.interface";
+import { initialEstimateMeasurements } from "../../../utilities/engineering-estimate.utility";
 
 interface IEstimateCatalogueLineProps {
   busy: boolean;
-  itemLabel?: string;
-  initial?: IEstimateInputLine;
-  onSave: (line: IEstimateInputLine) => void;
+  itemLabel: string;
+  onRemove: () => void;
+  line: IEstimateInputLine;
+  onChange: (line: IEstimateInputLine) => void;
 }
-
 const EstimateCatalogueLine: FC<IEstimateCatalogueLineProps> = ({
   busy,
-  initial,
+  line,
   itemLabel,
-  onSave,
+  onChange,
+  onRemove,
 }) => {
-  const styles = usePageStyles();
-  const estimateStyles = useEstimateStyles();
-  const [selected, setSelected] = useState(
-    initial
-      ? { value: initial.catalogueItemId, label: itemLabel ?? initial.catalogueItemId }
-      : null,
-  );
+  const optionsId = useId();
+  const [expanded, setExpanded] = useState(false);
   const [search, setSearch] = useState("");
-  const [quantity, setQuantity] = useState(initial?.quantity ?? "1");
-  const [source, setSource] = useState(initial?.source ?? "");
-  const [useRules, setUseRules] = useState(Boolean(initial?.measurements));
-  const [measurements, setMeasurements] = useState(
-    (): ReturnType<typeof initialEstimateMeasurements> =>
-      initial?.measurements ?? initialEstimateMeasurements(),
-  );
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const debounced = useDebouncedValue(search.trim(), SEARCH_DEBOUNCE_MS);
   const catalogue = useQuotationCatalogueQuery({ search: debounced }, debounced.length > 0);
   const items =
     catalogue.data?.map(item => ({ value: item.id, label: `${item.sku} · ${item.description}` })) ??
     [];
-  const sku = selected?.value ?? null;
-  const chooseItem = (catalogueItemId: string | null): void => {
-    if (catalogueItemId === sku) {
-      return;
-    }
-
-    setSelected(items.find(item => item.value === catalogueItemId) ?? null);
+  const selected = line.catalogueItemId
+    ? { value: line.catalogueItemId, label: selectedLabel ?? itemLabel }
+    : null;
+  const measurements = line.measurements ?? initialEstimateMeasurements();
+  const measurementsLabel = line.measurements
+    ? "ללא חישוב לפי כללים"
+    : "הוספת מדידות לחישוב לפי כללים";
+  const valid = validEstimateLine(line);
+  const removeRules = (): void => {
+    const { measurements: removed, ...remaining } = line;
+    void removed;
+    onChange(remaining);
   };
-  const saveLabel = initial ? "שמירת פריט" : "הוספת פריט";
-  const validQuantity = isValidEstimateQuantity(quantity);
-  const validRules = !useRules || validEstimateMeasurements(measurements);
-  const disabled = busy || sku === null || !validQuantity || !validRules;
-  const add = (): void => {
-    if (!sku || disabled) {
-      return;
-    }
-
-    const line = {
-      id: initial?.id ?? CommandIdentityManager.create(),
-      ...(source.trim() ? { source: source.trim() } : {}),
-      catalogueItemId: sku,
-      quantity,
-      ...(useRules ? { measurements } : {}),
-    };
-    onSave(line);
+  const choose = (id: string | null): void => {
+    const item = items.find(option => option.value === id);
+    setSelectedLabel(item?.label ?? "");
+    onChange({ ...line, catalogueItemId: id ?? "" });
   };
-
   return (
-    <Box sx={styles.stack({ gap: "12px" })}>
-      <Box sx={estimateStyles.primaryEditor}>
-        <Autocomplete
-          isClearable
-          value={sku}
-          items={items}
-          disabled={busy}
-          onSearch={setSearch}
-          onChange={chooseItem}
-          selectedItem={selected}
-          isClientFiltered={false}
-          title="בחירת פריט מהקטלוג"
-          isLoading={catalogue.isFetching}
-          placeholder="חיפוש לפי מק״ט או תיאור"
-        />
-        <TextField
-          disabled={busy}
-          value={quantity}
-          onChange={setQuantity}
-          title="כמות לאזור אחד"
-          type={FIELD_TYPES.NUMBER}
-        />
+    <>
+      <Box component="tr">
+        <Box component="td">
+          <Autocomplete
+            isClearable
+            items={items}
+            disabled={busy}
+            onChange={choose}
+            onSearch={setSearch}
+            selectedItem={selected}
+            isClientFiltered={false}
+            title="בחירת פריט מהקטלוג"
+            isLoading={catalogue.isFetching}
+            value={line.catalogueItemId || null}
+            placeholder="חיפוש לפי מק״ט או תיאור"
+          />
+        </Box>
+        <Box component="td">
+          <TextField
+            compact
+            disabled={busy}
+            value={line.quantity}
+            title="כמות לאזור אחד"
+            type={FIELD_TYPES.NUMBER}
+            onChange={quantity => onChange({ ...line, quantity })}
+          />
+        </Box>
+        <Box component="td">
+          {catalogue.isError && <InlineError message={getApiErrorMessage(catalogue.error)} />}
+          <Box component="div" className={styles.actions}>
+            <Button
+              disabled={busy}
+              text="מדידות וכללים"
+              ariaExpanded={expanded}
+              ariaControls={optionsId}
+              variant={BUTTON_VARIANTS.SECONDARY}
+              onClick={() => setExpanded(!expanded)}
+            />
+            <Button
+              disabled={busy}
+              text="הסרת פריט"
+              onClick={onRemove}
+              variant={BUTTON_VARIANTS.SECONDARY}
+            />
+          </Box>
+          {!valid && (
+            <Box component="p" role="status">
+              בחרו פריט והשלימו כמות ומדידות תקינות לחישוב.
+            </Box>
+          )}
+        </Box>
       </Box>
-      {catalogue.isError && <InlineError message={getApiErrorMessage(catalogue.error)} />}
-      <TextField
-        value={source}
-        disabled={busy}
-        maxLength={500}
-        onChange={setSource}
-        type={FIELD_TYPES.TEXT}
-        title="מקור המדידה (אופציונלי)"
-        placeholder="מספר תוכנית, קומה או הפניה"
-      />
-      <Button
-        disabled={busy}
-        variant={BUTTON_VARIANTS.SECONDARY}
-        onClick={(): void => setUseRules(!useRules)}
-        text={useRules ? "ללא חישוב לפי כללים" : "הוספת מדידות לחישוב לפי כללים"}
-      />
-      {useRules && (
-        <EstimateMeasurementFields busy={busy} value={measurements} onChange={setMeasurements} />
-      )}
-      <Box sx={styles.row({})}>
-        <Button onClick={add} text={saveLabel} disabled={disabled} />
+      <Box id={optionsId} component="tr" hidden={!expanded}>
+        <Box colSpan={3} component="td">
+          <Box component="div" className={styles.options}>
+            <TextField
+              compact
+              maxLength={500}
+              disabled={busy}
+              type={FIELD_TYPES.TEXT}
+              value={line.source ?? ""}
+              title="מקור המדידה (אופציונלי)"
+              onChange={source => onChange({ ...line, source })}
+            />
+            <Button
+              disabled={busy}
+              text={measurementsLabel}
+              variant={BUTTON_VARIANTS.SECONDARY}
+              onClick={() =>
+                line.measurements ? removeRules() : onChange({ ...line, measurements })
+              }
+            />
+            {line.measurements && (
+              <EstimateMeasurementFields
+                busy={busy}
+                value={measurements}
+                onChange={next => onChange({ ...line, measurements: next })}
+              />
+            )}
+          </Box>
+        </Box>
       </Box>
-    </Box>
+    </>
   );
 };
-
 export default EstimateCatalogueLine;

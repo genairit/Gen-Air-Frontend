@@ -8,7 +8,7 @@ import {
   ESTIMATE_CREATE_PROJECT_PARAM,
 } from "../../constants/engineering-estimate.constant";
 
-import type { FC } from "react";
+import { useState, type FC } from "react";
 import { usePageStyles } from "../page.style";
 import { Box, Typography } from "@mui/material";
 import Button from "../../components/Button/Button";
@@ -33,6 +33,8 @@ const EngineeringEstimatesPage: FC = () => {
   const estimateStyles = useEstimateStyles();
   const user = useSessionUser();
   const navigate = useNavigate();
+  const [editing, setEditing] = useState(false);
+  const [creatingDirty, setCreatingDirty] = useState(false);
   const [params] = useSearchParams();
   const estimateId = params.get(ESTIMATE_PARAM);
   const createProjectId = estimateId ? null : params.get(ESTIMATE_CREATE_PROJECT_PARAM);
@@ -80,6 +82,7 @@ const EngineeringEstimatesPage: FC = () => {
           onCreated={openCreated}
           onCancel={cancelCreate}
           projectId={createProjectId}
+          onDirtyChange={setCreatingDirty}
         />
       )}
       {showLoading && <LoadingState />}
@@ -95,6 +98,7 @@ const EngineeringEstimatesPage: FC = () => {
           canEdit={canEdit}
           estimate={estimate}
           canBrowse={canBrowse}
+          onEditingChange={setEditing}
           canReadQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_READ)}
           canCreateQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE)}
           canExportQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_EXPORT)}
@@ -107,6 +111,7 @@ const EngineeringEstimatesPage: FC = () => {
           canBrowse={canBrowse}
           onCreated={openCreated}
           estimate={estimate ?? null}
+          suspended={creatingDirty || editing}
         />
       )}
     </Box>

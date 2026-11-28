@@ -21,6 +21,7 @@ import type {
   IEstimateArea,
   IEstimatePage,
   IEstimatePlan,
+  IEstimatePreview,
   IEstimateListItem,
   IEstimateQuestion,
   IEstimateInputLine,
@@ -114,3 +115,8 @@ export const isEstimatePage = (value: unknown): value is IEstimatePage =>
 
 export const isEstimateQuotation = (value: unknown): value is { quotationId: string } =>
   isRecord(value) && typeof value.quotationId === "string";
+
+export const isEstimatePreview = (value: unknown): value is IEstimatePreview =>
+  isRecord(value) &&
+  typeof value.subtotal === "string" &&
+  isArrayOf(isEstimatePricedLine)(value.lines);
