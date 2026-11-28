@@ -125,10 +125,14 @@ export const useAutocompleteSearch = ({
     onSearch?.(event.target.value);
   };
 
-  const selectOption = (option: IAutocompleteOption): void => {
+  const commitOption = (option: IAutocompleteOption): void => {
     onChange(option.value);
     onSearch?.("");
     closeSearch();
+  };
+
+  const selectOption = (option: IAutocompleteOption): void => {
+    commitOption(option);
     inputRef.current?.blur();
   };
 
@@ -207,10 +211,18 @@ export const useAutocompleteSearch = ({
     }
 
     event.preventDefault();
-    selectOption(activeOption);
+    commitOption(activeOption);
+    if (!autoFocusSearch) {
+      inputRef.current?.focus();
+    }
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLElement>): void => {
+    if (event.key === KEY_TYPES.TAB && !autoFocusSearch) {
+      closeSearch();
+      return;
+    }
+
     const handlers = new Map<string, (event: KeyboardEvent<HTMLElement>) => void>([
       [KEY_TYPES.ENTER, handleEnter],
       [KEY_TYPES.ESCAPE, handleEscape],

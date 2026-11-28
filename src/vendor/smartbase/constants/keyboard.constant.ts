@@ -1,4 +1,5 @@
 export const KEY_TYPES = {
+  TAB: "Tab",
   ENTER: "Enter",
   ESCAPE: "Escape",
   ARROW_UP: "ArrowUp",

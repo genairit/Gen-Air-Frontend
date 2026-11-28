@@ -27,6 +27,7 @@ import { type IAutocompleteProps } from "../../interfaces/autocomplete.interface
 const Autocomplete: FC<IAutocompleteProps> = ({
   hint,
   label,
+  ariaLabel,
   value,
   colors,
   options,
@@ -173,7 +174,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
         placeholder={searchPlaceholder}
         onKeyDown={search.handleKeyDown}
         inputRef={search.searchInputRef}
-        inputProps={{ ...comboboxAriaProps, "aria-label": label ?? placeholder }}
+        inputProps={{ ...comboboxAriaProps, "aria-label": ariaLabel ?? label ?? placeholder }}
       />
     </SearchField>
   );
@@ -209,9 +210,9 @@ const Autocomplete: FC<IAutocompleteProps> = ({
             inputRef={search.inputRef}
             onChange={search.typeQuery}
             placeholder={fieldPlaceholder}
-            inputProps={comboboxAriaProps}
             onKeyDown={search.handleKeyDown}
             readOnly={isSearchMode || isInputReadOnly}
+            inputProps={{ ...comboboxAriaProps, "aria-label": ariaLabel }}
             sx={[styles.input(fieldCursor), hasValue && styles.selectedInput]}
           />
         </SearchField>
