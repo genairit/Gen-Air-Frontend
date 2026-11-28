@@ -13,6 +13,7 @@ import { PAGINATION, type PaginationItemType } from "../../constants/pagination.
 
 interface IPaginationProps {
   page: number;
+  compact?: boolean;
   pageCount: number;
   nextLabel: string;
   previousLabel: string;
@@ -25,11 +26,13 @@ const getPageVariant = (isActive: boolean): ButtonVariantType =>
 const Pagination: FC<IPaginationProps> = ({
   page,
   pageCount,
+  compact = false,
   onChange,
   nextLabel,
   previousLabel,
 }) => {
   const styles = useStyles();
+  const buttonSize = compact ? { size: "compact" as const } : {};
   const isFirstPage = page <= 1;
   const isLastPage = page >= pageCount;
   const visibleItems = getVisiblePaginationItems({ page, pageCount });
@@ -53,6 +56,7 @@ const Pagination: FC<IPaginationProps> = ({
         onClick={() => onChange(item)}
         sx={styles.page({ isActive })}
         variant={getPageVariant(isActive)}
+        {...buttonSize}
       />
     );
   };
@@ -66,6 +70,7 @@ const Pagination: FC<IPaginationProps> = ({
         shape={BUTTON_SHAPES.CIRCLE}
         variant={BUTTON_VARIANTS.NEUTRAL}
         onClick={() => onChange(page - 1)}
+        {...buttonSize}
       />
       {visibleItems.map(renderItem)}
       <Button
@@ -75,6 +80,7 @@ const Pagination: FC<IPaginationProps> = ({
         shape={BUTTON_SHAPES.CIRCLE}
         variant={BUTTON_VARIANTS.NEUTRAL}
         onClick={() => onChange(page + 1)}
+        {...buttonSize}
       />
     </Box>
   );
