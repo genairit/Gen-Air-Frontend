@@ -32,9 +32,9 @@ import { TAB_MODES } from "../../../constants/tabs.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
 import EstimateDraftNavigation from "./EstimateDraftNavigation";
 import TextField from "../../../components/TextField/TextField";
+import { useState, useEffect, useContext, type FC } from "react";
 import { useEstimateStyles } from "../engineering-estimates.style";
 import InlineError from "../../../components/InlineError/InlineError";
-import { useId, useState, useEffect, useContext, type FC } from "react";
 import { validEstimateDraft } from "../../../utilities/estimate-draft.utility";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
@@ -59,8 +59,6 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
   const styles = usePageStyles();
   const estimateStyles = useEstimateStyles();
   const toolbar = useContext(WorkspaceToolbarContext);
-  const detailsId = useId();
-  const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>(ESTIMATE_WORKSPACE_TAB.QUANTITIES);
   const [draft, setDraft] = useState(estimate);
   const [editing, setEditing] = useState(false);
@@ -147,19 +145,10 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
               {ESTIMATE_SCOPE_LABELS[estimate.scope]}
             </Typography>
           </Box>
-          {canEdit && editing && (
-            <Button
-              ariaExpanded={detailsOpen}
-              variant={BUTTON_VARIANTS.SECONDARY}
-              ariaControls={detailsOpen ? detailsId : null}
-              onClick={(): void => setDetailsOpen(!detailsOpen)}
-              text={detailsOpen ? "סגירת פרטי טיוטה" : "עריכת פרטי טיוטה"}
-            />
-          )}
         </Box>
       )}
-      {canEdit && editing && detailsOpen && (
-        <Box id={detailsId}>
+      {canEdit && editing && (
+        <Box>
           <Card gap="18px" padding="24px">
             <Typography component="h2" sx={ESTIMATE_TYPOGRAPHY.section}>
               פרטי כתב הכמויות
