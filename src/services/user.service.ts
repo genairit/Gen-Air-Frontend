@@ -8,8 +8,8 @@ import {
 import type {
   IUserQuery,
   IUserPayload,
+  TUserUpdatePayload,
   IUpdatePasswordPayload,
-  IUserRoleUpdatePayload,
 } from "../interfaces/api-request.interface";
 
 import type { IApiUser } from "../interfaces/api.interface";
@@ -43,7 +43,7 @@ class UserService {
     return ensureResponse(API_ENDPOINTS.USERS, response.data, isApiUser);
   }
 
-  async update(userId: string, changes: IUserRoleUpdatePayload): Promise<IApiUser> {
+  async update(userId: string, changes: TUserUpdatePayload): Promise<IApiUser> {
     const response = await httpClient.patch<unknown>(API_ENDPOINTS.userById(userId), changes);
 
     return ensureResponse(API_ENDPOINTS.userById(userId), response.data, isApiUser);

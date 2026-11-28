@@ -13,10 +13,12 @@ import {
 
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
+import EmployeePopup from "./EmployeePopup";
 import { usePageStyles } from "../../page.style";
 import Tabs from "../../../components/Tabs/Tabs";
+import Button from "../../../components/Button/Button";
+import { useEmployeeStyles } from "./EmployeesTable.style";
 import { ICON_NAMES } from "../../../constants/icon.constant";
-import EditEmployeeRolesPopup from "./EditEmployeeRolesPopup";
 import TextField from "../../../components/TextField/TextField";
 import DataTable from "../../../components/DataTable/DataTable";
 import Pagination from "../../../components/Pagination/Pagination";
@@ -35,16 +37,19 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 import { createEmployeeColumns, EMPLOYEE_TABLE_MIN_WIDTH } from "../columns/employee-columns";
 
 interface IEmployeesTableProps {
+  canCreate: boolean;
   canEditRoles: boolean;
   canDeleteUsers: boolean;
 }
 
-const EmployeesTable: FC<IEmployeesTableProps> = ({ canDeleteUsers, canEditRoles }) => {
+const EmployeesTable: FC<IEmployeesTableProps> = ({ canCreate, canDeleteUsers, canEditRoles }) => {
   const styles = usePageStyles();
+  const employeeStyles = useEmployeeStyles();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [filterId, setFilterId] = useState<string>(ALL_EMPLOYEES_FILTER_ID);
-  const [editingEmployee, setEditingEmployee] = useState<IEmployee | null>(null);
+  const [editor, setEditor] = useState<{ employee: IEmployee | null } | null>(null);
+  const canOpenEditor = editor?.employee ? canEditRoles : canCreate;
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
 
   const activeFilter =
@@ -72,7 +77,7 @@ const EmployeesTable: FC<IEmployeesTableProps> = ({ canDeleteUsers, canEditRoles
   const columns = createEmployeeColumns({
     canDelete: canDeleteUsers,
     canEdit: canEditRoles,
-    onEdit: setEditingEmployee,
+    onEdit: employee => setEditor({ employee }),
     onDelete: employee => removeMutation.mutate(employee.id),
   });
 
@@ -111,7 +116,6 @@ const EmployeesTable: FC<IEmployeesTableProps> = ({ canDeleteUsers, canEditRoles
         toolbar={
           <Box sx={styles.stack({ gap: "16px" })}>
             <Box sx={styles.spacedRow}>
-              <Tabs items={filterTabs} activeId={filterId} onChange={handleFilterChange} />
               <Box sx={styles.flexItem({ basis: "0 1 360px" })}>
                 <TextField
                   value={search}
@@ -121,18 +125,30 @@ const EmployeesTable: FC<IEmployeesTableProps> = ({ canDeleteUsers, canEditRoles
                   placeholder={EMPLOYEES_COPY.SEARCH_PLACEHOLDER}
                 />
               </Box>
+              {canCreate && (
+                <Button
+                  icon={ICON_NAMES.ADD}
+                  text={EMPLOYEES_COPY.ADD_TITLE}
+                  onClick={() => setEditor({ employee: null })}
+                />
+              )}
+            </Box>
+            <Box sx={employeeStyles.tabScroller}>
+              <Tabs
+                isScrollable
+                items={filterTabs}
+                activeId={filterId}
+                onChange={handleFilterChange}
+                ariaLabel={EMPLOYEES_COPY.FILTER_BY_ROLE}
+              />
             </Box>
             {actionError && <InlineError message={getApiErrorMessage(actionError)} />}
             {usersQuery.isPending && <LoadingState label={EMPLOYEES_COPY.LOADING} />}
           </Box>
         }
       />
-      {editingEmployee && (
-        <EditEmployeeRolesPopup
-          key={editingEmployee.id}
-          employee={editingEmployee}
-          onClose={() => setEditingEmployee(null)}
-        />
+      {editor && canOpenEditor && (
+        <EmployeePopup employee={editor.employee} onClose={() => setEditor(null)} />
       )}
     </>
   );

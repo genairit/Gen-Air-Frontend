@@ -59,9 +59,7 @@ export interface IUserPayload {
   assignedRoles: UserRoleType[];
 }
 
-export interface IUserRoleUpdatePayload {
-  assignedRoles: UserRoleType[];
-}
+export type TUserUpdatePayload = Partial<Omit<IUserPayload, "password">>;
 
 export interface IUpdatePasswordPayload {
   password: string;
