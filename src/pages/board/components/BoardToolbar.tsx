@@ -1,18 +1,17 @@
-import type { FC } from "react";
 import { Box } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import type { FC, ReactNode } from "react";
 import { useStyles } from "./BoardToolbar.style";
-import { usePageStyles } from "../../page.style";
-import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { BOARD_COPY } from "../../../constants/board.constant";
 import TextField from "../../../components/TextField/TextField";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import type { IDropdownOption } from "../../../interfaces/dropdown.interface";
 import { getOptionLabels, findOptionLabelById } from "../../../utilities/option.utility";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
+import type { IAutocompleteOption } from "../../../vendor/smartbase/interfaces/autocomplete.interface";
 
 interface IBoardFilter {
   selectedId: string | null;
@@ -25,6 +24,11 @@ interface IBoardToolbarProps {
   typeFilter: IBoardFilter;
   canCreateProject: boolean;
   onSearchChange: (search: string) => void;
+  statusFilter: {
+    value: string;
+    items: IAutocompleteOption[];
+    onChange: (id: string | null) => void;
+  };
 }
 
 const getSelectedLabel = ({ options, selectedId }: IBoardFilter) =>
@@ -33,17 +37,18 @@ const getSelectedLabel = ({ options, selectedId }: IBoardFilter) =>
 const BoardToolbar: FC<IBoardToolbarProps> = ({
   search,
   typeFilter,
+  statusFilter,
   onSearchChange,
   canCreateProject,
 }) => {
   const navigate = useNavigate();
-  const styles = usePageStyles();
-  const toolbarStyles = useStyles();
+  const styles = useStyles();
+  const accountMenu = useOutletContext<ReactNode>();
 
   return (
-    <Card gap="20px" padding="20px" sx={toolbarStyles.card}>
-      <Box sx={styles.row({})}>
-        <Box sx={styles.flexItem({ basis: "2 1 280px" })}>
+    <Box sx={styles.toolbar}>
+      <Box sx={styles.filters}>
+        <Box sx={styles.search}>
           <TextField
             value={search}
             onChange={onSearchChange}
@@ -52,26 +57,34 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
             placeholder={BOARD_COPY.SEARCH_PLACEHOLDER}
           />
         </Box>
-        <Box sx={styles.flexItem({ basis: "1 1 220px" })}>
+        <Box sx={styles.typeFilter}>
           <Autocomplete
             isAutocomplete={false}
             onChange={typeFilter.onChange}
-            startIcon={ICON_NAMES.BUILDING}
+            ariaLabel={BOARD_COPY.TYPE_FILTER}
             value={getSelectedLabel(typeFilter)}
             options={getOptionLabels(typeFilter.options)}
           />
         </Box>
+        <Box sx={styles.statusFilter}>
+          <Autocomplete
+            isAutocomplete={false}
+            ariaLabel={BOARD_COPY.STATUS_FILTER}
+            {...statusFilter}
+          />
+        </Box>
       </Box>
-      {canCreateProject && (
-        <Box sx={styles.row({})}>
+      <Box sx={styles.actions}>
+        {canCreateProject && (
           <Button
             icon={ICON_NAMES.ADD}
             text={BOARD_COPY.NEW_PROJECT}
             onClick={() => navigate(ROUTE_PATHS.NEW_PROJECT)}
           />
-        </Box>
-      )}
-    </Card>
+        )}
+        {accountMenu}
+      </Box>
+    </Box>
   );
 };
 
