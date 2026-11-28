@@ -1,5 +1,6 @@
 import type { FC } from "react";
 import { Box } from "@mui/material";
+import TaskEditButton from "./TaskEditButton";
 import TaskLinkCaption from "./TaskLinkCaption";
 import Card from "../../../components/Card/Card";
 import { TASK_COLUMN_STYLES } from "../columns/task-columns.style";
@@ -12,9 +13,10 @@ import { formatTaskDueShort, formatAssigneeLabel } from "../../../utilities/task
 interface ITaskMobileRowProps {
   task: IApiTask;
   onOpen: (task: IApiTask) => void;
+  onEdit: ((task: IApiTask) => void) | null;
 }
 
-const TaskMobileRow: FC<ITaskMobileRowProps> = ({ task, onOpen }) => (
+const TaskMobileRow: FC<ITaskMobileRowProps> = ({ task, onOpen, onEdit }) => (
   <Card gap="10px" padding="16px" ariaLabel={task.title} onClick={() => onOpen(task)}>
     <Box sx={TASK_COLUMN_STYLES.mobileRow}>
       <Box component="b" sx={TASK_COLUMN_STYLES.title}>
@@ -29,6 +31,7 @@ const TaskMobileRow: FC<ITaskMobileRowProps> = ({ task, onOpen }) => (
       <Box component="span" sx={TASK_COLUMN_STYLES.caption}>
         {`${formatAssigneeLabel(task)} · ${formatTaskDueShort(task)}`}
       </Box>
+      {onEdit && <TaskEditButton task={task} onEdit={onEdit} />}
     </Box>
   </Card>
 );

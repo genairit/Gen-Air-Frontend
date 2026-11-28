@@ -20,8 +20,8 @@ import { logger } from "../../utilities/logger.utility";
 import UltraSignature from "../UltraSignature/UltraSignature";
 import type { TPopUpIcons } from "./constants/icons.constants";
 import { renderPopupIcon } from "./utilities/renderIcon.utility";
-import { focusConnectedElement } from "../../utilities/focus.utility";
 import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
+import { focusInitialPopupElement } from "../../utilities/focus.utility";
 import { type FC, type MouseEvent, type ReactNode, useState } from "react";
 import type { TextDirectionType } from "../../constants/direction.constant";
 import { getPopupActionErrorMessage } from "./utilities/action-error.utility";
@@ -90,7 +90,7 @@ const GenericPopup: FC<IGenericPopupProps> = ({
     if (!open) {
       return;
     }
-    focusConnectedElement(initialFocusRef?.current ?? null);
+    focusInitialPopupElement(initialFocusRef?.current ?? null);
   };
   const needToSign = Boolean(signature) && !isSigned;
   const handleClose = () => {

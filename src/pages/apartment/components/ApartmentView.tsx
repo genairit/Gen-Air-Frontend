@@ -42,7 +42,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
       ? [
           {
             ...PROJECT_TABS.tasks,
-            content: <ProjectTasksCard projectId={apartment.id} />,
+            content: <ProjectTasksCard key={apartment.id} project={apartment} />,
           },
         ]
       : []),

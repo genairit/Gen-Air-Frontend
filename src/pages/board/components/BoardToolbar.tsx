@@ -9,7 +9,6 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import type { IDropdownOption } from "../../../interfaces/dropdown.interface";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { getOptionLabels, findOptionLabelById } from "../../../utilities/option.utility";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import type { IAutocompleteOption } from "../../../vendor/smartbase/interfaces/autocomplete.interface";
@@ -22,7 +21,6 @@ interface IBoardFilter {
 
 interface IBoardToolbarProps {
   search: string;
-  canCreateTask: boolean;
   typeFilter: IBoardFilter;
   canCreateProject: boolean;
   onSearchChange: (search: string) => void;
@@ -41,7 +39,6 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
   typeFilter,
   statusFilter,
   onSearchChange,
-  canCreateTask,
   canCreateProject,
 }) => {
   const navigate = useNavigate();
@@ -78,13 +75,6 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
         </Box>
       </Box>
       <Box sx={styles.actions}>
-        <Button
-          icon={ICON_NAMES.ADD}
-          disabled={!canCreateTask}
-          text={BOARD_COPY.NEW_TASK}
-          variant={BUTTON_VARIANTS.NEUTRAL}
-          onClick={() => navigate(ROUTE_PATHS.NEW_TASK)}
-        />
         {canCreateProject && (
           <Button
             icon={ICON_NAMES.ADD}

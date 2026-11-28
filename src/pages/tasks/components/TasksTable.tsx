@@ -20,6 +20,7 @@ import {
 
 import { type FC, useState } from "react";
 import TaskMobileRow from "./TaskMobileRow";
+import { useStyles } from "./TasksTable.style";
 import { useNavigate } from "react-router-dom";
 import { usePageStyles } from "../../page.style";
 import Tabs from "../../../components/Tabs/Tabs";
@@ -49,13 +50,14 @@ import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.c
 
 interface ITasksTableProps {
   canClaim: boolean;
+  onEdit: ((task: IApiTask) => void) | null;
 }
 
-const TasksTable: FC<ITasksTableProps> = ({ canClaim }) => {
+const TasksTable: FC<ITasksTableProps> = ({ canClaim, onEdit }) => {
   const styles = usePageStyles();
-  const toolbarStyles = [styles.spacedRow, styles.bottomAligned];
-  const searchStyles = styles.flexItem({ basis: "2 1 460px" });
-  const sortStyles = styles.flexItem({ basis: "1 1 260px" });
+  const toolbarStyles = styles.row({ gap: "12px" });
+  const searchStyles = styles.flexItem({ basis: "3 1 300px" });
+  const tableStyles = useStyles();
   const navigate = useNavigate();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
   const [search, setSearch] = useState("");
@@ -97,32 +99,41 @@ const TasksTable: FC<ITasksTableProps> = ({ canClaim }) => {
 
   const columns = buildTaskColumns({
     canClaim,
+    onEdit,
     onClaim: claimTask,
   });
 
   const toolbar = (
     <Box sx={styles.stack({ gap: "16px" })}>
-      <Tabs items={tabs} activeId={filterId} onChange={setFilterId} />
       <Box sx={toolbarStyles}>
         <Box sx={searchStyles}>
           <TextField
+            compact
             value={search}
             onChange={setSearch}
             type={FIELD_TYPES.SEARCH}
             startIcon={ICON_NAMES.SEARCH}
             placeholder={TASKS_PAGE_COPY.SEARCH_PLACEHOLDER}
+            slotProps={{ htmlInput: { "aria-label": TASKS_PAGE_COPY.SEARCH_LABEL } }}
           />
         </Box>
-        <Box sx={sortStyles}>
+        <Box sx={tableStyles.sort}>
           <SelectField
             compact
             value={sort}
             items={TASK_SORT_OPTIONS}
-            title={TASK_SORT_COPY.LABEL}
             ariaLabel={TASK_SORT_COPY.LABEL}
             onChange={event => setSort(toTaskSort(event.target.value))}
           />
         </Box>
+      </Box>
+      <Box sx={tableStyles.filters}>
+        <Tabs
+          items={tabs}
+          activeId={filterId}
+          onChange={setFilterId}
+          ariaLabel={TASKS_PAGE_COPY.FILTER_LABEL}
+        />
       </Box>
       {hasError && <InlineError message={errorMessage} />}
       {canRetryQuery && (
@@ -136,29 +147,31 @@ const TasksTable: FC<ITasksTableProps> = ({ canClaim }) => {
         </Box>
       )}
       {tasksQuery.isPending && <LoadingState label={TASKS_PAGE_COPY.LOADING} />}
-      {isEmpty && (
-        <Box component="span" sx={styles.caption}>
-          {TASKS_PAGE_COPY.NO_RESULTS}
-        </Box>
-      )}
     </Box>
   );
 
   const footer = (
     <Box ref={loadMoreRef} sx={styles.stack({ gap: "8px" })}>
       {tasksQuery.isFetchingNextPage && <LoadingState label={TASKS_PAGE_COPY.LOADING_MORE} />}
-      <Box component="span" sx={styles.caption}>
-        {summary}
-      </Box>
+      {isEmpty && (
+        <Box component="span" sx={styles.caption}>
+          {TASKS_PAGE_COPY.NO_RESULTS}
+        </Box>
+      )}
+      {tasks.length > 0 && (
+        <Box component="span" sx={styles.caption}>
+          {summary}
+        </Box>
+      )}
     </Box>
   );
 
   if (isMobile) {
     return (
-      <Card gap="16px">
+      <Card gap="16px" ariaLabel={TASKS_PAGE_COPY.TITLE}>
         {toolbar}
         {tasks.map(task => (
-          <TaskMobileRow task={task} key={task.id} onOpen={openTask} />
+          <TaskMobileRow task={task} key={task.id} onEdit={onEdit} onOpen={openTask} />
         ))}
         {footer}
       </Card>
@@ -174,6 +187,7 @@ const TasksTable: FC<ITasksTableProps> = ({ canClaim }) => {
       getRowId={getTaskId}
       onRowClick={openTask}
       minWidth={TASK_TABLE_MIN_WIDTH}
+      ariaLabel={TASKS_PAGE_COPY.TITLE}
     />
   );
 };

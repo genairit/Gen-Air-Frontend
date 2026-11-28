@@ -1,12 +1,5 @@
-import type {
-  IApiTask,
-  TUpdateTaskPayload,
-  IUrgencyConfirmation,
-} from "../../../interfaces/task.interface";
-
 import {
   useClaimTaskMutation,
-  useUpdateTaskMutation,
   useUpdateTaskStatusMutation,
   useUpdateTaskUrgencyMutation,
 } from "../../../hooks/mutations/task.mutation";
@@ -23,11 +16,13 @@ import { type FC, lazy, Suspense, useState } from "react";
 import { useSessionUser } from "../../../store/session.store";
 import { TASK_STATUSES } from "../../../constants/task.constant";
 import { TASK_TYPES } from "../../../constants/task-type.constant";
+import TaskFormPopup from "../../task-form/components/TaskFormPopup";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import type { IApiTask, IUrgencyConfirmation } from "../../../interfaces/task.interface";
 import { getTaskLinkName, formatUrgencyRecipient } from "../../../utilities/task.utility";
 import UrgencyConfirmPopup from "../../../components/UrgencyConfirmPopup/UrgencyConfirmPopup";
 
@@ -56,7 +51,7 @@ const TaskView: FC<ITaskViewProps> = ({
   const [confirmation, setConfirmation] = useState<IUrgencyConfirmation | null>(null);
   const statusMutation = useUpdateTaskStatusMutation();
   const urgencyMutation = useUpdateTaskUrgencyMutation();
-  const updateMutation = useUpdateTaskMutation();
+  const [isEditing, setIsEditing] = useState(false);
   const claimMutation = useClaimTaskMutation();
   const canPrepareEmail =
     canChangeStatus &&
@@ -71,8 +66,7 @@ const TaskView: FC<ITaskViewProps> = ({
   const changeStatus = (status: typeof task.status) =>
     statusMutation.mutate({ taskId: task.id, status });
 
-  const mutationError =
-    statusMutation.error ?? urgencyMutation.error ?? updateMutation.error ?? claimMutation.error;
+  const mutationError = statusMutation.error ?? urgencyMutation.error ?? claimMutation.error;
 
   const requestUrgencyChange = () =>
     setConfirmation({
@@ -84,9 +78,6 @@ const TaskView: FC<ITaskViewProps> = ({
 
   const confirmUrgencyChange = () =>
     urgencyMutation.mutateAsync({ taskId: task.id, isUrgent: !task.isUrgent });
-
-  const updateTask = (payload: TUpdateTaskPayload) =>
-    updateMutation.mutate({ taskId: task.id, payload });
 
   return (
     <Box sx={styles.page}>
@@ -110,11 +101,19 @@ const TaskView: FC<ITaskViewProps> = ({
         task={task}
         canEdit={canEdit}
         canClaim={canClaim}
-        onUpdate={updateTask}
         canAssign={canAssign}
-        isSaving={updateMutation.isPending}
+        onEdit={() => setIsEditing(true)}
         onClaim={() => claimMutation.mutate(task.id)}
       />
+      {canEdit && isEditing && (
+        <TaskFormPopup
+          mode="edit"
+          task={task}
+          canEdit={canEdit}
+          canAssign={canAssign}
+          onClose={() => setIsEditing(false)}
+        />
+      )}
       <TaskHistoryCard taskId={task.id} />
       <UrgencyConfirmPopup
         confirmation={confirmation}

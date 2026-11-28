@@ -37,7 +37,12 @@ const ProjectRecordView: FC<IProjectRecordViewProps> = ({ project }) => {
   const canReadQuotations = building && hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
   const panels = [
     ...(canReadTasks
-      ? [{ ...PROJECT_TABS.tasks, content: <ProjectTasksCard projectId={project.id} /> }]
+      ? [
+          {
+            ...PROJECT_TABS.tasks,
+            content: <ProjectTasksCard key={project.id} project={project} />,
+          },
+        ]
       : []),
     ...(canReadDrive
       ? [

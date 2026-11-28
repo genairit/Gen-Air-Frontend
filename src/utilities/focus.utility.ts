@@ -100,3 +100,21 @@ export const restoreRemovedElementFocus = ({
   record.focused = false;
   focusConnectedElement(element);
 };
+
+export const restoreFocusById = (targetId: string): void => {
+  requestAnimationFrame(() => {
+    const target = document.getElementById(targetId);
+    if (document.activeElement === document.body) {
+      focusConnectedElement(target);
+    }
+  });
+};
+
+export const focusInitialPopupElement = (target: HTMLElement | null): void => {
+  const activeElement = target?.ownerDocument?.activeElement ?? null;
+  const dialog = target?.closest?.('[role="dialog"]') ?? null;
+  if (activeElement && dialog?.contains(activeElement) && activeElement !== dialog) {
+    return;
+  }
+  focusConnectedElement(target);
+};

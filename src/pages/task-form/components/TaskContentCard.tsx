@@ -1,37 +1,39 @@
-import type { FC } from "react";
 import { Box } from "@mui/material";
+import type { FC, RefObject } from "react";
 import { usePageStyles } from "../../page.style";
-import Card from "../../../components/Card/Card";
-import { ICON_NAMES } from "../../../constants/icon.constant";
 import TextField from "../../../components/TextField/TextField";
 import DateField from "../../../components/DateField/DateField";
 import { NEW_TASK_COPY } from "../../../constants/task.constant";
-import CardHeader from "../../../components/CardHeader/CardHeader";
 import { toErrorValidator } from "../../../utilities/field-feedback.utility";
 import { FIELD_INPUT_LIMITS } from "../../../constants/field-validation.constant";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import type { TTaskFormErrors, ITaskFormValues } from "../../../interfaces/task.interface";
 
 interface ITaskContentCardProps {
+  disabled?: boolean;
   errors: TTaskFormErrors;
   values: ITaskFormValues;
+  titleRef?: RefObject<HTMLInputElement | null>;
   onChange: (changes: Partial<ITaskFormValues>) => void;
 }
 
-const TaskContentCard: FC<ITaskContentCardProps> = ({ errors, values, onChange }) => {
+const TaskContentCard: FC<ITaskContentCardProps> = ({
+  errors,
+  values,
+  onChange,
+  titleRef,
+  disabled = false,
+}) => {
   const styles = usePageStyles();
   const earliestDueDate = new Date();
 
   return (
-    <Card gap="18px" padding="24px">
-      <CardHeader
-        icon={ICON_NAMES.INFO}
-        title={NEW_TASK_COPY.DETAILS_TITLE}
-        subtitle={NEW_TASK_COPY.DETAILS_SUBTITLE}
-      />
-      <Box sx={styles.grid({ minColumnWidth: 260, gap: "20px" })}>
+    <Box sx={styles.stack({ gap: "16px" })}>
+      <Box sx={styles.grid({ minColumnWidth: 200, gap: "16px" })}>
         <TextField
           isRequired
+          inputRef={titleRef}
+          disabled={disabled}
           value={values.title}
           type={FIELD_TYPES.TEXT}
           title={NEW_TASK_COPY.TASK_TITLE}
@@ -41,6 +43,7 @@ const TaskContentCard: FC<ITaskContentCardProps> = ({ errors, values, onChange }
           maxLength={FIELD_INPUT_LIMITS.TASK_TITLE_CHARACTERS}
         />
         <DateField
+          disabled={disabled}
           value={values.dueDate}
           minDate={earliestDueDate}
           errorText={errors.dueDate}
@@ -52,7 +55,8 @@ const TaskContentCard: FC<ITaskContentCardProps> = ({ errors, values, onChange }
       <TextField
         multiline
         isRequired
-        minRows={4}
+        minRows={2}
+        disabled={disabled}
         type={FIELD_TYPES.TEXT}
         value={values.description}
         title={NEW_TASK_COPY.TASK_DESCRIPTION}
@@ -61,7 +65,7 @@ const TaskContentCard: FC<ITaskContentCardProps> = ({ errors, values, onChange }
         placeholder={NEW_TASK_COPY.TASK_DESCRIPTION_PLACEHOLDER}
         maxLength={FIELD_INPUT_LIMITS.TASK_DESCRIPTION_CHARACTERS}
       />
-    </Card>
+    </Box>
   );
 };
 
