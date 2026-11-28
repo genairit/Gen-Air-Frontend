@@ -1,4 +1,4 @@
-import type { FC } from "react";
+import type { FC, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "../../../components/Button/Button";
 import WaitingReasonBanner from "./WaitingReasonBanner";
@@ -18,9 +18,10 @@ import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.con
 
 interface IProjectPageHeaderProps {
   project: IApiProject;
+  children?: ReactNode;
 }
 
-const ProjectPageHeader: FC<IProjectPageHeaderProps> = ({ project }) => {
+const ProjectPageHeader: FC<IProjectPageHeaderProps> = ({ project, children }) => {
   const navigate = useNavigate();
   const sessionUser = useSessionUser();
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
@@ -51,7 +52,9 @@ const ProjectPageHeader: FC<IProjectPageHeaderProps> = ({ project }) => {
           )}
         </>
       }
-    />
+    >
+      {children}
+    </ProjectHeader>
   );
 };
 

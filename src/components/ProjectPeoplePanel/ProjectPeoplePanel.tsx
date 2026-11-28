@@ -2,6 +2,7 @@ import Tabs from "../Tabs/Tabs";
 import { useState, type ReactNode } from "react";
 import { Box, useMediaQuery } from "@mui/material";
 import { TAB_MODES } from "../../constants/tabs.constant";
+import { usePeopleStyles } from "./ProjectPeoplePanel.style";
 import { MOBILE_LAYOUT_QUERY } from "../../constants/layout.constant";
 
 interface IProjectPeoplePanelProps {
@@ -9,10 +10,11 @@ interface IProjectPeoplePanelProps {
   contacts: ReactNode;
 }
 const ProjectPeoplePanel = ({ team, contacts }: IProjectPeoplePanelProps) => {
+  const styles = usePeopleStyles();
   const mobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
   const [active, setActive] = useState("team");
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: "12px", minWidth: 0 }}>
+    <Box sx={styles.root}>
       {mobile && (
         <Tabs
           activeId={active}
@@ -27,22 +29,14 @@ const ProjectPeoplePanel = ({ team, contacts }: IProjectPeoplePanelProps) => {
       )}
       <Box
         sx={{
-          display: "grid",
+          ...styles.columns,
           gridTemplateColumns: mobile ? "1fr" : "minmax(0,1fr) minmax(0,1fr)",
-          gap: "16px",
-          alignItems: "start",
         }}
       >
-        <Box
-          hidden={mobile && active !== "team"}
-          sx={{ minWidth: 0, "&[hidden]": { display: "none" } }}
-        >
+        <Box sx={styles.column} hidden={mobile && active !== "team"}>
           {team}
         </Box>
-        <Box
-          hidden={mobile && active !== "contacts"}
-          sx={{ minWidth: 0, "&[hidden]": { display: "none" } }}
-        >
+        <Box sx={styles.column} hidden={mobile && active !== "contacts"}>
           {contacts}
         </Box>
       </Box>

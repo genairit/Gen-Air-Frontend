@@ -34,14 +34,3 @@ export const ROOT_DRIVE_LOCATION: IDriveFolderLocation = {
 export const DRIVE_FILE_OPERATIONS = { MOVE: "move", TRASH: "trash" } as const;
 export type DriveFileOperationType =
   (typeof DRIVE_FILE_OPERATIONS)[keyof typeof DRIVE_FILE_OPERATIONS];
-
-export const DRIVE_BROWSER_COPY = {
-  PATH: "נתיב התיקייה",
-  UPLOAD: "העלאת קבצים",
-  EMPTY: "התיקייה ריקה",
-  NEXT: "הבא",
-  PREVIOUS: "הקודם",
-  DONE: "סיום",
-} as const;
-
-export const DRIVE_BROWSER_PAGE_SIZE = { SHORT: 3, TALL: 5 } as const;
