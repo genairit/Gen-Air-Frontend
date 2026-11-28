@@ -11,7 +11,6 @@ import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
 import { theme } from "../../../constants/theme.constants";
 import { type FC, useState, type MouseEvent } from "react";
-import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useSessionUser } from "../../../store/session.store";
 import { buildTaskPath } from "../../../utilities/route.utility";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
@@ -150,7 +149,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ project }) => {
             boxShadow: "none",
             borderRadius: 0,
             border: 0,
-            borderBottom: ` 1px solid ${theme.glass.border}`,
+            borderBottom: `1px solid ${theme.glass.border}`,
           }}
         >
           <Box sx={TASK_COLUMN_STYLES.mobileRow}>
