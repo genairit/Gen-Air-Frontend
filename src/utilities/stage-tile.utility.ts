@@ -1,4 +1,5 @@
 import { theme } from "../constants/theme.constants";
+import { BOARD_FILTER_ALL } from "../constants/board.constant";
 import type { IStageTile } from "../interfaces/stage-tile.interface";
 import { ALL_STAGES_LABEL, ALL_STAGES_TILE_ID } from "../constants/stage-tile.constant";
 import type { IApiProjectStage, IProjectStageCounts } from "../interfaces/api.interface";
@@ -52,6 +53,6 @@ export const toStageFilterOptions = (
 ): IAutocompleteOption[] =>
   toStageTiles(stages, counts).map(({ id, label, count }) => ({
     value: id,
-    label,
+    label: id === ALL_STAGES_TILE_ID ? BOARD_FILTER_ALL.STATUSES : label,
     subtitle: String(count),
   }));

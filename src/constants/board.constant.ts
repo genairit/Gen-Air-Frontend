@@ -5,7 +5,8 @@ export const PROJECT_BOARD_PAGE_SIZE = 25;
 export const PROJECT_BOARD_SCROLL_ROOT_MARGIN = "200px";
 
 export const BOARD_FILTER_ALL = {
-  TYPES: "סוג פרויקט (כל הסוגים)",
+  STATUSES: "כל הסטטוסים",
+  TYPES: "כל הסוגים",
 } as const;
 
 export const BOARD_COPY = {

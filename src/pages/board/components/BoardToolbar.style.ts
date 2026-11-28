@@ -13,6 +13,7 @@ export const useStyles = () =>
     toolbar: {
       ...row,
       gap: "12px",
+      "& input": { textOverflow: "ellipsis" },
       position: "relative",
       zIndex: 2,
     },

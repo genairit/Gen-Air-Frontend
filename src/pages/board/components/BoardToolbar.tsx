@@ -73,7 +73,6 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
         <Box sx={styles.statusFilter}>
           <Autocomplete
             isAutocomplete={false}
-            startIcon={ICON_NAMES.FILTER}
             ariaLabel={BOARD_COPY.STATUS_FILTER}
             {...statusFilter}
           />
