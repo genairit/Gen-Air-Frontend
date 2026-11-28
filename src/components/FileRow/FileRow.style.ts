@@ -39,6 +39,7 @@ export const useStyles = () =>
       fontWeight: 500,
     },
     meta: {
+      overflowWrap: "anywhere",
       fontSize: 12,
       color: theme.palette.textMuted,
     },
