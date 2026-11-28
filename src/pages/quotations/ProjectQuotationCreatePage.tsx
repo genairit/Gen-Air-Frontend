@@ -6,39 +6,24 @@ import Button from "./components/QuotationButton";
 import type { IApiProject } from "../../interfaces/api.interface";
 import InlineError from "../../components/InlineError/InlineError";
 import { buildQuotationPath } from "../../utilities/route.utility";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useProjectQuery } from "../../hooks/queries/project.query";
-import { quotationService } from "../../services/quotation.service";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
-import { QUOTATION_QUERY_KEY } from "../../constants/quotation.constant";
 import QuotationSalesAgentPicker from "./components/QuotationSalesAgentPicker";
-import { QUOTATION_SHARING_KEYS } from "../../constants/quotation-sharing.constant";
-import { AuthorizationContext } from "../../managers/authorization-context.manager";
+import { useCreateProjectQuotation } from "../../hooks/queries/quotation.query";
 
 const ProjectQuotationCreateForm = ({ project }: { project: IApiProject }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const queryClient = useQueryClient();
   const [salesAgentId, setSalesAgentId] = useState<string | null>(null);
-  const create = useMutation({
-    mutationFn: quotationService.create,
-    onMutate: () => new AuthorizationContext(),
-    onSuccess: async (_quotation, _input, authorization) => {
-      authorization.assertCurrent();
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY }),
-        queryClient.invalidateQueries({
-          queryKey: QUOTATION_SHARING_KEYS.projectQuotations(project.id),
-        }),
-      ]);
-      authorization.assertCurrent();
-    },
-  });
+  const create = useCreateProjectQuotation();
 
   const submit = () => {
-    if (!project.customerId || create.isPending) return;
+    if (!project.customerId || create.isPending) {
+      return;
+    }
+
     create.mutate(
       { customerId: project.customerId, projectId: project.id, salesAgentId },
       {
@@ -77,8 +62,14 @@ const ProjectQuotationCreateForm = ({ project }: { project: IApiProject }) => {
 const ProjectQuotationCreatePage = () => {
   const { projectId } = useParams();
   const project = useProjectQuery(projectId ?? null);
-  if (project.isPending) return <LoadingState label="טוען פרויקט..." />;
-  if (project.isError) return <InlineError message={getApiErrorMessage(project.error)} />;
+  if (project.isPending) {
+    return <LoadingState label="טוען פרויקט..." />;
+  }
+
+  if (project.isError) {
+    return <InlineError message={getApiErrorMessage(project.error)} />;
+  }
+
   return (
     <Box component="main" className={styles.page}>
       <ProjectQuotationCreateForm key={project.data.id} project={project.data} />

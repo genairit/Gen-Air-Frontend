@@ -3,14 +3,19 @@ import assert from "node:assert/strict";
 import Chip from "../src/components/Chip/Chip";
 import Card from "../src/components/Card/Card";
 import { act, create } from "react-test-renderer";
+import { project } from "./project-tasks.fixture";
 import Button from "../src/components/Button/Button";
 import { quotationFixture } from "./quotation.fixture";
 import { setSession } from "../src/store/session.store";
+import { createCustomer } from "./customer-projects.fixture";
+import { API_ENDPOINTS } from "../src/constants/api.constant";
+import { ROUTE_PATHS } from "../src/constants/routes.constant";
 import { USER_ROLES } from "../src/constants/user-role.constant";
+import { projectService } from "../src/services/project.service";
+import { httpClient } from "../src/services/http-client.service";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import InlineError from "../src/components/InlineError/InlineError";
 import { quotationService } from "../src/services/quotation.service";
-import { createMemoryRouter, RouterProvider } from "react-router-dom";
 import LoadingState from "../src/components/LoadingState/LoadingState";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useHashTargetFocus } from "../src/hooks/hash-target-focus.hook";
@@ -18,7 +23,9 @@ import type { IProjectQuotation } from "../src/interfaces/quotation.interface";
 import ProjectWorkspace from "../src/components/ProjectWorkspace/ProjectWorkspace";
 import { buildProjectQuotationCreatePath } from "../src/constants/navigation.constant";
 import ProjectQuotationCard from "../src/pages/project/components/ProjectQuotationCard";
+import { createMemoryRouter, RouterProvider, type InitialEntry } from "react-router-dom";
 import ProjectQuotationsCard from "../src/pages/project/components/ProjectQuotationsCard";
+import ProjectQuotationCreatePage from "../src/pages/quotations/ProjectQuotationCreatePage";
 import ProjectQuotationCreateButton from "../src/pages/project/components/ProjectQuotationCreateButton";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -40,11 +47,18 @@ const settle = () =>
     await new Promise(resolve => setTimeout(resolve, 0));
   });
 
-const renderAt = async (element: React.ReactElement, path = "/") => {
+const renderAt = async (
+  element: React.ReactElement,
+  path: InitialEntry = "/",
+  routePattern = "*",
+) => {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   const router = createMemoryRouter(
     [
-      { path: "*", element: <QueryClientProvider client={client}>{element}</QueryClientProvider> },
+      {
+        path: routePattern,
+        element: <QueryClientProvider client={client}>{element}</QueryClientProvider>,
+      },
       { path: "/quotations/:quotationId", element: <p>quotation</p> },
     ],
     { initialEntries: [path] },
@@ -306,5 +320,97 @@ test("the active project quotations tab offers its create action only to creator
   } finally {
     await view.close();
     setSession(null);
+  }
+});
+
+const renderCreation = () =>
+  renderAt(
+    <ProjectQuotationCreatePage />,
+    {
+      pathname: buildProjectQuotationCreatePath(project.id),
+      state: {
+        quotationReturnTo: "/projects/building/apartments/" + project.id + "?tab=quotations",
+      },
+    },
+    ROUTE_PATHS.PROJECT_QUOTATION_CREATE,
+  );
+
+test("creating from a project posts its own customer and project, and a failed save can be retried", async t => {
+  const customer = createCustomer();
+  const selected = { ...project, customerId: customer.id, customer };
+  const read = t.mock.method(projectService, "getById", async () => selected);
+  const post = t.mock.method(httpClient, "post", async () => ({ data: quotationFixture() }));
+  post.mock.mockImplementationOnce(async () => {
+    throw new Error("unavailable");
+  });
+  const view = await renderCreation();
+  const createButton = () =>
+    view
+      .root()
+      .findAllByType(Button)
+      .find(node => node.props.text === "יצירת הצעה")!;
+  try {
+    await settle();
+    assert.deepEqual(
+      read.mock.calls.map(call => call.arguments),
+      [[selected.id]],
+    );
+    const identity = view
+      .root()
+      .findAllByType("div")
+      .find(
+        node =>
+          node.children.includes(selected.name) && node.children.includes(" · " + customer.name),
+      );
+    assert.ok(identity, "shows project and linked customer before saving");
+    const origin = view.router.state.location;
+    await act(() => createButton().props.onClick());
+    await settle();
+    assert.equal(
+      view.root().findByType(InlineError).props.message,
+      "הפעולה נכשלה. נסה שוב בעוד רגע.",
+    );
+    assert.equal(view.router.state.location.pathname, origin.pathname);
+    await act(() => createButton().props.onClick());
+    await settle();
+    const expectedRequest = [
+      API_ENDPOINTS.QUOTATIONS,
+      { projectId: selected.id, customerId: customer.id, salesAgentId: null },
+    ];
+    assert.deepEqual(
+      post.mock.calls.map(call => call.arguments),
+      [expectedRequest, expectedRequest],
+    );
+    assert.equal(view.router.state.location.pathname, "/quotations/" + quotationFixture().id);
+    assert.deepEqual(view.router.state.location.state, origin.state);
+  } finally {
+    await view.close();
+  }
+});
+
+test("a project without a customer shows the prerequisite and cannot send a create request", async t => {
+  t.mock.method(projectService, "getById", async () => ({
+    ...project,
+    customerId: null,
+    customer: null,
+  }));
+  const post = t.mock.method(httpClient, "post");
+  const view = await renderCreation();
+  try {
+    await settle();
+    assert.equal(
+      view.root().findByType(InlineError).props.message,
+      "יש לקשר לקוח לפרויקט כדי ליצור הצעת מחיר.",
+    );
+    assert.equal(
+      view
+        .root()
+        .findAllByType(Button)
+        .filter(node => node.props.text === "יצירת הצעה").length,
+      0,
+    );
+    assert.equal(post.mock.callCount(), 0);
+  } finally {
+    await view.close();
   }
 });

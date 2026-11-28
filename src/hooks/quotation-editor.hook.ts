@@ -100,7 +100,7 @@ export const useQuotationEditor = (
     }
   };
   const autosaveEnabled =
-    !deleted && dirty && Boolean(quotation.projectId) && !busy && !error && editable;
+    !deleted && dirty && quotation.projectId !== null && !busy && !error && editable;
   useDelayedAsyncTask({
     enabled: autosaveEnabled,
     delayMs: QUOTATION_AUTOSAVE_MS,

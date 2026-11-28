@@ -87,6 +87,35 @@ test("autosave debounces edits, uses returned server version and never sends for
     await unmount(value);
   }
 });
+test("edits to a legacy unlinked draft wait for a project before autosave", async () => {
+  const value = state();
+  const save = mock.method(quotationService, "save", async quotation => ({
+    ...quotation,
+    version: 2,
+  }));
+  try {
+    await mount(value);
+    await act(() =>
+      current(value).update({
+        ...current(value).quotation,
+        projectId: null,
+        internalNotes: "pending",
+      }),
+    );
+    await act(async () => settle(QUOTATION_AUTOSAVE_MS + 30));
+    assert.equal(save.mock.callCount(), 0);
+    assert.equal(current(value).dirty, true);
+    await act(() => current(value).update({ ...current(value).quotation, projectId: "project2" }));
+    await act(async () => settle(QUOTATION_AUTOSAVE_MS + 30));
+    assert.equal(save.mock.callCount(), 1);
+    assert.equal(save.mock.calls[0].arguments[0].projectId, "project2");
+    assert.equal(save.mock.calls[0].arguments[0].internalNotes, "pending");
+  } finally {
+    save.mock.restore();
+    await unmount(value);
+  }
+});
+
 test("edits made during autosave remain editable and save with the next version", async () => {
   const value = state();
   const gate = Promise.withResolvers<IQuotation>();

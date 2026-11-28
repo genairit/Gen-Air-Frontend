@@ -7,6 +7,7 @@ import ProjectQuotationCard from "./ProjectQuotationCard";
 import { useLocation, useNavigate } from "react-router-dom";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
+import { projectQuotationOrigin } from "../../../utilities/route.utility";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useProjectQuotationsQuery } from "../../../hooks/queries/quotation.query";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
@@ -27,7 +28,7 @@ const ProjectQuotationsCard: FC<IProjectQuotationsCardProps> = ({ projectId }) =
   const pages = quotationsQuery.data?.pages ?? [];
   const quotations = pages.flatMap(page => page.items);
   const isEmpty = quotationsQuery.isSuccess && quotations.length === 0;
-  const returnState = { quotationReturnTo: location.pathname + location.search };
+  const returnState = projectQuotationOrigin(location);
 
   const retry = async () => {
     await quotationsQuery.refetch();

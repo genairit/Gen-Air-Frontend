@@ -17,7 +17,7 @@ export const useQuotationDeletedNavigation = (
     if (!deleted) {
       return;
     }
-    navigate(returnPath, { replace: true });
+    navigate(returnPath, { replace: true, state: { buildingSearch: state?.buildingSearch } });
     queryClient.removeQueries({ queryKey: QUOTATION_DETAIL_KEY(id), exact: true });
-  }, [deleted, id, navigate, queryClient, returnPath]);
+  }, [deleted, id, navigate, queryClient, returnPath, state]);
 };

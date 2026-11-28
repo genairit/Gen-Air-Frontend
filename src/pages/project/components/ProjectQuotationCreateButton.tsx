@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useSessionUser } from "../../../store/session.store";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
+import { projectQuotationOrigin } from "../../../utilities/route.utility";
 import { BUTTON_SIZES } from "../../../components/Button/constants/button.constants";
 import { PROJECT_QUOTATIONS_COPY } from "../../../constants/quotation-sharing.constant";
 import { buildProjectQuotationCreatePath } from "../../../constants/navigation.constant";
@@ -18,7 +19,7 @@ const ProjectQuotationCreateButton = ({ projectId }: { projectId: string }) => {
 
   const openCreate = () =>
     navigate(buildProjectQuotationCreatePath(projectId), {
-      state: { quotationReturnTo: location.pathname + location.search },
+      state: projectQuotationOrigin(location),
     });
 
   return (

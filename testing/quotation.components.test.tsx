@@ -1097,7 +1097,10 @@ for (const status of ["draft", "review", "approved"] as const) {
     test(`${status}: delete permission independently controls action and successful navigation`, async () => {
       const projectId = status === "draft" ? null : "building";
       const sharedOrigin = "/projects/building/apartments/apartment?tab=quotations";
-      const initialState = status === "approved" ? { quotationReturnTo: sharedOrigin } : null;
+      const initialState =
+        status === "approved"
+          ? { quotationReturnTo: sharedOrigin, buildingSearch: "?floor=3" }
+          : null;
       const destinations = {
         draft: "/",
         review: "/projects/building?tab=quotations",
@@ -1146,6 +1149,7 @@ for (const status of ["draft", "review", "approved"] as const) {
             router.state.location.pathname + router.state.location.search,
             destinations[status],
           );
+          assert.equal(router.state.location.state?.buildingSearch, initialState?.buildingSearch);
           assert.equal(router.state.historyAction, "REPLACE");
           assert.equal(
             [...router.state.blockers.values()].some(blocker => blocker.state === "blocked"),

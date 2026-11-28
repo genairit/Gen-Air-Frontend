@@ -17,7 +17,6 @@ export const EXECUTION_PLAN_STATUS_LABELS: Record<ExecutionPlanStatusType, strin
   cancelled: "בוטלה",
 };
 
-
 export const EXECUTION_PLAN_COPY = {
   SUBMIT_ACTION: "הגש תוכנית לביצוע",
   SUBMIT_TITLE: "הגשת תוכנית לביצוע",

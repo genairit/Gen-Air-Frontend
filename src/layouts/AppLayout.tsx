@@ -82,7 +82,9 @@ const AppLayout = () => {
     buildingSearch: state?.buildingSearch,
     quotationReturnTo: state?.quotationReturnTo,
   });
-  const backLinkState = matchPath(ROUTE_PATHS.QUOTATION_CLONE, pathname) ? state : null;
+  const backLinkState = matchPath(ROUTE_PATHS.QUOTATION_CLONE, pathname)
+    ? state
+    : { buildingSearch: state?.buildingSearch };
   const topBarLeading = backLinkTarget && (
     <BackLink state={backLinkState} to={backLinkTarget.to} label={backLinkTarget.label} />
   );

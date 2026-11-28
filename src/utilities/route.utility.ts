@@ -5,9 +5,9 @@ import {
   ACTIVE_NAVIGATION_BY_ROUTE,
 } from "../constants/navigation.constant";
 
-import { generatePath, matchPath, parsePath } from "react-router-dom";
 import { ROUTE_PATHS, ROUTE_PARAMS } from "../constants/routes.constant";
 import type { IBackLinkTarget } from "../interfaces/navigation-item.interface";
+import { generatePath, matchPath, parsePath, type Location } from "react-router-dom";
 import { PROJECT_TABS, PROJECT_TAB_PARAM } from "../constants/project-workspace.constant";
 
 export const buildProjectPath = (projectId: string) =>
@@ -57,13 +57,24 @@ export const getApartmentBuildingPath = (buildingId: string, buildingSearch?: un
 export const buildProjectQuotationsPath = (projectId: string) =>
   `${buildProjectPath(projectId)}?${PROJECT_TAB_PARAM}=${PROJECT_TABS.quotations.id}`;
 
+export const projectQuotationOrigin = (location: Location) => ({
+  quotationReturnTo: location.pathname + location.search,
+  ...(typeof location.state?.buildingSearch === "string"
+    ? { buildingSearch: location.state.buildingSearch }
+    : {}),
+});
+
 export const getQuotationReturnPath = (returnTo: unknown, projectId: string | null): string => {
   const fallback = projectId ? buildProjectQuotationsPath(projectId) : ROUTE_PATHS.BOARD;
-  if (typeof returnTo !== "string") return fallback;
+  if (typeof returnTo !== "string") {
+    return fallback;
+  }
   const { pathname = "", search } = parsePath(returnTo);
   const isProject =
     matchPath(ROUTE_PATHS.PROJECT, pathname) || matchPath(ROUTE_PATHS.APARTMENT, pathname);
-  if (!isProject) return fallback;
+  if (!isProject) {
+    return fallback;
+  }
   const params = new URLSearchParams(search);
   params.set(PROJECT_TAB_PARAM, PROJECT_TABS.quotations.id);
   return `${pathname}?${params}`;

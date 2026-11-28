@@ -1,4 +1,5 @@
 import {
+  QUOTATION_QUERY_KEY,
   QUOTATION_PROJECTS_KEY,
   QUOTATION_CATALOGUE_KEY,
   QUOTATION_SALES_AGENTS_KEY,
@@ -14,10 +15,11 @@ import type {
 import { useSessionUser } from "../../store/session.store";
 import type { UseQueryResult } from "@tanstack/react-query";
 import { PERMISSIONS } from "../../constants/permission.constant";
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { hasPermission } from "../../utilities/permission.utility";
 import { quotationService } from "../../services/quotation.service";
+import { AuthorizationContext } from "../../managers/authorization-context.manager";
 import { QUOTATION_SHARING_KEYS } from "../../constants/quotation-sharing.constant";
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 export const useQuotationCatalogueQuery = (
   query: { [parameter: string]: string | number },
@@ -60,5 +62,24 @@ export const useQuotationSalesAgentsQuery = (): UseQueryResult<IQuotationSalesAg
     enabled:
       hasPermission(user, PERMISSIONS.QUOTATIONS_READ) &&
       hasPermission(user, PERMISSIONS.EMPLOYEES_READ),
+  });
+};
+
+export const useCreateProjectQuotation = () => {
+  const client = useQueryClient();
+
+  return useMutation({
+    mutationFn: quotationService.create,
+    onMutate: () => new AuthorizationContext(),
+    onSuccess: async (_quotation, input, authorization) => {
+      authorization.assertCurrent();
+      await Promise.all([
+        client.invalidateQueries({ queryKey: QUOTATION_QUERY_KEY }),
+        client.invalidateQueries({
+          queryKey: QUOTATION_SHARING_KEYS.projectQuotations(input.projectId),
+        }),
+      ]);
+      authorization.assertCurrent();
+    },
   });
 };
