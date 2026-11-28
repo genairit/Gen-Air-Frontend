@@ -3,11 +3,9 @@ import TaskPage from "./pages/task/TaskPage";
 import LoginPage from "./pages/login/LoginPage";
 import BoardPage from "./pages/board/BoardPage";
 import TasksPage from "./pages/tasks/TasksPage";
-import type { RouteObject } from "react-router-dom";
 import RequireFeature from "./layouts/RequireFeature";
 import RequireSession from "./layouts/RequireSession";
 import ProjectPage from "./pages/project/ProjectPage";
-import NewTaskPage from "./pages/task-form/NewTaskPage";
 import SettingsPage from "./pages/settings/SettingsPage";
 import CustomerPage from "./pages/customer/CustomerPage";
 import { ROUTE_PATHS } from "./constants/routes.constant";
@@ -16,6 +14,7 @@ import ComponentsShowcase from "./pages/ComponentsShowcase";
 import EmployeesPage from "./pages/employees/EmployeesPage";
 import CustomersPage from "./pages/customers/CustomersPage";
 import QuotationPage from "./pages/quotations/QuotationPage";
+import { Navigate, type RouteObject } from "react-router-dom";
 import { PERMISSIONS } from "./constants/permission.constant";
 import QuotationsPage from "./pages/quotations/QuotationsPage";
 import ProjectBoqPage from "./pages/project-boq/ProjectBoqPage";
@@ -122,7 +121,7 @@ export const routes: RouteObject[] = [
               </RequireFeature>
             ),
           },
-          { path: ROUTE_PATHS.NEW_TASK, element: <NewTaskPage /> },
+          { path: ROUTE_PATHS.NEW_TASK, element: <Navigate replace to={ROUTE_PATHS.TASKS} /> },
           { path: ROUTE_PATHS.SETTINGS, element: <SettingsPage /> },
           {
             path: ROUTE_PATHS.EMPLOYEES,

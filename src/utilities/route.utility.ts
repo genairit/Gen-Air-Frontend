@@ -5,10 +5,8 @@ import {
 } from "../constants/navigation.constant";
 
 import { generatePath, matchPath } from "react-router-dom";
-import type { TaskType } from "../constants/task-type.constant";
 import { ROUTE_PATHS, ROUTE_PARAMS } from "../constants/routes.constant";
 import type { IBackLinkTarget } from "../interfaces/navigation-item.interface";
-import { NEW_TASK_PROJECT_PARAM, NEW_TASK_TYPE_PARAM } from "../constants/task.constant";
 
 export const buildProjectPath = (projectId: string) =>
   generatePath(ROUTE_PATHS.PROJECT, { projectId });
@@ -70,17 +68,6 @@ export const getProjectFormCancelPath = (projectId: string | null) => {
 };
 
 export const buildTaskPath = (taskId: string) => generatePath(ROUTE_PATHS.TASK, { taskId });
-
-export const buildNewTaskPath = (projectId: string | null, taskType?: TaskType) => {
-  if (!projectId) {
-    return ROUTE_PATHS.NEW_TASK;
-  }
-
-  return `${ROUTE_PATHS.NEW_TASK}?${new URLSearchParams({
-    [NEW_TASK_PROJECT_PARAM]: projectId,
-    ...(taskType && { [NEW_TASK_TYPE_PARAM]: taskType }),
-  })}`;
-};
 
 export const buildQuotationPath = (quotationId: string): string =>
   generatePath(ROUTE_PATHS.QUOTATION, { [ROUTE_PARAMS.QUOTATION_ID]: quotationId });

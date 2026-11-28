@@ -22,7 +22,6 @@ interface IBoardFilter {
 
 interface IBoardToolbarProps {
   search: string;
-  canCreateTask: boolean;
   typeFilter: IBoardFilter;
   canCreateProject: boolean;
   onSearchChange: (search: string) => void;
@@ -35,7 +34,6 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
   search,
   typeFilter,
   onSearchChange,
-  canCreateTask,
   canCreateProject,
 }) => {
   const navigate = useNavigate();
@@ -64,21 +62,15 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
           />
         </Box>
       </Box>
-      <Box sx={styles.row({})}>
-        <Button
-          icon={ICON_NAMES.ADD}
-          disabled={!canCreateTask}
-          text={BOARD_COPY.NEW_TASK}
-          onClick={() => navigate(ROUTE_PATHS.NEW_TASK)}
-        />
-        {canCreateProject && (
+      {canCreateProject && (
+        <Box sx={styles.row({})}>
           <Button
             icon={ICON_NAMES.ADD}
             text={BOARD_COPY.NEW_PROJECT}
             onClick={() => navigate(ROUTE_PATHS.NEW_PROJECT)}
           />
-        )}
-      </Box>
+        </Box>
+      )}
     </Card>
   );
 };

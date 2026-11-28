@@ -66,9 +66,6 @@ export const POOL_ASSIGNEE_ID = "__pool";
 
 export const TASK_SCROLL_ROOT_MARGIN = "200px";
 
-export const NEW_TASK_PROJECT_PARAM = "projectId";
-export const NEW_TASK_TYPE_PARAM = "taskType";
-
 export const EMPTY_TASK_FORM: ITaskFormValues = {
   taskType: TASK_TYPES.GENERAL,
   title: "",
@@ -80,11 +77,9 @@ export const EMPTY_TASK_FORM: ITaskFormValues = {
 };
 
 export const TASKS_PAGE_COPY = {
-  EYEBROW: "המשימות שהוקצו לי",
+  SEARCH_LABEL: "חיפוש משימות",
+  FILTER_LABEL: "סינון משימות",
   TITLE: "המשימות שלי",
-  NEW_TASK: "+ משימה",
-  DESCRIPTION:
-    "המשימות שהוקצו לך, בכל הפרויקטים והלקוחות. כאן אפשר לעקוב אחר דחיפות, תאריכי יעד וסטטוס.",
   ALL: "הכל",
   URGENT: "דחופות",
   SEARCH_PLACEHOLDER: "חיפוש במשימות שלי לפי משימה, פרויקט או לקוח...",
@@ -109,6 +104,7 @@ export const TASK_TABLE_HEADERS = {
 } as const;
 
 export const TASK_PAGE_COPY = {
+  EDIT: "עריכת משימה",
   LOADING: "טוען את המשימה...",
   NOT_FOUND_TITLE: "המשימה לא נמצאה",
   BACK_TO_TASKS: "חזרה למשימות",
@@ -128,28 +124,16 @@ export const TASK_PAGE_COPY = {
   DUE_DATE: "תאריך יעד",
   DESCRIPTION: "תיאור",
   MANAGERS_ONLY: "נדרשת הרשאה",
-  SAVE_DESCRIPTION: "שמור תיאור",
   SAVED: "השינויים נשמרו",
 } as const;
 
 export const NEW_TASK_COPY = {
-  EYEBROW: "משימות",
   TITLE: "משימה חדשה",
-  DESCRIPTION: "הוספת משימה לפרויקט או לדירה כשנדרשת עבודה.",
-  DENIED_TITLE: "אין הרשאה להקצאת משימות",
-  DENIED_DESCRIPTION: "לחשבון שלך אין הרשאה ליצור משימות.",
-  BACK_TO_TASKS: "חזרה למשימות",
-  ASSIGNMENT_TITLE: "שיוך",
-  ASSIGNMENT_SUBTITLE: "פרויקט ואחראי · פרטי הלקוח מוצגים כמידע בלבד",
   TASK_TYPE: "סוג משימה",
   EXISTING_TYPE: "כבר קיימת משימה מסוג זה בפרויקט או בדירה שנבחרו.",
   PROTECTED_LOOKUP_FAILED: "לא הצלחנו לבדוק אם כבר קיימת משימה מסוג זה. נסה שוב.",
   CHECKING_EXISTING: "בודק משימות קיימות...",
   OPEN_EXISTING: "פתח את המשימה הקיימת",
-  INFO_ONLY: "מידע בלבד",
-  PROJECT_CUSTOMER: "לקוח הפרויקט:",
-  PROJECT_CUSTOMER_NOTE: "לא נשמר כשיוך נוסף למשימה",
-  NEW_PROJECT: "צור פרויקט חדש",
   RETRY: "נסה שוב",
   ASSIGNEE: "אחראי",
   CHOOSE_ASSIGNEE: "בחר...",
@@ -157,21 +141,25 @@ export const NEW_TASK_COPY = {
   OTHER_APARTMENT_ENGINEER: "אחראי המשימה · שונה מהעובד ההנדסי של הדירה",
   POOL_OPTION: "מאגר פתוח — כל עובד הנדסי יכול למשוך",
   POOL_HINT: 'המשימה תופיע לכל העובדים ההנדסיים עם "משוך אליי"',
-  DETAILS_TITLE: "פרטי המשימה",
-  DETAILS_SUBTITLE: "מה צריך לעשות ועד מתי",
   TASK_TITLE: "כותרת",
   TASK_TITLE_PLACEHOLDER: "לדוגמה: תיאום ביקור באתר",
   DUE_DATE: "תאריך יעד (לא חובה)",
   TASK_DESCRIPTION: "תיאור",
   TASK_DESCRIPTION_PLACEHOLDER: "פרט מה צריך לעשות, מה כבר ידוע ומה מצופה כתוצאה",
   URGENCY_TITLE: "דחיפות",
-  URGENCY_SUBTITLE: "החלטה של מנהל · דחופה שולחת התראת Push מיידית",
   REGULAR: "רגילה",
   REGULAR_SUB: "ללא התראה",
   URGENT: "דחופה",
   URGENT_SUB: "שולחת התראת Push מיידית",
   CANCEL: "ביטול",
+  EDIT_TITLE: TASK_PAGE_COPY.EDIT,
+  SAVE_EDIT: "שמירת שינויים",
+  MISSING_PROJECT: "חסר פרויקט למשימה",
+  SAVING: "שומר משימה…",
   SAVE: "שמור משימה",
+  URGENCY_UNCONFIRMED: "המשימה נוצרה. לא התקבל אישור לסימון הדחיפות.",
+  RETRY_URGENCY: "נסה שוב לסמן כדחופה",
+  BACK_TO_PROJECT: "חזרה לפרויקט",
   SAVE_URGENT: "שמור ושלח התראה",
   REQUIRED: "שדה חובה",
   INVALID_DUE: "יש להזין תאריך יעד תקין",
@@ -192,6 +180,8 @@ export const URGENCY_CONFIRM_COPY = {
 } as const;
 
 export const PROJECT_TASKS_COPY = {
+  CREATED: "המשימה נוצרה",
+  OPEN_CREATED: "פתיחת המשימה",
   TITLE: "משימות הפרויקט",
   NEW_TASK: "+ משימה",
   CHOOSE_TYPE: "בחר סוג משימה",
@@ -204,20 +194,6 @@ export const PROJECT_TASKS_COPY = {
   MANAGERS_ONLY: "מנהלים בלבד",
   EMPTY: "אין משימות עדיין",
 } as const;
-
-export const TASK_PROJECT_PICKER_COPY = {
-  LABEL: TASK_LINK_KIND_LABELS.project,
-  SEARCH: "חיפוש פרויקט לפי שם או מזהה...",
-  EMPTY: "לא נמצא פרויקט שמתאים לחיפוש",
-  LOADING: "טוען פרויקטים…",
-  ERROR: "לא הצלחנו לטעון את רשימת הפרויקטים",
-  SELECTED_LOADING: "טוען את הפרויקט שנבחר…",
-  SELECTED_ERROR: "לא הצלחנו לטעון את הפרויקט שנבחר",
-  REPLACE: "החלף פרויקט",
-  REQUIRED: "בחר פרויקט",
-} as const;
-
-export const TASK_PROJECT_RESULT_LIMIT = 5;
 
 export const URGENCY_CHOICES = [
   {

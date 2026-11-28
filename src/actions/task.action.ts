@@ -7,6 +7,7 @@ import {
 import { taskService } from "../services/task.service";
 import { queryClient } from "../providers/query-client";
 import type { TaskStatusType } from "../constants/task.constant";
+import { getApiErrorMessage } from "../utilities/api-error.utility";
 import { QUERY_KEYS, QUERY_ROOTS } from "../constants/query-key.constant";
 import { AuthorizationContext } from "../managers/authorization-context.manager";
 import type { ITaskCreation, TUpdateTaskPayload } from "../interfaces/task.interface";
@@ -19,25 +20,33 @@ export const refreshTaskQueriesAction = () =>
     queryClient.invalidateQueries({ queryKey: [QUERY_ROOTS.TASK_TRANSITIONS] }),
   ]);
 
-const markUrgentWhenRequested = async (taskId: string, isUrgent: boolean) => {
+const markUrgentWhenRequested = async (
+  taskId: string,
+  isUrgent: boolean,
+): Promise<string | null> => {
   if (!isUrgent) {
-    return;
+    return null;
   }
 
-  await taskService.updateUrgency(taskId, true);
+  try {
+    await taskService.updateUrgency(taskId, true);
+    return null;
+  } catch (error) {
+    return getApiErrorMessage(error);
+  }
 };
 
-export const createTaskAction = async ({ payload, isUrgent }: ITaskCreation): Promise<string> => {
+export const createTaskAction = async ({ payload, isUrgent }: ITaskCreation) => {
   const context = new AuthorizationContext();
   const task = await taskService.create(payload);
   context.assertCurrent();
 
-  await markUrgentWhenRequested(task.id, isUrgent);
+  const urgencyError = await markUrgentWhenRequested(task.id, isUrgent);
   context.assertCurrent();
   await refreshTaskQueriesAction();
   context.assertCurrent();
 
-  return task.id;
+  return { taskId: task.id, urgencyError };
 };
 
 export const updateTaskAction = async ({

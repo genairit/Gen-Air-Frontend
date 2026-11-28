@@ -7,33 +7,30 @@ import {
   createClient,
 } from "./project-tasks.fixture";
 
-import moment from "moment";
-import { AxiosError } from "axios";
 import { test, after } from "node:test";
 import assert from "node:assert/strict";
+import type { ComponentProps } from "react";
+import { MemoryRouter } from "react-router-dom";
 import { act, create } from "react-test-renderer";
 import Button from "../src/components/Button/Button";
 import { setSession } from "../src/store/session.store";
-import { MemoryRouter, useLocation } from "react-router-dom";
-import NewTaskPage from "../src/pages/task-form/NewTaskPage";
 import TextField from "../src/components/TextField/TextField";
 import DateField from "../src/components/DateField/DateField";
-import { DATE_FORMAT } from "../src/constants/date.constants";
 import { httpClient } from "../src/services/http-client.service";
 import { QUERY_KEYS } from "../src/constants/query-key.constant";
 import { TASK_TYPES } from "../src/constants/task-type.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
+import InlineError from "../src/components/InlineError/InlineError";
 import { installDomEventTargets } from "./dom-event-targets.utility";
 import Autocomplete from "../src/components/Autocomplete/Autocomplete";
-import NewTaskForm from "../src/pages/task-form/components/NewTaskForm";
+import GenericPopup from "../src/components/GenericPopup/GenericPopup";
 import { QueryClientProvider, notifyManager } from "@tanstack/react-query";
-import TaskDetailsCard from "../src/pages/task/components/TaskDetailsCard";
-import type { TUpdateTaskPayload } from "../src/interfaces/task.interface";
+import TaskFormPopup from "../src/pages/task-form/components/TaskFormPopup";
+import TaskTypeField from "../src/pages/task-form/components/TaskTypeField";
 import TaskContentCard from "../src/pages/task-form/components/TaskContentCard";
-import { NEW_TASK_COPY, POOL_ASSIGNEE_ID } from "../src/constants/task.constant";
-import TaskLinkSelection from "../src/pages/task-form/components/TaskLinkSelection";
-import TaskAssignmentCard from "../src/pages/task-form/components/TaskAssignmentCard";
-import TaskLinkSelectionStatus from "../src/pages/task-form/components/TaskLinkSelectionStatus";
+import { NEW_TASK_COPY, TASK_ASSIGNEES_QUERY } from "../src/constants/task.constant";
+import UrgencyConfirmPopup from "../src/components/UrgencyConfirmPopup/UrgencyConfirmPopup";
+import TaskUrgencyChoiceCard from "../src/pages/task-form/components/TaskUrgencyChoiceCard";
 
 interface ITestElement {
   type: unknown;
@@ -78,404 +75,281 @@ test("the manual date field is optional while title and description remain requi
   }
 });
 
-test("assignment permission keeps pool selection available without exposing employee assignment", async () => {
-  const client = createClient();
+const renderPopup = async (
+  props: ComponentProps<typeof TaskFormPopup>,
+  client = createClient(),
+) => {
   const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
-  const user = { ...engineer, permissions: [PERMISSIONS.TASKS_CREATE] };
-  setSession({ accessToken: "unit-test-token", user });
-  try {
-    await act(async () => {
-      state.renderer = create(
-        <QueryClientProvider client={client}>
-          <MemoryRouter>
-            <TaskAssignmentCard
-              errors={{}}
-              onChange={noop}
-              values={formValues}
-              onLinkChange={noop}
-            />
-          </MemoryRouter>
-        </QueryClientProvider>,
-        { createNodeMock },
-      );
-    });
-    const renderer = state.renderer;
-    assert.ok(renderer);
-    const field = renderer.root
-      .findAllByType(Autocomplete)
-      .find(item => item.props.title === NEW_TASK_COPY.ASSIGNEE);
-    assert.ok(field);
-    assert.equal(field.props.options.length, 1);
-    assert.ok(field.props.options[0].includes("מאגר פתוח"));
-    await act(async () =>
-      setSession({
-        accessToken: "unit-test-token",
-        user: { ...user, permissions: [PERMISSIONS.TASKS_CREATE, PERMISSIONS.TASKS_ASSIGN] },
-      }),
-    );
-    const updatedField = renderer.root
-      .findAllByType(Autocomplete)
-      .find(item => item.props.title === NEW_TASK_COPY.ASSIGNEE);
-    assert.equal(updatedField?.props.options.length, 2);
-  } finally {
-    await act(async () => state.renderer?.unmount());
-    setSession(null);
-    client.clear();
-  }
-});
-
-test("protected task form opens the exact existing task even when the task list is not loaded", async () => {
-  const client = createClient();
   client.setQueryData(QUERY_KEYS.projectProtectedTasks(project.id), [
     { id: "existing-quotation", taskType: TASK_TYPES.QUOTATION, available: true },
   ]);
-  const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
-  setSession({
-    accessToken: "unit-test-token",
-    user: { ...engineer, permissions: [PERMISSIONS.TASKS_CREATE] },
+  await act(async () => {
+    state.renderer = create(
+      <QueryClientProvider client={client}>
+        <MemoryRouter>
+          <TaskFormPopup {...props} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+      { createNodeMock },
+    );
   });
+  assert.ok(state.renderer);
+  const root = state.renderer.root;
+  return {
+    root,
+    dialog: () => root.findByType(GenericPopup).props,
+    async dispose() {
+      await act(async () => state.renderer?.unmount());
+      client.clear();
+    },
+  };
+};
+
+const generalPopup = {
+  mode: "create",
+  initialTaskType: TASK_TYPES.GENERAL,
+  project,
+  onClose: noop,
+  onCreated: noop,
+} as const;
+
+test("creation permission keeps pool selection available without exposing employee assignment", async () => {
+  const user = { ...engineer, permissions: [PERMISSIONS.TASKS_CREATE] };
+  setSession({ accessToken: "unit-test-token", user });
+  const view = await renderPopup(generalPopup);
+  const assignee = () =>
+    view.root.findAllByType(Autocomplete).find(item => item.props.title === NEW_TASK_COPY.ASSIGNEE);
   try {
-    await act(async () => {
-      state.renderer = create(
-        <QueryClientProvider client={client}>
-          <MemoryRouter>
-            <NewTaskForm initialProjectId={project.id} initialTaskType={TASK_TYPES.QUOTATION} />
-          </MemoryRouter>
-        </QueryClientProvider>,
-        { createNodeMock },
-      );
-    });
-    const renderer = state.renderer;
-    assert.ok(renderer);
-    const save = renderer.root
-      .findAllByType(Button)
-      .find(button => button.props.text === NEW_TASK_COPY.SAVE);
-    assert.equal(save?.props.disabled, true);
+    assert.equal(assignee()?.props.items.length, 1);
+    assert.match(assignee()?.props.items[0].label, /מאגר פתוח/);
+    await act(async () =>
+      setSession({
+        accessToken: "unit-test-token",
+        user: { ...user, permissions: [...user.permissions, PERMISSIONS.TASKS_ASSIGN] },
+      }),
+    );
+    assert.equal(assignee()?.props.items.length, 2);
+  } finally {
+    await view.dispose();
+    setSession(null);
+  }
+});
+
+test("a protected slot makes the existing task available and prevents duplicate creation", async () => {
+  const view = await renderPopup({ ...generalPopup, initialTaskType: TASK_TYPES.QUOTATION });
+  try {
+    assert.equal(view.dialog().buttons.primary.isDisabled, true);
     assert.ok(
-      renderer.root
+      view.root
         .findAllByType(Button)
         .some(button => button.props.text === NEW_TASK_COPY.OPEN_EXISTING),
     );
   } finally {
-    await act(async () => state.renderer?.unmount());
-    setSession(null);
-    client.clear();
+    await view.dispose();
   }
 });
 
-test("protected task edits allow date clearing and assignment without an invented date, but reject past dates", async () => {
-  const client = createClient();
-  const changes: TUpdateTaskPayload[] = [];
-  const task = createTask({ taskType: TASK_TYPES.QUOTATION });
-  const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
-  try {
-    await act(async () => {
-      state.renderer = create(
-        <QueryClientProvider client={client}>
-          <MemoryRouter>
-            <TaskDetailsCard
-              canEdit
-              canAssign
-              task={task}
-              onClaim={noop}
-              canClaim={false}
-              isSaving={false}
-              onUpdate={payload => changes.push(payload)}
-            />
-          </MemoryRouter>
-        </QueryClientProvider>,
-        { createNodeMock },
-      );
-    });
-    const renderer = state.renderer;
-    assert.ok(renderer);
-    const date = renderer.root.findByType(DateField);
-    assert.equal(date.props.value, "");
-    await act(async () => date.props.onChange(""));
-    assert.deepEqual(changes, [{ dueDate: null }]);
-    await act(async () =>
-      date.props.onChange(moment().subtract(1, "day").format(DATE_FORMAT.DATE_INPUT)),
-    );
-    await act(async () => date.props.onChange("invalid-date"));
-    assert.equal(changes.length, 1);
-    const tomorrow = moment().add(1, "day").format(DATE_FORMAT.DATE_INPUT);
-    await act(async () => date.props.onChange(tomorrow));
-    assert.deepEqual(changes, [{ dueDate: null }, { dueDate: tomorrow }]);
-    const assignee = renderer.root.findByType(Autocomplete);
-    const engineerLabel = assignee.props.options.find(
-      (label: string) => label === `${engineer.firstName} ${engineer.lastName}`,
-    );
-    assert.ok(engineerLabel);
-    await act(async () => assignee.props.onChange(engineerLabel));
-    assert.deepEqual(changes.at(-1), { assigneeId: engineer.id });
-    assert.ok(changes.every(payload => !("taskType" in payload) && !("projectId" in payload)));
-  } finally {
-    await act(async () => state.renderer?.unmount());
-    client.clear();
-  }
-});
-
-test("an unavailable initial project remains selected and blocks submission instead of silently creating an unlinked task", async () => {
-  const client = createClient();
-  const projectId = "unavailable-project";
-  client.setQueryDefaults(QUERY_KEYS.project(projectId), {
-    retryOnMount: false,
-    refetchOnMount: false,
-  });
-  await assert.rejects(
-    client.fetchQuery({
-      queryKey: QUERY_KEYS.project(projectId),
-      queryFn: async () => {
-        throw new Error("Project not found");
-      },
-    }),
-    /Project not found/,
-  );
-  const requests: string[] = [];
-  const previousAdapter = httpClient.defaults.adapter;
-  httpClient.defaults.adapter = async config => {
-    requests.push(config.url ?? "");
-    throw new Error("Unexpected network request in cached unit fixture");
-  };
-  const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
-  setSession({
-    accessToken: "unit-test-token",
-    user: { ...engineer, permissions: [PERMISSIONS.TASKS_CREATE] },
-  });
-  try {
-    await act(async () => {
-      state.renderer = create(
-        <QueryClientProvider client={client}>
-          <MemoryRouter>
-            <NewTaskForm initialProjectId={projectId} initialTaskType={TASK_TYPES.GENERAL} />
-          </MemoryRouter>
-        </QueryClientProvider>,
-        { createNodeMock },
-      );
-    });
-    const renderer = state.renderer;
-    assert.ok(renderer);
-    await act(async () => {
-      renderer.root
-        .findByType(TaskContentCard)
-        .props.onChange({ title: "משימה כללית", description: "תיאור עבודה" });
-      renderer.root
-        .findByType(TaskAssignmentCard)
-        .props.onChange({ assigneeOptionId: POOL_ASSIGNEE_ID });
-    });
-    assert.equal(renderer.root.findByType(TaskAssignmentCard).props.values.projectId, projectId);
-    assert.equal(renderer.root.findByType(TaskLinkSelectionStatus).props.isError, true);
-    const submit = renderer.root
-      .findAllByType(Button)
-      .find(button => button.props.text === NEW_TASK_COPY.SAVE);
-    assert.ok(submit);
-    assert.equal(submit.props.disabled, true);
-    await act(async () => submit.props.onClick());
-    assert.deepEqual(requests, []);
-  } finally {
-    await act(async () => state.renderer?.unmount());
-    httpClient.defaults.adapter = previousAdapter;
-    setSession(null);
-    client.clear();
-  }
-});
-
-test("cached project refetch failure exposes retry and blocks save until recovery without losing the form", async () => {
+test("saving from an apartment retains an invalid or failed draft and returns the created ID on retry", async () => {
   notifyManager.setScheduler(queueMicrotask);
-  const client = createClient();
-  const state: { renderer: ReturnType<typeof create> | null; failing: boolean; posts: string[] } = {
-    renderer: null,
-    failing: true,
-    posts: [],
-  };
-  const previousAdapter = httpClient.defaults.adapter;
+  const oldAdapter = httpClient.defaults.adapter;
+  const posts: unknown[] = [];
+  const createdIds: string[] = [];
+  const apartment = { ...project, id: "unit-4", parentProjectId: project.id, name: "דירה 4" };
   httpClient.defaults.adapter = async config => {
-    if (config.method === "post") {
-      state.posts.push(typeof config.data === "string" ? config.data : "");
-      return { config, data: createTask(), status: 201, statusText: "Created", headers: {} };
+    assert.equal(config.method, "post");
+    posts.push(JSON.parse(config.data));
+    if (posts.length === 1) {
+      throw new Error("Temporary save failure");
     }
-    if (state.failing) {
-      throw new AxiosError("Project unavailable", "ERR_BAD_RESPONSE", config, null, {
-        config,
-        status: 503,
-        statusText: "Unavailable",
-        headers: {},
-        data: { message: "Project unavailable" },
-      });
-    }
-    return { config, data: project, status: 200, statusText: "OK", headers: {} };
+    return {
+      config,
+      data: createTask({ projectId: apartment.id }),
+      status: 201,
+      statusText: "Created",
+      headers: {},
+    };
   };
-  setSession({
-    accessToken: "unit-test-token",
-    user: { ...engineer, permissions: [PERMISSIONS.TASKS_CREATE] },
+  const view = await renderPopup({
+    ...generalPopup,
+    project: apartment,
+    onCreated: id => createdIds.push(id),
   });
+  const fields = () => view.root.findByType(TaskContentCard).props;
+  const submit = () =>
+    act(async () => {
+      view.dialog().buttons.primary.onClick();
+      await new Promise(resolve => setImmediate(resolve));
+    });
   try {
-    await act(async () => {
-      state.renderer = create(
-        <QueryClientProvider client={client}>
-          <MemoryRouter>
-            <NewTaskForm initialProjectId={project.id} initialTaskType={TASK_TYPES.GENERAL} />
-          </MemoryRouter>
-        </QueryClientProvider>,
-        { createNodeMock },
-      );
-    });
-    const renderer = state.renderer;
-    assert.ok(renderer);
-    await act(async () =>
-      renderer.root
-        .findByType(TaskContentCard)
-        .props.onChange({ title: "תיאור שנשמר בטופס", description: "עבודה כללית לפרויקט" }),
-    );
-    assert.equal(renderer.root.findAllByType(TaskLinkSelection).length, 1);
-    await act(async () => {
-      await assert.rejects(
-        client.refetchQueries(
-          { queryKey: QUERY_KEYS.project(project.id), exact: true },
-          { throwOnError: true },
-        ),
-        /Project unavailable/,
-      );
-      await new Promise(resolve => setImmediate(resolve));
-    });
-    assert.deepEqual(client.getQueryData(QUERY_KEYS.project(project.id)), project);
-    assert.equal(client.getQueryState(QUERY_KEYS.project(project.id))?.status, "error");
-    assert.equal(renderer.root.findAllByType(TaskLinkSelection).length, 0);
-    const errorStatus = renderer.root.findByType(TaskLinkSelectionStatus);
-    assert.equal(errorStatus.props.isError, true);
-    const submit = renderer.root
-      .findAllByType(Button)
-      .find(button => button.props.text === NEW_TASK_COPY.SAVE);
-    assert.ok(submit);
-    assert.equal(submit.props.disabled, true);
-    await act(async () => submit.props.onClick());
-    assert.deepEqual(state.posts, []);
-    state.failing = false;
-    await act(async () => {
-      await errorStatus.props.onRetry();
-      await new Promise(resolve => setImmediate(resolve));
-    });
-    assert.equal(renderer.root.findAllByType(TaskLinkSelectionStatus).length, 0);
-    assert.equal(renderer.root.findAllByType(TaskLinkSelection).length, 1);
-    assert.equal(renderer.root.findByType(TaskContentCard).props.values.title, "תיאור שנשמר בטופס");
-    const recoveredSubmit = renderer.root
-      .findAllByType(Button)
-      .find(button => button.props.text === NEW_TASK_COPY.SAVE);
-    assert.ok(recoveredSubmit);
-    assert.equal(recoveredSubmit.props.disabled, false);
-    await act(async () => {
-      recoveredSubmit.props.onClick();
-      await new Promise(resolve => setImmediate(resolve));
-    });
-    assert.equal(state.posts.length, 1);
-    assert.deepEqual(JSON.parse(state.posts[0]), {
-      projectId: project.id,
+    await submit();
+    assert.equal(posts.length, 0);
+    assert.equal(fields().errors.title, NEW_TASK_COPY.REQUIRED);
+    await act(async () => fields().onChange({ title: "Fix", description: "Inspect" }));
+    await submit();
+    assert.equal(fields().values.title, "Fix");
+    assert.deepEqual(createdIds, []);
+    assert.equal(view.root.findAllByType(InlineError).length, 1);
+    await submit();
+    const payload = {
+      projectId: apartment.id,
       taskType: TASK_TYPES.GENERAL,
-      title: "תיאור שנשמר בטופס",
-      description: "עבודה כללית לפרויקט",
+      title: "Fix",
+      description: "Inspect",
       dueDate: null,
       assigneeId: null,
-    });
+    };
+    assert.deepEqual(posts, [payload, payload]);
+    assert.deepEqual(createdIds, ["task-1"]);
   } finally {
-    await act(async () => state.renderer?.unmount());
-    httpClient.defaults.adapter = previousAdapter;
-    setSession(null);
-    client.clear();
+    await view.dispose();
+    httpClient.defaults.adapter = oldAdapter;
     notifyManager.setScheduler(callback => setTimeout(callback, 0));
   }
 });
 
-test("routed new-task page retains the form and URL after initial project failure and recovers on retry", async () => {
+test("the same popup edits a legacy task and sends only permitted changes on save", async () => {
   notifyManager.setScheduler(queueMicrotask);
-  const client = createClient();
-  client.removeQueries({ queryKey: QUERY_KEYS.project(project.id), exact: true });
-  const state: {
-    renderer: ReturnType<typeof create> | null;
-    failing: boolean;
-    requests: number;
-    url: string;
-  } = {
-    renderer: null,
-    failing: true,
-    requests: 0,
-    url: "",
-  };
-  const LocationProbe = () => {
-    const location = useLocation();
-    state.url = location.pathname + location.search;
-    return null;
-  };
-  const previousAdapter = httpClient.defaults.adapter;
+  const oldAdapter = httpClient.defaults.adapter;
+  const writes: unknown[] = [];
+  const task = createTask({
+    projectId: null,
+    project: null,
+    description: null,
+    customerId: "legacy-customer",
+    dueDate: "2020-01-01",
+    taskType: TASK_TYPES.PLANNING,
+  });
+  const result = { closed: 0 };
   httpClient.defaults.adapter = async config => {
-    state.requests += 1;
-    if (state.failing) {
-      throw new AxiosError("Project unavailable", "ERR_BAD_RESPONSE", config, null, {
-        config,
-        status: 500,
-        statusText: "Unavailable",
-        headers: {},
-        data: { message: "Project unavailable" },
-      });
+    assert.equal(config.method, "patch");
+    writes.push(JSON.parse(config.data));
+    return { config, data: task, status: 200, statusText: "OK", headers: {} };
+  };
+  const view = await renderPopup({
+    mode: "edit",
+    task,
+    canEdit: true,
+    canAssign: false,
+    onClose: () => {
+      result.closed += 1;
+    },
+  });
+  const fields = view.root.findByType(TaskContentCard);
+  try {
+    assert.equal(view.dialog().title, NEW_TASK_COPY.EDIT_TITLE);
+    assert.equal(view.dialog().buttons.primary.isDisabled, true);
+    assert.equal(fields.props.values.dueDate, "2020-01-01");
+    assert.equal(view.root.findByType(TaskTypeField).props.disabled, true);
+    assert.equal(view.root.findAllByType(TaskUrgencyChoiceCard).length, 0);
+    await act(async () =>
+      fields.props.onChange({ title: " Updated ", assigneeOptionId: engineer.id }),
+    );
+    assert.deepEqual(writes, []);
+    await act(async () => {
+      view.dialog().buttons.primary.onClick();
+      await new Promise(resolve => setImmediate(resolve));
+    });
+    assert.deepEqual(writes, [{ title: "Updated" }]);
+    assert.equal(result.closed, 1);
+  } finally {
+    await view.dispose();
+    httpClient.defaults.adapter = oldAdapter;
+    notifyManager.setScheduler(callback => setTimeout(callback, 0));
+  }
+});
+
+test("an urgent task with a failed urgency request retains its ID and retries only the urgency update", async () => {
+  notifyManager.setScheduler(queueMicrotask);
+  const oldAdapter = httpClient.defaults.adapter;
+  const calls: string[] = [];
+  const createdIds: string[] = [];
+  httpClient.defaults.adapter = async config => {
+    calls.push(`${config.method} ${config.url}`);
+    if (calls.length === 2) {
+      throw new Error("Urgency confirmation unavailable");
     }
-    return { config, data: project, status: 200, statusText: "OK", headers: {} };
+    return { config, data: createTask(), status: 200, statusText: "OK", headers: {} };
   };
   setSession({
     accessToken: "unit-test-token",
-    user: { ...engineer, permissions: [PERMISSIONS.TASKS_CREATE] },
+    user: {
+      ...engineer,
+      permissions: [PERMISSIONS.TASKS_CREATE, PERMISSIONS.TASKS_URGENCY_CHANGE],
+    },
   });
+  const view = await renderPopup({ ...generalPopup, onCreated: id => createdIds.push(id) });
   try {
-    await act(async () => {
-      state.renderer = create(
-        <QueryClientProvider client={client}>
-          <MemoryRouter initialEntries={[`/tasks/new?projectId=${project.id}`]}>
-            <LocationProbe />
-            <NewTaskPage />
-          </MemoryRouter>
-        </QueryClientProvider>,
-        { createNodeMock },
-      );
-      await new Promise(resolve => setImmediate(resolve));
-    });
-    const renderer = state.renderer;
-    assert.ok(renderer);
-    const form = renderer.root.findByType(NewTaskForm);
-    assert.equal(state.requests, 1);
-    assert.equal(renderer.root.findByType(TaskLinkSelectionStatus).props.isError, true);
-    assert.equal(renderer.root.findByType(TaskAssignmentCard).props.values.projectId, project.id);
-    assert.equal(state.url, `/tasks/new?projectId=${project.id}`);
     await act(async () =>
-      renderer.root
+      view.root
         .findByType(TaskContentCard)
-        .props.onChange({ title: "טיוטה נשמרת", description: "תיאור" }),
+        .props.onChange({ title: "Urgent", description: "Urgent work" }),
     );
-    const save = renderer.root
-      .findAllByType(Button)
-      .find(button => button.props.text === NEW_TASK_COPY.SAVE);
-    assert.ok(save);
-    assert.equal(save.props.disabled, true);
-    await act(async () => save.props.onClick());
-    assert.equal(state.requests, 1);
-    state.failing = false;
+    await act(async () => view.root.findByType(TaskUrgencyChoiceCard).props.onChange(true));
     await act(async () => {
-      await renderer.root.findByType(TaskLinkSelectionStatus).props.onRetry();
+      view.root.findByType(UrgencyConfirmPopup).props.onConfirm();
       await new Promise(resolve => setImmediate(resolve));
     });
-    assert.equal(state.requests, 2);
-    assert.equal(renderer.root.findByType(NewTaskForm), form);
-    assert.equal(renderer.root.findAllByType(TaskLinkSelectionStatus).length, 0);
-    assert.equal(renderer.root.findAllByType(TaskLinkSelection).length, 1);
-    assert.equal(renderer.root.findByType(TaskContentCard).props.values.title, "טיוטה נשמרת");
-    assert.equal(state.url, `/tasks/new?projectId=${project.id}`);
-    assert.equal(
-      renderer.root.findAllByType(Button).find(button => button.props.text === NEW_TASK_COPY.SAVE)
-        ?.props.disabled,
-      false,
-    );
+    assert.deepEqual(calls, ["post /task", "patch /task/task-1/urgency"]);
+    assert.deepEqual(createdIds, []);
+    assert.equal(view.root.findAllByType(TaskContentCard).length, 0);
+    assert.equal(view.dialog().buttons.primary.text, NEW_TASK_COPY.RETRY_URGENCY);
+    await act(async () => {
+      view.dialog().buttons.primary.onClick();
+      await new Promise(resolve => setImmediate(resolve));
+    });
+    assert.deepEqual(calls, [
+      "post /task",
+      "patch /task/task-1/urgency",
+      "patch /task/task-1/urgency",
+    ]);
+    assert.deepEqual(createdIds, ["task-1"]);
   } finally {
-    await act(async () => state.renderer?.unmount());
+    await view.dispose();
+    setSession(null);
+    httpClient.defaults.adapter = oldAdapter;
+    notifyManager.setScheduler(callback => setTimeout(callback, 0));
+  }
+});
+
+test("a same-name assignee is identified by employee number and saved by their selected ID", async () => {
+  const client = createClient();
+  const second = { ...engineer, id: "engineer-2", employeeNumber: "EMP-2" };
+  client.setQueryData(QUERY_KEYS.users(TASK_ASSIGNEES_QUERY), [engineer, second]);
+  setSession({
+    accessToken: "unit-test-token",
+    user: { ...engineer, permissions: [PERMISSIONS.TASKS_CREATE, PERMISSIONS.TASKS_ASSIGN] },
+  });
+  const view = await renderPopup(generalPopup, client);
+  const field = view.root
+    .findAllByType(Autocomplete)
+    .find(item => item.props.title === NEW_TASK_COPY.ASSIGNEE);
+  const previousAdapter = httpClient.defaults.adapter;
+  const assigneeIds: string[] = [];
+  httpClient.defaults.adapter = async config => {
+    assigneeIds.push(JSON.parse(config.data).assigneeId);
+    return { config, data: createTask(), status: 201, statusText: "Created", headers: {} };
+  };
+  try {
+    assert.ok(field);
+    const [, firstOption, secondOption] = field.props.items;
+    assert.equal(firstOption.label, secondOption.label);
+    assert.equal(firstOption.subtitle, engineer.employeeNumber);
+    assert.equal(secondOption.subtitle, second.employeeNumber);
+    await act(async () => field.props.onChange(secondOption.value));
+    assert.equal(field.props.selectedItem.value, second.id);
+    await act(async () =>
+      view.root
+        .findByType(TaskContentCard)
+        .props.onChange({ title: "Follow up", description: "Follow up at the site" }),
+    );
+    await act(async () => {
+      view.dialog().buttons.primary.onClick();
+      await new Promise(resolve => setImmediate(resolve));
+    });
+    assert.deepEqual(assigneeIds, [second.id]);
+  } finally {
+    await view.dispose();
     httpClient.defaults.adapter = previousAdapter;
     setSession(null);
-    client.clear();
-    notifyManager.setScheduler(callback => setTimeout(callback, 0));
   }
 });

@@ -38,7 +38,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
     <Box sx={styles.page}>
       <ApartmentHeaderCard stages={stages} building={building} apartment={apartment} />
 
-      {canReadTasks && <ProjectTasksCard projectId={apartment.id} />}
+      {canReadTasks && <ProjectTasksCard key={apartment.id} project={apartment} />}
 
       <Box sx={styles.grid({ minColumnWidth: 380 })}>
         <Box sx={styles.stack({})}>

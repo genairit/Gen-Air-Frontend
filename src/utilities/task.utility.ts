@@ -11,7 +11,6 @@ import {
   URGENCY_CONFIRM_COPY,
   type TaskLinkKindType,
   TASK_LINK_KIND_LABELS,
-  TASK_PROJECT_PICKER_COPY,
   TASK_HISTORY_PREVIEW_COUNT,
 } from "../constants/task.constant";
 
@@ -24,7 +23,6 @@ import type {
   TTaskFormErrors,
   ITaskFormValues,
   ITaskLinkReader,
-  ITaskLinkOption,
   ICreateTaskPayload,
   IApiTaskTransition,
   TTaskFormErrorEntry,
@@ -223,10 +221,22 @@ export const formatTaskSummary = ({
 
 export const formatProjectTasksSubtitle = (count: number) => `${count} משימות`;
 
-export const toAssigneeOptions = (users: IApiUser[]) => [
-  { id: POOL_ASSIGNEE_ID, label: NEW_TASK_COPY.POOL_OPTION },
-  ...users.map(user => ({ id: user.id, label: getFullName(user) })),
-];
+export const toAssigneeOptions = (users: IApiUser[]) => {
+  const nameCounts = new Map<string, number>();
+  for (const user of users) {
+    const name = getFullName(user);
+    nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1);
+  }
+
+  return [
+    { id: POOL_ASSIGNEE_ID, label: NEW_TASK_COPY.POOL_OPTION },
+    ...users.map(user => {
+      const label = getFullName(user);
+      const needsIdentifier = (nameCounts.get(label) ?? 0) > 1;
+      return { id: user.id, label, ...(needsIdentifier && { subtitle: user.employeeNumber }) };
+    }),
+  ];
+};
 
 export const toProjectTaskAssigneeOptions = (
   users: IApiUser[],
@@ -282,25 +292,6 @@ export const findTaskAssignee = (
   );
 };
 
-export const resolveAssigneeAfterProjectChange = ({
-  currentProjectId,
-  nextProjectId,
-  assigneeOptionId,
-  availableUsers,
-}: {
-  currentProjectId: string | null;
-  nextProjectId: string | null;
-  assigneeOptionId: string | null;
-  availableUsers: IApiUser[];
-}): string | null => {
-  if (currentProjectId === nextProjectId || assigneeOptionId === POOL_ASSIGNEE_ID) {
-    return assigneeOptionId;
-  }
-  return availableUsers.some(user => user.id === assigneeOptionId)
-    ? assigneeOptionId
-    : POOL_ASSIGNEE_ID;
-};
-
 export const toAssigneeId = (optionId: string | null) => {
   if (optionId === POOL_ASSIGNEE_ID) {
     return null;
@@ -330,7 +321,7 @@ export const getTaskDueDateError = (dueDate: string) => {
 
 export const getTaskFormErrors = (values: ITaskFormValues): TTaskFormErrors => {
   const errors: TTaskFormErrorEntry[] = [
-    ["projectId", values.projectId ? null : TASK_PROJECT_PICKER_COPY.REQUIRED],
+    ["projectId", values.projectId ? null : NEW_TASK_COPY.MISSING_PROJECT],
     ["assigneeOptionId", values.assigneeOptionId ? null : NEW_TASK_COPY.REQUIRED],
     ["title", values.title.trim() ? null : NEW_TASK_COPY.REQUIRED],
     ["dueDate", getTaskDueDateError(values.dueDate)],
@@ -451,13 +442,3 @@ export const getVisibleHistory = (transitions: IApiTaskTransition[], isExpanded:
 
   return transitions.slice(0, TASK_HISTORY_PREVIEW_COUNT);
 };
-
-export const toProjectLinkOption = (project: IApiProject): ITaskLinkOption => ({
-  id: project.id,
-  name: project.name,
-  caption: project.code,
-  tag: project.projectType?.name ?? null,
-});
-
-export const findLinkOption = (options: ITaskLinkOption[], optionId: string) =>
-  options.find(option => option.id === optionId) ?? null;

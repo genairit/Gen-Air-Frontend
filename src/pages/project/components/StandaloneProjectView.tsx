@@ -33,7 +33,7 @@ const StandaloneProjectView: FC<IStandaloneProjectViewProps> = ({ project }) => 
     <Box sx={styles.page}>
       <ProjectPageHeader project={project} />
 
-      {canReadTasks && <ProjectTasksCard projectId={project.id} />}
+      {canReadTasks && <ProjectTasksCard key={project.id} project={project} />}
 
       {canReadDrive && <ProjectDriveCard projectId={project.id} />}
 

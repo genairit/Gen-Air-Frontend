@@ -97,7 +97,7 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         badge={<Chip label={formatBuildingBadge(stageCounts?.total ?? 0)} />}
       />
 
-      {canReadTasks && <ProjectTasksCard projectId={project.id} />}
+      {canReadTasks && <ProjectTasksCard key={project.id} project={project} />}
 
       {canReadDrive && <ProjectDriveCard shareWithApartments projectId={project.id} />}
 

@@ -116,13 +116,6 @@ export interface ITaskLinkReader {
   getContextCustomer: (task: IApiTask) => IApiCustomerReference | null;
 }
 
-export interface ITaskLinkOption {
-  id: string;
-  name: string;
-  caption: string;
-  tag: string | null;
-}
-
 export type TaskFormFieldType =
   "title" | "dueDate" | "projectId" | "description" | "assigneeOptionId";
 
