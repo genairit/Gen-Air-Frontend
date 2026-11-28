@@ -24,6 +24,7 @@ import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorksp
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
 import ProjectPurchaseDocuments from "../../project/components/ProjectPurchaseDocuments";
 import ProjectPeoplePanel from "../../../components/ProjectPeoplePanel/ProjectPeoplePanel";
+import ProjectEstimateCreateButton from "../../project/components/ProjectEstimateCreateButton";
 import ProjectHeaderDetails from "../../../components/ProjectHeaderDetails/ProjectHeaderDetails";
 import ProjectQuotationCreateButton from "../../project/components/ProjectQuotationCreateButton";
 import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
@@ -91,6 +92,7 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
       ? [
           {
             ...PROJECT_TABS.estimates,
+            action: <ProjectEstimateCreateButton projectId={apartment.id} />,
             content: <ProjectEstimatesPanel projectId={apartment.id} />,
           },
         ]

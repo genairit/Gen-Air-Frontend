@@ -1,29 +1,21 @@
-import {
-  buildEstimateCreatePath,
-  buildEstimateDetailPath,
-} from "../../../utilities/engineering-estimate.utility";
-
+import type { FC } from "react";
 import { Box } from "@mui/material";
-import { useRef, type FC } from "react";
+import { useNavigate } from "react-router-dom";
 import Card from "../../../components/Card/Card";
 import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
 import { useStyles } from "./ProjectQuotationCard.style";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useSessionUser } from "../../../store/session.store";
 import badgeStyles from "../../quotations/quotation.module.css";
-import { useElementFocus } from "../../../hooks/element-focus.hook";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
-import { PERMISSIONS } from "../../../constants/permission.constant";
 import { formatRelativeTime } from "../../../utilities/date.utility";
 import { quotationMoney } from "../../../utilities/quotation.utility";
-import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { useEstimatesQuery } from "../../../hooks/engineering-estimate.hook";
 import { PROJECT_QUOTATIONS_COPY } from "../../../constants/quotation-sharing.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { buildEstimateDetailPath } from "../../../utilities/engineering-estimate.utility";
 import { ESTIMATE_STATUS_LABELS } from "../../../constants/engineering-estimate.constant";
 
 interface IProjectEstimatesPanelProps {
@@ -34,11 +26,6 @@ const ProjectEstimatesPanel: FC<IProjectEstimatesPanelProps> = ({ projectId }) =
   const styles = useStyles();
   const page = usePageStyles();
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const createButton = useRef<HTMLButtonElement | null>(null);
-  const sessionUser = useSessionUser();
-  const canCreate = hasPermission(sessionUser, PERMISSIONS.ENGINEERING_ESTIMATES_MANAGE);
-  useElementFocus(createButton, canCreate && state?.focusEstimateCreate === true);
   const list = useEstimatesQuery(projectId);
   const estimates = list.data?.pages.flatMap(page => page.items) ?? [];
 
@@ -52,16 +39,6 @@ const ProjectEstimatesPanel: FC<IProjectEstimatesPanelProps> = ({ projectId }) =
 
   return (
     <Box component="section" aria-label="כתבי כמויות" sx={page.stack({ gap: "12px" })}>
-      {canCreate && (
-        <Box sx={page.endRow}>
-          <Button
-            size="compact"
-            text="יצירת כתב כמויות"
-            buttonRef={createButton}
-            onClick={() => navigate(buildEstimateCreatePath(projectId))}
-          />
-        </Box>
-      )}
       {list.isPending && <LoadingState label="טוען כתבי כמויות..." />}
       {list.isError && (
         <Box sx={page.row({ gap: "8px" })}>
