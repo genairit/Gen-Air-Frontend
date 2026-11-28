@@ -1,15 +1,19 @@
-import {
-  createCustomerAction,
-  updateCustomerOwnContactAction,
-} from "../../actions/customer.action";
-
 import { useMutation } from "@tanstack/react-query";
-import type { ICustomerOwnContactInput } from "../../interfaces/customer.interface";
+import type { IApiCustomer } from "../../interfaces/api.interface";
+import type { ICreateCustomerPayload } from "../../interfaces/customer.interface";
+import { createCustomerAction, updateCustomerAction } from "../../actions/customer.action";
+import { normalizeCustomerForm, customerFormChanges } from "../../utilities/customer-form.utility";
 
-export const useCreateCustomerMutation = () => useMutation({ mutationFn: createCustomerAction });
-
-export const useUpdateCustomerOwnContactMutation = (customerId: string) =>
+export const useSaveCustomerMutation = (original: IApiCustomer | null) =>
   useMutation({
-    mutationFn: (details: ICustomerOwnContactInput) =>
-      updateCustomerOwnContactAction(customerId, details),
+    mutationFn: async (values: ICreateCustomerPayload) => {
+      if (!original) {
+        return createCustomerAction(normalizeCustomerForm(values));
+      }
+      const changes = customerFormChanges(original, values);
+      if (Object.keys(changes).length > 0) {
+        await updateCustomerAction(original.id, changes);
+      }
+      return original.id;
+    },
   });

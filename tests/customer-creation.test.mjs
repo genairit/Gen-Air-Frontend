@@ -40,10 +40,16 @@ registerHooks({
   },
 });
 
-const { normalizeCustomerForm, getCustomerFormErrors, countCustomerFormErrors } =
-  await import("../src/utilities/customer-form.utility.ts");
+const {
+  customerFormValues,
+  customerFormChanges,
+  getCustomerEditErrors,
+  normalizeCustomerForm,
+  getCustomerFormErrors,
+  countCustomerFormErrors,
+} = await import("../src/utilities/customer-form.utility.ts");
 const { customerService } = await import("../src/services/customer.service.ts");
-const { createCustomerAction, updateCustomerOwnContactAction } =
+const { createCustomerAction, updateCustomerAction } =
   await import("../src/actions/customer.action.ts");
 const { httpClient } = await import("../src/services/http-client.service.ts");
 const { queryClient } = await import("../src/providers/query-client.ts");
@@ -226,7 +232,7 @@ test("own customer details PATCH clears one field and refreshes customer and lin
   fixture.invalidations.length = 0;
   fixture.response = { ...customer, primaryContact: null };
   const details = { phone: null, email: "own@example.com" };
-  assert.deepEqual(await updateCustomerOwnContactAction(customer.id, details), fixture.response);
+  assert.deepEqual(await updateCustomerAction(customer.id, details), fixture.response);
   assert.deepEqual(fixture.requests.at(-1), {
     url: `/customer/${customer.id}`,
     method: "patch",
@@ -236,6 +242,7 @@ test("own customer details PATCH clears one field and refreshes customer and lin
   assert.deepEqual(fixture.invalidations, [
     [QUERY_ROOTS.CUSTOMERS],
     [QUERY_ROOTS.PROJECT],
+    [QUERY_ROOTS.PROJECTS],
     [QUERY_ROOTS.APARTMENTS],
   ]);
   fixture.response = customer;
@@ -248,7 +255,7 @@ test("failed own-details updates preserve cached customer and propagate the fail
   fixture.invalidations.length = 0;
   try {
     await assert.rejects(
-      updateCustomerOwnContactAction(customer.id, { phone: null, email: null }),
+      updateCustomerAction(customer.id, { phone: null, email: null }),
       /temporary update failure/,
     );
     assert.deepEqual(queryClient.getQueryData(QUERY_KEYS.customer(customer.id)), cached);
@@ -256,4 +263,41 @@ test("failed own-details updates preserve cached customer and propagate the fail
   } finally {
     fixture.error = null;
   }
+});
+
+test("editing snapshots contact details and sends only changed fields, including explicit clears", () => {
+  const record = { ...customer, primaryContact: { phone: "031234567", email: "own@example.com" } };
+  const original = customerFormValues(record);
+  assert.equal(original.email, "own@example.com");
+  assert.deepEqual(customerFormChanges(record, original), {});
+  assert.deepEqual(customerFormChanges(record, { ...original, phone: "", name: "  Updated  " }), {
+    phone: null,
+    name: "Updated",
+  });
+  const paymentSchedule = [{ percent: "100", text: "מסירה" }];
+  assert.deepEqual(customerFormChanges(record, { ...original, paymentSchedule }), {
+    paymentTerms: null,
+    paymentSchedule,
+  });
+});
+
+test("legacy values can remain untouched when editing another field", () => {
+  const record = { ...customer, taxId: "legacy", primaryContact: null };
+  const legacy = customerFormValues(record);
+  assert.deepEqual(getCustomerEditErrors(record, { ...legacy, name: "Updated" }), {});
+  assert.ok(getCustomerEditErrors(record, { ...legacy, taxId: "invalid change" }).taxId);
+});
+
+test("the first contact edit migrates both legacy values while unrelated edits leave them untouched", () => {
+  const record = { ...customer, primaryContact: null, primaryContactId: null };
+  const draft = customerFormValues(record);
+  assert.deepEqual(customerFormChanges(record, { ...draft, name: "Updated" }), { name: "Updated" });
+  assert.deepEqual(customerFormChanges(record, { ...draft, phone: "" }), {
+    phone: null,
+    email: customer.email,
+  });
+  assert.deepEqual(customerFormChanges(record, { ...draft, email: "updated@example.com" }), {
+    phone: customer.phone,
+    email: "updated@example.com",
+  });
 });

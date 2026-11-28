@@ -5,10 +5,12 @@ import {
 
 import type {
   TCustomerFormErrors,
+  TCustomerUpdateRequest,
   ICreateCustomerPayload,
   ICustomerCreateRequest,
 } from "../interfaces/customer.interface";
 
+import type { IApiCustomer } from "../interfaces/api.interface";
 import { CUSTOMER_FORM_COPY, CUSTOMER_FORM_FIELDS } from "../constants/customer-form.constant";
 import { PROJECT_DETAIL_FIELD_SET_VALUES } from "../constants/project-detail-field-set.constant";
 
@@ -21,6 +23,43 @@ export const normalizeCustomerForm = (values: ICreateCustomerPayload): ICustomer
   email: values.email.trim() || null,
   customerType: values.customerType,
 });
+
+export const customerFormValues = (customer: IApiCustomer): ICreateCustomerPayload => ({
+  name: customer.name,
+  taxId: customer.taxId,
+  address: customer.address,
+  customerType: customer.customerType,
+  phone: (customer.primaryContact ? customer.primaryContact.phone : customer.phone) ?? "",
+  email: (customer.primaryContact ? customer.primaryContact.email : customer.email) ?? "",
+  ...customerPaymentConfiguration(customer),
+});
+
+export const customerFormChanges = (
+  original: IApiCustomer,
+  draft: ICreateCustomerPayload,
+): TCustomerUpdateRequest => {
+  const before = normalizeCustomerForm(customerFormValues(original));
+  const after = normalizeCustomerForm(draft);
+  const { paymentTerms, paymentSchedule } = after;
+  const changedFields = CUSTOMER_FORM_FIELDS.filter(
+    ({ field }) => before[field] !== after[field],
+  ).map(({ field }) => [field, after[field]]);
+  const hasLegacyContact =
+    !original.primaryContact &&
+    !original.primaryContactId &&
+    (original.phone != null || original.email != null);
+  const contactChanged = before.phone !== after.phone || before.email !== after.email;
+  const migrateContact = hasLegacyContact && contactChanged;
+  const paymentChanged =
+    before.paymentTerms !== paymentTerms ||
+    JSON.stringify(before.paymentSchedule) !== JSON.stringify(paymentSchedule);
+  return {
+    ...Object.fromEntries(changedFields),
+    ...(migrateContact && { phone: after.phone, email: after.email }),
+    ...(before.customerType !== after.customerType && { customerType: after.customerType }),
+    ...(paymentChanged && { paymentTerms, paymentSchedule }),
+  };
+};
 
 export const getCustomerFormErrors = (values: ICreateCustomerPayload): TCustomerFormErrors => {
   const fieldErrors = CUSTOMER_FORM_FIELDS.flatMap(field => {
@@ -52,3 +91,13 @@ export const getCustomerFormErrors = (values: ICreateCustomerPayload): TCustomer
 
 export const countCustomerFormErrors = (values: ICreateCustomerPayload) =>
   Object.keys(getCustomerFormErrors(values)).length;
+
+export const getCustomerEditErrors = (
+  original: IApiCustomer,
+  draft: ICreateCustomerPayload,
+): TCustomerFormErrors => {
+  const changes = customerFormChanges(original, draft);
+  return Object.fromEntries(
+    Object.entries(getCustomerFormErrors(draft)).filter(([field]) => field in changes),
+  );
+};
