@@ -36,7 +36,6 @@ import { CUSTOMER_PROJECT_COPY } from "../src/constants/customer-project.constan
 import CustomerDetailsCard from "../src/pages/customer/components/CustomerDetailsCard";
 import { MemoryRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import CustomerProjectsCard from "../src/pages/customer/components/CustomerProjectsCard";
-import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
 import type { ICustomerProjectPage } from "../src/interfaces/customer-project.interface";
 import CustomerProjectsError from "../src/pages/customer/components/CustomerProjectsError";
 import { QueryClientProvider, notifyManager, type QueryClient } from "@tanstack/react-query";
@@ -311,7 +310,6 @@ test("pagination errors retain loaded rows and Retry resumes the failed cursor i
 test("search/status and customer navigation start new cursor scopes without stale rows or hidden associations", async () => {
   const client = createClient();
   client.setQueryData(QUERY_KEYS.customer(OTHER_CUSTOMER_ID), createCustomer(OTHER_CUSTOMER_ID));
-  client.setQueryData([CUSTOMER_CONTACT_QUERY_ROOT, OTHER_CUSTOMER_ID], []);
   const original = httpClient.defaults.adapter;
   const requests: { customer: string; params: unknown }[] = [];
   const previousConsoleError = console.error;

@@ -36,6 +36,7 @@ const ProjectDriveFileRow: FC<IProjectDriveFileRowProps> = ({ projectId, file, f
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
             {canSubmit && !/\.zip$/i.test(file.name) && (
               <Button
+                size="compact"
                 text={EXECUTION_PLAN_COPY.SUBMIT_ACTION}
                 ariaLabel={`${EXECUTION_PLAN_COPY.SUBMIT_ACTION}: ${file.name}`}
                 variant={BUTTON_VARIANTS.NEUTRAL}

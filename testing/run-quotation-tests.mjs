@@ -26,7 +26,7 @@ await runBundledTest({
   external: ["@tanstack/react-query", "react-router-dom"],
 });
 
-for (const suite of ["components", "cancellation"]) {
+for (const suite of ["components", "cancellation", "document"]) {
   const plugins =
     suite === "cancellation"
       ? [

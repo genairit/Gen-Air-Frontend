@@ -10,6 +10,8 @@ export const ROUTE_PATHS = {
   QUOTATIONS: "/quotations",
   CATALOGUE: "/catalogue",
   QUOTATION: "/quotations/:quotationId",
+  QUOTATION_CLONE: "/quotations/:quotationId/clone",
+  PROJECT_QUOTATION_CREATE: "/projects/:projectId/quotations/new",
   BOARD: "/",
   LOGIN: "/login",
   SETTINGS: "/settings",

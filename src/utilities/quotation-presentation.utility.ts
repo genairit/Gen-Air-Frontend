@@ -2,7 +2,6 @@ import {
   EQUIPMENT_ROLE,
   QUOTATION_SYSTEM,
   QUOTATION_DECIMAL,
-  QUOTATION_SYSTEM_LABELS,
 } from "../constants/quotation.constant";
 
 import type {
@@ -12,16 +11,16 @@ import type {
   IQuotationCircuit,
   IQuotationPaymentRow,
   IQuotationSalesAgent,
-  IQuotationReviewSection,
   IQuotationSalesAgentChoice,
 } from "../interfaces/quotation.interface";
 
 import type Decimal from "decimal.js";
 import { formatRelativeTime } from "./date.utility";
 import { isDecimal } from "./guards/quotation.guard";
+import { quotationMoney } from "./quotation.utility";
+import { quotationLineAmount } from "./quotation-document.utility";
 import { QUOTATION_DEFAULTS } from "../constants/quotation.constant";
 import { paymentScheduleTotal } from "./payment-configuration.utility";
-import { quotationMoney, quotationLineMoney } from "./quotation.utility";
 import type { IQuotationLineGroup } from "../interfaces/quotation.interface";
 
 export const toQuotationSalesAgentChoices = (
@@ -50,10 +49,8 @@ export const quotationSaveLabel = ({
   return `נשמר בשרת · ${formatRelativeTime(updatedAt)}`;
 };
 export const quotationSectionAmount = (section: IQuotationSection): string => {
-  const extension = (line: IQuotationLine): Decimal =>
-    new QUOTATION_DECIMAL(line.quantity || 0).times(line.quotedPrice || 0).toDecimalPlaces(2);
   return section.items
-    .reduce((total, line) => total.plus(extension(line)), new QUOTATION_DECIMAL(0))
+    .reduce((total, line) => total.plus(quotationLineAmount(line)), new QUOTATION_DECIMAL(0))
     .toFixed(2);
 };
 const circuitCapacity = (lines: IQuotationLine[], role: string): Decimal =>
@@ -112,23 +109,6 @@ export const quotationPaymentRows = (quotation: IQuotation): IQuotationPaymentRo
   }));
 export const quotationPaymentTotal = (quotation: IQuotation): string =>
   paymentScheduleTotal(quotation);
-export const quotationReviewSections = (quotation: IQuotation): IQuotationReviewSection[] => {
-  const order = (brand: string | null): number =>
-    brand === null ? quotation.brands.length : quotation.brands.indexOf(brand);
-  return [...quotation.sections]
-    .sort((left, right) => order(left.brand) - order(right.brand))
-    .map(section => ({
-      id: section.id,
-      title: `${section.brand ?? "כללי"} · ${section.title || QUOTATION_SYSTEM_LABELS[section.systemType]}`,
-      items: section.items.map(line => ({
-        ...line,
-        amount: quotationLineMoney(line),
-        priceLabel: quotationMoney(line.quotedPrice),
-        quantityLabel: quotationDecimalInput(line.quantity),
-      })),
-    }));
-};
-
 export const quotationLineGroups = (section: IQuotationSection): IQuotationLineGroup[] =>
   section.items
     .filter(

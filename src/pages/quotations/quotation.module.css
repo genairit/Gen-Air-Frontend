@@ -922,3 +922,118 @@
   border-top: 1px solid #dcdce2;
   padding-top: 12px;
 }
+
+.editorPage {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+  color: #0f172a;
+  font-size: 14px;
+}
+.editorPage .quotationHeader {
+  gap: 4px;
+}
+.editorPage .heading {
+  font-size: clamp(20px, 2vw, 26px);
+}
+.editorPage .cardIcon {
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+}
+.editorPage .circuit,
+.editorPage .paymentChips > button {
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+}
+.editorPage .paymentChips > button[aria-checked="true"] {
+  border-color: #1668bd;
+}
+.contextDisclosure:global(.MuiAccordion-root) {
+  background: transparent;
+  border-top: 1px solid #e2e8f0;
+  box-shadow: none;
+}
+.contextDisclosure::before {
+  display: none;
+}
+.contextDisclosure > :global(.MuiAccordion-heading) > button {
+  min-height: 40px;
+  padding-inline: 0;
+}
+.contextDisclosure > :global(.MuiAccordion-heading) > button:focus-visible {
+  outline: 2px solid #1668bd;
+  outline-offset: 2px;
+}
+.contextLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+  font-size: 13px;
+  color: #475569;
+  overflow-wrap: anywhere;
+}
+.contextLine strong {
+  color: #1668bd;
+}
+.workspace {
+  container-type: inline-size;
+  min-width: 0;
+}
+.workspacePanes {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.itemsPane,
+.documentPane {
+  min-width: 0;
+  max-height: max(520px, 78dvh);
+  overflow: auto;
+  scrollbar-gutter: stable;
+  border: 1px solid #dbe2ea;
+  border-radius: 16px;
+  background: white;
+}
+.documentPane {
+  background: #eef2f6;
+}
+.workspaceTabs {
+  display: none;
+}
+@container (max-width: 940px) {
+  .workspaceTabs {
+    display: flex;
+    margin-block-end: 10px;
+  }
+  .workspacePanes {
+    display: block;
+  }
+  .itemsPane,
+  .documentPane {
+    max-height: 72dvh;
+  }
+  .workspace[data-active-pane="document"] .itemsPane,
+  .workspace[data-active-pane="items"] .documentPane {
+    display: none;
+  }
+}
+.createQuotation {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #dbe2ea;
+  border-radius: 16px;
+  background: white;
+}
+.createQuotation [role="alert"] {
+  grid-column: 1 / -1;
+}
+@media (max-width: 720px) {
+  .createQuotation {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

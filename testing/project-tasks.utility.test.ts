@@ -15,7 +15,6 @@ import {
   formatTransitionAuthor,
   toInitialTaskFormValues,
   toProjectTaskAssigneeOptions,
-  resolveAssigneeAfterProjectChange,
 } from "../src/utilities/task.utility";
 
 import {
@@ -33,6 +32,7 @@ import { USER_ROLES } from "../src/constants/user-role.constant";
 import { TASK_TYPES } from "../src/constants/task-type.constant";
 import { createTask, project, engineer } from "./project-tasks.fixture";
 import type { ITaskFormValues } from "../src/interfaces/task.interface";
+import { getTaskEdit, toTaskEditValues } from "../src/utilities/task-form.utility";
 import { EMPTY_TASK_FORM, POOL_ASSIGNEE_ID, TASK_LINK_KINDS } from "../src/constants/task.constant";
 
 const formValues: ITaskFormValues = {
@@ -64,7 +64,7 @@ test("task payload keeps the deliberately selected type and project, ignoring st
 test("a customer-only or missing-project draft cannot create a new task", () => {
   const missingProject = { ...formValues, projectId: null, customerId: "old-customer" };
   assert.equal(toCreateTaskPayload(missingProject), null);
-  assert.equal(getTaskFormErrors(missingProject).projectId, "בחר פרויקט");
+  assert.equal(getTaskFormErrors(missingProject).projectId, "חסר פרויקט למשימה");
   assert.equal(countTaskFormErrors(missingProject), 1);
 });
 
@@ -151,27 +151,6 @@ test("engineering leads can be selected for engineer tasks", () => {
   assert.ok(options.some(option => option.id === lead.id));
 });
 
-test("changing apartments clears a recommended engineer outside the global user page", () => {
-  assert.equal(
-    resolveAssigneeAfterProjectChange({
-      currentProjectId: "apartment-a",
-      nextProjectId: "apartment-b",
-      assigneeOptionId: engineer.id,
-      availableUsers: [],
-    }),
-    POOL_ASSIGNEE_ID,
-  );
-  assert.equal(
-    resolveAssigneeAfterProjectChange({
-      currentProjectId: "apartment-a",
-      nextProjectId: "apartment-b",
-      assigneeOptionId: engineer.id,
-      availableUsers: [engineer],
-    }),
-    engineer.id,
-  );
-});
-
 test("undated tasks show an explicit label and never become overdue", () => {
   const task = createTask();
   assert.equal(isTaskOverdue(task), false);
@@ -253,4 +232,26 @@ test("task history displays recorded role snapshots and omits unknown legacy rol
   const missingSnapshot = { ...transition };
   Reflect.deleteProperty(missingSnapshot, "changedByRole");
   assert.equal(isApiTaskTransition(missingSnapshot), false);
+});
+
+test("task edits validate changed fields and preserve locked or legacy values", () => {
+  const task = createTask({ dueDate: "2020-01-01", description: null, projectId: null });
+  const initialValues = toTaskEditValues(task);
+  const edit = (patch: Partial<ITaskFormValues>, canEdit: boolean, canAssign: boolean) =>
+    getTaskEdit({ initialValues, values: { ...initialValues, ...patch }, canEdit, canAssign });
+  assert.deepEqual(edit({ title: "New", projectId: "other" }, true, false), {
+    changes: { title: "New" },
+    errors: {},
+  });
+  assert.deepEqual(edit({ title: "New", dueDate: "", assigneeOptionId: "user" }, false, true), {
+    changes: { assigneeId: "user" },
+    errors: {},
+  });
+  assert.deepEqual(edit({ dueDate: "", assigneeOptionId: "user" }, true, false), {
+    changes: { dueDate: null },
+    errors: {},
+  });
+  assert.ok(edit({ dueDate: "2020-01-02" }, true, true).errors.dueDate);
+  assert.ok(edit({ title: "" }, true, true).errors.title);
+  assert.ok(edit({ assigneeOptionId: null }, false, true).errors.assigneeOptionId);
 });

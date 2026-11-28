@@ -44,9 +44,7 @@ export const QUOTATION_COMMAND = {
   ACKNOWLEDGE: "acknowledge",
   RELOAD: "reload",
 } as const;
-export const QUOTATION_ALL_TAB_ID = "all";
 export const MAX_QUOTATION_CANCELLATION_REASON_LENGTH = 1000;
-export const QUOTATION_GENERAL_TAB_ID = "__general__";
 export const QUOTATION_SYSTEM = {
   VRF: "VRF",
   MULTI: "MULTI",
@@ -93,10 +91,6 @@ export const QUOTATION_SYSTEM_LABELS = {
   SINGLE: "סינגלים",
   GEN: "פריטים נוספים",
 } as const;
-export const QUOTATION_STATUS_TABS = [
-  { key: null, label: "הכל" },
-  ...Object.values(QUOTATION_STATUS).map(key => ({ key, label: QUOTATION_STATUS_LABELS[key] })),
-];
 export const QUOTATION_SYSTEM_OPTIONS = Object.values(QUOTATION_SYSTEM).map(value => ({
   value,
   label: QUOTATION_SYSTEM_LABELS[value],
@@ -130,6 +124,7 @@ export const QUOTATION_TYPES = {
   SINGLE: ["עילי", "מיני מרכזי", "נסתר צר / זריקה ישירה", "נייד"],
 };
 export const QUOTATION_CIRCUITS = "ABCDEFGHIJ".split("");
+export const QUOTATION_ALL_TAB_ID = "all";
 export const QUOTATION_QUERY_KEY = ["quotations"] as const;
 export const QUOTATION_DETAIL_KEY = (id: string) => ["quotation", id];
 export const QUOTATION_CATALOGUE_KEY = "quotation-catalogue";
@@ -185,3 +180,8 @@ export const QUOTATION_LIFECYCLE_COPY = {
   SOURCE_CHANGED:
     "מצב המסמך השתנה והפעולה אינה זמינה עוד. אפשר לסגור את החלון או לטעון את פרטי המסמך מחדש.",
 } as const;
+
+export const QUOTATION_WORKSPACE_TABS = [
+  { id: "items", label: "פריטים" },
+  { id: "document", label: "מסמך" },
+];

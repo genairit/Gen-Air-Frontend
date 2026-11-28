@@ -1,16 +1,13 @@
 import {
   getTaskLinkKind,
   getTaskLinkName,
-  toDateInputValue,
   buildTaskLinkPath,
   formatTaskDueFull,
-  getTaskDueDateError,
   getTaskProjectCustomer,
   formatTaskLinkedToLabel,
 } from "../../../utilities/task.utility";
 
 import {
-  NEW_TASK_COPY,
   TASK_PAGE_COPY,
   TASK_LINK_KIND_LABELS,
   TASK_LINK_CHIP_VARIANTS,
@@ -22,9 +19,9 @@ import {
   PROJECT_TASK_COPY,
 } from "../../../constants/task-type.constant";
 
+import type { FC } from "react";
 import { Box } from "@mui/material";
 import { Link } from "react-router-dom";
-import { type FC, useState } from "react";
 import TaskFieldTile from "./TaskFieldTile";
 import { useStyles } from "./TaskPanels.style";
 import { usePageStyles } from "../../page.style";
@@ -34,37 +31,30 @@ import TaskAssigneeField from "./TaskAssigneeField";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
-import TextField from "../../../components/TextField/TextField";
-import DateField from "../../../components/DateField/DateField";
 import CardHeader from "../../../components/CardHeader/CardHeader";
+import type { IApiTask } from "../../../interfaces/task.interface";
 import { buildCustomerPath } from "../../../utilities/route.utility";
-import { toErrorValidator } from "../../../utilities/field-feedback.utility";
-import { FIELD_INPUT_LIMITS } from "../../../constants/field-validation.constant";
-import type { IApiTask, TUpdateTaskPayload } from "../../../interfaces/task.interface";
-import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
+import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 
 interface ITaskDetailsCardProps {
   task: IApiTask;
   canEdit: boolean;
-  isSaving: boolean;
   canClaim: boolean;
   canAssign: boolean;
+  onEdit: () => void;
   onClaim: () => void;
-  onUpdate: (payload: TUpdateTaskPayload) => void;
 }
 
 const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
   task,
   onClaim,
   canClaim,
-  isSaving,
-  onUpdate,
+  onEdit,
   canEdit,
   canAssign,
 }) => {
   const styles = useStyles();
   const pageStyles = usePageStyles();
-  const [description, setDescription] = useState(task.description ?? "");
 
   const isLocked = !canEdit;
   const isAssignmentLocked = !canAssign;
@@ -72,26 +62,22 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
   const linkPath = buildTaskLinkPath(task);
   const projectCustomer = getTaskProjectCustomer(task);
   const isProtected = task.taskType !== TASK_TYPES.GENERAL;
-  const trimmedDescription = description.trim();
-  const isDescriptionChanged = trimmedDescription !== (task.description ?? "");
-  const canSaveDescription = isDescriptionChanged && Boolean(trimmedDescription);
-  const descriptionError = trimmedDescription ? null : NEW_TASK_COPY.REQUIRED;
-  const earliestDueDate = new Date();
-
-  const changeDueDate = (dueDate: string) => {
-    if (getTaskDueDateError(dueDate)) {
-      return;
-    }
-
-    onUpdate({ dueDate: dueDate || null });
-  };
-
   return (
     <Card gap="18px">
       <CardHeader
         icon={ICON_NAMES.INFO}
         title={TASK_PAGE_COPY.DETAILS_TITLE}
         subtitle={TASK_PAGE_COPY.DETAILS_SUBTITLE}
+        action={
+          canEdit && (
+            <Button
+              text={TASK_PAGE_COPY.EDIT}
+              icon={ICON_NAMES.EDIT}
+              onClick={onEdit}
+              variant={BUTTON_VARIANTS.NEUTRAL}
+            />
+          )
+        }
       />
       <Box sx={pageStyles.grid({ minColumnWidth: 220, gap: "14px" })}>
         <TaskFieldTile label={formatTaskLinkedToLabel(task)}>
@@ -126,61 +112,18 @@ const TaskDetailsCard: FC<ITaskDetailsCardProps> = ({
           )}
         </TaskFieldTile>
         <TaskFieldTile isLocked={isAssignmentLocked} label={TASK_PAGE_COPY.ASSIGNEE}>
-          <TaskAssigneeField
-            task={task}
-            onClaim={onClaim}
-            canClaim={canClaim}
-            isManager={canAssign}
-            onAssign={assigneeId => onUpdate({ assigneeId })}
-          />
+          <TaskAssigneeField task={task} onClaim={onClaim} canClaim={canClaim} />
         </TaskFieldTile>
         <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.DUE_DATE}>
-          {canEdit && (
-            <DateField
-              onChange={changeDueDate}
-              minDate={earliestDueDate}
-              ariaLabel={TASK_PAGE_COPY.DUE_DATE}
-              value={toDateInputValue(task.dueDate)}
-            />
-          )}
-          {isLocked && (
-            <Box component="b" sx={styles.value}>
-              {formatTaskDueFull(task)}
-            </Box>
-          )}
+          <Box component="b" sx={styles.value}>
+            {formatTaskDueFull(task)}
+          </Box>
         </TaskFieldTile>
       </Box>
       <TaskFieldTile isLocked={isLocked} label={TASK_PAGE_COPY.DESCRIPTION}>
-        {canEdit && (
-          <>
-            <TextField
-              multiline
-              minRows={4}
-              value={description}
-              type={FIELD_TYPES.TEXT}
-              onChange={setDescription}
-              validator={toErrorValidator(descriptionError)}
-              placeholder={NEW_TASK_COPY.TASK_DESCRIPTION_PLACEHOLDER}
-              maxLength={FIELD_INPUT_LIMITS.TASK_DESCRIPTION_CHARACTERS}
-            />
-            {isDescriptionChanged && (
-              <Box>
-                <Button
-                  isLoading={isSaving}
-                  icon={ICON_NAMES.SAVE}
-                  disabled={!canSaveDescription}
-                  text={TASK_PAGE_COPY.SAVE_DESCRIPTION}
-                  onClick={() => onUpdate({ description: trimmedDescription })}
-                />
-              </Box>
-            )}
-          </>
-        )}
-        {isLocked && (
-          <Box component="span" sx={styles.value}>
-            {task.description}
-          </Box>
-        )}
+        <Box component="span" sx={styles.value}>
+          {task.description}
+        </Box>
       </TaskFieldTile>
     </Card>
   );

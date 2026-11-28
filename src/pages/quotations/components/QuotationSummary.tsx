@@ -1,3 +1,8 @@
+import {
+  quotationPaymentLabel,
+  quotationHasPaymentConflict,
+} from "../../../utilities/quotation-payment.utility";
+
 import type { FC } from "react";
 import { Box } from "@mui/material";
 import Button from "./QuotationButton";
@@ -80,7 +85,7 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
           }
         />
         <Box component="span" className={styles.muted}>
-          סכום היעד גובר על אחוז ההנחה. הסכומים מתעדכנים לאחר שמירה בשרת.
+          סכום היעד גובר על אחוז ההנחה.
         </Box>
       </Card>
       <Card>
@@ -90,6 +95,11 @@ const QuotationSummary: FC<IQuotationSummaryProps> = ({
         <Box component="p" className={styles.muted}>
           {openWarnings.length > 0 ? `${openWarnings.length} התראות פתוחות` : "אין התראות פתוחות"}
         </Box>
+        {quotationHasPaymentConflict(quotation) && (
+          <Box role="alert" className={styles.error}>
+            {quotationPaymentLabel(quotation)}
+          </Box>
+        )}
         {blocked && (
           <Box component="p" role="status">
             יש להמתין לשמירה מוצלחת לפני בדיקה ואישור.

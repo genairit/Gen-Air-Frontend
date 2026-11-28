@@ -9,6 +9,7 @@ import {
   DialogActions,
 } from "@mui/material";
 
+import { isAxiosError } from "axios";
 import Button from "../Button/Button";
 import type { RefObject } from "react";
 import { Close } from "@mui/icons-material";
@@ -19,14 +20,14 @@ import { logger } from "../../utilities/logger.utility";
 import UltraSignature from "../UltraSignature/UltraSignature";
 import type { TPopUpIcons } from "./constants/icons.constants";
 import { renderPopupIcon } from "./utilities/renderIcon.utility";
-import { focusConnectedElement } from "../../utilities/focus.utility";
 import { BUTTON_VARIANTS } from "../Button/constants/button.constants";
+import { focusInitialPopupElement } from "../../utilities/focus.utility";
 import { type FC, type MouseEvent, type ReactNode, useState } from "react";
 import type { TextDirectionType } from "../../constants/direction.constant";
 import { getPopupActionErrorMessage } from "./utilities/action-error.utility";
 import { AuthorizationContext } from "../../managers/authorization-context.manager";
 
-export type TAlignContent = "left" | "center" | "right";
+export type TAlignContent = "left" | "center" | "right" | "start";
 
 export interface IPopupButton {
   text: string;
@@ -50,6 +51,7 @@ export interface IGenericPopupProps {
   maxWidth?: "sm" | "md" | "lg";
   icon?: TPopUpIcons | ReactNode;
   titleRef?: RefObject<HTMLElement | null> | null;
+  getActionErrorMessage?: (error: unknown) => string;
   initialFocusRef?: RefObject<HTMLElement | null> | null;
   buttons: {
     primary: IPopupButton;
@@ -72,6 +74,7 @@ const GenericPopup: FC<IGenericPopupProps> = ({
   initialFocusRef,
   titleRef,
   closeDisabled = false,
+  getActionErrorMessage = getPopupActionErrorMessage,
   align = "left",
   maxWidth = "sm",
   closeAfterAction = true,
@@ -87,7 +90,7 @@ const GenericPopup: FC<IGenericPopupProps> = ({
     if (!open) {
       return;
     }
-    focusConnectedElement(initialFocusRef?.current ?? null);
+    focusInitialPopupElement(initialFocusRef?.current ?? null);
   };
   const needToSign = Boolean(signature) && !isSigned;
   const handleClose = () => {
@@ -107,8 +110,10 @@ const GenericPopup: FC<IGenericPopupProps> = ({
         onClose?.();
       }
     } catch (error) {
-      logger.error("Popup primary action failed", { error });
-      setActionError(getPopupActionErrorMessage(error));
+      logger.error("Popup primary action failed", {
+        status: isAxiosError(error) ? error.response?.status : null,
+      });
+      setActionError(getActionErrorMessage(error));
     } finally {
       setPrimaryButtonLoading(false);
     }
@@ -125,8 +130,10 @@ const GenericPopup: FC<IGenericPopupProps> = ({
         onClose?.();
       }
     } catch (error) {
-      logger.error("Popup secondary action failed", { error });
-      setActionError(getPopupActionErrorMessage(error));
+      logger.error("Popup secondary action failed", {
+        status: isAxiosError(error) ? error.response?.status : null,
+      });
+      setActionError(getActionErrorMessage(error));
     } finally {
       setSecondaryButtonLoading(false);
     }

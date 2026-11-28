@@ -28,7 +28,12 @@ interface ICustomerPaymentDefaultProps {
 }
 const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({ customer }) => {
   const user = useSessionUser();
-  const [configuration, setConfiguration] = useState(() => customerPaymentConfiguration(customer));
+  const savedConfiguration = customerPaymentConfiguration(customer);
+  const savedVersion = JSON.stringify(savedConfiguration);
+  const [draft, setDraft] = useState<{ version: string; value: IPaymentConfiguration } | null>(
+    null,
+  );
+  const configuration = draft?.version === savedVersion ? draft.value : savedConfiguration;
   const update = useCustomerPaymentDefaultMutation(customer.id);
   const editable = hasPermission(user, PERMISSIONS.CUSTOMERS_UPDATE);
   const disabled = !editable || update.isPending;
@@ -36,7 +41,7 @@ const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({ customer }) 
   const saveDisabled = disabled || validation !== null;
   const change = (next: IPaymentConfiguration): void => {
     update.reset();
-    setConfiguration(next);
+    setDraft({ version: savedVersion, value: next });
   };
   return (
     <Card>
@@ -66,7 +71,7 @@ const CustomerPaymentDefault: FC<ICustomerPaymentDefaultProps> = ({ customer }) 
           text={PAYMENT_CONFIGURATION_COPY.SAVE_DEFAULT}
           onClick={() =>
             update.mutate(configuration, {
-              onSuccess: saved => setConfiguration(customerPaymentConfiguration(saved)),
+              onSuccess: () => setDraft(null),
             })
           }
         />

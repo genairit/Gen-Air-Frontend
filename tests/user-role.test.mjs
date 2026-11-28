@@ -39,8 +39,13 @@ const {
   PROJECT_MEMBER_ROLES,
   ASSIGNABLE_USER_ROLE_VALUES,
 } = roles;
-const { canSubmitEmployeeForm, toUserPayload } =
-  await import("../src/utilities/employee.utility.ts");
+const {
+  canSubmitEmployeeForm,
+  canSubmitEmployeeUpdate,
+  toEmployeeFormValues,
+  toEmployeeUpdatePayload,
+  toUserPayload,
+} = await import("../src/utilities/employee.utility.ts");
 const { getApartmentTeamCandidates } = await import("../src/utilities/apartment.utility.ts");
 const { isApiUser } = await import("../src/utilities/guards/api.guard.ts");
 const { getAssignedRoles, getUsersAssignedToRole } =
@@ -175,6 +180,46 @@ test("employee forms require assigned roles and leave initial active-role choice
     email: "rina@example.com",
     phone: "0524418230",
   });
+});
+
+test("employee edits preserve original name boundaries and send only changed fields", () => {
+  const employee = {
+    ...apiUser({ firstName: "Rina Yael", lastName: "Ben David" }),
+    person: { name: "Rina Yael Ben David" },
+  };
+  const initial = toEmployeeFormValues(employee);
+  assert.deepEqual(toEmployeeUpdatePayload(employee, initial), {});
+  assert.equal(canSubmitEmployeeUpdate({}, initial), false);
+  for (const [changes, expected] of [
+    [{ name: "Rina Yael Katz" }, { lastName: "Katz" }],
+    [{ name: "Hadas Ben David" }, { firstName: "Hadas" }],
+    [{ name: "Hadas Levi" }, { firstName: "Hadas", lastName: "Levi" }],
+    [{ email: "new@example.com" }, { email: "new@example.com" }],
+    [{ phone: "+44123456789" }, { phone: "+44123456789" }],
+    [{ password: "not-editable", passwordConfirmation: "not-editable" }, {}],
+  ]) {
+    assert.deepEqual(toEmployeeUpdatePayload(employee, { ...initial, ...changes }), expected);
+  }
+});
+
+test("a legacy profile can update roles without resubmitting old contact details", () => {
+  const employee = {
+    ...apiUser({ phone: "", assignedRoles: [USER_ROLES.ENGINEER, USER_ROLES.SALES_AGENT] }),
+    person: { name: "Rina Example" },
+  };
+  const initial = toEmployeeFormValues(employee);
+  assert.deepEqual(initial.assignedRoles, [USER_ROLES.ENGINEER]);
+  const updated = { ...initial, assignedRoles: [USER_ROLES.FINANCE] };
+  const changes = toEmployeeUpdatePayload(employee, updated);
+  assert.deepEqual(changes, { assignedRoles: [USER_ROLES.FINANCE] });
+  assert.equal(canSubmitEmployeeUpdate(changes, updated), true);
+  assert.equal(canSubmitEmployeeUpdate({ phone: "invalid" }, updated), false);
+  assert.equal(canSubmitEmployeeUpdate({ email: "" }, updated), false);
+  assert.equal(canSubmitEmployeeUpdate({ lastName: "" }, updated), false);
+  assert.equal(
+    canSubmitEmployeeUpdate({ assignedRoles: [] }, { ...initial, assignedRoles: [] }),
+    false,
+  );
 });
 
 test("project team eligibility uses assigned roles rather than the active role", () => {

@@ -15,7 +15,7 @@ interface IQuotationProjectPickerProps {
   value: string | null;
   lockedReason?: string | null;
   selectedName?: string | null;
-  onChange: (id: string | null) => void;
+  onChange: (id: string | null, name?: string | null) => void;
 }
 const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
   customerId,
@@ -42,17 +42,17 @@ const QuotationProjectPicker: FC<IQuotationProjectPickerProps> = ({
   return (
     <Box component="div" className={styles.picker}>
       <QuotationEntityPicker
-        allowClear
         value={choice}
+        label="פרויקט *"
         options={options}
         onSearch={setSearch}
         disabled={isDisabled}
-        label="פרויקט (אופציונלי)"
         loading={projects.isPending}
-        placeholder="ללא פרויקט · חיפוש פרויקט..."
+        placeholder="בחירת פרויקט או חיפוש..."
         onChange={id => {
-          setSelection(options.find(project => project.id === id) ?? null);
-          onChange(id);
+          const selected = options.find(project => project.id === id) ?? null;
+          setSelection(selected);
+          onChange(id, selected?.name ?? null);
         }}
       />
       <Box component="span" className={styles.muted}>

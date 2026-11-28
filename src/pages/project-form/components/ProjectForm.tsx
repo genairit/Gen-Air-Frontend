@@ -35,7 +35,7 @@ import {
   buildTypeSwitch,
   findDetailFieldSet,
   getSiteDetailFields,
-  countCustomerDetailErrors,
+  validateCustomerDetail,
 } from "../../../utilities/customer-details.utility";
 
 import {
@@ -50,6 +50,16 @@ import {
   projectContactCreationInputs,
 } from "../../../utilities/project-contact-role.utility";
 
+import {
+  BUTTON_SIZES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
+import {
+  getProjectMutationError,
+  isExistingDriveFolderError,
+} from "../../../utilities/existing-drive-folder-error.utility";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -62,11 +72,11 @@ import TypeSwitchBanner from "./TypeSwitchBanner";
 import ProjectAddressCard from "./ProjectAddressCard";
 import ProjectDetailsCard from "./ProjectDetailsCard";
 import Button from "../../../components/Button/Button";
+import ProjectLightingFields from "./ProjectLightingFields";
 import { useSessionUser } from "../../../store/session.store";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
 import ProjectSiteDetailsCard from "./ProjectSiteDetailsCard";
-import ActionBar from "../../../components/ActionBar/ActionBar";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { useUsersQuery } from "../../../hooks/queries/user.query";
 import { useProjectDraft } from "../../../hooks/project-draft.hook";
@@ -75,21 +85,22 @@ import { PERMISSIONS } from "../../../constants/permission.constant";
 import InlineError from "../../../components/InlineError/InlineError";
 import { hasPermission } from "../../../utilities/permission.utility";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
-import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
+import { useProjectFormTabs } from "../../../hooks/project-form-tabs.hook";
+import { PROJECT_TABS } from "../../../constants/project-workspace.constant";
 import { countStageNoteErrors } from "../../../utilities/stage-reason.utility";
 import { toProjectTypeOption } from "../../../utilities/mappers/project.mapper";
+import { STAGE_REASON_FIELD_ID } from "../../../constants/project-stage.constant";
 import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
 import { useExistingDriveFolder } from "../../../hooks/existing-drive-folder.hook";
 import type { ProjectMemberRoleType } from "../../../constants/user-role.constant";
+import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import { useProjectNameAvailability } from "../../../hooks/queries/project-name.query";
 import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { PROJECT_CONTACT_ROLE_COPY } from "../../../constants/project-contact-role.constant";
 import type { IApiProject, CustomerDetailFieldType } from "../../../interfaces/api.interface";
 import { buildProjectPath, getProjectFormCancelPath } from "../../../utilities/route.utility";
 import type { ProjectContactRoleType } from "../../../constants/project-contact-role.constant";
 import { readProjectDraft, clearProjectDraft } from "../../../utilities/project-draft.utility";
-import { getProjectMutationError } from "../../../utilities/existing-drive-folder-error.utility";
 import { useProjectStagesQuery, useProjectTypesQuery } from "../../../hooks/queries/project.query";
 import ProjectRoleContactsCard from "../../../components/ProjectContactRoles/ProjectRoleContactsCard";
 import DirectoryContactPicker from "../../../components/DirectoryContactPicker/DirectoryContactPicker";
@@ -103,6 +114,7 @@ interface IProjectFormProps {
 const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
+  const { activeTab, setActiveTab, focusError } = useProjectFormTabs();
   const sessionUser = useSessionUser();
   const copy = PROJECT_FORM_MODE_COPY[mode];
   const projectId = project?.id ?? null;
@@ -123,6 +135,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     setRoleActivity({});
     setSelectedContacts([]);
     driveFolder.reset();
+    setActiveTab(PROJECT_TABS.details.id);
   };
   const [typeSwitch, setTypeSwitch] = useState<ITypeSwitch | null>(null);
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
@@ -175,21 +188,72 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     isCheckFailed: nameAvailability.isError,
   });
   const hasUnfinishedRoleContact = Object.values(roleActivity).some(active => active);
+  const invalidSiteFields = getSiteDetailFields(fieldSet).filter(
+    config => !validateCustomerDetail(config, values.customerDetails[config.field]).isValid,
+  );
+  const blockingFields = [
+    {
+      invalid: !values.name.trim() || isNameTaken || nameAvailability.isError,
+      tab: PROJECT_TABS.details.id,
+      selector: "#project-form-name",
+    },
+    {
+      invalid: stageNoteErrorCount > 0,
+      tab: PROJECT_TABS.details.id,
+      selector: `#${STAGE_REASON_FIELD_ID}`,
+    },
+    {
+      invalid: !values.typeId,
+      tab: PROJECT_TABS.details.id,
+      selector: '[data-project-field="type"] input',
+    },
+    {
+      invalid: intakeErrorCount > 0,
+      tab: PROJECT_TABS.details.id,
+      selector: '[data-project-field="address"] :is(input,button)',
+    },
+    {
+      invalid: countMissingCustomer(values) > 0,
+      tab: PROJECT_TABS.details.id,
+      selector: '[data-project-field="customer"] input',
+    },
+    {
+      invalid: !isEditMode && !driveFolder.canSubmit,
+      tab: PROJECT_TABS.details.id,
+      selector: '[data-project-field="drive"] input:not([type=radio])',
+    },
+    ...invalidSiteFields.map(({ field }) => ({
+      invalid: true,
+      tab: PROJECT_TABS.technical.id,
+      selector: `#project-site-${field}`,
+    })),
+    {
+      invalid: Boolean(heightError),
+      tab: PROJECT_TABS.technical.id,
+      selector: '[data-project-field="lighting"] input:not([type=checkbox])',
+    },
+    {
+      invalid: hasUnfinishedRoleContact,
+      tab: PROJECT_TABS.people.id,
+      selector: '[data-project-field="contacts"] input:not([role=combobox]):not([disabled])',
+    },
+  ].filter(field => field.invalid);
+  const firstError = blockingFields[0];
+  const formErrorCount = blockingFields.length;
   const isSubmitDisabled =
-    hasUnfinishedRoleContact ||
-    (!isEditMode && !driveFolder.canSubmit) ||
-    !canSubmitProjectForm(values) ||
+    isSaving ||
     nameAvailability.isPending ||
-    nameAvailability.isError ||
-    isNameTaken;
-  const formErrorCount =
-    countMissingCustomer(values) +
-    countCustomerDetailErrors(values.customerDetails, fieldSet) +
-    intakeErrorCount +
-    Number(heightError !== "") +
-    Number(isNameTaken) +
-    stageNoteErrorCount;
-
+    (activeTab === PROJECT_TABS.details.id &&
+      (!canSubmitProjectForm(values) ||
+        isNameTaken ||
+        nameAvailability.isError ||
+        (!isEditMode && !driveFolder.canSubmit))) ||
+    (activeTab === PROJECT_TABS.people.id && hasUnfinishedRoleContact);
+  const onSubmitError = (error: unknown) => {
+    if (isProjectNameConflict(error)) focusError(PROJECT_TABS.details.id, "#project-form-name");
+    if (isExistingDriveFolderError(error))
+      focusError(PROJECT_TABS.details.id, '[data-project-field="drive"] input:not([type=radio])');
+  };
   const openProject = (savedProjectId: string) => navigate(buildProjectPath(savedProjectId));
 
   const submitByMode: Record<ProjectFormModeType, () => void> = {
@@ -203,7 +267,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           contacts: projectContactCreationInputs(roleContacts, selectedContacts),
           existingDriveFolder: driveFolder.existingDriveFolder,
         },
-        { onSuccess: openProject },
+        { onSuccess: openProject, onError: onSubmitError },
       ),
     edit: () =>
       updateMutation.mutate(
@@ -215,7 +279,7 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
           canHaveApartments,
           originalStageId,
         },
-        { onSuccess: openProject },
+        { onSuccess: openProject, onError: onSubmitError },
       ),
   };
 
@@ -235,11 +299,12 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
   };
 
   const handleSubmit = () => {
-    if (formErrorCount > 0 || isSubmitDisabled) {
+    if (firstError) {
       setIsSubmitAttempted(true);
-
+      focusError(firstError.tab, firstError.selector);
       return;
     }
+    if (isSubmitDisabled) return;
 
     submitByMode[mode]();
   };
@@ -300,16 +365,6 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
       values={values.customerDetails}
       isSubmitAttempted={isSubmitAttempted}
       onChange={handleCustomerDetailChange}
-      notice={
-        typeSwitch && (
-          <TypeSwitchBanner
-            typeName={selectedTypeName}
-            summary={typeSwitch.summary}
-            onUndo={handleUndoTypeSwitch}
-            onDismiss={() => setTypeSwitch(null)}
-          />
-        )
-      }
     />
   );
   const driveFolderField = !isEditMode ? (
@@ -336,119 +391,171 @@ const ProjectForm: FC<IProjectFormProps> = ({ mode, project }) => {
     </ProjectRoleContactsCard>
   );
 
-  return (
-    <Box sx={styles.page}>
-      <Box sx={styles.row({})}>
+  const header = (
+    <Box sx={styles.spacedRow}>
+      <Box sx={styles.row({ gap: "8px" })}>
         <Box component="h1" sx={styles.heading}>
           {copy.title}
         </Box>
         {project && <Chip isMonospace label={project.code} size={CHIP_SIZES.MEDIUM} />}
       </Box>
-
       {!isEditMode && (
-        <NoticeBanner
-          lines={[PROJECT_FORM_COPY.DRAFT_PRIVACY]}
-          title={
-            wasDraftRestored ? PROJECT_FORM_COPY.DRAFT_RESTORED : PROJECT_FORM_COPY.DRAFT_NOTICE
-          }
-          actions={
+        <Box component="details">
+          <Box component="summary" sx={{ cursor: "pointer", fontWeight: 600 }}>
+            {wasDraftRestored ? PROJECT_FORM_COPY.DRAFT_RESTORED : "טיוטה מקומית"}
+          </Box>
+          <Box sx={styles.stack({ gap: "8px" })}>
+            <Box sx={styles.caption}>{PROJECT_FORM_COPY.DRAFT_PRIVACY}</Box>
             <Button
+              onClick={discardDraft}
+              size={BUTTON_SIZES.COMPACT}
+              variant={BUTTON_VARIANTS.NEUTRAL}
               text={PROJECT_FORM_COPY.DISCARD_DRAFT}
               disabled={hasUnfinishedRoleContact || isSaving}
-              onClick={discardDraft}
-              variant={BUTTON_VARIANTS.NEUTRAL}
             />
-          }
+          </Box>
+        </Box>
+      )}
+    </Box>
+  );
+  const details = (
+    <Box sx={styles.stack({ gap: "16px" })}>
+      <Box sx={styles.grid({ minColumnWidth: 280, gap: "16px" })}>
+        <ProjectDetailsCard
+          mode={mode}
+          values={values}
+          nameError={nameError}
+          onChange={updateValues}
+          stages={stagesQuery.data ?? []}
+          originalStageId={originalStageId}
+          isSubmitAttempted={isSubmitAttempted}
+          onRetryNameCheck={handleRetryNameCheck}
+          namePending={nameAvailability.isPending}
+          nameCheckFailed={nameAvailability.isError}
+        />
+        <Box data-project-field="type">
+          <ProjectTypeCard
+            onSelect={handleTypeSelect}
+            selectedTypeId={values.typeId}
+            options={projectTypes.map(toProjectTypeOption)}
+          />
+          {isSubmitAttempted && !values.typeId && <InlineError message="יש לבחור סוג פרויקט" />}
+        </Box>
+      </Box>
+      {typeSwitch && (
+        <TypeSwitchBanner
+          typeName={selectedTypeName}
+          summary={typeSwitch.summary}
+          onUndo={handleUndoTypeSwitch}
+          onDismiss={() => setTypeSwitch(null)}
         />
       )}
-      <ProjectDetailsCard
-        mode={mode}
-        values={values}
-        nameError={nameError}
-        onChange={updateValues}
-        stages={stagesQuery.data ?? []}
-        originalStageId={originalStageId}
-        driveFolderField={driveFolderField}
-        projectCode={project?.code ?? null}
-        isSubmitAttempted={isSubmitAttempted}
-        onRetryNameCheck={handleRetryNameCheck}
-        namePending={nameAvailability.isPending}
-        nameCheckFailed={nameAvailability.isError}
-      />
-      <ProjectTypeCard
-        onSelect={handleTypeSelect}
-        selectedTypeId={values.typeId}
-        options={projectTypes.map(toProjectTypeOption)}
-      />
-      <Box sx={styles.grid({ minColumnWidth: 500 })}>
-        <ProjectAddressCard
-          address={values.address}
-          onChange={handleAddressChange}
-          showMissingError={showAddressError}
-          requiresCity={isCityRequired(fieldSet)}
-        />
-        <ProjectCustomerPickerCard
-          customerId={values.customerId}
-          onChange={handleCustomerChange}
+      <Box sx={styles.grid({ minColumnWidth: 300, gap: "16px" })}>
+        <Box data-project-field="address">
+          <ProjectAddressCard
+            address={values.address}
+            onChange={handleAddressChange}
+            showMissingError={showAddressError}
+            requiresCity={isCityRequired(fieldSet)}
+          />
+        </Box>
+        <Box data-project-field="customer">
+          <ProjectCustomerPickerCard
+            customerId={values.customerId}
+            onChange={handleCustomerChange}
+            isSubmitAttempted={isSubmitAttempted}
+          />
+        </Box>
+      </Box>
+      {driveFolderField && <Box data-project-field="drive">{driveFolderField}</Box>}
+    </Box>
+  );
+  const technical = (
+    <Box sx={styles.stack({ gap: "16px" })}>
+      {siteDetailsCard}
+      <Box data-project-field="lighting">
+        <ProjectLightingFields
+          values={values}
+          onChange={updateValues}
           isSubmitAttempted={isSubmitAttempted}
         />
       </Box>
-      {isSubmitAttempted && formErrorCount > 0 && (
-        <InlineError message={formatFieldErrorCount(formErrorCount)} />
-      )}
-      {contactPicker && siteDetailsCard ? (
-        <Box sx={styles.grid({ minColumnWidth: 560 })}>
-          {contactPicker}
-          {siteDetailsCard}
-        </Box>
-      ) : (
-        <>
-          {contactPicker}
-          {siteDetailsCard}
-        </>
-      )}
-      {isEditMode && projectId && (
-        <>
-          <Box>{PROJECT_CONTACT_ROLE_COPY.INSTANT_SAVE}</Box>
-          <ProjectContacts canEdit projectId={projectId} />
-        </>
-      )}
       {canHaveApartments && (
         <ProjectNotesCard notes={values.notes} onChange={notes => updateValues({ notes })} />
       )}
+    </Box>
+  );
+  const people = (
+    <Box sx={styles.stack({ gap: "16px" })}>
+      <Box data-project-field="contacts">
+        {contactPicker}
+        {isEditMode && projectId && (
+          <>
+            <Box sx={styles.caption}>{PROJECT_CONTACT_ROLE_COPY.INSTANT_SAVE}</Box>
+            <ProjectContacts canEdit projectId={projectId} />
+          </>
+        )}
+      </Box>
       <ProjectRolesCard
         assignees={values.assignees}
         users={usersQuery.data ?? []}
         isBuilding={canHaveApartments}
         onAssigneeChange={handleAssigneeChange}
       />
-
-      {mutationError && <InlineError message={getProjectMutationError(mutationError)} />}
-
-      <ActionBar captionIcon={ICON_NAMES.INFO} caption={PROJECT_FORM_COPY.NOTICE}>
-        {canDelete && (
-          <Button
-            onClick={handleDelete}
-            icon={ICON_NAMES.DELETE}
-            text={PROJECT_FORM_COPY.DELETE}
-            variant={BUTTON_VARIANTS.DANGER}
-            isLoading={deleteMutation.isPending}
-          />
-        )}
-        <Button
-          text={PROJECT_FORM_COPY.CANCEL}
-          variant={BUTTON_VARIANTS.NEUTRAL}
-          onClick={() => navigate(getProjectFormCancelPath(projectId))}
-        />
-        <Button
-          isLoading={isSaving}
-          icon={copy.submitIcon}
-          onClick={handleSubmit}
-          text={copy.submitLabel}
-          disabled={isSubmitDisabled}
-        />
-      </ActionBar>
     </Box>
+  );
+  const footer = (
+    <Box sx={styles.stack({ gap: "8px" })}>
+      {isSubmitAttempted && formErrorCount > 0 && (
+        <InlineError message={formatFieldErrorCount(formErrorCount)} />
+      )}
+      {mutationError && <InlineError message={getProjectMutationError(mutationError)} />}
+      <Box sx={styles.spacedRow}>
+        <Box>
+          {canDelete && (
+            <Button
+              onClick={handleDelete}
+              icon={ICON_NAMES.DELETE}
+              size={BUTTON_SIZES.COMPACT}
+              text={PROJECT_FORM_COPY.DELETE}
+              variant={BUTTON_VARIANTS.DANGER}
+              isLoading={deleteMutation.isPending}
+            />
+          )}
+        </Box>
+        <Box sx={styles.row({ gap: "8px" })}>
+          <Button
+            size={BUTTON_SIZES.COMPACT}
+            text={PROJECT_FORM_COPY.CANCEL}
+            variant={BUTTON_VARIANTS.NEUTRAL}
+            onClick={() => navigate(getProjectFormCancelPath(projectId))}
+          />
+          <Button
+            isLoading={isSaving}
+            icon={copy.submitIcon}
+            onClick={handleSubmit}
+            text={copy.submitLabel}
+            size={BUTTON_SIZES.COMPACT}
+            disabled={isSubmitDisabled}
+          />
+        </Box>
+      </Box>
+    </Box>
+  );
+  return (
+    <ProjectWorkspace
+      keepMounted
+      header={header}
+      footer={footer}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      defaultTab={PROJECT_TABS.details.id}
+      panels={[
+        { ...PROJECT_TABS.details, content: details },
+        { ...PROJECT_TABS.technical, content: technical },
+        { ...PROJECT_TABS.people, content: people },
+      ]}
+    />
   );
 };
 

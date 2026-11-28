@@ -19,6 +19,7 @@ export const useStyles = () =>
       WebkitBackdropFilter: theme.glass.blur,
     },
     title: {
+      margin: 0,
       fontSize: 18,
       fontWeight: 700,
     },

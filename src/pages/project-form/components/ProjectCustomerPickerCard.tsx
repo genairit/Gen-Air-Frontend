@@ -3,11 +3,10 @@ import {
   CUSTOMER_PICKER_RESULT_LIMIT,
 } from "../../../constants/customer.constant";
 
-import { Box } from "@mui/material";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { type FC, useState } from "react";
-import Card from "../../../components/Card/Card";
+import { Box, ClickAwayListener } from "@mui/material";
 import Button from "../../../components/Button/Button";
 import { useStyles } from "./ProjectCustomerPicker.style";
 import CustomerPickerOption from "./CustomerPickerOption";
@@ -49,12 +48,13 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
   action,
   isApartment = false,
   title = CUSTOMER_PICKER_COPY.TITLE,
-  subtitle = CUSTOMER_PICKER_COPY.SUBTITLE,
+  subtitle,
 }) => {
   const styles = useStyles();
   const sessionUser = useSessionUser();
   const canCreateCustomer = hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_CREATE);
   const [search, setSearch] = useState("");
+  const [showChoices, setShowChoices] = useState(false);
   const returnChannel = useCustomerSelectionChannel(onChange);
   const debouncedSearch = useDebouncedValue(search, SEARCH_DEBOUNCE_MS);
   const selectedQuery = useCustomerQuery(customerId);
@@ -63,7 +63,6 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
   const results = (customersQuery.data ?? []).slice(0, CUSTOMER_PICKER_RESULT_LIMIT);
   const isMissing = isSubmitAttempted && !customerId;
   const hasNoResults = customersQuery.isSuccess && results.length === 0;
-  const cardPadding = isApartment ? "24px" : "28px";
   const listStyle = styles.list;
   const requiredMessage = isApartment
     ? APARTMENT_TEAM_COPY.INVALID_CUSTOMER
@@ -86,17 +85,13 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
 
   const pickCustomer = (pickedId: string) => {
     setSearch("");
+    setShowChoices(false);
     onChange(pickedId);
   };
 
   return (
-    <Card gap="18px" padding={cardPadding} sx={styles.card(isMissing)}>
-      <CardHeader
-        title={title}
-        action={cardAction}
-        subtitle={subtitle}
-        icon={ICON_NAMES.CUSTOMER}
-      />
+    <Box sx={styles.picker}>
+      <CardHeader title={title} action={cardAction} subtitle={subtitle} />
       {customerId && selectedQuery.data && (
         <SelectedCustomerSummary customer={selectedQuery.data} onReplace={() => onChange(null)} />
       )}
@@ -105,27 +100,49 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
       )}
       {!customerId && (
         <>
-          <TextField
-            value={search}
-            onChange={setSearch}
-            type={FIELD_TYPES.SEARCH}
-            startIcon={ICON_NAMES.SEARCH}
-            placeholder={CUSTOMER_PICKER_COPY.SEARCH_PLACEHOLDER}
-          />
-          <Box role="listbox" sx={listStyle}>
-            <Box component="span" sx={styles.listLabel}>
-              {getCustomerPickerLabel(debouncedSearch)}
+          <ClickAwayListener onClickAway={() => setShowChoices(false)}>
+            <Box
+              onFocus={() => setShowChoices(true)}
+              onBlur={event => {
+                if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget))
+                  setShowChoices(false);
+              }}
+            >
+              <TextField
+                value={search}
+                type={FIELD_TYPES.SEARCH}
+                startIcon={ICON_NAMES.SEARCH}
+                slotProps={{ htmlInput: { "aria-label": title } }}
+                placeholder={CUSTOMER_PICKER_COPY.SEARCH_PLACEHOLDER}
+                onChange={value => {
+                  setSearch(value);
+                  setShowChoices(true);
+                }}
+              />
+              {showChoices && (
+                <Box role="listbox" sx={listStyle} aria-label={title}>
+                  <Box component="span" sx={styles.listLabel}>
+                    {getCustomerPickerLabel(debouncedSearch)}
+                  </Box>
+                  {customersQuery.isPending && (
+                    <LoadingState label={CUSTOMER_PICKER_COPY.LOADING} />
+                  )}
+                  {results.map(customer => (
+                    <CustomerPickerOption
+                      key={customer.id}
+                      customer={customer}
+                      onPick={pickCustomer}
+                    />
+                  ))}
+                  {hasNoResults && (
+                    <Box component="span" sx={styles.emptyRow}>
+                      {CUSTOMER_PICKER_COPY.NO_RESULTS}
+                    </Box>
+                  )}
+                </Box>
+              )}
             </Box>
-            {customersQuery.isPending && <LoadingState label={CUSTOMER_PICKER_COPY.LOADING} />}
-            {results.map(customer => (
-              <CustomerPickerOption key={customer.id} customer={customer} onPick={pickCustomer} />
-            ))}
-            {hasNoResults && (
-              <Box component="span" sx={styles.emptyRow}>
-                {CUSTOMER_PICKER_COPY.NO_RESULTS}
-              </Box>
-            )}
-          </Box>
+          </ClickAwayListener>
           {isMissing && <InlineError message={requiredMessage} />}
         </>
       )}
@@ -149,7 +166,7 @@ const ProjectCustomerPickerCard: FC<IProjectCustomerPickerCardProps> = ({
           )}
         </>
       )}
-    </Card>
+    </Box>
   );
 };
 

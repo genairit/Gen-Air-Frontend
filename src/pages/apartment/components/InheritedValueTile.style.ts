@@ -9,10 +9,8 @@ export const useStyles = () =>
       gap: "8px",
       minWidth: 0,
       display: "flex",
-      borderRadius: "18px",
-      padding: "16px 18px",
+      paddingBlock: "6px",
       flexDirection: "column",
-      boxShadow: theme.glass.edge,
     },
     header: {
       gap: "10px",
@@ -21,7 +19,7 @@ export const useStyles = () =>
       justifyContent: "space-between",
     },
     label: {
-      fontSize: 12,
+      fontSize: 14,
       fontWeight: 600,
       color: palette.textMuted,
     },
@@ -34,28 +32,5 @@ export const useStyles = () =>
     value: {
       fontSize: 16,
       overflowWrap: "anywhere",
-    },
-    note: {
-      fontSize: 13,
-      color: palette.textMuted,
-    },
-    actions: {
-      gap: "10px",
-      display: "flex",
-      flexWrap: "wrap",
-      alignItems: "center",
-    },
-    legend: {
-      gap: "10px 16px",
-      display: "flex",
-      flexWrap: "wrap",
-      alignItems: "center",
-    },
-    legendItem: {
-      gap: "8px",
-      fontSize: 13,
-      display: "flex",
-      alignItems: "center",
-      color: palette.textMuted,
     },
   });

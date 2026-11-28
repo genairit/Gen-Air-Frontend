@@ -1,8 +1,8 @@
 import {
   addEmployeeAction,
   removeEmployeeAction,
+  updateEmployeeAction,
   updateMyPasswordAction,
-  updateEmployeeRolesAction,
 } from "../../actions/employee.action";
 
 import { useMutation } from "@tanstack/react-query";
@@ -13,8 +13,7 @@ export const useLoginMutation = () =>
 
 export const useAddEmployeeMutation = () => useMutation({ mutationFn: addEmployeeAction });
 
-export const useUpdateEmployeeRolesMutation = () =>
-  useMutation({ mutationFn: updateEmployeeRolesAction });
+export const useUpdateEmployeeMutation = () => useMutation({ mutationFn: updateEmployeeAction });
 
 export const useRemoveEmployeeMutation = () => useMutation({ mutationFn: removeEmployeeAction });
 

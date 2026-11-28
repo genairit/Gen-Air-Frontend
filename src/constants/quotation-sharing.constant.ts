@@ -72,7 +72,8 @@ export const QUOTATION_SHARING_COPY = {
 
 export const PROJECT_QUOTATIONS_COPY = {
   TITLE: "הצעות מחיר",
-  SUBTITLE_SUFFIX: "הצעות",
+  CREATE: "הצעת מחיר חדשה",
+  UPDATED: "עודכן",
   LOADING: "טוען הצעות מחיר...",
   EMPTY: "אין עדיין הצעות מחיר בפרויקט זה.",
   LOAD_MORE: "טען עוד הצעות",

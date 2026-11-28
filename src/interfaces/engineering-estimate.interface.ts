@@ -94,8 +94,25 @@ export interface IEstimateSample {
   planId: string;
 }
 
+export interface IEstimateExport {
+  fileName: string;
+  fileUrl: string | null;
+}
+
+export interface IEstimatePreview {
+  subtotal: string;
+  lines: IEstimatePricedLine[];
+}
+
+export interface IEstimateCalculation {
+  areas: IEstimateArea[];
+  scope: EstimateScopeType;
+}
+
 export interface IEstimateCreate {
   name: string;
+  areas?: IEstimateArea[];
+  scope?: EstimateScopeType;
   projectId?: string | null;
 }
 
@@ -108,6 +125,8 @@ export interface IEstimateListItem {
   id: string;
   name: string;
   updatedAt: string;
+  subtotal?: string | null;
+  createdByName?: string | null;
   projectId: string | null;
   status: EstimateStatusType;
 }

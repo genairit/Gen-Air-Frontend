@@ -57,7 +57,7 @@ const ProjectDriveUpload: FC<IProjectDriveUploadProps> = ({ projectId }) => {
   return (
     <Box sx={styles.stack({})}>
       <Box sx={styles.spacedRow}>
-        <Box component="span" sx={styles.caption}>
+        <Box component="span" sx={[styles.caption, styles.wrappingText]}>
           {destinationLabel}
         </Box>
         <Button

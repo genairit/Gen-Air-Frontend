@@ -14,6 +14,11 @@ import {
   getLightingHeightError,
 } from "../../../utilities/project-constraints.utility";
 
+import {
+  BUTTON_SIZES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import Card from "../../../components/Card/Card";
@@ -26,7 +31,6 @@ import CardHeader from "../../../components/CardHeader/CardHeader";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import InlineError from "../../../components/InlineError/InlineError";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import ProjectLightingFields from "../../project-form/components/ProjectLightingFields";
 import type { IProjectLightingFormValues } from "../../../interfaces/project.interface";
 import { useUpdateApartmentMutation } from "../../../hooks/mutations/apartment.mutation";
@@ -83,6 +87,7 @@ const ApartmentLightingCard: FC<IApartmentLightingCardProps> = ({ apartment, can
             {!draft && (
               <Button
                 onClick={startEditing}
+                size={BUTTON_SIZES.COMPACT}
                 variant={BUTTON_VARIANTS.NEUTRAL}
                 disabled={updateMutation.isPending}
                 text={APARTMENT_LIGHTING_COPY.OVERRIDE}
@@ -91,6 +96,7 @@ const ApartmentLightingCard: FC<IApartmentLightingCardProps> = ({ apartment, can
             {apartment.hasOwnLighting && (
               <Button
                 onClick={resetLighting}
+                size={BUTTON_SIZES.COMPACT}
                 variant={BUTTON_VARIANTS.NEUTRAL}
                 isLoading={updateMutation.isPending}
                 text={APARTMENT_LIGHTING_COPY.RESET}
@@ -110,10 +116,12 @@ const ApartmentLightingCard: FC<IApartmentLightingCardProps> = ({ apartment, can
           <Box sx={styles.row({ gap: "10px" })}>
             <Button
               onClick={saveLighting}
+              size={BUTTON_SIZES.COMPACT}
               text={APARTMENT_LIGHTING_COPY.SAVE}
               isLoading={updateMutation.isPending}
             />
             <Button
+              size={BUTTON_SIZES.COMPACT}
               onClick={() => setDraft(null)}
               text={APARTMENT_PAGE_COPY.CANCEL}
               variant={BUTTON_VARIANTS.NEUTRAL}

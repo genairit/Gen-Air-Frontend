@@ -14,7 +14,7 @@ interface IQuotationCustomerPickerProps {
   value: string;
   disabled?: boolean;
   lockedReason?: string | null;
-  onChange: (id: string) => void;
+  onChange: (id: string, name?: string) => void;
 }
 const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
   value,
@@ -42,7 +42,7 @@ const QuotationCustomerPicker: FC<IQuotationCustomerPickerProps> = ({
         placeholder="בחירת לקוח או חיפוש..."
         onChange={id => {
           if (id) {
-            onChange(id);
+            onChange(id, options.find(customer => customer.id === id)?.name);
           }
         }}
       />

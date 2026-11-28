@@ -58,6 +58,7 @@ const ApartmentFieldsCard: FC<IApartmentFieldsCardProps> = ({
         value={values[config.field]}
         infoText={feedback.infoText}
         isRequired={config.isRequired}
+        id={`apartment-${config.field}`}
         placeholder={config.placeholder}
         validator={() => feedback.validation}
         onBlur={() => markTouched(config.field)}

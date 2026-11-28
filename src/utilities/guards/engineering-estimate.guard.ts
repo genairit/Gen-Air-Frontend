@@ -21,6 +21,8 @@ import type {
   IEstimateArea,
   IEstimatePage,
   IEstimatePlan,
+  IEstimateExport,
+  IEstimatePreview,
   IEstimateListItem,
   IEstimateQuestion,
   IEstimateInputLine,
@@ -104,6 +106,8 @@ const isEstimateListItem = (value: unknown): value is IEstimateListItem =>
   isRecord(value) &&
   hasStringFields(value, ["id", "name", "updatedAt"]) &&
   isNullableString(value.projectId) &&
+  (value.subtotal === undefined || isNullableString(value.subtotal)) &&
+  (value.createdByName === undefined || isNullableString(value.createdByName)) &&
   isString(value.status) &&
   Object.hasOwn(ESTIMATE_STATUS_LABELS, value.status);
 
@@ -114,3 +118,11 @@ export const isEstimatePage = (value: unknown): value is IEstimatePage =>
 
 export const isEstimateQuotation = (value: unknown): value is { quotationId: string } =>
   isRecord(value) && typeof value.quotationId === "string";
+
+export const isEstimateExport = (value: unknown): value is IEstimateExport =>
+  isRecord(value) && typeof value.fileName === "string" && isNullableString(value.fileUrl);
+
+export const isEstimatePreview = (value: unknown): value is IEstimatePreview =>
+  isRecord(value) &&
+  typeof value.subtotal === "string" &&
+  isArrayOf(isEstimatePricedLine)(value.lines);

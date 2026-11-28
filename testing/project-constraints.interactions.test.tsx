@@ -9,6 +9,7 @@ import { useState } from "react";
 import { AxiosError } from "axios";
 import assert from "node:assert/strict";
 import { test, mock, after } from "node:test";
+import Tabs from "../src/components/Tabs/Tabs";
 import { MemoryRouter } from "react-router-dom";
 import { project } from "./project-tasks.fixture";
 import { setTimeout } from "node:timers/promises";
@@ -42,6 +43,10 @@ import ApartmentLightingDraftCard from "../src/pages/apartment-form/components/A
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 after(installDomEventTargets());
+const focusedFields: string[] = [];
+Reflect.set(document, "querySelector", () => ({
+  querySelector: (selector: string) => ({ focus: () => focusedFields.push(selector) }),
+}));
 Reflect.set(Reflect.get(globalThis, "window"), "getComputedStyle", () => ({
   width: "100px",
   boxSizing: "border-box",
@@ -59,6 +64,16 @@ const createNodeMock = () => ({
   value: "",
   style: {},
   scrollHeight: 20,
+  getBoundingClientRect: () => ({
+    x: 0,
+    y: 0,
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    width: 0,
+    height: 0,
+  }),
   nodeName: "INPUT",
   focus: () => {},
   blur: () => {},
@@ -415,7 +430,6 @@ test("project details puts the domain duplicate message on the name field and ex
       state.renderer = create(
         <ProjectDetailsCard
           stages={[]}
-          projectCode="GA-1"
           onChange={() => {}}
           namePending={false}
           values={makeValues()}
@@ -550,13 +564,29 @@ test("building notes appear only for buildings and are submitted with edits", as
     assert.ok(buildingRenderer);
     assert.deepEqual(buildingClient.getQueryData(QUERY_KEYS.PROJECT_TYPES), [projectType]);
     assert.equal(buildingRenderer.root.findByType(ProjectTypeCard).props.options.length, 1);
+    const tabs = () => buildingRenderer.root.findByType(Tabs);
+    const switchTab = (id: string) => act(async () => tabs().props.onChange(id));
+    assert.equal(tabs().props.activeId, "details");
+    await switchTab("technical");
+    const lighting = () => buildingRenderer.root.findByType(ProjectLightingFields);
+    await act(async () => lighting().props.onChange({ hasGeneralLightingCeilingLowering: true }));
     const notes = buildingRenderer.root.findByType(ProjectNotesCard);
     assert.equal(notes.props.notes, "");
     await act(async () => notes.props.onChange("תמ״א 38\nגישה מחדר מדרגות"));
+    await switchTab("people");
     const save = buildingRenderer.root
       .findAllByType(Button)
       .find(item => item.props.text === "שמור שינויים");
     assert.ok(save);
+    await act(async () => save.props.onClick());
+    assert.equal(tabs().props.activeId, "technical");
+    assert.match(focusedFields.at(-1) ?? "", /lighting/);
+    assert.equal(patch.mock.callCount(), 0);
+    assert.equal(notes.props.notes, "תמ״א 38\nגישה מחדר מדרגות");
+    await act(async () =>
+      lighting().props.onChange({ generalLightingCeilingLoweringHeight: "25" }),
+    );
+    await switchTab("people");
     await act(async () => {
       save.props.onClick();
       await settle();

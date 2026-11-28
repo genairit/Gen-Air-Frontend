@@ -3,7 +3,7 @@ import { Box } from "@mui/material";
 import { usePageStyles } from "../page.style";
 import { useNavigate } from "react-router-dom";
 import Button from "../../components/Button/Button";
-import NewCustomerForm from "./components/NewCustomerForm";
+import CustomerForm from "./components/CustomerForm";
 import { useSessionUser } from "../../store/session.store";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import { ROUTE_PATHS } from "../../constants/routes.constant";
@@ -37,9 +37,9 @@ const NewCustomerPage = () => {
       );
     }
     return (
-      <NewCustomerForm
+      <CustomerForm
         creatorName={creatorName}
-        onCreated={setCreatedCustomerId}
+        onSaved={setCreatedCustomerId}
         onCancel={() => navigate(ROUTE_PATHS.CUSTOMERS)}
       />
     );

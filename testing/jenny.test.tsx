@@ -25,6 +25,12 @@ import {
 } from "../src/constants/jenny.constant";
 
 import {
+  newEstimateLine,
+  emptyEstimateDraft,
+  validEstimateDraft,
+} from "../src/utilities/estimate-draft.utility";
+
+import {
   ESTIMATE_SETUP,
   ESTIMATE_ENDPOINT,
   ESTIMATE_SETUP_PROMPTS,
@@ -38,15 +44,18 @@ import {
 import { test } from "node:test";
 import { Box } from "@mui/material";
 import assert from "node:assert/strict";
-import type { ReactElement } from "react";
 import Jenny from "../src/components/Jenny/Jenny";
 import Button from "../src/components/Button/Button";
 import { setSession } from "../src/store/session.store";
 import TextField from "../src/components/TextField/TextField";
+import { useEffect, useState, type ReactElement } from "react";
 import { USER_ROLES } from "../src/constants/user-role.constant";
 import { httpClient } from "../src/services/http-client.service";
 import { isKeyboardEvent } from "../src/utilities/keyboard.utility";
 import InlineError from "../src/components/InlineError/InlineError";
+import { SEARCH_DEBOUNCE_MS } from "../src/constants/search.constant";
+import Autocomplete from "../src/components/Autocomplete/Autocomplete";
+import { useEstimatePreview } from "../src/hooks/estimate-preview.hook";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MARKDOWN_BLOCK_KINDS } from "../src/constants/markdown.constant";
 import { API_ENDPOINTS, HTTP_STATUS } from "../src/constants/api.constant";
@@ -55,10 +64,16 @@ import type { IJennyThreadMessage } from "../src/interfaces/jenny.interface";
 import { useScrollPinnedToBottom } from "../src/hooks/scroll-pinned-bottom.hook";
 import EstimateJenny from "../src/pages/engineering-estimates/components/EstimateJenny";
 import { PERMISSIONS, type PermissionType } from "../src/constants/permission.constant";
+import { initialEstimateMeasurements } from "../src/utilities/engineering-estimate.utility";
+import type { IEstimateCalculation } from "../src/interfaces/engineering-estimate.interface";
 import type { IEngineeringEstimate } from "../src/interfaces/engineering-estimate.interface";
 import { MOBILE_LAYOUT_QUERY, REDUCED_MOTION_QUERY } from "../src/constants/layout.constant";
 import { validateEstimatePlanSelection } from "../src/utilities/engineering-estimate.utility";
+import EstimateCreateForm from "../src/pages/engineering-estimates/components/EstimateCreateForm";
+import EstimateScopeField from "../src/pages/engineering-estimates/components/EstimateScopeField";
 import { act, create, type ReactTestInstance, type ReactTestRenderer } from "react-test-renderer";
+import { createMemoryRouter, RouterProvider, useSearchParams, useNavigate } from "react-router-dom";
+import EstimateCatalogueLine from "../src/pages/engineering-estimates/components/EstimateCatalogueLine";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
 // MUI's autosizing textarea schedules frames once its node mock is mounted; Node has no frame API.
@@ -1002,7 +1017,7 @@ test("thread auto-scroll jumps instantly under reduced motion", async () => {
   }
 });
 
-test("Jenny starts a standalone estimate and opens the persisted setup step on resume", async (): Promise<void> => {
+test("Jenny starts an estimate in the current project and opens the persisted setup step on resume", async (): Promise<void> => {
   const harness = createHarness();
   const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
   const estimate: IEngineeringEstimate = {
@@ -1014,7 +1029,7 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
     areas: [],
     scope: "hvac",
     status: "draft",
-    projectId: null,
+    projectId: "current-project",
     quotationId: null,
     quotationCustomerId: null,
     quotationUnavailable: false,
@@ -1029,7 +1044,12 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
   };
   const renderGuide = (resume: IEngineeringEstimate | null): ReactElement => (
     <QueryClientProvider client={queryClient}>
-      <EstimateJenny estimate={resume} canBrowse={false} onCreated={onCreated} />
+      <EstimateJenny
+        estimate={resume}
+        canBrowse={false}
+        onCreated={onCreated}
+        projectId={estimate.projectId}
+      />
     </QueryClientProvider>
   );
   const view: { renderer: ReactTestRenderer | null } = { renderer: null };
@@ -1045,7 +1065,7 @@ test("Jenny starts a standalone estimate and opens the persisted setup step on r
     assert.ok(start);
     await act(async (): Promise<void> => start.props.onClick());
     assert.equal(harness.calls[0]?.url, ESTIMATE_ENDPOINT);
-    assert.deepEqual(harness.calls[0]?.body, { name: "מלון" });
+    assert.deepEqual(harness.calls[0]?.body, { name: "מלון", projectId: "current-project" });
     await harness.respond(estimate);
     assert.deepEqual(saved.estimate, estimate);
 
@@ -1100,4 +1120,281 @@ test("estimate PDF client preserves localized API conflict messages from blob re
       error.message.includes(message),
   );
   assert.equal(failure.response?.data, data);
+});
+
+test("estimate drafts start empty, generate independent row identities and validate every area", () => {
+  const first = emptyEstimateDraft();
+  const second = emptyEstimateDraft();
+  assert.equal(first.version, 0);
+  assert.equal(first.scope, "hvac");
+  assert.deepEqual(first.areas, []);
+  assert.notEqual(first.areas, second.areas);
+  const line = { ...newEstimateLine(), catalogueItemId: "catalogue", quantity: "2.5000" };
+  assert.notEqual(line.id, newEstimateLine().id);
+  const area = { id: "area", name: "דירה", repeatCount: 3, lines: [line] };
+  assert.equal(validEstimateDraft([area]), true);
+  assert.equal(validEstimateDraft([{ ...area, lines: [{ ...line, catalogueItemId: "" }] }]), false);
+  assert.equal(validEstimateDraft([{ ...area, name: "  " }]), false);
+  for (const repeatCount of [0, -1, 1.5, 10001, Number.NaN]) {
+    assert.equal(validEstimateDraft([{ ...area, repeatCount }]), false);
+  }
+  for (const quantity of ["", "0", "-1", "NaN", "1.00001", "1000000"]) {
+    assert.equal(validEstimateDraft([{ ...area, lines: [{ ...line, quantity }] }]), false);
+  }
+  const measurements = initialEstimateMeasurements();
+  assert.equal(validEstimateDraft([{ ...area, lines: [{ ...line, measurements }] }]), true);
+  assert.equal(
+    validEstimateDraft([
+      {
+        ...area,
+        lines: [{ ...line, measurements: { ...measurements, distribution: { kind: "duct" } } }],
+      },
+    ]),
+    false,
+  );
+});
+
+test("preview ignores an older response, debounces changes and never fetches invalid or read-only drafts", async () => {
+  const harness = createHarness();
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
+  const input: IEstimateCalculation = {
+    scope: "hvac",
+    areas: [
+      {
+        id: "area",
+        name: "דירה",
+        repeatCount: 3,
+        lines: [{ id: "line", catalogueItemId: "item", quantity: "2" }],
+      },
+    ],
+  };
+  const latest: { preview: ReturnType<typeof useEstimatePreview> | null } = { preview: null };
+  const currentPreview = () => latest.preview;
+  const PreviewHarness = ({
+    draft,
+    enabled,
+  }: {
+    draft: IEstimateCalculation;
+    enabled: boolean;
+  }) => {
+    const preview = useEstimatePreview(draft, enabled);
+    useEffect(() => {
+      latest.preview = preview;
+    }, [preview]);
+    return null;
+  };
+  const element = (draft: IEstimateCalculation, enabled = true) => (
+    <QueryClientProvider client={client}>
+      <PreviewHarness draft={draft} enabled={enabled} />
+    </QueryClientProvider>
+  );
+  const view: { renderer: ReactTestRenderer | null } = { renderer: null };
+  await act(async () => {
+    view.renderer = create(element(input));
+  });
+  const renderer = view.renderer;
+  assert.ok(renderer);
+  try {
+    assert.equal(harness.calls.length, 1);
+    const next = { ...input, areas: input.areas.map(area => ({ ...area, repeatCount: 4 })) };
+    await act(async () => renderer.update(element(next)));
+    assert.equal(currentPreview()?.data, void 0);
+    await harness.respond({ lines: [], subtotal: "600" });
+    assert.equal(currentPreview()?.data, void 0);
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, SEARCH_DEBOUNCE_MS + 20));
+    });
+    assert.equal(harness.calls.length, 2);
+    await harness.respond({ lines: [], subtotal: "800" });
+    assert.equal(currentPreview()?.data?.subtotal, "800");
+    const invalid = { ...next, areas: next.areas.map(area => ({ ...area, repeatCount: 0 })) };
+    await act(async () => renderer.update(element(invalid)));
+    assert.equal(currentPreview()?.waiting, false);
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, SEARCH_DEBOUNCE_MS + 20));
+    });
+    assert.equal(harness.calls.length, 2);
+    await act(async () =>
+      renderer.update(element({ ...input, scope: "installation_only" }, false)),
+    );
+    assert.equal(harness.calls.length, 2);
+  } finally {
+    await act(async () => renderer.unmount());
+    client.clear();
+    harness.restore();
+  }
+});
+
+test("catalogue rows pick up loaded descriptions and edits keep the input identity", async () => {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const line = {
+    id: "row-2",
+    catalogueItemId: "same-catalogue-id",
+    quantity: "2",
+    source: "תוכנית 1",
+  };
+  const changed: { line: typeof line | null } = { line: null };
+  const element = (itemLabel: string) => (
+    <QueryClientProvider client={client}>
+      <Box component="table">
+        <Box component="tbody">
+          <EstimateCatalogueLine
+            line={line}
+            busy={false}
+            onRemove={() => {}}
+            itemLabel={itemLabel}
+            onChange={next => {
+              changed.line = { ...next, source: next.source ?? "" };
+            }}
+          />
+        </Box>
+      </Box>
+    </QueryClientProvider>
+  );
+  const view: { renderer: ReactTestRenderer | null } = { renderer: null };
+  await act(async () => {
+    view.renderer = create(element(line.catalogueItemId));
+  });
+  const renderer = view.renderer;
+  assert.ok(renderer);
+  try {
+    await act(async () => renderer.update(element("AC-1 · מזגן")));
+    assert.equal(renderer.root.findByType(Autocomplete).props.selectedItem.label, "AC-1 · מזגן");
+    const quantity = renderer.root
+      .findAllByType(TextField)
+      .find(field => field.props.title === "כמות לאזור אחד");
+    assert.ok(quantity);
+    await act(async () => quantity.props.onChange("3"));
+    assert.equal(changed.line?.id, "row-2");
+    assert.equal(changed.line?.quantity, "3");
+    assert.equal(changed.line?.source, "תוכנית 1");
+    const expand = findButton(renderer, "מדידות וכללים");
+    assert.ok(expand);
+    await act(async () => expand.props.onClick());
+    assert.equal(findButton(renderer, "מדידות וכללים")?.props.ariaExpanded, true);
+  } finally {
+    await act(async () => renderer.unmount());
+    client.clear();
+  }
+});
+
+test("creating a dirty estimate opens its saved detail after the navigation guard clears", async () => {
+  const restoreWindow = installMatchMedia([]);
+  Reflect.set(window, "addEventListener", () => {});
+  Reflect.set(window, "removeEventListener", () => {});
+  const harness = createHarness();
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  const Page = () => {
+    const [creating, setCreating] = useState(true);
+    const [params, setParams] = useSearchParams();
+    if (!creating) {
+      return <Box>{params.get("estimate") ?? "list"}</Box>;
+    }
+    return (
+      <EstimateCreateForm
+        projectId="bound-project"
+        onCancel={() => setCreating(false)}
+        onCreated={estimate => {
+          setCreating(false);
+          setParams({ estimate: estimate.id });
+        }}
+      />
+    );
+  };
+  const router = createMemoryRouter([{ path: "/", element: <Page /> }]);
+  const view: { renderer: ReactTestRenderer | null } = { renderer: null };
+  await act(async () => {
+    view.renderer = create(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+  });
+  const renderer = view.renderer;
+  assert.ok(renderer);
+  try {
+    const name = renderer.root
+      .findAllByType(TextField)
+      .find(field => field.props.title === "שם כתב הכמויות");
+    assert.ok(name);
+    await act(async () => name.props.onChange("כתב חדש"));
+    const save = findButton(renderer, "יצירת כתב כמויות");
+    assert.ok(save);
+    assert.equal(save.props.onClick, void 0);
+    const form = renderer.root.find(node => node.type === "form");
+    await act(async () => form.props.onSubmit({ preventDefault() {} }));
+    assert.equal(harness.calls.filter(call => call.url === ESTIMATE_ENDPOINT).length, 1);
+    const estimate = {
+      ...emptyEstimateDraft(),
+      id: "saved-id",
+      name: "כתב חדש",
+      projectId: "bound-project",
+      version: 1,
+    };
+    await harness.respond(estimate);
+    assert.equal(router.state.location.search, "?estimate=saved-id");
+    assert.ok(textOf(renderer).includes("saved-id"));
+  } finally {
+    await act(async () => renderer.unmount());
+    router.dispose();
+    client.clear();
+    harness.restore();
+    restoreWindow();
+  }
+});
+
+test("discarding a dirty project estimate clears the guard before returning to its project", async () => {
+  const restoreWindow = installMatchMedia([]);
+  Reflect.set(window, "addEventListener", () => {});
+  Reflect.set(window, "removeEventListener", () => {});
+  const harness = createHarness();
+  const dirtyStates: boolean[] = [];
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const Page = () => {
+    const navigate = useNavigate();
+    return (
+      <EstimateCreateForm
+        onCreated={() => {}}
+        projectId="bound-project"
+        onCancel={() => navigate("/project")}
+        onDirtyChange={dirty => dirtyStates.push(dirty)}
+      />
+    );
+  };
+  const router = createMemoryRouter([
+    { path: "/", element: <Page /> },
+    { path: "/project", element: <Box>project</Box> },
+  ]);
+  const view: { renderer: ReactTestRenderer | null } = { renderer: null };
+  await act(async () => {
+    view.renderer = create(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    );
+  });
+  const renderer = view.renderer;
+  assert.ok(renderer);
+  try {
+    const scope = renderer.root.findByType(EstimateScopeField);
+    await act(async () => scope.props.onChange("hvac_ventilation"));
+    const cancel = findButton(renderer, "ביטול");
+    assert.ok(cancel);
+    await act(async () => cancel.props.onClick());
+    const discard = findButton(renderer, "יציאה ללא שמירה");
+    assert.ok(discard);
+    await act(async () => discard.props.onClick());
+    assert.equal(router.state.location.pathname, "/project");
+    assert.ok(dirtyStates.includes(true));
+    assert.equal(dirtyStates.at(-1), false);
+    assert.ok(textOf(renderer).includes("project"));
+  } finally {
+    await act(async () => renderer.unmount());
+    router.dispose();
+    client.clear();
+    harness.restore();
+    restoreWindow();
+  }
 });

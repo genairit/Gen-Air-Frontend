@@ -1,18 +1,7 @@
 import {
-  addQuotationBrand,
-  quotationBrandTabs,
-  moveQuotationSection,
-  updateQuotationSection,
-  removeEmptyQuotationBrand,
-} from "../../../utilities/quotation.utility";
-
-import {
   QUOTATION_BRANDS,
-  QUOTATION_SYSTEM,
   QUOTATION_CONFIRMATION,
   QUOTATION_STATUS_LABELS,
-  QUOTATION_SYSTEM_OPTIONS,
-  QUOTATION_GENERAL_TAB_ID,
   MAX_QUOTATION_CANCELLATION_REASON_LENGTH,
 } from "../../../constants/quotation.constant";
 
@@ -37,29 +26,23 @@ import Button from "./QuotationButton";
 import { useRef, useState } from "react";
 import styles from "../quotation.module.css";
 import QuotationInput from "./QuotationInput";
-import { useNavigate } from "react-router-dom";
-import QuotationReview from "./QuotationReview";
 import QuotationSelect from "./QuotationSelect";
 import QuotationDelete from "./QuotationDelete";
-import Icon from "../../../components/Icon/Icon";
 import Card from "../../../components/Card/Card";
-import Tabs from "../../../components/Tabs/Tabs";
-import QuotationSection from "./QuotationSection";
 import QuotationSummary from "./QuotationSummary";
 import QuotationPayments from "./QuotationPayments";
-import QuotationWarnings from "./QuotationWarnings";
+import QuotationWorkspace from "./QuotationWorkspace";
 import QuotationDiagnostics from "./QuotationDiagnostics";
+import { useLocation, useNavigate } from "react-router-dom";
 import QuotationDecimalInput from "./QuotationDecimalInput";
 import BackLink from "../../../components/BackLink/BackLink";
 import Timeline from "../../../components/Timeline/Timeline";
-import { ICON_NAMES } from "../../../constants/icon.constant";
 import QuotationProjectPicker from "./QuotationProjectPicker";
 import { useSessionUser } from "../../../store/session.store";
 import TextField from "../../../components/TextField/TextField";
 import QuotationCustomerPicker from "./QuotationCustomerPicker";
 import ExecutionPlanReviewCard from "./ExecutionPlanReviewCard";
 import { buildTaskPath } from "../../../utilities/route.utility";
-import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import { USER_ROLES } from "../../../constants/user-role.constant";
 import { useElementFocus } from "../../../hooks/element-focus.hook";
 import QuotationSalesAgentPicker from "./QuotationSalesAgentPicker";
@@ -69,14 +52,16 @@ import QuotationPublicationNotice from "./QuotationPublicationNotice";
 import { hasPermission } from "../../../utilities/permission.utility";
 import { getAssignedRoles } from "../../../utilities/user-role.utility";
 import { TEXT_DIRECTIONS } from "../../../constants/direction.constant";
+import { useCustomerQuery } from "../../../hooks/queries/customer.query";
+import { formatDateInputDisplay } from "../../../utilities/date.utility";
 import NoticeBanner from "../../../components/NoticeBanner/NoticeBanner";
 import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 import { QUOTATION_STATUS } from "../../../constants/quotation.constant";
 import { useQuotationEditor } from "../../../hooks/quotation-editor.hook";
 import { useHashTargetFocus } from "../../../hooks/hash-target-focus.hook";
 import { useQuotationRebrand } from "../../../hooks/quotation-rebrand.hook";
-import { TAB_MODES, TABS_VARIANTS } from "../../../constants/tabs.constant";
 import QuotationCustomerPaymentDefault from "./QuotationCustomerPaymentDefault";
+import { buildQuotationClonePath } from "../../../constants/navigation.constant";
 import { QUOTATION_LIFECYCLE_COPY } from "../../../constants/quotation.constant";
 import { TASK_QUOTATION_COPY } from "../../../constants/task-quotation.constant";
 import { Box, Accordion, AccordionDetails, AccordionSummary } from "@mui/material";
@@ -119,6 +104,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   canClone = false,
 }: IQuotationEditorProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   useHashTargetFocus({
     ready: true,
     targetId: QUOTATION_DETAIL_HEADING_ID,
@@ -137,9 +123,11 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejecting, setRejecting] = useState(false);
   const [latestLoadedAfterConflict, setLatestLoadedAfterConflict] = useState(false);
-  const [activeTab, setActiveTab] = useState(initial.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
+  const [detailsExpanded, setDetailsExpanded] = useState(!initial.customerId);
+  const [viewDraft, setViewDraft] = useState(false);
   const editor = useQuotationEditor(initial, editable, canDelete);
   const { quotation, update } = editor;
+  const customer = useCustomerQuery(quotation.customerId || null);
   const pdf = useQuotationPdf(quotation.id);
   const publication = useQuotationPublication(quotation.id, quotation.version);
   const sharing = useQuotationApartmentSharing({
@@ -168,9 +156,10 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     editor.commandForbidden;
   const navigationPending = !editor.deleted && (editor.dirty || editor.busy || rebrand.busy);
   const blocker = useUnsavedChangesNavigation(navigationPending);
-  useQuotationDeletedNavigation(editor.deleted, quotation.id);
+  useQuotationDeletedNavigation(editor.deleted, quotation.id, quotation.primaryProject?.id ?? null);
   const isSummaryVisible =
-    quotation.status !== QUOTATION_STATUS.DRAFT && editingStatus !== quotation.status;
+    !editable ||
+    (quotation.status === QUOTATION_STATUS.DRAFT ? viewDraft : editingStatus !== quotation.status);
   const isEditorVisible = !isSummaryVisible;
   const statusText = quotationSaveLabel({
     busy: editor.busy,
@@ -188,8 +177,6 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     : taskProjectLockedReason;
   const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
   const taskLinks = canReadTasks ? (quotation.taskLinks ?? []) : [];
-  const systems = QUOTATION_SYSTEM_OPTIONS;
-  const brandTabs = quotationBrandTabs(quotation, activeTab);
   const openingLine = quotationOpeningLine(quotation);
   const cancellationEntries = quotationLifecycleTimeline(quotation, publication.publication);
   const latestRejection = quotation.rejectionHistory.at(-1);
@@ -270,6 +257,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     setCancellationReason("");
     setLatestLoadedAfterConflict(false);
     setEditingStatus(null);
+    setViewDraft(false);
     setFocusVersion((current): number => current + 1);
   };
   const reloadConflict = async (): Promise<void> => {
@@ -292,6 +280,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     const accepted = await editor.transition(status);
     if (accepted) {
       setEditingStatus(null);
+      setViewDraft(false);
       setFocusVersion((current): number => current + 1);
     }
   };
@@ -304,6 +293,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
       setRejecting(false);
       setRejectionReason("");
       setEditingStatus(null);
+      setViewDraft(false);
       setFocusVersion((current): number => current + 1);
     }
   };
@@ -311,6 +301,7 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     const accepted = await editor.resubmit();
     if (accepted) {
       setEditingStatus(null);
+      setViewDraft(false);
       setFocusVersion((current): number => current + 1);
     }
   };
@@ -327,8 +318,8 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
     update({ ...quotation, salesAgentId });
   };
   return (
-    <Box component="main" className={styles.page}>
-      <Card>
+    <Box component="main" className={styles.editorPage}>
+      <Card depth="flat">
         <Box component="div" className={styles.quotationHeader}>
           <Box component="div" className={styles.quotationHeaderTop}>
             <Box component="div" className={styles.quotationIdentity}>
@@ -351,6 +342,20 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
               </Box>
             </Box>
             <Box component="div" className={styles.quotationActions}>
+              {editable &&
+                quotation.status !== QUOTATION_STATUS.APPROVED &&
+                quotation.status !== QUOTATION_STATUS.CANCELLED && (
+                  <Button
+                    disabled={blocked}
+                    size={BUTTON_SIZES.COMPACT}
+                    variant={BUTTON_VARIANTS.NEUTRAL}
+                    text={isSummaryVisible ? "עריכה" : "תצוגה"}
+                    onClick={() => {
+                      setViewDraft(!isSummaryVisible);
+                      setEditingStatus(isSummaryVisible ? quotation.status : null);
+                    }}
+                  />
+                )}
               {canClone &&
                 quotation.brands.length === 1 &&
                 quotation.sections.some(section => section.brand === quotation.brands[0]) && (
@@ -358,7 +363,9 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
                     disabled={blocked}
                     text="צור העתק לחברה אחרת"
                     variant={BUTTON_VARIANTS.NEUTRAL}
-                    onClick={() => navigate(`${ROUTE_PATHS.QUOTATIONS}?cloneFrom=${quotation.id}`)}
+                    onClick={() =>
+                      navigate(buildQuotationClonePath(quotation.id), { state: location.state })
+                    }
                   />
                 )}
               {canExport && (
@@ -405,7 +412,6 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             {lifecycleStatusText}
           </Box>
         </Box>
-        <QuotationPublicationNotice {...publication} />
         {taskLinks.map(link => (
           <BackLink
             key={link.taskId}
@@ -445,96 +451,136 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
             <ValidationMessageText text={pdf.error} />
           </Box>
         )}
-        <Box component="div" className={styles.metadata}>
-          <QuotationCustomerPicker
-            disabled={disabled}
-            value={quotation.customerId}
-            lockedReason={customerLockedReason}
-            onChange={customerId => {
-              if (customerId) {
-                update({ ...quotation, customerId, projectId: null });
-              }
-            }}
-          />
-          <QuotationProjectPicker
-            disabled={disabled}
-            value={quotation.projectId}
-            customerId={quotation.customerId}
-            lockedReason={projectLockedReason}
-            selectedName={quotation.projectName}
-            onChange={projectId => update({ ...quotation, projectId })}
-          />
-          <QuotationSalesAgentPicker
-            onChange={changeSalesAgent}
-            value={quotation.salesAgentId}
-            selectedName={quotation.salesAgentName}
-            disabled={
-              !editable ||
-              editor.busy ||
-              editor.dirty ||
-              rebrand.busy ||
-              quotation.status === QUOTATION_STATUS.CANCELLED
+        <Accordion
+          elevation={0}
+          disableGutters
+          className={styles.contextDisclosure}
+          onChange={(_, expanded) => setDetailsExpanded(expanded)}
+          expanded={detailsExpanded || !quotation.customerId || !quotation.projectId}
+        >
+          <AccordionSummary
+            expandIcon={
+              <Box component="span" aria-hidden="true">
+                ⌄
+              </Box>
             }
-          />
-          {quotation.brands.length === 1 && (
-            <QuotationSelect
-              label="חברת מיזוג"
-              disabled={disabled}
-              value={quotation.brand}
-              caption="החלפת החברה בלשונית הקיימת"
-              onChange={event => rebrand.request(event.target.value)}
-              items={QUOTATION_BRANDS.map(brand => ({ value: brand, label: brand }))}
-            />
-          )}
-          <QuotationDecimalInput
-            min="0"
-            max="100"
-            step="0.01"
-            type="number"
-            label="הנחה %"
-            value={quotation.discountPercent}
-            disabled={disabled || quotation.targetPretaxAmount !== null}
-            onChange={event => update({ ...quotation, discountPercent: event.target.value })}
-          />
-          <QuotationInput
-            type="date"
-            label="תאריך"
-            disabled={disabled}
-            value={quotation.date}
-            onChange={event => update({ ...quotation, date: event.target.value })}
-          />
-        </Box>
-        <Accordion elevation={0} disableGutters className={styles.detailsDisclosure}>
-          <AccordionSummary>פרטים נוספים</AccordionSummary>
+          >
+            <Box component="span" className={styles.contextLine}>
+              <Box component="strong">פרטי הצעה</Box>
+              {[
+                quotation.customerName || customer.data?.name,
+                quotation.projectId &&
+                  (quotation.projectName ||
+                    (quotation.primaryProject?.id === quotation.projectId &&
+                      quotation.primaryProject.name)),
+                formatDateInputDisplay(quotation.date),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </Box>
+          </AccordionSummary>
           <AccordionDetails>
-            <TextField
-              multiline
-              minRows={3}
-              maxLength={5000}
-              disabled={disabled}
-              type={FIELD_TYPES.TEXT}
-              value={quotation.internalNotes}
-              title="הערות פנימיות (לא יופיעו ללקוח)"
-              onChange={internalNotes => update({ ...quotation, internalNotes })}
-            />
-            {openingLine && (
-              <Box component="div" className={styles.openingLine}>
-                <Box component="span" className={styles.muted}>
-                  שורת פתיחה בהצעה:
-                </Box>
-                <Box component="span">{openingLine}</Box>
-              </Box>
-            )}
-            {cancellationEntries.length > 0 && (
-              <Box
-                component="div"
-                className={styles.cancellationHistory}
-                sx={{ overflowWrap: "anywhere", minWidth: 0 }}
-              >
-                <Box component="h3">היסטוריית המסמך</Box>
-                <Timeline entries={cancellationEntries} />
-              </Box>
-            )}
+            <Box component="div" className={styles.metadata}>
+              <QuotationCustomerPicker
+                value={quotation.customerId}
+                lockedReason={customerLockedReason}
+                disabled={disabled || isSummaryVisible}
+                onChange={(customerId, customerName) => {
+                  if (customerId) {
+                    update({
+                      ...quotation,
+                      customerId,
+                      customerName,
+                      projectId: null,
+                      projectName: null,
+                    });
+                    setDetailsExpanded(false);
+                  }
+                }}
+              />
+              <QuotationProjectPicker
+                value={quotation.projectId}
+                customerId={quotation.customerId}
+                lockedReason={projectLockedReason}
+                selectedName={quotation.projectName}
+                disabled={disabled || isSummaryVisible}
+                onChange={(projectId, projectName) =>
+                  update({ ...quotation, projectId, projectName })
+                }
+              />
+              <QuotationSalesAgentPicker
+                onChange={changeSalesAgent}
+                value={quotation.salesAgentId}
+                selectedName={quotation.salesAgentName}
+                disabled={
+                  !editable ||
+                  editor.busy ||
+                  editor.dirty ||
+                  rebrand.busy ||
+                  quotation.status === QUOTATION_STATUS.CANCELLED
+                }
+              />
+              {quotation.brands.length === 1 && (
+                <QuotationSelect
+                  label="חברת מיזוג"
+                  value={quotation.brand}
+                  disabled={disabled || isSummaryVisible}
+                  caption="החלפת החברה והתאמת פריטי הקטלוג"
+                  onChange={event => rebrand.request(event.target.value)}
+                  items={QUOTATION_BRANDS.map(brand => ({ value: brand, label: brand }))}
+                />
+              )}
+              <QuotationDecimalInput
+                min="0"
+                max="100"
+                step="0.01"
+                type="number"
+                label="הנחה %"
+                value={quotation.discountPercent}
+                disabled={disabled || isSummaryVisible || quotation.targetPretaxAmount !== null}
+                onChange={event => update({ ...quotation, discountPercent: event.target.value })}
+              />
+              <QuotationInput
+                type="date"
+                label="תאריך"
+                value={quotation.date}
+                disabled={disabled || isSummaryVisible}
+                onChange={event => update({ ...quotation, date: event.target.value })}
+              />
+            </Box>
+            <Accordion elevation={0} disableGutters className={styles.detailsDisclosure}>
+              <AccordionSummary>פרטים נוספים</AccordionSummary>
+              <AccordionDetails>
+                <TextField
+                  multiline
+                  minRows={3}
+                  maxLength={5000}
+                  type={FIELD_TYPES.TEXT}
+                  value={quotation.internalNotes}
+                  disabled={disabled || isSummaryVisible}
+                  title="הערות פנימיות (לא יופיעו ללקוח)"
+                  onChange={internalNotes => update({ ...quotation, internalNotes })}
+                />
+                {openingLine && (
+                  <Box component="div" className={styles.openingLine}>
+                    <Box component="span" className={styles.muted}>
+                      שורת פתיחה בהצעה:
+                    </Box>
+                    <Box component="span">{openingLine}</Box>
+                  </Box>
+                )}
+                {cancellationEntries.length > 0 && (
+                  <Box
+                    component="div"
+                    className={styles.cancellationHistory}
+                    sx={{ overflowWrap: "anywhere", minWidth: 0 }}
+                  >
+                    <Box component="h3">היסטוריית המסמך</Box>
+                    <Timeline entries={cancellationEntries} />
+                  </Box>
+                )}
+              </AccordionDetails>
+            </Accordion>
           </AccordionDetails>
         </Accordion>
         {rebrand.error && (
@@ -563,6 +609,14 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           </Box>
         )}
       </Card>
+      <QuotationWorkspace
+        onChange={update}
+        disabled={disabled}
+        quotation={quotation}
+        readOnly={isSummaryVisible}
+      />
+      {isEditorVisible && <QuotationDiagnostics quotation={quotation} />}
+      <QuotationPublicationNotice {...publication} />
       {hasPermission(sessionUser, PERMISSIONS.EXECUTION_PLANS_READ) &&
         hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ) &&
         hasPermission(sessionUser, PERMISSIONS.PROJECTS_READ) && (
@@ -576,130 +630,6 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
           <Box component="p">יש שינויים שטרם נשמרו. הניווט ימשיך לאחר שמירה מוצלחת.</Box>
           <Button text="הישאר בהצעה" onClick={() => blocker.reset()} />
           <Button text="עזוב בלי לשמור שינויים" onClick={() => blocker.proceed()} />
-        </Card>
-      )}
-      {isSummaryVisible && (
-        <QuotationReview
-          editable={!disabled}
-          quotation={quotation}
-          onEdit={() => setEditingStatus(quotation.status)}
-          warnings={
-            <QuotationWarnings
-              quotation={quotation}
-              blocked={blocked}
-              canApprove={canApprove}
-              onAcknowledge={editor.acknowledge}
-            />
-          }
-        />
-      )}
-      {isEditorVisible && <QuotationDiagnostics quotation={quotation} />}
-      {isEditorVisible && (
-        <Card>
-          <Box component="div" className={styles.cardTitle}>
-            <Box component="span" aria-hidden="true" className={styles.cardIcon}>
-              <Icon name={ICON_NAMES.QUOTE} />
-            </Box>
-            <Box component="div">
-              <Box component="h2">מערכות ושורות</Box>
-              <Box component="p" className={styles.muted}>
-                כל שורה נבחרת מהמחירון. מחיר, תיאור ויחידה נשמרים בשורה ולא משתנים עם המחירון
-              </Box>
-            </Box>
-          </Box>
-          <Tabs
-            mode={TAB_MODES.TABS}
-            items={brandTabs.items}
-            onChange={setActiveTab}
-            variant={TABS_VARIANTS.PILLS}
-            activeId={brandTabs.selectedId}
-            ariaLabel="לשוניות חברות ופריטים כלליים"
-          />
-          {!disabled && (
-            <Box component="div" className={styles.row}>
-              <QuotationSelect
-                value=""
-                label="הוספת לשונית חברה"
-                items={[
-                  { value: "", label: "בחרו חברה להוספה..." },
-                  ...QUOTATION_BRANDS.filter(brand => !quotation.brands.includes(brand)).map(
-                    brand => ({ value: brand, label: brand }),
-                  ),
-                ]}
-                onChange={event => {
-                  const brand = event.target.value;
-                  if (!brand || quotation.brands.includes(brand)) {
-                    return;
-                  }
-                  update(addQuotationBrand(quotation, brand));
-                  setActiveTab(brand);
-                }}
-              />
-              {brandTabs.brand &&
-                !quotation.sections.some(section => section.brand === brandTabs.brand) && (
-                  <Button
-                    text="הסר לשונית ריקה"
-                    size={BUTTON_SIZES.COMPACT}
-                    variant={BUTTON_VARIANTS.NEUTRAL}
-                    onClick={() => {
-                      const next = removeEmptyQuotationBrand(quotation, brandTabs.brand ?? "");
-                      update(next);
-                      setActiveTab(next.brands[0] ?? QUOTATION_GENERAL_TAB_ID);
-                    }}
-                  />
-                )}
-            </Box>
-          )}
-          {brandTabs.sections.map(({ section, index }) => (
-            <QuotationSection
-              key={section.id}
-              section={section}
-              disabled={disabled}
-              brand={brandTabs.brand ?? ""}
-              onChange={next => update(updateQuotationSection(quotation, next))}
-              onMove={direction => update(moveQuotationSection(quotation, index, direction))}
-              onRemove={() =>
-                update({
-                  ...quotation,
-                  sections: quotation.sections.filter(current => current.id !== section.id),
-                })
-              }
-            />
-          ))}
-          {!disabled && (
-            <Box component="div" className={styles.systemActions}>
-              <Box component="span">הוספת מערכת / קומה</Box>
-              <Box component="div" className={styles.row}>
-                {systems
-                  .filter(
-                    ({ value }) => brandTabs.brand !== null || value === QUOTATION_SYSTEM.GENERAL,
-                  )
-                  .map(({ value: systemType, label }) => (
-                    <Button
-                      key={systemType}
-                      text={`+ ${label}`}
-                      size={BUTTON_SIZES.COMPACT}
-                      variant={BUTTON_VARIANTS.NEUTRAL}
-                      onClick={() =>
-                        update({
-                          ...quotation,
-                          sections: [
-                            ...quotation.sections,
-                            {
-                              id: crypto.randomUUID(),
-                              title: "",
-                              systemType,
-                              brand: brandTabs.brand,
-                              items: [],
-                            },
-                          ],
-                        })
-                      }
-                    />
-                  ))}
-              </Box>
-            </Box>
-          )}
         </Card>
       )}
       {isEditorVisible && (
@@ -720,15 +650,14 @@ const QuotationEditor: FC<IQuotationEditorProps> = ({
       <QuotationSummary
         blocked={blocked}
         onChange={update}
-        disabled={disabled}
         quotation={quotation}
         canApprove={canApprove}
         onReturn={returnAction}
         onTransition={transition}
         onReject={rejectionAction}
-        showWarnings={isEditorVisible}
         onResubmit={resubmitQuotation}
         onAcknowledge={editor.acknowledge}
+        disabled={disabled || isSummaryVisible}
         canResubmit={needsCorrection && editable}
       />
       {rejecting && (

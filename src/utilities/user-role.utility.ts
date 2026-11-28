@@ -2,12 +2,16 @@ import {
   USER_ROLES,
   type UserRoleType,
   type ProjectMemberRoleType,
+  ASSIGNABLE_USER_ROLE_VALUES,
 } from "../constants/user-role.constant";
 
 import type { IApiUser } from "../interfaces/api.interface";
 
 export const getAssignedRoles = (user: Pick<IApiUser, "assignedRoles" | "role">): UserRoleType[] =>
   user.assignedRoles ?? [user.role];
+
+export const getAssignableRoles = (roles: UserRoleType[]) =>
+  roles.filter(role => ASSIGNABLE_USER_ROLE_VALUES.includes(role));
 
 export const hasEngineeringRole = (user: Pick<IApiUser, "assignedRoles" | "role">): boolean =>
   getAssignedRoles(user).some(

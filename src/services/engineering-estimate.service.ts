@@ -5,14 +5,19 @@ import {
 
 import type {
   IEstimatePage,
+  IEstimateExport,
   TEstimatePatch,
   IEstimateCreate,
   IEstimateSample,
+  IEstimatePreview,
+  IEstimateCalculation,
   IEngineeringEstimate,
 } from "../interfaces/engineering-estimate.interface";
 
 import {
   isEstimatePage,
+  isEstimateExport,
+  isEstimatePreview,
   isEstimateQuotation,
   isEngineeringEstimate,
 } from "../utilities/guards/engineering-estimate.guard";
@@ -23,8 +28,15 @@ import { ESTIMATE_ENDPOINT } from "../constants/engineering-estimate.constant";
 const detail = (id: string): string => `${ESTIMATE_ENDPOINT}/${encodeURIComponent(id)}`;
 
 export const engineeringEstimateService = {
-  list: async (batchCursor: string | null): Promise<IEstimatePage> => {
-    const response = await httpClient.get<unknown>(ESTIMATE_ENDPOINT, { params: { batchCursor } });
+  preview: async (input: IEstimateCalculation): Promise<IEstimatePreview> => {
+    const endpoint = `${ESTIMATE_ENDPOINT}/preview`;
+    const response = await httpClient.post<unknown>(endpoint, input);
+    return ensureResponse(endpoint, response.data, isEstimatePreview);
+  },
+  list: async (projectId: string, batchCursor: string | null): Promise<IEstimatePage> => {
+    const response = await httpClient.get<unknown>(ESTIMATE_ENDPOINT, {
+      params: { projectId, batchCursor },
+    });
     return ensureResponse(ESTIMATE_ENDPOINT, response.data, isEstimatePage);
   },
   get: async (id: string): Promise<IEngineeringEstimate> => {
@@ -61,6 +73,11 @@ export const engineeringEstimateService = {
     ),
   downloadSketch: (id: string): Promise<Blob> =>
     receiveEstimatePdf(httpClient.get<Blob>(`${detail(id)}/sketch`, { responseType: "blob" })),
+  exportToDrive: async (id: string, version: number): Promise<IEstimateExport> => {
+    const endpoint = `${detail(id)}/export`;
+    const response = await httpClient.post<unknown>(endpoint, { version });
+    return ensureResponse(endpoint, response.data, isEstimateExport);
+  },
   approve: async (id: string, version: number): Promise<void> => {
     await httpClient.post(`${detail(id)}/approve`, { version });
   },

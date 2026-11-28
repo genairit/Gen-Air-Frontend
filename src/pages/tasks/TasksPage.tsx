@@ -1,47 +1,33 @@
-import { Box } from "@mui/material";
-import { usePageStyles } from "../page.style";
-import Icon from "../../components/Icon/Icon";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import TasksTable from "./components/TasksTable";
-import Button from "../../components/Button/Button";
-import { ICON_NAMES } from "../../constants/icon.constant";
 import { useSessionUser } from "../../store/session.store";
-import { TASKS_PAGE_COPY } from "../../constants/task.constant";
-import { buildNewTaskPath } from "../../utilities/route.utility";
+import type { IApiTask } from "../../interfaces/task.interface";
 import { PERMISSIONS } from "../../constants/permission.constant";
+import TaskFormPopup from "../task-form/components/TaskFormPopup";
+import { getTaskEditButtonId } from "../../utilities/task.utility";
 import { hasPermission } from "../../utilities/permission.utility";
 
 const TasksPage = () => {
-  const styles = usePageStyles();
-  const navigate = useNavigate();
   const sessionUser = useSessionUser();
+  const [editingTask, setEditingTask] = useState<IApiTask | null>(null);
+  const canEdit = hasPermission(sessionUser, PERMISSIONS.TASKS_UPDATE);
   const canClaim = hasPermission(sessionUser, PERMISSIONS.TASKS_CLAIM);
-  const canCreate = hasPermission(sessionUser, PERMISSIONS.TASKS_CREATE);
+  const canAssign = hasPermission(sessionUser, PERMISSIONS.TASKS_ASSIGN);
 
   return (
-    <Box sx={styles.page}>
-      <Box sx={styles.header}>
-        <Box sx={styles.headerText}>
-          <Box component="span" sx={styles.eyebrow}>
-            <Icon size={22} name={ICON_NAMES.TASKS} />
-            {TASKS_PAGE_COPY.EYEBROW}
-          </Box>
-          <Box component="h1" sx={styles.heading}>
-            {TASKS_PAGE_COPY.TITLE}
-          </Box>
-          <Box component="span" sx={styles.description}>
-            {TASKS_PAGE_COPY.DESCRIPTION}
-          </Box>
-        </Box>
-        {canCreate && (
-          <Button
-            text={TASKS_PAGE_COPY.NEW_TASK}
-            onClick={() => navigate(buildNewTaskPath(null))}
-          />
-        )}
-      </Box>
-      <TasksTable canClaim={canClaim} />
-    </Box>
+    <>
+      <TasksTable canClaim={canClaim} onEdit={canEdit ? setEditingTask : null} />
+      {canEdit && editingTask && (
+        <TaskFormPopup
+          mode="edit"
+          canEdit={canEdit}
+          task={editingTask}
+          canAssign={canAssign}
+          onClose={() => setEditingTask(null)}
+          returnFocusId={getTaskEditButtonId(editingTask.id)}
+        />
+      )}
+    </>
   );
 };
 

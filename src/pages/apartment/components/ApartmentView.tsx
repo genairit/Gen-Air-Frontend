@@ -15,10 +15,18 @@ import { PERMISSIONS } from "../../../constants/permission.constant";
 import { hasPermission } from "../../../utilities/permission.utility";
 import ProjectDriveCard from "../../project/components/ProjectDriveCard";
 import ProjectTasksCard from "../../project/components/ProjectTasksCard";
+import { PROJECT_TABS } from "../../../constants/project-workspace.constant";
 import ProjectTimelineCard from "../../project/components/ProjectTimelineCard";
 import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts";
+import ProjectEstimatesPanel from "../../project/components/ProjectEstimatesPanel";
 import ProjectQuotationsCard from "../../project/components/ProjectQuotationsCard";
+import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
+import ProjectPurchaseDocuments from "../../project/components/ProjectPurchaseDocuments";
+import ProjectPeoplePanel from "../../../components/ProjectPeoplePanel/ProjectPeoplePanel";
+import ProjectHeaderDetails from "../../../components/ProjectHeaderDetails/ProjectHeaderDetails";
+import ProjectQuotationCreateButton from "../../project/components/ProjectQuotationCreateButton";
+import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
 
 interface IApartmentViewProps {
   building: IApiProject;
@@ -34,36 +42,100 @@ const ApartmentView: FC<IApartmentViewProps> = ({ stages, building, apartment })
   const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
 
-  return (
-    <Box sx={styles.page}>
-      <ApartmentHeaderCard stages={stages} building={building} apartment={apartment} />
-
-      {canReadTasks && <ProjectTasksCard projectId={apartment.id} />}
-
-      <Box sx={styles.grid({ minColumnWidth: 380 })}>
-        <Box sx={styles.stack({})}>
-          <ApartmentEndCustomerCard building={building} apartment={apartment} />
-          <ApartmentContactCard canEdit={canEdit} apartment={apartment} />
-        </Box>
+  const canReadEstimates = hasPermission(sessionUser, PERMISSIONS.ENGINEERING_ESTIMATES_READ);
+  const canReadPurchase = hasPermission(sessionUser, PERMISSIONS.PROJECT_BOQ_READ);
+  const headerDetails = (
+    <ProjectHeaderDetails project={apartment}>
+      <Box sx={styles.grid({ minColumnWidth: 380, gap: "12px" })}>
+        <ApartmentEndCustomerCard building={building} apartment={apartment} />
         <ApartmentInheritedCard apartment={apartment} />
-      </Box>
-
-      <ProjectContacts canEdit={canEdit} projectId={apartment.id} />
-
-      {canReadQuotations && <ProjectQuotationsCard projectId={apartment.id} />}
-      <Box sx={styles.grid({ minColumnWidth: 500 })}>
         <ApartmentCommercialCard apartment={apartment} />
         <ApartmentLightingCard canEdit={canEdit} apartment={apartment} />
-      </Box>
-      {canReadDrive && <SharedProjectDocumentCard apartmentId={apartment.id} />}
-      {canReadDrive && <ProjectDriveCard projectId={apartment.id} />}
-
-      <Box sx={styles.grid({ minColumnWidth: 380 })}>
         <ParentNotesCard apartment={apartment} />
         <ApartmentNotesCard canEdit={canEdit} apartment={apartment} />
       </Box>
-      <ProjectTimelineCard projectId={apartment.id} />
-    </Box>
+    </ProjectHeaderDetails>
+  );
+  const panels = [
+    ...(canReadTasks
+      ? [
+          {
+            ...PROJECT_TABS.tasks,
+            content: <ProjectTasksCard key={apartment.id} project={apartment} />,
+          },
+        ]
+      : []),
+    ...(canReadDrive
+      ? [
+          {
+            ...PROJECT_TABS.files,
+            content: (
+              <>
+                <ProjectDriveCard projectId={apartment.id} />
+                <SharedProjectDocumentCard apartmentId={apartment.id} />
+              </>
+            ),
+          },
+        ]
+      : []),
+    ...(canReadQuotations
+      ? [
+          {
+            ...PROJECT_TABS.quotations,
+            action: <ProjectQuotationCreateButton projectId={apartment.id} />,
+            content: <ProjectQuotationsCard projectId={apartment.id} />,
+          },
+        ]
+      : []),
+    ...(canReadEstimates
+      ? [
+          {
+            ...PROJECT_TABS.estimates,
+            content: <ProjectEstimatesPanel projectId={apartment.id} />,
+          },
+        ]
+      : []),
+    ...(canReadPurchase
+      ? [
+          {
+            ...PROJECT_TABS.purchase,
+            content: <ProjectPurchaseDocuments projectId={apartment.id} />,
+          },
+        ]
+      : []),
+    {
+      ...PROJECT_TABS.people,
+      content: (
+        <ProjectPeoplePanel
+          team={<ApartmentContactCard canEdit={canEdit} apartment={apartment} />}
+          contacts={
+            <>
+              {apartment.customer && hasPermission(sessionUser, PERMISSIONS.CUSTOMERS_READ) && (
+                <CustomerContactSummary
+                  contacts={
+                    apartment.customer.primaryContact ? [apartment.customer.primaryContact] : []
+                  }
+                />
+              )}
+              <ProjectContacts canEdit={canEdit} projectId={apartment.id} />
+            </>
+          }
+        />
+      ),
+    },
+    { ...PROJECT_TABS.history, content: <ProjectTimelineCard projectId={apartment.id} /> },
+  ];
+
+  return (
+    <ProjectWorkspace
+      panels={panels}
+      defaultTab={canReadTasks ? PROJECT_TABS.tasks.id : PROJECT_TABS.people.id}
+      header={
+        <ApartmentHeaderCard stages={stages} building={building} apartment={apartment}>
+          {headerDetails}
+        </ApartmentHeaderCard>
+      }
+    />
   );
 };
 

@@ -2,10 +2,12 @@ import { useEffect } from "react";
 import type { Blocker } from "react-router-dom";
 import { useBeforeUnload, useBlocker } from "react-router-dom";
 
-export const useUnsavedChangesNavigation = (pending: boolean): Blocker => {
+export const useUnsavedChangesNavigation = (pending: boolean, includeSearch = false): Blocker => {
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
-      pending && currentLocation.pathname !== nextLocation.pathname,
+      pending &&
+      (currentLocation.pathname !== nextLocation.pathname ||
+        (includeSearch && currentLocation.search !== nextLocation.search)),
   );
   useBeforeUnload(event => {
     if (pending) {
