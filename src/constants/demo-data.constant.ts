@@ -280,6 +280,8 @@ export const DEMO_STATUS_STAGES: IStatusStage[] = [
 export const DEMO_EMPLOYEES: IEmployee[] = [
   {
     id: "EMP-1001",
+    firstName: "אביעד",
+    lastName: "כהן",
     isDisabled: false,
     phone: "052-4418230",
     email: "aviad@genair.co.il",
@@ -294,6 +296,8 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
   },
   {
     id: "EMP-1042",
+    firstName: "מיכל",
+    lastName: "רוזנברג",
     isDisabled: false,
     phone: "054-7712094",
     email: "michal@genair.co.il",
@@ -303,6 +307,8 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
   },
   {
     id: "EMP-1018",
+    firstName: "יוסי",
+    lastName: "בראון",
     isDisabled: false,
     phone: "050-3365817",
     email: "yossi.b@genair.co.il",
@@ -317,6 +323,8 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
   },
   {
     id: "EMP-1087",
+    firstName: "רומן",
+    lastName: "לוין",
     isDisabled: false,
     phone: "053-9021446",
     email: "roman.l@genair.co.il",
@@ -326,6 +334,8 @@ export const DEMO_EMPLOYEES: IEmployee[] = [
   },
   {
     id: "EMP-1031",
+    firstName: "דן",
+    lastName: "שמיר",
     isDisabled: true,
     phone: "058-6634172",
     email: "dan.s@genair.co.il",
