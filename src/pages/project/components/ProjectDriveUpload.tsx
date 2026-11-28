@@ -1,4 +1,10 @@
 import {
+  DRIVE_FILE_COPY,
+  DRIVE_BROWSER_COPY,
+  ROOT_DRIVE_LOCATION,
+} from "../../../constants/drive-file.constant";
+
+import {
   PROJECT_PAGE_COPY,
   PROJECT_PAGE_STATUS_COPY,
 } from "../../../constants/project-page.constant";
@@ -25,11 +31,6 @@ import { useDriveUploadPolicyQuery } from "../../../hooks/queries/project.query"
 import type { IDriveFolderLocation } from "../../../interfaces/drive-file.interface";
 import { useUploadProjectFilesMutation } from "../../../hooks/mutations/project.mutation";
 import { getUploadAccept, getUploadDescription } from "../../../utilities/drive-upload.utility";
-import {
-  DRIVE_FILE_COPY,
-  DRIVE_BROWSER_COPY,
-  ROOT_DRIVE_LOCATION,
-} from "../../../constants/drive-file.constant";
 
 interface IProjectDriveUploadProps {
   projectId: string;

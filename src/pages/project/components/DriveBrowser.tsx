@@ -1,3 +1,15 @@
+import {
+  DRIVE_FILE_COPY,
+  DRIVE_BROWSER_COPY,
+  ROOT_DRIVE_LOCATION,
+  DRIVE_BROWSER_PAGE_SIZE,
+} from "../../../constants/drive-file.constant";
+
+import {
+  PROJECT_PAGE_COPY,
+  PROJECT_PAGE_STATUS_COPY,
+} from "../../../constants/project-page.constant";
+
 import { useState, type FC } from "react";
 import ProjectDriveUpload from "./ProjectDriveUpload";
 import Button from "../../../components/Button/Button";
@@ -13,16 +25,6 @@ import DriveStatusBadge from "../../../components/DriveStatusBadge/DriveStatusBa
 import type { IDriveFolderLocation } from "../../../interfaces/drive-file.interface";
 import { toProjectFile, toProjectFolder } from "../../../utilities/mappers/project.mapper";
 import { toDriveFolderView, toDriveFolderUrl } from "../../../utilities/drive-folder.utility";
-import {
-  PROJECT_PAGE_COPY,
-  PROJECT_PAGE_STATUS_COPY,
-} from "../../../constants/project-page.constant";
-import {
-  DRIVE_BROWSER_COPY,
-  DRIVE_BROWSER_PAGE_SIZE,
-  DRIVE_FILE_COPY,
-  ROOT_DRIVE_LOCATION,
-} from "../../../constants/drive-file.constant";
 
 interface IDriveBrowserProps {
   projectId: string;
