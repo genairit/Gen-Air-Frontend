@@ -65,39 +65,39 @@ const EngineeringEstimatesPage: FC = () => {
   }
 
   return (
-    <WorkspaceToolbarContext.Provider value={toolbar}>
-      <Box sx={styles.page}>
-        <Box sx={styles.header}>
-          <Typography component="h1" sx={estimateStyles.title}>
-            {createProjectId ? "כתב כמויות חדש" : (estimate?.name ?? "כתב כמויות")}
-          </Typography>
-          {estimateId && (
-            <Box ref={setToolbar} sx={styles.row({ gap: "8px" })}>
-              <Button
-                onClick={() => navigate(backPath)}
-                variant={BUTTON_VARIANTS.SECONDARY}
-                text={projectId ? "חזרה לכתבי הכמויות בפרויקט" : "חזרה לתיקים"}
-              />
-            </Box>
-          )}
-        </Box>
-        {createProjectId && (
-          <EstimateCreateForm
-            key={createProjectId}
-            onCreated={openCreated}
-            onCancel={cancelCreate}
-            projectId={createProjectId}
-            onDirtyChange={setCreatingDirty}
-          />
-        )}
-        {showLoading && <LoadingState />}
-        {showError && (
-          <Box sx={styles.stack({ gap: "12px" })}>
-            <InlineError message={getApiErrorMessage(detail.error)} />
-            <Button text="נסו שוב" onClick={retry} />
+    <Box sx={styles.page}>
+      <Box sx={styles.header}>
+        <Typography component="h1" sx={estimateStyles.title}>
+          {createProjectId ? "כתב כמויות חדש" : (estimate?.name ?? "כתב כמויות")}
+        </Typography>
+        {estimateId && (
+          <Box ref={setToolbar} sx={styles.row({ gap: "8px" })}>
+            <Button
+              onClick={() => navigate(backPath)}
+              variant={BUTTON_VARIANTS.SECONDARY}
+              text={projectId ? "חזרה לכתבי הכמויות בפרויקט" : "חזרה לתיקים"}
+            />
           </Box>
         )}
-        {estimate && (
+      </Box>
+      {createProjectId && (
+        <EstimateCreateForm
+          key={createProjectId}
+          onCreated={openCreated}
+          onCancel={cancelCreate}
+          projectId={createProjectId}
+          onDirtyChange={setCreatingDirty}
+        />
+      )}
+      {showLoading && <LoadingState />}
+      {showError && (
+        <Box sx={styles.stack({ gap: "12px" })}>
+          <InlineError message={getApiErrorMessage(detail.error)} />
+          <Button text="נסו שוב" onClick={retry} />
+        </Box>
+      )}
+      {estimate && (
+        <WorkspaceToolbarContext.Provider value={toolbar}>
           <EstimateWorkspace
             key={estimate.id}
             canEdit={canEdit}
@@ -109,18 +109,18 @@ const EngineeringEstimatesPage: FC = () => {
             canExportQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_EXPORT)}
             canApprove={hasPermission(user, PERMISSIONS.ENGINEERING_ESTIMATES_APPROVE)}
           />
-        )}
-        {showJenny && (
-          <EstimateJenny
-            projectId={projectId}
-            canBrowse={canBrowse}
-            onCreated={openCreated}
-            estimate={estimate ?? null}
-            suspended={creatingDirty || editing}
-          />
-        )}
-      </Box>
-    </WorkspaceToolbarContext.Provider>
+        </WorkspaceToolbarContext.Provider>
+      )}
+      {showJenny && (
+        <EstimateJenny
+          projectId={projectId}
+          canBrowse={canBrowse}
+          onCreated={openCreated}
+          estimate={estimate ?? null}
+          suspended={creatingDirty || editing}
+        />
+      )}
+    </Box>
   );
 };
 
