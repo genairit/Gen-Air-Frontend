@@ -16,10 +16,7 @@ import { useSessionUser } from "../store/session.store";
 import BrandLogo from "../components/BrandLogo/BrandLogo";
 import { ROUTE_PATHS } from "../constants/routes.constant";
 import { toPerson } from "../utilities/mappers/user.mapper";
-import { PERMISSIONS } from "../constants/permission.constant";
-import { hasPermission } from "../utilities/permission.utility";
 import SidebarAction from "../components/Sidebar/SidebarAction";
-import UserMenuButton from "../components/TopBar/UserMenuButton";
 import { BRAND_LOGO_WIDTHS } from "../constants/brand-logo.constant";
 import { clearSessionAction } from "../actions/session-reset.action";
 import { switchActiveRoleAction } from "../actions/role-switch.action";
@@ -59,8 +56,6 @@ const AppLayout = () => {
   }
 
   const titleComponent = matchPath(ROUTE_PATHS.CUSTOMERS, pathname) ? "h1" : "b";
-  const boardOwnsHeader =
-    pathname === ROUTE_PATHS.BOARD && hasPermission(sessionUser, PERMISSIONS.PROJECTS_READ);
   const accountMenuProps = {
     user: toPerson(sessionUser),
     activeRole: sessionUser.role,
@@ -94,15 +89,13 @@ const AppLayout = () => {
       </Box>
 
       <Box component="main" sx={styles.main}>
-        {!boardOwnsHeader && (
-          <TopBar
-            leading={topBarLeading}
-            title={getPageTitle(pathname)}
-            titleComponent={titleComponent}
-            {...accountMenuProps}
-          />
-        )}
-        <Outlet context={<UserMenuButton {...accountMenuProps} />} />
+        <TopBar
+          leading={topBarLeading}
+          title={getPageTitle(pathname)}
+          titleComponent={titleComponent}
+          {...accountMenuProps}
+        />
+        <Outlet />
       </Box>
 
       <MobileBottomNav

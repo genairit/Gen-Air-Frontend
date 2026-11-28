@@ -1,11 +1,11 @@
+import type { FC } from "react";
 import { Box } from "@mui/material";
-import type { FC, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { useStyles } from "./BoardToolbar.style";
 import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { BOARD_COPY } from "../../../constants/board.constant";
 import TextField from "../../../components/TextField/TextField";
-import { useNavigate, useOutletContext } from "react-router-dom";
 import { ROUTE_PATHS } from "../../../constants/routes.constant";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import type { IDropdownOption } from "../../../interfaces/dropdown.interface";
@@ -43,7 +43,6 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
 }) => {
   const navigate = useNavigate();
   const styles = useStyles();
-  const accountMenu = useOutletContext<ReactNode>();
 
   return (
     <Box sx={styles.toolbar}>
@@ -82,7 +81,6 @@ const BoardToolbar: FC<IBoardToolbarProps> = ({
             onClick={() => navigate(ROUTE_PATHS.NEW_PROJECT)}
           />
         )}
-        {accountMenu}
       </Box>
     </Box>
   );
