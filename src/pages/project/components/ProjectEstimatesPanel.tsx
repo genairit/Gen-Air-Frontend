@@ -48,7 +48,7 @@ const ProjectEstimatesPanel: FC<IProjectEstimatesPanelProps> = ({ projectId }) =
   };
 
   return (
-    <Box sx={page.stack({ gap: "12px" })}>
+    <Box component="section" aria-label="כתבי כמויות" sx={page.stack({ gap: "12px" })}>
       {canCreate && (
         <Box sx={page.endRow}>
           <Button
