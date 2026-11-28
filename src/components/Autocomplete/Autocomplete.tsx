@@ -6,6 +6,7 @@ import type { IAutocompleteOption } from "../../vendor/smartbase/interfaces/auto
 
 interface IAutocompleteProps {
   title?: string;
+  ariaLabel?: string;
   options?: string[];
   disabled?: boolean;
   isLoading?: boolean;
@@ -26,6 +27,7 @@ interface IAutocompleteProps {
 
 const Autocomplete: FC<IAutocompleteProps> = ({
   title,
+  ariaLabel,
   onSearch,
   startIcon,
   value = null,
@@ -49,6 +51,7 @@ const Autocomplete: FC<IAutocompleteProps> = ({
     disabled={disabled}
     onSearch={onSearch}
     onChange={onChange}
+    ariaLabel={ariaLabel}
     isLoading={isLoading}
     required={isRequired}
     placeholder={placeholder}

@@ -16,10 +16,10 @@ import { BUILDING_PAGE_COPY } from "../../../../constants/apartment.constant";
 import { ALL_STAGES_TILE_ID } from "../../../../constants/stage-tile.constant";
 import { useProjectStagesQuery } from "../../../../hooks/queries/project.query";
 import ApartmentImport from "../../../../components/ApartmentImport/ApartmentImport";
+import { toStageTiles, toStageFilter } from "../../../../utilities/stage-tile.utility";
 import { useApartmentStageCountsQuery } from "../../../../hooks/queries/apartment.query";
 import { useProjectWorkspaceQuery } from "../../../../hooks/project-workspace-query.hook";
 import { BUTTON_VARIANTS } from "../../../../components/Button/constants/button.constants";
-import { toStageFilterTabs, toStageFilter } from "../../../../utilities/stage-tile.utility";
 import { canImportApartments } from "../../../../utilities/apartment-import-permission.utility";
 
 interface IBuildingApartmentsPanelProps {
@@ -89,8 +89,8 @@ const BuildingApartmentsPanel: FC<IBuildingApartmentsPanelProps> = ({ project })
         <Tabs
           activeId={activeTileId}
           onChange={setActiveTileId}
+          items={toStageTiles(stages, stageCounts)}
           ariaLabel={BUILDING_PAGE_COPY.STAGES_TITLE}
-          items={toStageFilterTabs(stages, stageCounts)}
         />
         <Box sx={styles.row({ gap: "8px" })}>{addApartmentAction}</Box>
       </Box>
