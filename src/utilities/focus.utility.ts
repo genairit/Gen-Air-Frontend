@@ -100,3 +100,12 @@ export const restoreRemovedElementFocus = ({
   record.focused = false;
   focusConnectedElement(element);
 };
+
+export const restoreFocusById = (targetId: string): void => {
+  requestAnimationFrame(() => {
+    const target = document.getElementById(targetId);
+    if (document.activeElement === document.body) {
+      focusConnectedElement(target);
+    }
+  });
+};

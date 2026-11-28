@@ -442,3 +442,5 @@ export const getVisibleHistory = (transitions: IApiTaskTransition[], isExpanded:
 
   return transitions.slice(0, TASK_HISTORY_PREVIEW_COUNT);
 };
+
+export const getTaskEditButtonId = (taskId: string): string => `edit-task-${taskId}`;

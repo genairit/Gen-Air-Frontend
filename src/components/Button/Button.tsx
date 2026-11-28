@@ -22,6 +22,7 @@ import { BUTTON_TYPES, type NativeButtonType } from "../../constants/button-type
 const LoadingAnimation = lazy(() => import("../LoadingAnimation/LoadingAnimation"));
 
 interface IButtonProps {
+  id?: string;
   text?: string;
   disabled?: boolean;
   ariaLabel?: string;
@@ -40,6 +41,7 @@ interface IButtonProps {
 }
 
 const Button: FC<IButtonProps> = ({
+  id,
   sx,
   type = BUTTON_TYPES.BUTTON,
   text,
@@ -63,6 +65,7 @@ const Button: FC<IButtonProps> = ({
 
   return (
     <SmartbaseButton
+      id={id}
       type={type}
       onClick={onClick}
       disabled={disabled}

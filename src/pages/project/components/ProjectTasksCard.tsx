@@ -23,6 +23,7 @@ import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import TaskFormPopup from "../../task-form/components/TaskFormPopup";
+import { getTaskEditButtonId } from "../../../utilities/task.utility";
 import { hasPermission } from "../../../utilities/permission.utility";
 import InlineError from "../../../components/InlineError/InlineError";
 import { PROJECT_TASKS_COPY } from "../../../constants/task.constant";
@@ -133,6 +134,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ project }) => {
           task={editingTask}
           canAssign={canAssign}
           onClose={() => setEditingTask(null)}
+          returnFocusId={getTaskEditButtonId(editingTask.id)}
         />
       )}
       {createdTaskId && (

@@ -13,6 +13,7 @@ import { getAriaControlsAttributes } from "../../../../utilities/aria.utility";
 import { BUTTON_TYPES, type NativeButtonType } from "../../../../constants/button-type.constant";
 
 interface IButtonProps {
+  id?: string;
   ariaLabel?: string;
   disabled?: boolean;
   children: ReactNode;
@@ -28,6 +29,7 @@ interface IButtonProps {
 }
 
 const Button: FC<IButtonProps> = ({
+  id,
   sx,
   type = BUTTON_TYPES.BUTTON,
   children,
@@ -56,6 +58,7 @@ const Button: FC<IButtonProps> = ({
 
   return (
     <MuiButton
+      id={id}
       type={type}
       ref={buttonRef}
       onClick={activate}
