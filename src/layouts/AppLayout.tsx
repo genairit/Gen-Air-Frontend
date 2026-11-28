@@ -16,7 +16,10 @@ import { useSessionUser } from "../store/session.store";
 import BrandLogo from "../components/BrandLogo/BrandLogo";
 import { ROUTE_PATHS } from "../constants/routes.constant";
 import { toPerson } from "../utilities/mappers/user.mapper";
+import { PERMISSIONS } from "../constants/permission.constant";
+import { hasPermission } from "../utilities/permission.utility";
 import SidebarAction from "../components/Sidebar/SidebarAction";
+import UserMenuButton from "../components/TopBar/UserMenuButton";
 import { BRAND_LOGO_WIDTHS } from "../constants/brand-logo.constant";
 import { clearSessionAction } from "../actions/session-reset.action";
 import { switchActiveRoleAction } from "../actions/role-switch.action";
@@ -59,6 +62,14 @@ const AppLayout = () => {
   const customerCreateAction = matchPath(ROUTE_PATHS.CUSTOMERS, pathname) ? (
     <CustomerCreateAction />
   ) : null;
+  const boardOwnsHeader =
+    pathname === ROUTE_PATHS.BOARD && hasPermission(sessionUser, PERMISSIONS.PROJECTS_READ);
+  const accountMenuProps = {
+    user: toPerson(sessionUser),
+    activeRole: sessionUser.role,
+    assignedRoles: sessionUser.assignedRoles,
+    onRoleChange: switchActiveRoleAction,
+  };
   const backLinkTarget = getBackLinkTarget(pathname);
   const topBarLeading = backLinkTarget && (
     <BackLink to={backLinkTarget.to} label={backLinkTarget.label} />
@@ -86,16 +97,15 @@ const AppLayout = () => {
       </Box>
 
       <Box component="main" sx={styles.main}>
-        <TopBar
-          leading={topBarLeading}
-          user={toPerson(sessionUser)}
-          activeRole={sessionUser.role}
-          title={getPageTitle(pathname)}
-          titleAction={customerCreateAction}
-          onRoleChange={switchActiveRoleAction}
-          assignedRoles={sessionUser.assignedRoles}
-        />
-        <Outlet />
+        {!boardOwnsHeader && (
+          <TopBar
+            leading={topBarLeading}
+            title={getPageTitle(pathname)}
+            titleAction={customerCreateAction}
+            {...accountMenuProps}
+          />
+        )}
+        <Outlet context={<UserMenuButton {...accountMenuProps} />} />
       </Box>
 
       <MobileBottomNav
