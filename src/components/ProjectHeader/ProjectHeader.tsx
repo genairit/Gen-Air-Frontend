@@ -18,6 +18,7 @@ interface IProjectHeaderProps {
   badge?: ReactNode;
   actions: ReactNode;
   icon?: IconNameType;
+  children?: ReactNode;
   syncCaption?: string;
   stageNote?: ReactNode;
   stageDotColor?: string;
@@ -26,6 +27,7 @@ interface IProjectHeaderProps {
 
 const ProjectHeader: FC<IProjectHeaderProps> = ({
   icon,
+  children,
   badge,
   title,
   stage,
@@ -63,6 +65,7 @@ const ProjectHeader: FC<IProjectHeaderProps> = ({
       </Box>
       <Box sx={styles.actions}>{actions}</Box>
       {stageNote && <Box sx={styles.stageNote}>{stageNote}</Box>}
+      {children}
     </Card>
   );
 };

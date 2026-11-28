@@ -12,11 +12,11 @@ import {
 } from "../../../components/Button/constants/button.constants";
 
 import { Box } from "@mui/material";
-import { type FC, useRef } from "react";
 import Tabs from "../../../components/Tabs/Tabs";
 import Card from "../../../components/Card/Card";
 import Chip from "../../../components/Chip/Chip";
 import Button from "../../../components/Button/Button";
+import { type FC, useRef, type ReactNode } from "react";
 import { useStyles } from "./ApartmentHeaderCard.style";
 import { useSessionUser } from "../../../store/session.store";
 import { TABS_VARIANTS } from "../../../constants/tabs.constant";
@@ -40,12 +40,18 @@ import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.inte
 import { useMoveApartmentsMutation } from "../../../hooks/mutations/apartment.mutation";
 
 interface IApartmentHeaderCardProps {
+  children?: ReactNode;
   building: IApiProject;
   apartment: IApiProject;
   stages: IApiProjectStage[];
 }
 
-const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, apartment }) => {
+const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({
+  stages,
+  building,
+  apartment,
+  children,
+}) => {
   const styles = useStyles();
   const navigate = useNavigate();
   const location = useLocation();
@@ -159,6 +165,7 @@ const ApartmentHeaderCard: FC<IApartmentHeaderCardProps> = ({ stages, building, 
 
       <WaitingReasonBanner project={apartment} />
       {isMoveErrorVisible && <InlineError message={getApiErrorMessage(moveMutation.error)} />}
+      {children}
       <StageReasonPopup
         open={stageGate.isReasonOpen}
         title={STAGE_REASON_COPY.TITLE}

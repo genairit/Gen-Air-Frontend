@@ -9,11 +9,17 @@ import {
   BUTTON_VARIANTS,
 } from "../../../components/Button/constants/button.constants";
 
+import {
+  usePeopleStyles,
+  PEOPLE_ROW_STYLES,
+} from "../../../components/ProjectPeoplePanel/ProjectPeoplePanel.style";
+
 import { Box } from "@mui/material";
 import { useState, type FC } from "react";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
+import { getInitials } from "../../../utilities/text.utility";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import Pagination from "../../../components/Pagination/Pagination";
 import CardHeader from "../../../components/CardHeader/CardHeader";
@@ -27,6 +33,7 @@ interface IProjectTeamCardProps {
 
 const ProjectTeamCard: FC<IProjectTeamCardProps> = ({ members }) => {
   const styles = usePageStyles();
+  const peopleStyles = usePeopleStyles();
   const [page, setPage] = useState(1);
   const membersWithUsers = members.filter(member => member.user);
   const pageCount = Math.max(1, Math.ceil(membersWithUsers.length / 5));
@@ -44,12 +51,20 @@ const ProjectTeamCard: FC<IProjectTeamCardProps> = ({ members }) => {
         {membersWithUsers.slice((currentPage - 1) * 5, currentPage * 5).map(
           member =>
             member.user && (
-              <Box sx={styles.spacedRow} key={member.id ?? member.userId}>
-                <Box>
-                  <Box component="b">
-                    {member.user.firstName} {member.user.lastName}
+              <Box
+                key={member.id ?? member.userId}
+                sx={{ ...styles.spacedRow, ...PEOPLE_ROW_STYLES }}
+              >
+                <Box sx={peopleStyles.identity}>
+                  <Box aria-hidden sx={peopleStyles.avatar}>
+                    {getInitials(`${member.user.firstName} ${member.user.lastName}`)}
                   </Box>
-                  <Box sx={styles.caption}>{USER_ROLE_LABELS[member.role]}</Box>
+                  <Box>
+                    <Box component="b" sx={peopleStyles.name}>
+                      {member.user.firstName} {member.user.lastName}
+                    </Box>
+                    <Box sx={styles.caption}>{USER_ROLE_LABELS[member.role]}</Box>
+                  </Box>
                 </Box>
                 {member.user.phone && (
                   <Button

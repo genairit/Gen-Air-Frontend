@@ -3,6 +3,11 @@ import {
   PROJECT_CONTACT_ROLE_LABELS,
 } from "../../constants/project-contact-role.constant";
 
+import {
+  PEOPLE_ROW_STYLES,
+  PEOPLE_ROLE_STYLES,
+} from "../ProjectPeoplePanel/ProjectPeoplePanel.style";
+
 import { Box } from "@mui/material";
 import Button from "../Button/Button";
 import { type FC, useState } from "react";
@@ -131,11 +136,15 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
   };
   if (compact)
     return (
-      <Box sx={styles.stack({ gap: "4px" })}>
+      <Box sx={{ ...styles.stack({ gap: "5px" }), ...PEOPLE_ROW_STYLES }}>
         <Box sx={styles.spacedRow}>
           <Box sx={styles.row({ gap: "8px" })}>
-            <Box component="b">{title}</Box>
-            <Box>{contact?.name ?? "לא שויך"}</Box>
+            <Box component="span" sx={PEOPLE_ROLE_STYLES}>
+              {title}
+            </Box>
+            <Box component="b" sx={{ fontSize: 15 }}>
+              {contact?.name ?? "לא שויך"}
+            </Box>
           </Box>
           {canEdit && (
             <Button
@@ -144,6 +153,7 @@ const ProjectContactRoleField: FC<IProjectContactRoleFieldProps> = ({
               onClick={() => setIsOpen(true)}
               variant={BUTTON_VARIANTS.NEUTRAL}
               text={contact ? `ערוך ${title}` : `שייך ${title}`}
+              sx={{ boxShadow: "none", border: 0, paddingInline: "6px" }}
             />
           )}
         </Box>

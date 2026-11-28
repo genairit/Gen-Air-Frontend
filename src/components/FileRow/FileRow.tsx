@@ -7,17 +7,16 @@ import { ICON_NAMES } from "../../constants/icon.constant";
 import type { IProjectFile } from "../../interfaces/project.interface";
 
 interface IFileRowProps {
-  compact?: boolean;
   linkLabel: string;
   file: IProjectFile;
   actions?: ReactNode;
 }
 
-const FileRow: FC<IFileRowProps> = ({ file, linkLabel, actions, compact = false }) => {
+const FileRow: FC<IFileRowProps> = ({ file, linkLabel, actions }) => {
   const styles = useStyles();
 
   return (
-    <Box sx={[styles.row, compact && styles.compact]}>
+    <Box sx={styles.row}>
       {file.icon && <Icon size={26} name={file.icon} color={theme.palette.primary} />}
       <Box sx={styles.details}>
         <Box

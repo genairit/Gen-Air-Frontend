@@ -13,17 +13,11 @@ import { EXECUTION_PLAN_COPY } from "../../../constants/execution-plan.constant"
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 
 interface IProjectDriveFileRowProps {
-  compact?: boolean;
   projectId: string;
   folderName: string;
   file: IProjectFile;
 }
-const ProjectDriveFileRow: FC<IProjectDriveFileRowProps> = ({
-  projectId,
-  file,
-  folderName,
-  compact = false,
-}) => {
+const ProjectDriveFileRow: FC<IProjectDriveFileRowProps> = ({ projectId, file, folderName }) => {
   const [submissionOpen, setSubmissionOpen] = useState(false);
   const user = useSessionUser();
   const canSubmit = [
@@ -37,7 +31,6 @@ const ProjectDriveFileRow: FC<IProjectDriveFileRowProps> = ({
     <>
       <FileRow
         file={file}
-        compact={compact}
         linkLabel={PROJECT_PAGE_COPY.OPEN_IN_DRIVE}
         actions={
           <Box sx={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>

@@ -4,6 +4,7 @@ import { MUTED_CAPTION } from "../../styles/templates.style";
 export const useStyles = () =>
   createStyles({
     card: {
+      flexShrink: 0,
       flexWrap: "wrap",
       flexDirection: "row",
       alignItems: "center",
