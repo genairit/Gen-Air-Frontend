@@ -23,6 +23,7 @@ import Autocomplete from "../../components/Autocomplete/Autocomplete";
 import LoadingState from "../../components/LoadingState/LoadingState";
 import { projectBoqService } from "../../services/project-boq.service";
 import { getApiErrorMessage } from "../../utilities/api-error.utility";
+import { formatPurchaseQuantity } from "../../utilities/purchase-record.utility";
 import { FIELD_TYPES } from "../../components/TextField/constants/textfield.constants";
 import type { IBoqLineEdit, IBoqPreview } from "../../interfaces/project-boq.interface";
 
@@ -206,7 +207,10 @@ const ProjectBoqPage = () => {
                 const line = preview.lines.find(candidate => candidate.sourceKey === key);
                 return (
                   <Typography key={`added:${key}`}>
-                    נוסף: {line?.materialName ?? key} · {line?.requiredQuantity ?? "כמות לבדיקה"}{" "}
+                    נוסף: {line?.materialName ?? key} ·{" "}
+                    {line?.requiredQuantity
+                      ? formatPurchaseQuantity(line.requiredQuantity)
+                      : "כמות לבדיקה"}{" "}
                     {line?.materialUnit}
                   </Typography>
                 );
@@ -215,7 +219,10 @@ const ProjectBoqPage = () => {
                 const line = preview.lines.find(candidate => candidate.sourceKey === key);
                 return (
                   <Typography key={`changed:${key}`}>
-                    השתנה: {line?.materialName ?? key} · {line?.requiredQuantity ?? "כמות לבדיקה"}{" "}
+                    השתנה: {line?.materialName ?? key} ·{" "}
+                    {line?.requiredQuantity
+                      ? formatPurchaseQuantity(line.requiredQuantity)
+                      : "כמות לבדיקה"}{" "}
                     {line?.materialUnit}
                   </Typography>
                 );
@@ -224,7 +231,10 @@ const ProjectBoqPage = () => {
                 const line = current.lines.find(candidate => candidate.sourceKey === key);
                 return (
                   <Typography key={`removed:${key}`}>
-                    יוסר: {line?.materialName ?? key} · {line?.requiredQuantity ?? "ללא כמות"}{" "}
+                    יוסר: {line?.materialName ?? key} ·{" "}
+                    {line?.requiredQuantity
+                      ? formatPurchaseQuantity(line.requiredQuantity)
+                      : "ללא כמות"}{" "}
                     {line?.materialUnit}
                   </Typography>
                 );
@@ -330,7 +340,7 @@ const ProjectBoqPage = () => {
               {history.data.lines.map(line => (
                 <Typography key={line.id}>
                   {line.systemTitle} · {line.componentTitle} · {line.materialCode} ·{" "}
-                  {line.requiredQuantity ?? "לא נקבע"} {line.materialUnit} ·{" "}
+                  {formatPurchaseQuantity(line.requiredQuantity)} {line.materialUnit} ·{" "}
                   {line.estimatedUnitCost ?? "אין עלות"} ₪ ליחידה
                 </Typography>
               ))}
