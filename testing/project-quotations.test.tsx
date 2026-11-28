@@ -25,7 +25,10 @@ import { buildProjectQuotationCreatePath } from "../src/constants/navigation.con
 import ProjectQuotationCard from "../src/pages/project/components/ProjectQuotationCard";
 import { createMemoryRouter, RouterProvider, type InitialEntry } from "react-router-dom";
 import ProjectQuotationsCard from "../src/pages/project/components/ProjectQuotationsCard";
+import EstimateOutputs from "../src/pages/engineering-estimates/components/EstimateOutputs";
 import ProjectQuotationCreatePage from "../src/pages/quotations/ProjectQuotationCreatePage";
+import type { IEngineeringEstimate } from "../src/interfaces/engineering-estimate.interface";
+import { ESTIMATE_ENDPOINT, ESTIMATE_SETUP } from "../src/constants/engineering-estimate.constant";
 import ProjectQuotationCreateButton from "../src/pages/project/components/ProjectQuotationCreateButton";
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -410,6 +413,110 @@ test("a project without a customer shows the prerequisite and cannot send a crea
       0,
     );
     assert.equal(post.mock.callCount(), 0);
+  } finally {
+    await view.close();
+  }
+});
+
+const approvedEstimate: IEngineeringEstimate = {
+  id: "estimate",
+  name: "הערכת מיזוג",
+  version: 5,
+  approvedVersion: 5,
+  subtotal: "120",
+  scope: "hvac",
+  status: "approved",
+  setupStep: ESTIMATE_SETUP.COMPLETE,
+  projectId: null,
+  quotationId: null,
+  quotationCustomerId: null,
+  quotationUnavailable: false,
+  plans: [],
+  areas: [],
+  questions: [],
+  lines: [
+    {
+      sku: "AC-1",
+      unit: "יח׳",
+      areaId: "area",
+      areaName: "קומה",
+      quantity: "1",
+      description: "מזגן",
+      total: "120",
+      unitPrice: "120",
+      source: "manual",
+      provenance: null,
+      catalogueItemId: "air-conditioner",
+    },
+  ],
+};
+
+const renderEstimate = (estimate: IEngineeringEstimate) =>
+  renderAt(
+    <EstimateOutputs
+      canEdit
+      canApprove
+      busy={false}
+      canReadQuotation
+      canBrowse={false}
+      canCreateQuotation
+      estimate={estimate}
+      canExportQuotation={false}
+      run={command => command()}
+    />,
+  );
+
+test("a projectless approved estimate offers a new revision and cannot create a quotation", async t => {
+  const post = t.mock.method(httpClient, "post");
+  const patch = t.mock.method(httpClient, "patch", async () => ({}));
+  const view = await renderEstimate(approvedEstimate);
+  try {
+    const buttons = view.root().findAllByType(Button);
+    const draft = buttons.find(button => button.props.text === "יצירת טיוטת הצעת מחיר")!;
+    assert.equal(draft.findByType("button").props.disabled, true);
+    const revise = buttons.find(button => button.props.text === "פתיחת גרסה חדשה")!;
+    assert.ok(!revise.findByType("button").props.disabled);
+    await act(() => revise.props.onClick());
+    assert.deepEqual(
+      patch.mock.calls.map(call => call.arguments),
+      [[ESTIMATE_ENDPOINT + "/estimate", { version: 5 }]],
+    );
+    assert.equal(post.mock.callCount(), 0);
+  } finally {
+    await view.close();
+  }
+});
+
+test("a linked approved estimate creates a quotation for its saved recipient", async t => {
+  const estimate = {
+    ...approvedEstimate,
+    projectId: project.id,
+    quotationCustomerId: "saved-customer",
+  };
+  const post = t.mock.method(httpClient, "post", async () => ({
+    data: { quotationId: "estimate-quote" },
+  }));
+  const view = await renderEstimate(estimate);
+  try {
+    const buttons = view.root().findAllByType(Button);
+    assert.equal(
+      buttons.some(button => button.props.text === "פתיחת גרסה חדשה"),
+      false,
+    );
+    const draft = buttons.find(button => button.props.text === "יצירת טיוטת הצעת מחיר")!;
+    assert.ok(!draft.findByType("button").props.disabled);
+    await act(() => draft.props.onClick());
+    await settle();
+    assert.deepEqual(
+      post.mock.calls.map(call => call.arguments),
+      [
+        [
+          ESTIMATE_ENDPOINT + "/estimate/quotation",
+          { version: estimate.version, customerId: estimate.quotationCustomerId },
+        ],
+      ],
+    );
+    assert.equal(view.router.state.location.pathname, "/quotations/estimate-quote");
   } finally {
     await view.close();
   }

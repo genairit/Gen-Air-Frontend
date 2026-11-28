@@ -21,8 +21,8 @@ import ProjectContacts from "../../../components/ProjectContacts/ProjectContacts
 import ProjectQuotationsCard from "../../project/components/ProjectQuotationsCard";
 import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import type { IApiProject, IApiProjectStage } from "../../../interfaces/api.interface";
-import ProjectQuotationCreateButton from "../../project/components/ProjectQuotationCreateButton";
 import ProjectPurchaseDocuments from "../../project/components/ProjectPurchaseDocuments";
+import ProjectQuotationCreateButton from "../../project/components/ProjectQuotationCreateButton";
 import CustomerContactSummary from "../../../components/CustomerContacts/CustomerContactSummary";
 
 interface IApartmentViewProps {
