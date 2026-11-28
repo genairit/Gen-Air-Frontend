@@ -20,6 +20,5 @@ export const TASK_TYPE_CHIP_VARIANTS = {
 } as const;
 export const PROJECT_TASK_COPY = {
   TYPE: "סוג משימה",
-  GENERAL_HELP: "מוסיפים משימה רק כשנדרשת עבודה בפרויקט או בדירה.",
   PROTECTED_HELP: "משימת פרויקט קבועה — לעבודה נוספת מחזירים את אותה משימה לבעבודה.",
 } as const;

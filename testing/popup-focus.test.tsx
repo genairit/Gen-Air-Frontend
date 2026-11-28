@@ -10,7 +10,9 @@ interface IFocusTargetProps {
 }
 interface IFocusNode {
   isConnected: boolean;
+  closest: () => object;
   focus: HTMLElement["focus"];
+  ownerDocument: { activeElement: object };
 }
 
 Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
@@ -20,6 +22,7 @@ const FOCUS_SCENARIOS = {
   DISCONNECTED: { open: true, connected: false, optedIn: true, titleTarget: false, expected: 0 },
   DEFAULT: { open: true, connected: true, optedIn: false, titleTarget: false, expected: 0 },
   TITLE: { open: true, connected: true, optedIn: true, titleTarget: true, expected: 1 },
+  CHILD_FOCUSED: { open: true, connected: true, optedIn: true, titleTarget: true, expected: 0 },
   CLOSED: { open: false, connected: true, optedIn: true, titleTarget: false, expected: 0 },
 } as const;
 
@@ -27,6 +30,9 @@ for (const [name, scenario] of Object.entries(FOCUS_SCENARIOS)) {
   test(`popup transition focuses only its opted-in connected target after entry: ${name}`, async (): Promise<void> => {
     const target = createRef<HTMLElement>();
     const focus = mock.fn<HTMLElement["focus"]>();
+    const userControl = { tagName: "BUTTON" };
+    const popup = { contains: (node: object): boolean => node === popup || node === userControl };
+    const ownerDocument: IFocusNode["ownerDocument"] = { activeElement: popup };
     const renderer = { current: null as ReturnType<typeof create> | null };
     const initialFocusRef = scenario.optedIn ? target : null;
     const titleRef = scenario.titleTarget ? target : null;
@@ -47,7 +53,12 @@ for (const [name, scenario] of Object.entries(FOCUS_SCENARIOS)) {
               const isContentTarget = element.props["data-focus-target"] === "true";
               const isTitleTarget = element.type === "h2";
               if (isContentTarget || isTitleTarget) {
-                return { isConnected: scenario.connected, focus };
+                return {
+                  isConnected: scenario.connected,
+                  focus,
+                  ownerDocument,
+                  closest: () => popup,
+                };
               }
               return null;
             },
@@ -60,6 +71,9 @@ for (const [name, scenario] of Object.entries(FOCUS_SCENARIOS)) {
       );
       assert.equal(focus.mock.callCount(), 0);
       await act(async (): Promise<void> => {
+        if (name === "CHILD_FOCUSED") {
+          ownerDocument.activeElement = userControl;
+        }
         dialog.props.slotProps.transition.onEntered();
       });
       assert.equal(focus.mock.callCount(), scenario.expected);

@@ -1,6 +1,7 @@
 import TaskDueCell from "./cells/TaskDueCell";
 import TaskTitleCell from "./cells/TaskTitleCell";
 import TaskAssigneeCell from "./cells/TaskAssigneeCell";
+import TaskEditButton from "../components/TaskEditButton";
 import { canClaimTask } from "../../../utilities/task.utility";
 import type { IApiTask } from "../../../interfaces/task.interface";
 import { TASK_TABLE_HEADERS } from "../../../constants/task.constant";
@@ -12,9 +13,11 @@ export const TASK_TABLE_MIN_WIDTH = 700;
 interface ITaskColumnsOptions {
   canClaim: boolean;
   onClaim: (task: IApiTask) => void;
+  onEdit: ((task: IApiTask) => void) | null;
 }
 
 export const buildTaskColumns = ({
+  onEdit,
   onClaim,
   canClaim,
 }: ITaskColumnsOptions): IDataTableColumn<IApiTask>[] => [
@@ -44,4 +47,14 @@ export const buildTaskColumns = ({
     header: TASK_TABLE_HEADERS.URGENCY,
     render: task => task.isUrgent && <TaskUrgentChip />,
   },
+  ...(onEdit
+    ? [
+        {
+          id: "edit",
+          track: "48px",
+          header: "",
+          render: (task: IApiTask) => <TaskEditButton task={task} onEdit={onEdit} />,
+        },
+      ]
+    : []),
 ];
