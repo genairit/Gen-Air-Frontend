@@ -12,6 +12,11 @@ import {
 } from "../src/utilities/project-intake.utility";
 
 import {
+  EMPTY_CUSTOMER_FORM,
+  CUSTOMER_CONTACT_FIELDS,
+} from "../src/constants/customer-form.constant";
+
+import {
   isCustomerContactList,
   toCustomerContactDraft,
   toCustomerContactInput,
@@ -39,10 +44,6 @@ import { PROJECT_DETAIL_FIELD_SETS } from "../src/constants/project-detail-field
 import { getCustomerImportErrorMessage } from "../src/utilities/customer-import-error.utility";
 import { CUSTOMER_IMPORT_ERROR_MESSAGES } from "../src/constants/customer-import-error.constant";
 import ApartmentEndCustomerCard from "../src/pages/apartment/components/ApartmentEndCustomerCard";
-import {
-  CUSTOMER_CONTACT_FIELDS,
-  EMPTY_CUSTOMER_FORM,
-} from "../src/constants/customer-form.constant";
 
 const contact = {
   id: "contact-1",
