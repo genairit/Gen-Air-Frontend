@@ -2,6 +2,7 @@ import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import Card from "../../../components/Card/Card";
 import { usePageStyles } from "../../page.style";
+import CustomerFormStep from "./CustomerFormStep";
 import Button from "../../../components/Button/Button";
 import CheckBox from "../../../components/CheckBox/CheckBox";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -15,16 +16,22 @@ import GenericPopup from "../../../components/GenericPopup/GenericPopup";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { linkCustomerProjectsAction } from "../../../actions/customer.action";
+import { CUSTOMER_FORM_COPY } from "../../../constants/customer-form.constant";
 import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
 import type { ILinkableProject } from "../../../interfaces/customer-project-link.interface";
 
 interface ICustomerProjectLinkStepProps {
+  popup?: boolean;
   customerId: string;
   onFinish: () => void;
 }
 
-const CustomerProjectLinkStep: FC<ICustomerProjectLinkStepProps> = ({ customerId, onFinish }) => {
+const CustomerProjectLinkStep: FC<ICustomerProjectLinkStepProps> = ({
+  popup = false,
+  customerId,
+  onFinish,
+}) => {
   const styles = usePageStyles();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<ILinkableProject[]>([]);
@@ -74,83 +81,99 @@ const CustomerProjectLinkStep: FC<ICustomerProjectLinkStepProps> = ({ customerId
     linkMutation.mutate();
   };
 
-  return (
-    <Card gap="18px" padding="24px">
-      <Box component="h2">שיוך פרויקטים ללקוח</Box>
-      <Box>הלקוח נוצר. אפשר לשייך פרויקטים ודירות קיימים, או לדלג כעת.</Box>
-      <TextField
-        value={search}
-        onChange={setSearch}
-        type={FIELD_TYPES.SEARCH}
-        title="חיפוש פרויקט או דירה"
-        startIcon={ICON_NAMES.SEARCH}
-        placeholder="שם פרויקט, קוד או מספר דירה"
-      />
-      {projectsQuery.isPending && <LoadingState label="טוען פרויקטים" />}
-      {projectsQuery.isError && (
-        <Box sx={styles.stack({ gap: "12px" })}>
-          <InlineError message={getApiErrorMessage(projectsQuery.error)} />
-          <Button
-            text="נסה שוב"
-            variant={BUTTON_VARIANTS.NEUTRAL}
-            onClick={async () => {
-              await projectsQuery.refetch();
-            }}
-          />
-        </Box>
-      )}
-      {projectsQuery.isSuccess && projects.length === 0 && (
-        <Box role="status">לא נמצאו פרויקטים</Box>
-      )}
-      <Box sx={styles.stack({ gap: "12px" })}>
-        {projects.map(project => (
-          <Box key={project.id} sx={styles.spacedRow}>
-            <CheckBox
-              ariaLabel={`שיוך ${project.name}`}
-              onChange={checked => select(project, checked)}
-              value={selected.some(item => item.id === project.id)}
-              text={`${project.name} · ${project.code}${project.parentProjectId ? " · דירה" : ""}`}
+  const step = (
+    <CustomerFormStep
+      popup={popup}
+      onSave={save}
+      cancelText="דלג"
+      onCancel={onFinish}
+      saveText="שמור שיוכים"
+      busy={linkMutation.isPending}
+      title={CUSTOMER_FORM_COPY.LINK_PROJECTS}
+    >
+      <Box sx={styles.stack({ gap: "18px" })}>
+        {!popup && <Box component="h2">{CUSTOMER_FORM_COPY.LINK_PROJECTS}</Box>}
+        <Box>הלקוח נוצר. אפשר לשייך פרויקטים ודירות קיימים, או לדלג כעת.</Box>
+        <TextField
+          value={search}
+          onChange={setSearch}
+          type={FIELD_TYPES.SEARCH}
+          title="חיפוש פרויקט או דירה"
+          startIcon={ICON_NAMES.SEARCH}
+          disabled={linkMutation.isPending}
+          placeholder="שם פרויקט, קוד או מספר דירה"
+        />
+        {projectsQuery.isPending && <LoadingState label="טוען פרויקטים" />}
+        {projectsQuery.isError && (
+          <Box sx={styles.stack({ gap: "12px" })}>
+            <InlineError message={getApiErrorMessage(projectsQuery.error)} />
+            <Button
+              text="נסה שוב"
+              variant={BUTTON_VARIANTS.NEUTRAL}
+              onClick={async () => {
+                await projectsQuery.refetch();
+              }}
             />
-            {project.customer && (
-              <Box component="span" sx={styles.caption}>
-                משויך ל־{project.customer.name}
-              </Box>
-            )}
           </Box>
-        ))}
-      </Box>
-      {selected.length > 0 && (
-        <Box role="status" sx={styles.spacedRow}>
-          {selected.length} נבחרו
-          <Button
-            text="נקה בחירה"
-            onClick={() => setSelected([])}
-            variant={BUTTON_VARIANTS.NEUTRAL}
-          />
+        )}
+        {projectsQuery.isSuccess && projects.length === 0 && (
+          <Box role="status">לא נמצאו פרויקטים</Box>
+        )}
+        <Box sx={styles.stack({ gap: "12px" })}>
+          {projects.map(project => (
+            <Box key={project.id} sx={styles.spacedRow}>
+              <CheckBox
+                disabled={linkMutation.isPending}
+                ariaLabel={`שיוך ${project.name}`}
+                onChange={checked => select(project, checked)}
+                value={selected.some(item => item.id === project.id)}
+                text={`${project.name} · ${project.code}${project.parentProjectId ? " · דירה" : ""}`}
+              />
+              {project.customer && (
+                <Box component="span" sx={styles.caption}>
+                  משויך ל־{project.customer.name}
+                </Box>
+              )}
+            </Box>
+          ))}
         </Box>
-      )}
-      {linkMutation.isError && <InlineError message={getApiErrorMessage(linkMutation.error)} />}
-      <Box sx={styles.endRow}>
-        <Button text="דלג" onClick={onFinish} variant={BUTTON_VARIANTS.NEUTRAL} />
-        <Button onClick={save} text="שמור שיוכים" isLoading={linkMutation.isPending} />
-      </Box>
-      <GenericPopup
-        open={reassignment !== null}
-        title="אישור שינוי שיוך פרויקט"
-        content={reassignmentDescription}
-        onClose={() => setReassignment(null)}
-        buttons={{
-          primary: {
-            text: "אשר שיוך מחדש",
-            onClick: () => {
-              if (reassignment) {
-                add(reassignment);
-              }
+        {selected.length > 0 && (
+          <Box role="status" sx={styles.spacedRow}>
+            {selected.length} נבחרו
+            <Button
+              text="נקה בחירה"
+              onClick={() => setSelected([])}
+              disabled={linkMutation.isPending}
+              variant={BUTTON_VARIANTS.NEUTRAL}
+            />
+          </Box>
+        )}
+        {linkMutation.isError && <InlineError message={getApiErrorMessage(linkMutation.error)} />}
+        <GenericPopup
+          open={reassignment !== null}
+          title="אישור שינוי שיוך פרויקט"
+          content={reassignmentDescription}
+          onClose={() => setReassignment(null)}
+          buttons={{
+            primary: {
+              text: "אשר שיוך מחדש",
+              onClick: () => {
+                if (reassignment) {
+                  add(reassignment);
+                }
+              },
             },
-          },
-          secondary: { text: "ביטול", onClick: () => setReassignment(null) },
-        }}
-      />
+            secondary: { text: "ביטול", onClick: () => setReassignment(null) },
+          }}
+        />
+      </Box>
+    </CustomerFormStep>
+  );
+  return popup ? (
+    step
+  ) : (
+    <Card gap="18px" padding="24px">
+      {step}
     </Card>
   );
 };

@@ -5,9 +5,9 @@ import {
 } from "../../../utilities/option.utility";
 
 import {
-  normalizeCustomerForm,
+  customerFormValues,
   getCustomerFormErrors,
-  countCustomerFormErrors,
+  getCustomerEditErrors,
 } from "../../../utilities/customer-form.utility";
 
 import {
@@ -27,37 +27,50 @@ import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import Card from "../../../components/Card/Card";
 import { usePageStyles } from "../../page.style";
-import { useStyles } from "./NewCustomerForm.style";
+import { useStyles } from "./CustomerForm.style";
+import CustomerFormStep from "./CustomerFormStep";
 import CustomerFieldsCard from "./CustomerFieldsCard";
-import Button from "../../../components/Button/Button";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import CustomerSaveSummaryCard from "./CustomerSaveSummaryCard";
 import InlineError from "../../../components/InlineError/InlineError";
+import type { IApiCustomer } from "../../../interfaces/api.interface";
 import { isDetailFieldSet } from "../../../utilities/guards/api.guard";
 import { formatFieldErrorCount } from "../../../utilities/text.utility";
 import Autocomplete from "../../../components/Autocomplete/Autocomplete";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import type { ICreateCustomerPayload } from "../../../interfaces/customer.interface";
-import { useCreateCustomerMutation } from "../../../hooks/mutations/customer.mutation";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { useSaveCustomerMutation } from "../../../hooks/mutations/customer.mutation";
 import { customerPaymentConfiguration } from "../../../utilities/payment-configuration.utility";
 import PaymentConfigurationEditor from "../../../components/PaymentConfigurationEditor/PaymentConfigurationEditor";
 
-interface INewCustomerFormProps {
-  creatorName: string;
+interface ICustomerFormProps {
+  popup?: boolean;
+  creatorName?: string;
   onCancel: () => void;
-  onCreated: (customerId: string) => void;
+  customer?: IApiCustomer;
+  onSaved: (customerId: string) => void;
 }
 
-const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, onCancel }) => {
+const CustomerForm: FC<ICustomerFormProps> = ({
+  popup = false,
+  creatorName,
+  customer,
+  onSaved,
+  onCancel,
+}) => {
   const styles = usePageStyles();
   const formStyles = useStyles();
-  const [values, setValues] = useState<ICreateCustomerPayload>(EMPTY_CUSTOMER_FORM);
+  const [original] = useState(customer ?? null);
+  const [values, setValues] = useState<ICreateCustomerPayload>(() =>
+    original ? customerFormValues(original) : EMPTY_CUSTOMER_FORM,
+  );
   const [isSubmitAttempted, setIsSubmitAttempted] = useState(false);
-  const mutation = useCreateCustomerMutation();
-
-  const errors = isSubmitAttempted ? getCustomerFormErrors(values) : {};
-  const errorCount = isSubmitAttempted ? countCustomerFormErrors(values) : 0;
+  const mutation = useSaveCustomerMutation(original);
+  const currentErrors = original
+    ? getCustomerEditErrors(original, values)
+    : getCustomerFormErrors(values);
+  const errors = isSubmitAttempted ? currentErrors : {};
+  const errorCount = Object.keys(errors).length;
 
   const updateValues = (changes: Partial<ICreateCustomerPayload>) =>
     setValues(current => ({ ...current, ...changes }));
@@ -75,18 +88,21 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
   const save = () => {
     setIsSubmitAttempted(true);
 
-    if (countCustomerFormErrors(values) > 0 || mutation.isPending) {
+    if (Object.keys(currentErrors).length > 0 || mutation.isPending) {
       return;
     }
 
-    mutation.mutate(normalizeCustomerForm(values), {
-      onSuccess: onCreated,
-    });
+    mutation.mutate(values, { onSuccess: onSaved });
   };
 
-  return (
+  const PaymentSection = popup ? "section" : Card;
+  const summaryStyle = popup ? styles.page : formStyles.summaryRow;
+  const sectionTitleStyle = popup ? formStyles.sectionTitle : {};
+  const title = original ? CUSTOMER_FORM_COPY.EDIT : CUSTOMER_FORM_COPY.TITLE;
+  const fields = (
     <Box sx={{ ...styles.page, ...formStyles.form }}>
       <CustomerFieldsCard
+        compact={popup}
         errors={errors}
         values={values}
         minColumnWidth={320}
@@ -108,6 +124,7 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
         />
       </CustomerFieldsCard>
       <CustomerFieldsCard
+        compact={popup}
         errors={errors}
         values={values}
         minColumnWidth={250}
@@ -118,9 +135,11 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
         title={CUSTOMER_FORM_COPY.CONTACT}
         subtitle={CUSTOMER_FORM_COPY.CONTACT_SUBTITLE}
       />
-      <Box sx={formStyles.summaryRow}>
-        <Card>
-          <Box component="h2">{PAYMENT_CONFIGURATION_COPY.DEFAULT_TITLE}</Box>
+      <Box sx={summaryStyle}>
+        <PaymentSection>
+          <Box component="h2" sx={sectionTitleStyle}>
+            {PAYMENT_CONFIGURATION_COPY.DEFAULT_TITLE}
+          </Box>
           <PaymentConfigurationEditor
             allowUnset
             onChange={updateValues}
@@ -129,27 +148,27 @@ const NewCustomerForm: FC<INewCustomerFormProps> = ({ creatorName, onCreated, on
             termsOptions={CUSTOMER_PAYMENT_TERMS_VALUES}
             customLabel={PAYMENT_CONFIGURATION_COPY.CUSTOM}
           />
-        </Card>
-        <CustomerSaveSummaryCard creatorName={creatorName} />
+        </PaymentSection>
+        {creatorName != null && <CustomerSaveSummaryCard creatorName={creatorName} />}
       </Box>
       {errorCount > 0 && <InlineError message={formatFieldErrorCount(errorCount)} />}
       {mutation.isError && <InlineError message={getApiErrorMessage(mutation.error)} />}
-      <Box sx={styles.endRow}>
-        <Button
-          onClick={onCancel}
-          disabled={mutation.isPending}
-          text={CUSTOMER_FORM_COPY.CANCEL}
-          variant={BUTTON_VARIANTS.NEUTRAL}
-        />
-        <Button
-          onClick={save}
-          icon={ICON_NAMES.SAVE}
-          text={CUSTOMER_FORM_COPY.SAVE}
-          isLoading={mutation.isPending}
-        />
-      </Box>
     </Box>
+  );
+  return (
+    <CustomerFormStep
+      popup={popup}
+      onSave={save}
+      title={title}
+      onCancel={onCancel}
+      busy={mutation.isPending}
+      saveIcon={ICON_NAMES.SAVE}
+      saveText={CUSTOMER_FORM_COPY.SAVE}
+      cancelText={CUSTOMER_FORM_COPY.CANCEL}
+    >
+      {fields}
+    </CustomerFormStep>
   );
 };
 
-export default NewCustomerForm;
+export default CustomerForm;
