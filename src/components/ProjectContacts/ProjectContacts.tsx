@@ -18,9 +18,11 @@ import { Box } from "@mui/material";
 import Button from "../Button/Button";
 import { type FC, useState } from "react";
 import TextField from "../TextField/TextField";
+import Pagination from "../Pagination/Pagination";
 import CardHeader from "../CardHeader/CardHeader";
 import InlineError from "../InlineError/InlineError";
 import { usePageStyles } from "../../pages/page.style";
+import GenericPopup from "../GenericPopup/GenericPopup";
 import LoadingState from "../LoadingState/LoadingState";
 import { ICON_NAMES } from "../../constants/icon.constant";
 import { useSessionUser } from "../../store/session.store";
@@ -48,6 +50,8 @@ interface IProjectContactsProps {
 }
 
 const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
+  const [isManaging, setIsManaging] = useState(false);
+  const [page, setPage] = useState(1);
   const styles = usePageStyles();
   const user = useSessionUser();
   const queryClient = useQueryClient();
@@ -96,6 +100,9 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
   const links = linksQuery.data ?? [];
   const roleContacts = projectRoleContactsFromLinks(links);
   const additionalLinks = links.filter(link => !isProjectContactRole(link.role));
+  const pageCount = Math.max(1, Math.ceil(additionalLinks.length / 2));
+  const currentPage = Math.min(page, pageCount);
+  const visibleLinks = additionalLinks.slice((currentPage - 1) * 2, currentPage * 2);
   const available = directoryQuery.contacts.filter(
     contact => !links.some(link => link.contactId === contact.id),
   );
@@ -134,15 +141,24 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
   };
 
   return (
-    <Card gap="18px" padding="24px">
+    <Card gap="8px" padding="8px">
       <CardHeader
-        icon={ICON_NAMES.CONTACTS}
         title="אנשי קשר בפרויקט או בדירה"
-        subtitle="אנשים משותפים מהמדריך. שיוך או הסרה כאן אינם מוחקים איש קשר מהמדריך."
+        action={
+          canEdit ? (
+            <Button
+              size="compact"
+              text="ניהול אנשי קשר נוספים"
+              variant={BUTTON_VARIANTS.NEUTRAL}
+              onClick={() => setIsManaging(true)}
+            />
+          ) : null
+        }
       />
       {linksQuery.isPending && <LoadingState label="טוען אנשי קשר" />}
       {linksQuery.isError && <InlineError message={getApiErrorMessage(linksQuery.error)} />}
       <ProjectContactRoleFields
+        compact
         canEdit={canEdit}
         contacts={roleContacts}
         onChange={setRoleContact}
@@ -150,8 +166,8 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
         canEditDetails={canEditContactDetails}
         disabled={linksQuery.isPending || linksQuery.isError}
       />
-      <Box sx={styles.stack({ gap: "12px" })}>
-        {additionalLinks.map(link => (
+      <Box sx={styles.stack({ gap: "8px" })}>
+        {visibleLinks.map(link => (
           <Box key={link.contactId} sx={styles.stack({ gap: "8px" })}>
             <Box sx={styles.spacedRow}>
               <Box component="b" sx={styles.wrappingText}>
@@ -168,98 +184,110 @@ const ProjectContacts: FC<IProjectContactsProps> = ({ projectId, canEdit }) => {
                 {link.contact.email}
               </Box>
             )}
-            {canEdit && (
-              <Box sx={styles.row({ gap: "8px" })}>
+          </Box>
+        ))}
+      </Box>
+      {additionalLinks.length > 2 && (
+        <Pagination
+          page={currentPage}
+          onChange={setPage}
+          pageCount={pageCount}
+          nextLabel="אנשי קשר הבאים"
+          previousLabel="אנשי קשר קודמים"
+        />
+      )}
+      <GenericPopup
+        maxWidth="md"
+        open={isManaging && canEdit}
+        title="ניהול אנשי קשר נוספים"
+        onClose={() => setIsManaging(false)}
+        buttons={{ primary: { text: "סיום", onClick: () => setIsManaging(false) } }}
+        content={
+          <>
+            {additionalLinks.map(link => (
+              <Box key={link.contactId} sx={styles.spacedRow}>
+                <Box component="b">{link.contact.name}</Box>
                 <TextField
-                  maxLength={60}
-                  title="תפקיד בפרויקט"
                   type={FIELD_TYPES.TEXT}
+                  title="תפקיד בפרויקט"
                   value={roleDrafts[link.contactId] ?? link.role ?? ""}
                   onChange={value => updateRole(link.contactId, value)}
                 />
-                <Button
-                  text="שמור תפקיד"
-                  onClick={() => saveRole(link)}
-                  variant={BUTTON_VARIANTS.NEUTRAL}
-                />
+                <Button size="compact" text="שמור תפקיד" onClick={() => saveRole(link)} />
                 {!link.isPrimary && (
-                  <Button
-                    text="קבע כראשי"
-                    onClick={() => setPrimary(link)}
-                    variant={BUTTON_VARIANTS.NEUTRAL}
-                  />
+                  <Button size="compact" text="קבע כראשי" onClick={() => setPrimary(link)} />
                 )}
                 <Button
+                  size="compact"
                   text="הסר שיוך כאן"
-                  variant={BUTTON_VARIANTS.NEUTRAL}
                   onClick={() => unlinkMutation.mutate(link.contactId)}
                 />
                 {canEditContactDetails && (
                   <Button
+                    size="compact"
                     text="ערוך איש קשר"
-                    variant={BUTTON_VARIANTS.NEUTRAL}
                     onClick={() => startEditing(link.contact)}
                   />
                 )}
               </Box>
-            )}
-          </Box>
-        ))}
-      </Box>
-      {canEdit && (
-        <Box sx={styles.stack({ gap: "12px" })}>
-          <TextField
-            value={search}
-            onChange={setSearch}
-            disabled={searchDisabled}
-            type={FIELD_TYPES.SEARCH}
-            startIcon={ICON_NAMES.SEARCH}
-            placeholder="שם, טלפון או דוא״ל"
-            title="חיפוש איש קשר קיים במדריך"
-          />
-          {directoryQuery.showPrompt && (
-            <Box role="status">{CONTACT_DIRECTORY_SEARCH_COPY.PROMPT}</Box>
-          )}
-          {directoryQuery.isLoading && (
-            <LoadingState label={CONTACT_DIRECTORY_SEARCH_COPY.LOADING} />
-          )}
-          {directoryQuery.errorMessage && (
-            <ContactDirectorySearchError
-              busy={directoryQuery.isLoading}
-              onRetry={directoryQuery.refresh}
-              message={directoryQuery.errorMessage}
-            />
-          )}
-          {showEmpty && <Box role="status">{CONTACT_DIRECTORY_SEARCH_COPY.EMPTY}</Box>}
-          {available.map(contact => (
-            <Box key={contact.id} sx={styles.spacedRow}>
-              <Box sx={styles.wrappingText}>
-                {contact.name} · {contact.phone ?? contact.email ?? ""}
+            ))}
+            {canEdit && (
+              <Box sx={styles.stack({ gap: "12px" })}>
+                <TextField
+                  value={search}
+                  onChange={setSearch}
+                  disabled={searchDisabled}
+                  type={FIELD_TYPES.SEARCH}
+                  startIcon={ICON_NAMES.SEARCH}
+                  placeholder="שם, טלפון או דוא״ל"
+                  title="חיפוש איש קשר קיים במדריך"
+                />
+                {directoryQuery.showPrompt && (
+                  <Box role="status">{CONTACT_DIRECTORY_SEARCH_COPY.PROMPT}</Box>
+                )}
+                {directoryQuery.isLoading && (
+                  <LoadingState label={CONTACT_DIRECTORY_SEARCH_COPY.LOADING} />
+                )}
+                {directoryQuery.errorMessage && (
+                  <ContactDirectorySearchError
+                    busy={directoryQuery.isLoading}
+                    onRetry={directoryQuery.refresh}
+                    message={directoryQuery.errorMessage}
+                  />
+                )}
+                {showEmpty && <Box role="status">{CONTACT_DIRECTORY_SEARCH_COPY.EMPTY}</Box>}
+                {available.map(contact => (
+                  <Box key={contact.id} sx={styles.spacedRow}>
+                    <Box sx={styles.wrappingText}>
+                      {contact.name} · {contact.phone ?? contact.email ?? ""}
+                    </Box>
+                    <Button
+                      text="שייך"
+                      variant={BUTTON_VARIANTS.NEUTRAL}
+                      onClick={() => addContact(contact)}
+                    />
+                  </Box>
+                ))}
+                <Button
+                  icon={ICON_NAMES.ADD}
+                  text="צור איש קשר במדריך"
+                  onClick={() => startEditing(null)}
+                />
               </Box>
-              <Button
-                text="שייך"
-                variant={BUTTON_VARIANTS.NEUTRAL}
-                onClick={() => addContact(contact)}
+            )}
+            {isCreating && canEdit && (
+              <CustomerContactEditor
+                values={draft}
+                onChange={setDraft}
+                busy={saveMutation.isPending}
+                onSave={() => saveMutation.mutate()}
+                onCancel={() => setIsCreating(false)}
+                error={saveMutation.isError ? getApiErrorMessage(saveMutation.error) : null}
               />
-            </Box>
-          ))}
-          <Button
-            icon={ICON_NAMES.ADD}
-            text="צור איש קשר במדריך"
-            onClick={() => startEditing(null)}
-          />
-        </Box>
-      )}
-      {isCreating && canEdit && (
-        <CustomerContactEditor
-          values={draft}
-          onChange={setDraft}
-          busy={saveMutation.isPending}
-          onSave={() => saveMutation.mutate()}
-          onCancel={() => setIsCreating(false)}
-          error={saveMutation.isError ? getApiErrorMessage(saveMutation.error) : null}
-        />
-      )}
+            )}
+          </>
+        }
+      />
       {linkMutation.isError && <InlineError message={getApiErrorMessage(linkMutation.error)} />}
       {unlinkMutation.isError && <InlineError message={getApiErrorMessage(unlinkMutation.error)} />}
     </Card>

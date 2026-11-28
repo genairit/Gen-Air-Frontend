@@ -4,6 +4,15 @@ import { ELLIPSIS_TEXT } from "../../styles/templates.style";
 
 export const useStyles = () =>
   createStyles({
+    compact: {
+      padding: "6px 10px",
+      minHeight: 44,
+      borderRadius: 0,
+      boxShadow: "none",
+      gap: "6px",
+      "& button": { minHeight: 32, height: 32, paddingInline: "10px", fontSize: 12 },
+      "@media (pointer: coarse)": { "& button, & a": { minHeight: 44, minWidth: 44 } },
+    },
     row: {
       gap: "12px",
       minHeight: 52,
