@@ -1,46 +1,32 @@
-import { type FC } from "react";
+import type { FC, ReactNode } from "react";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
-import Tabs from "../../../components/Tabs/Tabs";
 import ProjectMobileRow from "./ProjectMobileRow";
-import { useStyles } from "./ProjectsTable.style";
 import { Box, useMediaQuery } from "@mui/material";
 import DataTable from "../../../components/DataTable/DataTable";
-import { TABS_VARIANTS } from "../../../constants/tabs.constant";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { useScrollReached } from "../../../hooks/scroll-reached.hook";
 import InlineError from "../../../components/InlineError/InlineError";
-import type { ITabItem } from "../../../interfaces/tab-item.interface";
 import { MOBILE_LAYOUT_QUERY } from "../../../constants/layout.constant";
 import LoadingState from "../../../components/LoadingState/LoadingState";
 import { getApiErrorMessage } from "../../../utilities/api-error.utility";
+import { formatVisibleProjects } from "../../../utilities/project.utility";
 import { useProjectPagesQuery } from "../../../hooks/queries/project.query";
 import type { IProjectPageQuery } from "../../../interfaces/api-request.interface";
 import { buildProjectColumns, PROJECT_TABLE_MIN_WIDTH } from "../columns/project-columns";
-import { formatProjectResults, formatVisibleProjects } from "../../../utilities/project.utility";
 import { BOARD_COPY, PROJECT_BOARD_SCROLL_ROOT_MARGIN } from "../../../constants/board.constant";
 
 interface IProjectsTableProps {
   total: number;
-  tabs: ITabItem[];
-  activeTabId: string;
+  toolbar: ReactNode;
   query: IProjectPageQuery;
-  onTabChange: (tabId: string) => void;
   onOpenProject: (projectId: string) => void;
 }
 
 const getProjectId = (project: IApiProject) => project.id;
 
-const ProjectsTable: FC<IProjectsTableProps> = ({
-  tabs,
-  query,
-  total,
-  activeTabId,
-  onTabChange,
-  onOpenProject,
-}) => {
+const ProjectsTable: FC<IProjectsTableProps> = ({ toolbar, query, total, onOpenProject }) => {
   const styles = usePageStyles();
-  const tableStyles = useStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
   const projectsQuery = useProjectPagesQuery(query);
 
@@ -57,27 +43,9 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
 
   const columns = buildProjectColumns();
 
-  const toolbar = (
-    <Box sx={styles.stack({ gap: "16px" })}>
-      <Box sx={styles.spacedRow}>
-        <Box sx={styles.row({ gap: "8px" })}>
-          <Box component="b" sx={tableStyles.title}>
-            {BOARD_COPY.TABLE_TITLE}
-          </Box>
-          <Box component="span" sx={styles.caption}>
-            {formatProjectResults(total)}
-          </Box>
-        </Box>
-        <Box component="span" sx={styles.caption}>
-          {BOARD_COPY.TABLE_SUBTITLE}
-        </Box>
-      </Box>
-      <Tabs
-        items={tabs}
-        activeId={activeTabId}
-        onChange={onTabChange}
-        variant={TABS_VARIANTS.PILLS}
-      />
+  const header = (
+    <>
+      {toolbar}
       {queryError && <InlineError message={getApiErrorMessage(queryError)} />}
       {projectsQuery.isPending && <LoadingState label={BOARD_COPY.LOADING} />}
       {isEmpty && (
@@ -85,7 +53,7 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
           {BOARD_COPY.NO_RESULTS}
         </Box>
       )}
-    </Box>
+    </>
   );
 
   const footer = (
@@ -99,8 +67,8 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
 
   if (isMobile) {
     return (
-      <Card gap="16px">
-        {toolbar}
+      <Card gap="16px" ariaLabel={BOARD_COPY.TABLE_TITLE}>
+        {header}
         {projects.map(project => (
           <ProjectMobileRow key={project.id} project={project} onOpen={onOpenProject} />
         ))}
@@ -113,9 +81,10 @@ const ProjectsTable: FC<IProjectsTableProps> = ({
     <DataTable
       footer={footer}
       rows={projects}
+      toolbar={header}
       columns={columns}
-      toolbar={toolbar}
       getRowId={getProjectId}
+      ariaLabel={BOARD_COPY.TABLE_TITLE}
       minWidth={PROJECT_TABLE_MIN_WIDTH}
       onRowClick={project => onOpenProject(project.id)}
     />
