@@ -21,7 +21,6 @@ import { useStyles as getLayoutStyles } from "../src/layouts/AppLayout.style";
 import { useStyles as getTabStyles } from "../src/components/Tabs/Tabs.style";
 import CustomerForm from "../src/pages/customer-form/components/CustomerForm";
 import { PROJECT_INTAKE_COPY } from "../src/constants/project-intake.constant";
-import CustomerFieldsCard from "../src/pages/customer-form/components/CustomerFieldsCard";
 import { PAYMENT_CONFIGURATION_COPY } from "../src/constants/payment-configuration.constant";
 import { useStyles as getHeaderStyles } from "../src/components/CardHeader/CardHeader.style";
 import CustomerPaymentDefault from "../src/components/CustomerPaymentDefault/CustomerPaymentDefault";
