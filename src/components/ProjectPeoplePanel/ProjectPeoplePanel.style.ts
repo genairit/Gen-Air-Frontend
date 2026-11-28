@@ -3,7 +3,7 @@ import { theme } from "../../constants/theme.constants";
 
 export const PEOPLE_ROW_STYLES = {
   minWidth: 0,
-  paddingBlock: "4px",
+  paddingBlock: "3px",
   borderBottom: `1px solid ${theme.glass.border}`,
   "&:last-child": { borderBottom: 0 },
 };
@@ -19,7 +19,7 @@ export const PEOPLE_ROLE_STYLES = {
 
 export const usePeopleStyles = () =>
   createStyles({
-    root: { display: "flex", flexDirection: "column", gap: "8px", minWidth: 0 },
+    root: { display: "flex", flexDirection: "column", gap: "4px", minWidth: 0 },
     columns: { display: "grid", gap: "20px", alignItems: "start" },
     column: {
       minWidth: 0,
@@ -29,7 +29,7 @@ export const usePeopleStyles = () =>
         border: 0,
         borderRadius: 0,
         backgroundColor: "transparent",
-        padding: "8px",
+        padding: "4px",
       },
       "& a": {
         color: theme.palette.primary,
