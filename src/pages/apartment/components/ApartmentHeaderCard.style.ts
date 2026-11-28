@@ -18,24 +18,15 @@ export const useStyles = () =>
       textDecoration: "none",
       color: palette.primary,
     },
-    currentCrumb: {
-      fontWeight: 700,
-      color: palette.charcoal,
-    },
     identity: {
-      gap: "18px",
+      gap: "10px 16px",
       display: "flex",
       flexWrap: "wrap",
       alignItems: "center",
       justifyContent: "space-between",
     },
-    titleBlock: {
-      gap: "16px",
-      display: "flex",
-      alignItems: "center",
-    },
     details: {
-      gap: "8px",
+      gap: "2px",
       display: "flex",
       flexDirection: "column",
     },

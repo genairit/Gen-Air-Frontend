@@ -34,7 +34,7 @@ import { getPageTitle, getBackLinkTarget, getActiveNavigationId } from "../utili
 const AppLayout = () => {
   const styles = useStyles();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
+  const { pathname, state } = useLocation();
   const sessionUser = useSessionUser();
   useEffect(() => SessionBroadcastManager.subscribeToUserChanges(refreshSessionUserAction), []);
   const navigationItems = filterNavigationByPermissions(APP_NAVIGATION_ITEMS, sessionUser);
@@ -70,7 +70,7 @@ const AppLayout = () => {
     assignedRoles: sessionUser.assignedRoles,
     onRoleChange: switchActiveRoleAction,
   };
-  const backLinkTarget = getBackLinkTarget(pathname);
+  const backLinkTarget = getBackLinkTarget(pathname, state?.buildingSearch);
   const topBarLeading = backLinkTarget && (
     <BackLink to={backLinkTarget.to} label={backLinkTarget.label} />
   );
