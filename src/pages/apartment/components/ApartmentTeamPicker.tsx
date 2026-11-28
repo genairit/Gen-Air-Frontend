@@ -1,3 +1,8 @@
+import {
+  BUTTON_SIZES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
 import { usePageStyles } from "../../page.style";
@@ -13,7 +18,6 @@ import type { IApiProjectMember } from "../../../interfaces/api.interface";
 import { APARTMENT_TEAM_COPY } from "../../../constants/apartment.constant";
 import { toApartmentTeamOptions } from "../../../utilities/apartment.utility";
 import { getApartmentTeamCandidates } from "../../../utilities/apartment.utility";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
 
 interface IApartmentTeamPickerProps {
   disabled?: boolean;
@@ -66,6 +70,7 @@ const ApartmentTeamPicker: FC<IApartmentTeamPickerProps> = ({
         <>
           <InlineError message={getApiErrorMessage(usersQuery.error)} />
           <Button
+            size={BUTTON_SIZES.COMPACT}
             text={APARTMENT_TEAM_COPY.RETRY}
             variant={BUTTON_VARIANTS.NEUTRAL}
             onClick={async () => {

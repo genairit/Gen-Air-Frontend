@@ -3,20 +3,19 @@ import {
   getTaskCustomer,
   formatTaskDueLabel,
   formatAssigneeLabel,
-  formatProjectTasksSubtitle,
 } from "../../../utilities/task.utility";
 
 import { Box, Link } from "@mui/material";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import Button from "../../../components/Button/Button";
+import { theme } from "../../../constants/theme.constants";
 import { type FC, useState, type MouseEvent } from "react";
 import { ICON_NAMES } from "../../../constants/icon.constant";
 import { useSessionUser } from "../../../store/session.store";
 import { buildTaskPath } from "../../../utilities/route.utility";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
 import ChoiceMenu from "../../../components/ChoiceMenu/ChoiceMenu";
-import CardHeader from "../../../components/CardHeader/CardHeader";
 import type { IApiTask } from "../../../interfaces/task.interface";
 import TaskEditButton from "../../tasks/components/TaskEditButton";
 import { SURFACE_DEPTHS } from "../../../constants/surface.constant";
@@ -93,6 +92,7 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ project }) => {
   const action = isManager ? (
     <>
       <Button
+        size="compact"
         variant={BUTTON_VARIANTS.NEUTRAL}
         text={PROJECT_TASKS_COPY.NEW_TASK}
         onClick={(event: MouseEvent<HTMLButtonElement>) => setMenuAnchor(event.currentTarget)}
@@ -104,20 +104,11 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ project }) => {
         title={PROJECT_TASKS_COPY.CHOOSE_TYPE}
       />
     </>
-  ) : (
-    <Box component="span" sx={styles.caption}>
-      {PROJECT_TASKS_COPY.MANAGERS_ONLY}
-    </Box>
-  );
+  ) : null;
 
   return (
-    <Card gap="16px">
-      <CardHeader
-        action={action}
-        icon={ICON_NAMES.TASKS}
-        title={PROJECT_TASKS_COPY.TITLE}
-        subtitle={formatProjectTasksSubtitle(tasks.length)}
-      />
+    <Card gap="4px" ariaLabel={PROJECT_TASKS_COPY.TITLE}>
+      {action && <Box sx={styles.endRow}>{action}</Box>}
       {isManager && creatingType !== null && (
         <TaskFormPopup
           mode="create"
@@ -151,10 +142,16 @@ const ProjectTasksCard: FC<IProjectTasksCardProps> = ({ project }) => {
         <Card
           gap="8px"
           key={task.id}
-          padding="14px 18px"
+          padding="9px 12px"
           ariaLabel={task.title}
           depth={SURFACE_DEPTHS.INSET}
           onClick={() => navigate(buildTaskPath(task.id))}
+          sx={{
+            boxShadow: "none",
+            borderRadius: 0,
+            border: 0,
+            borderBottom: ` 1px solid ${theme.glass.border}`,
+          }}
         >
           <Box sx={TASK_COLUMN_STYLES.mobileRow}>
             <Box sx={TASK_COLUMN_STYLES.cell}>

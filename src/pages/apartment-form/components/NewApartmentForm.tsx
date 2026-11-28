@@ -15,17 +15,26 @@ import {
   projectRoleContactInputs,
 } from "../../../utilities/project-contact-role.utility";
 
+import {
+  BUTTON_SIZES,
+  BUTTON_VARIANTS,
+} from "../../../components/Button/constants/button.constants";
+
+import {
+  getProjectMutationError,
+  isExistingDriveFolderError,
+} from "../../../utilities/existing-drive-folder-error.utility";
+
 import { Box } from "@mui/material";
 import { type FC, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { usePageStyles } from "../../page.style";
 import Button from "../../../components/Button/Button";
 import ApartmentFieldsCard from "./ApartmentFieldsCard";
 import InheritedPreviewCard from "./InheritedPreviewCard";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useSessionUser } from "../../../store/session.store";
 import ApartmentTeamDraftCard from "./ApartmentTeamDraftCard";
 import { ICON_NAMES } from "../../../constants/icon.constant";
-import { buildProjectPath } from "../../../utilities/route.utility";
 import { PERMISSIONS } from "../../../constants/permission.constant";
 import type { IApiProject } from "../../../interfaces/api.interface";
 import { hasPermission } from "../../../utilities/permission.utility";
@@ -33,15 +42,18 @@ import ApartmentLightingDraftCard from "./ApartmentLightingDraftCard";
 import InlineError from "../../../components/InlineError/InlineError";
 import { useCustomerQuery } from "../../../hooks/queries/customer.query";
 import { isCustomerSelectable } from "../../../utilities/customer.utility";
+import { useProjectFormTabs } from "../../../hooks/project-form-tabs.hook";
+import { getApartmentBuildingPath } from "../../../utilities/route.utility";
+import { PROJECT_TABS } from "../../../constants/project-workspace.constant";
 import { useExistingDriveFolder } from "../../../hooks/existing-drive-folder.hook";
 import type { IApartmentFormValues } from "../../../interfaces/apartment.interface";
+import ProjectWorkspace from "../../../components/ProjectWorkspace/ProjectWorkspace";
 import { formatApartmentValidationCount } from "../../../utilities/apartment.utility";
 import type { ICustomerContact } from "../../../interfaces/customer-contact.interface";
-import { BUTTON_VARIANTS } from "../../../components/Button/constants/button.constants";
+import { getLightingHeightError } from "../../../utilities/project-constraints.utility";
 import { useCreateApartmentMutation } from "../../../hooks/mutations/apartment.mutation";
 import type { ProjectContactRoleType } from "../../../constants/project-contact-role.constant";
 import ProjectCustomerPickerCard from "../../project-form/components/ProjectCustomerPickerCard";
-import { getProjectMutationError } from "../../../utilities/existing-drive-folder-error.utility";
 import ProjectRoleContactsCard from "../../../components/ProjectContactRoles/ProjectRoleContactsCard";
 import ExistingDriveFolderField from "../../../components/ExistingDriveFolderField/ExistingDriveFolderField";
 
@@ -52,6 +64,9 @@ interface INewApartmentFormProps {
 const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const styles = usePageStyles();
   const navigate = useNavigate();
+  const location = useLocation();
+  const parentPath = getApartmentBuildingPath(building.id, location.state?.buildingSearch);
+  const { activeTab, setActiveTab, focusError } = useProjectFormTabs();
   const sessionUser = useSessionUser();
   const [roleActivity, setRoleActivity] = useState<
     Partial<Record<ProjectContactRoleType, boolean>>
@@ -69,8 +84,7 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const showFieldErrors = isSubmitAttempted && invalidFieldCount > 0;
 
   const hasUnfinishedRoleContact = Object.values(roleActivity).some(active => active);
-  const isSubmitDisabled =
-    createMutation.isPending || hasUnfinishedRoleContact || !driveFolder.canSubmit;
+
   const changeRoleActivity = (role: ProjectContactRoleType, active: boolean) =>
     setRoleActivity(current => ({ ...current, [role]: active }));
 
@@ -87,9 +101,33 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
   const handleSubmit = () => {
     setIsSubmitAttempted(true);
 
-    if (invalidFieldCount > 0 || isSubmitDisabled) {
+    const invalidUnit = APARTMENT_UNIT_FIELDS.find(
+      field => !field.validate(values[field.field]).isValid,
+    );
+    if (invalidUnit) {
+      focusError(PROJECT_TABS.details.id, `#apartment-${invalidUnit.field}`);
       return;
     }
+    if (!driveFolder.canSubmit) {
+      focusError(PROJECT_TABS.details.id, '[data-apartment-folder] input:not([type="radio"])');
+      return;
+    }
+    if (!isCustomerReady) {
+      focusError(
+        PROJECT_TABS.details.id,
+        "[data-apartment-customer] :is(input,button:not(:disabled))",
+      );
+      return;
+    }
+    if (values.hasOwnLighting && getLightingHeightError(values)) {
+      focusError(PROJECT_TABS.technical.id, 'input:not([type="checkbox"]):not([type="radio"])');
+      return;
+    }
+    if (hasUnfinishedRoleContact) {
+      focusError(PROJECT_TABS.people.id);
+      return;
+    }
+    if (createMutation.isPending) return;
 
     createMutation.mutate(
       {
@@ -98,74 +136,105 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
         contacts: projectRoleContactInputs(roleContacts),
         existingDriveFolder: driveFolder.existingDriveFolder,
       },
-      { onSuccess: () => navigate(buildProjectPath(building.id)) },
+      {
+        onSuccess: () => navigate(parentPath),
+        onError: error => {
+          if (isExistingDriveFolderError(error)) {
+            focusError(
+              PROJECT_TABS.details.id,
+              '[data-apartment-folder] input:not([type="radio"])',
+            );
+          }
+        },
+      },
     );
   };
 
-  return (
-    <Box sx={styles.page}>
-      <Box sx={styles.headerText}>
-        <Box component="span" sx={styles.eyebrow}>
-          {formatBuildingEyebrow(building.name)}
+  const panels = [
+    {
+      ...PROJECT_TABS.details,
+      content: (
+        <Box sx={styles.grid({ minColumnWidth: 500 })}>
+          <ApartmentFieldsCard
+            values={values}
+            minColumnWidth={240}
+            icon={ICON_NAMES.HOME}
+            onChange={updateValues}
+            fields={APARTMENT_UNIT_FIELDS}
+            title={ADD_APARTMENT_COPY.UNIT_TITLE}
+            isSubmitAttempted={isSubmitAttempted}
+          >
+            <Box data-apartment-folder>
+              <ExistingDriveFolderField
+                isApartment
+                state={driveFolder}
+                disabled={createMutation.isPending}
+              />
+            </Box>
+          </ApartmentFieldsCard>
+          <Box data-apartment-customer>
+            <ProjectCustomerPickerCard
+              isApartment
+              customerId={values.customerId}
+              isSubmitAttempted={isSubmitAttempted}
+              title={ADD_APARTMENT_COPY.PEOPLE_TITLE}
+              subtitle={ADD_APARTMENT_COPY.PEOPLE_SUBTITLE}
+              onChange={customerId => updateValues({ customerId })}
+            />
+          </Box>
         </Box>
-        <Box component="h1" sx={styles.heading}>
-          {ADD_APARTMENT_COPY.TITLE}
-        </Box>
-        <Box component="span" sx={styles.description}>
-          {ADD_APARTMENT_COPY.DESCRIPTION}
-        </Box>
-      </Box>
-
-      <Box sx={styles.grid({ minColumnWidth: 500 })}>
-        <ApartmentFieldsCard
-          values={values}
-          minColumnWidth={240}
-          icon={ICON_NAMES.HOME}
-          onChange={updateValues}
-          fields={APARTMENT_UNIT_FIELDS}
-          title={ADD_APARTMENT_COPY.UNIT_TITLE}
-          isSubmitAttempted={isSubmitAttempted}
-        >
-          <ExistingDriveFolderField
-            isApartment
-            state={driveFolder}
-            disabled={createMutation.isPending}
+      ),
+    },
+    {
+      ...PROJECT_TABS.technical,
+      content: (
+        <>
+          <ApartmentLightingDraftCard
+            values={values}
+            building={building}
+            onChange={updateValues}
+            isSubmitAttempted={isSubmitAttempted}
           />
-        </ApartmentFieldsCard>
-        <ProjectCustomerPickerCard
-          isApartment
-          customerId={values.customerId}
-          isSubmitAttempted={isSubmitAttempted}
-          title={ADD_APARTMENT_COPY.PEOPLE_TITLE}
-          subtitle={ADD_APARTMENT_COPY.PEOPLE_SUBTITLE}
-          onChange={customerId => updateValues({ customerId })}
-        />
+          <InheritedPreviewCard building={building} />
+        </>
+      ),
+    },
+    {
+      ...PROJECT_TABS.people,
+      content: (
+        <>
+          <ProjectRoleContactsCard
+            contacts={roleContacts}
+            onChange={changeRoleContact}
+            disabled={createMutation.isPending}
+            canCreateContact={canCreateContact}
+            onActivityChange={changeRoleActivity}
+            canEditDetails={canEditContactDetails}
+          />
+          {isSubmitAttempted && hasUnfinishedRoleContact && (
+            <InlineError message="יש לסיים את עריכת איש הקשר לפני יצירת הדירה" />
+          )}
+          <ApartmentTeamDraftCard
+            building={building}
+            members={values.members}
+            engineerUserId={values.engineerUserId}
+            onChange={members => updateValues({ members })}
+            onEngineerChange={engineerUserId => updateValues({ engineerUserId })}
+          />
+        </>
+      ),
+    },
+  ];
+  const header = (
+    <Box sx={styles.headerText}>
+      <Box component="h1" sx={styles.heading}>
+        {ADD_APARTMENT_COPY.TITLE}
       </Box>
-      <Box sx={styles.grid({ minColumnWidth: 500 })}>
-        <ApartmentTeamDraftCard
-          building={building}
-          members={values.members}
-          engineerUserId={values.engineerUserId}
-          onChange={members => updateValues({ members })}
-          onEngineerChange={engineerUserId => updateValues({ engineerUserId })}
-        />
-        <ApartmentLightingDraftCard
-          values={values}
-          building={building}
-          onChange={updateValues}
-          isSubmitAttempted={isSubmitAttempted}
-        />
-      </Box>
-      <ProjectRoleContactsCard
-        contacts={roleContacts}
-        onChange={changeRoleContact}
-        disabled={createMutation.isPending}
-        canCreateContact={canCreateContact}
-        onActivityChange={changeRoleActivity}
-        canEditDetails={canEditContactDetails}
-      />
-      <InheritedPreviewCard building={building} />
-
+      <Box sx={styles.caption}>{formatBuildingEyebrow(building.name)}</Box>
+    </Box>
+  );
+  const footer = (
+    <>
       {showFieldErrors && (
         <InlineError message={formatApartmentValidationCount(invalidFieldCount)} />
       )}
@@ -175,20 +244,33 @@ const NewApartmentForm: FC<INewApartmentFormProps> = ({ building }) => {
 
       <Box sx={styles.endRow}>
         <Button
+          size={BUTTON_SIZES.COMPACT}
           text={ADD_APARTMENT_COPY.CANCEL}
           variant={BUTTON_VARIANTS.NEUTRAL}
           disabled={createMutation.isPending}
-          onClick={() => navigate(buildProjectPath(building.id))}
+          onClick={() => navigate(parentPath)}
         />
         <Button
           icon={ICON_NAMES.ADD}
           onClick={handleSubmit}
-          disabled={isSubmitDisabled}
+          size={BUTTON_SIZES.COMPACT}
           text={ADD_APARTMENT_COPY.SUBMIT}
+          disabled={createMutation.isPending}
           isLoading={createMutation.isPending}
         />
       </Box>
-    </Box>
+    </>
+  );
+  return (
+    <ProjectWorkspace
+      keepMounted
+      panels={panels}
+      header={header}
+      footer={footer}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      defaultTab={PROJECT_TABS.details.id}
+    />
   );
 };
 

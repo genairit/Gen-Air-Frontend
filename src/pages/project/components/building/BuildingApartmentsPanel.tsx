@@ -1,63 +1,52 @@
+import { type FC } from "react";
 import { Box } from "@mui/material";
-import { type FC, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import ApartmentsTable from "./ApartmentsTable";
-import ProjectTeamCard from "../ProjectTeamCard";
-import ProjectDriveCard from "../ProjectDriveCard";
-import ProjectTasksCard from "../ProjectTasksCard";
 import { usePageStyles } from "../../../page.style";
-import Chip from "../../../../components/Chip/Chip";
-import ProjectPageHeader from "../ProjectPageHeader";
-import ProjectTimelineCard from "../ProjectTimelineCard";
-import ProjectCustomerCard from "../ProjectCustomerCard";
+import Tabs from "../../../../components/Tabs/Tabs";
 import Button from "../../../../components/Button/Button";
-import BuildingInheritedCard from "./BuildingInheritedCard";
-import ProjectQuotationsCard from "../ProjectQuotationsCard";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ICON_NAMES } from "../../../../constants/icon.constant";
 import { useSessionUser } from "../../../../store/session.store";
 import { PERMISSIONS } from "../../../../constants/permission.constant";
 import type { IApiProject } from "../../../../interfaces/api.interface";
 import { hasPermission } from "../../../../utilities/permission.utility";
+import { buildNewApartmentPath } from "../../../../utilities/route.utility";
 import { useApartmentImport } from "../../../../hooks/apartment-import.hook";
-import { formatBuildingBadge } from "../../../../utilities/apartment.utility";
 import { BUILDING_PAGE_COPY } from "../../../../constants/apartment.constant";
 import { ALL_STAGES_TILE_ID } from "../../../../constants/stage-tile.constant";
 import { useProjectStagesQuery } from "../../../../hooks/queries/project.query";
-import StageTilesCard from "../../../../components/StageTilesCard/StageTilesCard";
 import ApartmentImport from "../../../../components/ApartmentImport/ApartmentImport";
 import { toStageTiles, toStageFilter } from "../../../../utilities/stage-tile.utility";
 import { useApartmentStageCountsQuery } from "../../../../hooks/queries/apartment.query";
+import { useProjectWorkspaceQuery } from "../../../../hooks/project-workspace-query.hook";
 import { BUTTON_VARIANTS } from "../../../../components/Button/constants/button.constants";
 import { canImportApartments } from "../../../../utilities/apartment-import-permission.utility";
-import { buildEditProjectPath, buildNewApartmentPath } from "../../../../utilities/route.utility";
 
-interface IBuildingViewProps {
+interface IBuildingApartmentsPanelProps {
   project: IApiProject;
 }
 
-const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
+const BuildingApartmentsPanel: FC<IBuildingApartmentsPanelProps> = ({ project }) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
   const sessionUser = useSessionUser();
-  const [activeTileId, setActiveTileId] = useState<string>(ALL_STAGES_TILE_ID);
+  const location = useLocation();
+  const { params, update } = useProjectWorkspaceQuery();
+  const activeTileId = params.get("apartmentStage") ?? ALL_STAGES_TILE_ID;
+  const setActiveTileId = (id: string) => update("apartmentStage", id, true);
   const apartmentImport = useApartmentImport(project.id);
   const stagesQuery = useProjectStagesQuery();
   const stageCountsQuery = useApartmentStageCountsQuery(project.id);
 
   const stages = stagesQuery.data ?? [];
   const stageCounts = stageCountsQuery.data ?? null;
-  const fieldSet = project.projectType?.detailFieldSet ?? null;
   const canCreateApartment = hasPermission(sessionUser, PERMISSIONS.APARTMENTS_CREATE);
-  const canReadDrive = hasPermission(sessionUser, PERMISSIONS.DRIVE_READ);
-  const canReadTasks = hasPermission(sessionUser, PERMISSIONS.TASKS_READ);
-  const canReadQuotations = hasPermission(sessionUser, PERMISSIONS.QUOTATIONS_READ);
-  const canEdit = hasPermission(sessionUser, PERMISSIONS.PROJECTS_UPDATE);
   const canImport = canImportApartments(sessionUser);
   const importOpen = canImport && apartmentImport.open;
-  const openEditForm = () => navigate(buildEditProjectPath(project.id));
 
   const importAction = canImport ? (
     <Button
+      size="compact"
       icon={ICON_NAMES.UPLOAD}
       text="ייבוא דירות מאקסל"
       variant={BUTTON_VARIANTS.NEUTRAL}
@@ -68,9 +57,14 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
     <>
       {canCreateApartment && (
         <Button
+          size="compact"
           icon={ICON_NAMES.ADD}
           text={BUILDING_PAGE_COPY.ADD_APARTMENT}
-          onClick={() => navigate(buildNewApartmentPath(project.id))}
+          onClick={() =>
+            navigate(buildNewApartmentPath(project.id), {
+              state: { buildingSearch: location.search },
+            })
+          }
         />
       )}
       {importAction}
@@ -78,7 +72,7 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
   );
 
   return (
-    <Box sx={styles.page}>
+    <Box sx={styles.stack({ gap: "12px" })}>
       <ApartmentImport
         open={importOpen}
         view={apartmentImport.view}
@@ -91,49 +85,23 @@ const BuildingView: FC<IBuildingViewProps> = ({ project }) => {
         onDownloadReport={apartmentImport.downloadReport}
         onDownloadTemplate={apartmentImport.downloadTemplate}
       />
-      <ProjectPageHeader
-        project={project}
-        extraActions={addApartmentAction}
-        badge={<Chip label={formatBuildingBadge(stageCounts?.total ?? 0)} />}
-      />
-
-      {canReadTasks && <ProjectTasksCard key={project.id} project={project} />}
-
-      {canReadDrive && <ProjectDriveCard shareWithApartments projectId={project.id} />}
-
-      <Box sx={styles.grid({ minColumnWidth: 500 })}>
-        <BuildingInheritedCard building={project} />
-        {fieldSet && (
-          <ProjectCustomerCard
-            project={project}
-            fieldSet={fieldSet}
-            onEdit={canEdit ? openEditForm : null}
-            typeName={project.projectType?.name ?? ""}
-          />
-        )}
+      <Box sx={styles.spacedRow}>
+        <Tabs
+          activeId={activeTileId}
+          onChange={setActiveTileId}
+          items={toStageTiles(stages, stageCounts)}
+          ariaLabel={BUILDING_PAGE_COPY.STAGES_TITLE}
+        />
+        <Box sx={styles.row({ gap: "8px" })}>{addApartmentAction}</Box>
       </Box>
-
-      {canReadQuotations && <ProjectQuotationsCard projectId={project.id} />}
-
-      <StageTilesCard
-        onSelect={setActiveTileId}
-        activeTileId={activeTileId}
-        title={BUILDING_PAGE_COPY.STAGES_TITLE}
-        tiles={toStageTiles(stages, stageCounts)}
-        subtitle={BUILDING_PAGE_COPY.STAGES_SUBTITLE}
-      />
 
       <ApartmentsTable
         stages={stages}
         buildingId={project.id}
         stageId={toStageFilter(activeTileId)}
       />
-
-      <ProjectTeamCard members={project.members ?? []} />
-
-      <ProjectTimelineCard projectId={project.id} />
     </Box>
   );
 };
 
-export default BuildingView;
+export default BuildingApartmentsPanel;
