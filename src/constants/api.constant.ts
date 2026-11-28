@@ -22,6 +22,8 @@ export const API_ENDPOINTS = {
   QUOTATION_STATUS_COUNTS: "/quotation/status-counts",
   QUOTATION_SALES_AGENTS: "/quotation/sales-agents",
   CATALOGUE: "/catalogue-item",
+  CATALOGUE_DIRECTORY: "/catalogue-item/directory",
+  CATALOGUE_MAINTENANCE: "/catalogue-item/maintenance",
   quotationById: (id: string) => `/quotation/${id}`,
   quotationCloneRecommended: (id: string): string => `/quotation/${id}/clone-recommended`,
   quotationClone: (id: string) => `/quotation/${id}/clone`,

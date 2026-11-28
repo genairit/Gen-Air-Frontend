@@ -70,6 +70,7 @@ const DataTable = <TRow,>({
               <ChoiceRow
                 key={id}
                 sx={rowSx}
+                data-row-id={id}
                 aria-label={getRowLabel(row)}
                 onClick={(): void => onRowClick(row)}
               >

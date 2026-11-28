@@ -13,6 +13,7 @@ import ApartmentPage from "./pages/apartment/ApartmentPage";
 import ComponentsShowcase from "./pages/ComponentsShowcase";
 import EmployeesPage from "./pages/employees/EmployeesPage";
 import CustomersPage from "./pages/customers/CustomersPage";
+import CataloguePage from "./pages/catalogue/CataloguePage";
 import QuotationPage from "./pages/quotations/QuotationPage";
 import { Navigate, type RouteObject } from "react-router-dom";
 import { PERMISSIONS } from "./constants/permission.constant";
@@ -53,6 +54,14 @@ export const routes: RouteObject[] = [
               </RequireFeature>
             ),
           })),
+          {
+            path: ROUTE_PATHS.CATALOGUE,
+            element: (
+              <RequireFeature permission={PERMISSIONS.QUOTATIONS_READ}>
+                <CataloguePage />
+              </RequireFeature>
+            ),
+          },
           {
             path: ROUTE_PATHS.QUOTATION,
             element: (

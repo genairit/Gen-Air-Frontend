@@ -8,6 +8,7 @@ export const ROUTE_PARAMS = {
 
 export const ROUTE_PATHS = {
   QUOTATIONS: "/quotations",
+  CATALOGUE: "/catalogue",
   QUOTATION: "/quotations/:quotationId",
   QUOTATION_CLONE: "/quotations/:quotationId/clone",
   PROJECT_QUOTATION_CREATE: "/projects/:projectId/quotations/new",
