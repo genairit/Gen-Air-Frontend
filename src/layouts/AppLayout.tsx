@@ -58,7 +58,6 @@ const AppLayout = () => {
     return null;
   }
 
-  // CR: §11 - Use the same exact React Router match as the Clients route so trailing-slash and case variants retain their h1.
   const titleComponent = matchPath(ROUTE_PATHS.CUSTOMERS, pathname) ? "h1" : "b";
   const boardOwnsHeader =
     pathname === ROUTE_PATHS.BOARD && hasPermission(sessionUser, PERMISSIONS.PROJECTS_READ);
