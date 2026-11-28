@@ -124,7 +124,15 @@ const CataloguePage = () => {
         </Box>
       )}
       <Box ref={list} hidden={!listVisible}>
-        <CatalogueDirectory canManage={canManage} onOpen={row => open(row.id)} />
+        <CatalogueDirectory
+          canManage={canManage}
+          onOpen={row => open(row.id)}
+          onRemoved={message => {
+            returnFocusId.current = null;
+            setNotice(message);
+            focusConnectedElement(createButton.current ?? heading.current);
+          }}
+        />
       </Box>
       {loading && <LoadingState label="טוען פרטי פריט" />}
       {loadError && <InlineError message={getApiErrorMessage(detail.error)} />}

@@ -12,6 +12,7 @@ interface IDataTableProps<TRow> {
   ariaLabel?: string;
   footer?: ReactNode;
   toolbar?: ReactNode;
+  actionTrack?: string;
   scrollMaxHeight?: string;
   endAdornment?: ReactNode;
   getRowId: (row: TRow) => string;
@@ -20,6 +21,7 @@ interface IDataTableProps<TRow> {
   columns: IDataTableColumn<TRow>[];
   getRowLabel?: (row: TRow) => string;
   isRowDimmed?: (row: TRow) => boolean;
+  renderRowAction?: (row: TRow) => ReactNode;
 }
 
 const getGridTemplate = <TRow,>(columns: IDataTableColumn<TRow>[]) =>
@@ -39,10 +41,14 @@ const DataTable = <TRow,>({
   scrollerRef,
   endAdornment,
   scrollMaxHeight,
+  actionTrack = "48px",
+  renderRowAction,
   isRowDimmed = () => false,
 }: IDataTableProps<TRow>) => {
   const styles = useStyles();
-  const gridTemplate = getGridTemplate(columns);
+  const gridTemplate = renderRowAction
+    ? `${getGridTemplate(columns)} ${actionTrack}`
+    : getGridTemplate(columns);
   const headerStyles = styles.header({ minWidth, gridTemplate, isSticky: scrollMaxHeight != null });
   const scrollerStyles = styles.scroller({ maxHeight: scrollMaxHeight });
 
@@ -56,9 +62,20 @@ const DataTable = <TRow,>({
               {column.header}
             </Box>
           ))}
+          {renderRowAction && <Box aria-hidden component="span" />}
         </Box>
         {rows.map((row): React.JSX.Element => {
           const id = getRowId(row);
+          const actionCell = renderRowAction && <Box aria-hidden component="span" />;
+          const withAction = (element: React.JSX.Element): React.JSX.Element =>
+            renderRowAction ? (
+              <Box key={id} sx={styles.actionWrapper({ minWidth })}>
+                {element}
+                <Box sx={styles.rowAction}>{renderRowAction(row)}</Box>
+              </Box>
+            ) : (
+              element
+            );
           const rowSx = styles.row({
             minWidth,
             gridTemplate,
@@ -66,7 +83,7 @@ const DataTable = <TRow,>({
             isClickable: Boolean(onRowClick),
           });
           if (getRowLabel && onRowClick) {
-            return (
+            return withAction(
               <ChoiceRow
                 key={id}
                 sx={rowSx}
@@ -79,18 +96,20 @@ const DataTable = <TRow,>({
                     {column.render(row)}
                   </Box>
                 ))}
-              </ChoiceRow>
+                {actionCell}
+              </ChoiceRow>,
             );
           }
 
-          return (
+          return withAction(
             <Box key={id} role="row" sx={rowSx} onClick={onRowClick && (() => onRowClick(row))}>
               {columns.map(column => (
                 <Box role="cell" key={column.id}>
                   {column.render(row)}
                 </Box>
               ))}
-            </Box>
+              {actionCell}
+            </Box>,
           );
         })}
         {endAdornment}

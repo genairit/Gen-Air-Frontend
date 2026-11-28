@@ -17,7 +17,9 @@ import { useCatalogueStyles } from "./catalogue.style";
 import { logger } from "../../utilities/logger.utility";
 import CheckBox from "../../components/CheckBox/CheckBox";
 import { HTTP_STATUS } from "../../constants/api.constant";
+import { ICON_NAMES } from "../../constants/icon.constant";
 import TextField from "../../components/TextField/TextField";
+import CatalogueArchiveDialog from "./CatalogueArchiveDialog";
 import { useCatalogueMutation } from "../../hooks/catalogue.hook";
 import { catalogueStatusLabel } from "./catalogue-display.utility";
 import InlineError from "../../components/InlineError/InlineError";
@@ -56,10 +58,7 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
           systemType: values.systemType,
         }),
   );
-  const archive = useCatalogueMutation((id: string) =>
-    catalogueService.update(id, { status: CATALOGUE_STATUS.ARCHIVED }),
-  );
-  const locked = save.isPending || archive.isPending;
+  const locked = save.isPending;
   const availableBrands = [...new Set([...QUOTATION_BRANDS, original.brand].filter(Boolean))];
   const change = (values: Partial<TCatalogueForm>) => {
     setForm(previous => ({ ...previous, ...values }));
@@ -174,6 +173,7 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
           <Button
             disabled={locked}
             text="הסרה מהקטלוג"
+            icon={ICON_NAMES.DELETE}
             variant={BUTTON_VARIANTS.DANGER}
             onClick={() => setConfirming(true)}
           />
@@ -204,46 +204,10 @@ const CatalogueItemForm = ({ item, onCancel, onSaved }: ICatalogueItemFormProps)
         }}
       />
       {item && confirming && (
-        <GenericPopup
-          open
-          dir="rtl"
-          align="right"
-          closeAfterAction={false}
-          title="הסרת פריט מהקטלוג"
-          closeDisabled={archive.isPending}
-          onClose={() => {
-            if (!archive.isPending) setConfirming(false);
-          }}
-          buttons={{
-            primary: {
-              text: "הסרת הפריט",
-              isDisabled: archive.isPending,
-              onClick: async () => {
-                await archive.mutateAsync(item.id);
-                onSaved("הפריט הוסר מהקטלוג");
-              },
-            },
-            secondary: {
-              text: "ביטול",
-              isDisabled: archive.isPending,
-              onClick: () => {
-                archive.reset();
-                setConfirming(false);
-              },
-            },
-          }}
-          content={
-            <Box sx={page.stack({ gap: "10px" })}>
-              <Box component="strong">
-                {item.description || item.sku}{" "}
-                <Box component="bdi">{item.description && item.sku}</Box>
-              </Box>
-              <Box component="span">
-                הפריט לא יוצע לבחירה חדשה. מסמכים שמורים ימשיכו לכלול אותו. טיוטת כתב כמויות עשויה
-                לדרוש פריט חלופי כדי לקבל אישור.
-              </Box>
-            </Box>
-          }
+        <CatalogueArchiveDialog
+          item={item}
+          onArchived={onSaved}
+          onClose={() => setConfirming(false)}
         />
       )}
     </>

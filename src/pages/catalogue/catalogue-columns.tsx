@@ -36,12 +36,6 @@ export const CATALOGUE_COLUMNS: IDataTableColumn<ICatalogueItem>[] = [
     render: row => <Box component="bdi">{catalogueCapacity(row.capacityBtu)}</Box>,
   },
   {
-    id: "unit",
-    header: catalogueColumnHeading("יחידה"),
-    track: "minmax(60px, .65fr)",
-    render: row => row.unit || "—",
-  },
-  {
     id: "price",
     header: catalogueColumnHeading("מחיר"),
     track: "minmax(100px, 1fr)",
