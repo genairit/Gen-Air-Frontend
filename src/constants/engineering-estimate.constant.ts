@@ -53,13 +53,11 @@ export const ESTIMATE_MAX_MARKED_BYTES = ESTIMATE_MAX_PLAN_BYTES / 8;
 export const ESTIMATE_WORKSPACE_TAB = {
   QUANTITIES: "quantities",
   QUESTIONS: "questions",
-  OUTPUT: "output",
 } as const;
 
 export const ESTIMATE_WORKSPACE_TABS = [
   { id: ESTIMATE_WORKSPACE_TAB.QUANTITIES, label: "כמויות ותמחור" },
   { id: ESTIMATE_WORKSPACE_TAB.QUESTIONS, label: "שאלות לבירור" },
-  { id: ESTIMATE_WORKSPACE_TAB.OUTPUT, label: "סקיצה ותוצרים" },
 ];
 
 export const ESTIMATE_SCOPE_OPTIONS = Object.entries(ESTIMATE_SCOPE_LABELS).map(
@@ -97,3 +95,12 @@ export const ESTIMATE_DOCUMENT_PANELS = [
   { id: ESTIMATE_DOCUMENT_PANEL.EDITOR, label: "עריכה" },
   { id: ESTIMATE_DOCUMENT_PANEL.PREVIEW, label: "תצוגה מקדימה" },
 ];
+
+export const ESTIMATE_EXPORT_COPY = {
+  BUTTON: "ייצוא ל-Drive",
+  BUSY: "מייצא ל-Drive...",
+  SUCCESS: "כתב הכמויות נשמר בתיקיית כתבי כמויות בפרויקט ב-Drive",
+  OPEN: "פתיחת הקובץ (בחלון חדש)",
+  NO_PROJECT: "יש לשייך את כתב הכמויות לפרויקט כדי לייצא ל-Drive.",
+  SAVE_FIRST: "שמרו או בטלו את העריכה כדי לייצא את הגרסה השמורה.",
+} as const;

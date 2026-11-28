@@ -21,6 +21,7 @@ import type {
   IEstimateArea,
   IEstimatePage,
   IEstimatePlan,
+  IEstimateExport,
   IEstimatePreview,
   IEstimateListItem,
   IEstimateQuestion,
@@ -115,6 +116,9 @@ export const isEstimatePage = (value: unknown): value is IEstimatePage =>
 
 export const isEstimateQuotation = (value: unknown): value is { quotationId: string } =>
   isRecord(value) && typeof value.quotationId === "string";
+
+export const isEstimateExport = (value: unknown): value is IEstimateExport =>
+  isRecord(value) && typeof value.fileName === "string" && isNullableString(value.fileUrl);
 
 export const isEstimatePreview = (value: unknown): value is IEstimatePreview =>
   isRecord(value) &&

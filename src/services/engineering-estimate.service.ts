@@ -5,6 +5,7 @@ import {
 
 import type {
   IEstimatePage,
+  IEstimateExport,
   TEstimatePatch,
   IEstimateCreate,
   IEstimateSample,
@@ -15,6 +16,7 @@ import type {
 
 import {
   isEstimatePage,
+  isEstimateExport,
   isEstimatePreview,
   isEstimateQuotation,
   isEngineeringEstimate,
@@ -71,6 +73,11 @@ export const engineeringEstimateService = {
     ),
   downloadSketch: (id: string): Promise<Blob> =>
     receiveEstimatePdf(httpClient.get<Blob>(`${detail(id)}/sketch`, { responseType: "blob" })),
+  exportToDrive: async (id: string, version: number): Promise<IEstimateExport> => {
+    const endpoint = `${detail(id)}/export`;
+    const response = await httpClient.post<unknown>(endpoint, { version });
+    return ensureResponse(endpoint, response.data, isEstimateExport);
+  },
   approve: async (id: string, version: number): Promise<void> => {
     await httpClient.post(`${detail(id)}/approve`, { version });
   },

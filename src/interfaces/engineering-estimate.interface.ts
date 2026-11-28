@@ -94,6 +94,11 @@ export interface IEstimateSample {
   planId: string;
 }
 
+export interface IEstimateExport {
+  fileName: string;
+  fileUrl: string | null;
+}
+
 export interface IEstimatePreview {
   subtotal: string;
   lines: IEstimatePricedLine[];
