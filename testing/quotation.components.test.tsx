@@ -1095,7 +1095,11 @@ test("quotation back links preserve the opening project and resolve direct links
 for (const status of ["draft", "review", "approved"] as const) {
   for (const canDelete of [false, true]) {
     test(`${status}: delete permission independently controls action and successful navigation`, async () => {
-      const projectId = status === "draft" ? null : "building";
+      const projectId = "building";
+      const primaryProject =
+        status === "draft"
+          ? null
+          : { id: projectId, name: "Building", code: "B1", kind: "building" as const };
       const sharedOrigin = "/projects/building/apartments/apartment?tab=quotations";
       const initialState =
         status === "approved"
@@ -1106,7 +1110,7 @@ for (const status of ["draft", "review", "approved"] as const) {
         review: "/projects/building?tab=quotations",
         approved: sharedOrigin,
       };
-      const base = { ...quotationFixture(), status, projectId };
+      const base = { ...quotationFixture(), status, projectId, primaryProject };
       const remove = mock.method(quotationService, "delete", async () => {});
       const customers = mock.method(customerService, "getByFilter", async () => []);
       const customer = mock.method(customerService, "getById", async () => ({
