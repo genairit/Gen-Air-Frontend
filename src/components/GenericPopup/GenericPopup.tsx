@@ -26,7 +26,7 @@ import type { TextDirectionType } from "../../constants/direction.constant";
 import { getPopupActionErrorMessage } from "./utilities/action-error.utility";
 import { AuthorizationContext } from "../../managers/authorization-context.manager";
 
-export type TAlignContent = "left" | "center" | "right";
+export type TAlignContent = "left" | "center" | "right" | "start";
 
 export interface IPopupButton {
   text: string;

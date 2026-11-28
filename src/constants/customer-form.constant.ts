@@ -9,6 +9,8 @@ export const CUSTOMER_FORM_COPY = {
   EYEBROW: "לקוחות",
   TITLE: "לקוח חדש",
   ADD: "לקוח חדש",
+  EDIT: "עריכת לקוח",
+  LINK_PROJECTS: "שיוך פרויקטים ללקוח",
   SAVE: "שמור לקוח",
   CANCEL: "ביטול",
   TYPE: "סוג הלקוח",

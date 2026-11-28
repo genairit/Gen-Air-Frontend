@@ -20,16 +20,11 @@ import {
   getCustomerContactFieldErrors,
 } from "../src/utilities/customer-contact.utility";
 
-import {
-  toCustomerOwnContactDraft,
-  toCustomerOwnContactInput,
-  getCustomerOwnContactErrors,
-} from "../src/utilities/customer-own-contact.utility";
-
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { AxiosError, AxiosHeaders } from "axios";
 import { renderToStaticMarkup } from "react-dom/server";
+import { ICON_NAMES } from "../src/constants/icon.constant";
 import type { IApiProject } from "../src/interfaces/api.interface";
 import { PAYMENT_TERMS } from "../src/constants/payment-terms.constant";
 import { projectContactService } from "../src/services/project-contact.service";
@@ -37,13 +32,17 @@ import { toDialablePhone, toTelephoneHref } from "../src/utilities/phone.utility
 import { saveProjectContactAction } from "../src/actions/contact-directory.action";
 import { contactDirectoryService } from "../src/services/contact-directory.service";
 import { toProjectPayload, toProjectFormValues } from "../src/utilities/project.utility";
+import CustomerFieldsCard from "../src/pages/customer-form/components/CustomerFieldsCard";
 import CustomerContactEditor from "../src/components/CustomerContacts/CustomerContactEditor";
 import CustomerContactSummary from "../src/components/CustomerContacts/CustomerContactSummary";
 import { PROJECT_DETAIL_FIELD_SETS } from "../src/constants/project-detail-field-set.constant";
 import { getCustomerImportErrorMessage } from "../src/utilities/customer-import-error.utility";
-import CustomerOwnContactEditor from "../src/pages/customer/components/CustomerOwnContactEditor";
 import { CUSTOMER_IMPORT_ERROR_MESSAGES } from "../src/constants/customer-import-error.constant";
 import ApartmentEndCustomerCard from "../src/pages/apartment/components/ApartmentEndCustomerCard";
+import {
+  CUSTOMER_CONTACT_FIELDS,
+  EMPTY_CUSTOMER_FORM,
+} from "../src/constants/customer-form.constant";
 
 const contact = {
   id: "contact-1",
@@ -519,51 +518,25 @@ test("linked apartment customer wins over historical values and missing associat
   assert.doesNotMatch(linked, /לקוח קצה היסטורי|031234567/);
 });
 
-test("own customer details accept independently optional email and international phone", () => {
-  assert.deepEqual(toCustomerOwnContactDraft(null), { phone: "", email: "" });
-  assert.deepEqual(toCustomerOwnContactInput({ phone: " ", email: " own@example.com " }), {
-    phone: null,
-    email: "own@example.com",
-  });
-  assert.deepEqual(getCustomerOwnContactErrors({ phone: "", email: "own@example.com" }), {});
-  assert.deepEqual(getCustomerOwnContactErrors({ phone: "+442071838750", email: "" }), {});
-  assert.deepEqual(getCustomerOwnContactErrors({ phone: "", email: "" }), {});
-  assert.deepEqual(Object.keys(getCustomerOwnContactErrors({ phone: "bad", email: "invalid" })), [
-    "phone",
-    "email",
-  ]);
-});
-
-test("own contact editor has two LTR communication fields without directory or person fields", () => {
+test("shared customer editor renders both optional LTR contact fields and retains invalid entries", () => {
   const markup = renderToStaticMarkup(
-    <CustomerOwnContactEditor
-      busy={false}
-      error={null}
-      onSave={noop}
+    <CustomerFieldsCard
+      compact
+      title="פרטי קשר"
+      subtitle=""
+      disabled={false}
       onChange={noop}
-      onCancel={noop}
-      draft={{ phone: "+442071838750", email: "own@example.com" }}
+      icon={ICON_NAMES.CONTACTS}
+      fields={CUSTOMER_CONTACT_FIELDS}
+      errors={{ phone: "טלפון לא תקין" }}
+      values={{ ...EMPTY_CUSTOMER_FORM, phone: "bad", email: "retry@example.com" }}
     />,
   );
   assert.match(markup, /טלפון ראשי של הלקוח/);
   assert.match(markup, /דוא״ל של הלקוח/);
+  assert.match(markup, /טלפון לא תקין/);
+  assert.match(markup, /value="retry@example.com"/);
   assert.equal((markup.match(/<input /g) ?? []).length, 2);
   assert.equal((markup.match(/dir="ltr"/g) ?? []).length, 2);
   assert.doesNotMatch(markup, /שם איש הקשר|תפקידים נפוצים|בחר מהמדריך/);
-});
-
-test("own contact editor exposes validation and server errors while retaining entered data", () => {
-  const markup = renderToStaticMarkup(
-    <CustomerOwnContactEditor
-      busy={false}
-      onSave={noop}
-      onChange={noop}
-      onCancel={noop}
-      error="שמירה נכשלה"
-      draft={{ phone: "bad", email: "retry@example.com" }}
-    />,
-  );
-  assert.match(markup, /שמירה נכשלה/);
-  assert.match(markup, /value="retry@example.com"/);
-  assert.match(markup, /disabled/);
 });

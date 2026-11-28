@@ -38,8 +38,13 @@ import { getApiErrorMessage } from "../../../utilities/api-error.utility";
 import { getPageCount, getPageItems } from "../../../utilities/array.utility";
 import { CUSTOMER_COLUMNS, CUSTOMER_TABLE_MIN_WIDTH } from "../columns/customer-columns";
 import { FIELD_TYPES } from "../../../components/TextField/constants/textfield.constants";
+import CustomerEditButton from "../../../components/CustomerEditButton/CustomerEditButton";
 
-const CustomersTable = () => {
+interface ICustomersTableProps {
+  onEdit: ((customer: IApiCustomer) => void) | null;
+}
+
+const CustomersTable = ({ onEdit }: ICustomersTableProps) => {
   const navigate = useNavigate();
   const styles = usePageStyles();
   const isMobile = useMediaQuery(MOBILE_LAYOUT_QUERY);
@@ -85,6 +90,21 @@ const CustomersTable = () => {
     setPage(1);
   };
 
+  const editAction = (customer: IApiCustomer) =>
+    onEdit && <CustomerEditButton onEdit={onEdit} customer={customer} />;
+
+  const columns = onEdit
+    ? [
+        ...CUSTOMER_COLUMNS,
+        {
+          id: "edit",
+          track: "48px",
+          header: "",
+          render: editAction,
+        },
+      ]
+    : CUSTOMER_COLUMNS;
+
   const toolbar = (
     <Box sx={styles.stack({ gap: "16px" })}>
       <Box sx={styles.spacedRow}>
@@ -129,7 +149,12 @@ const CustomersTable = () => {
       <Card gap="16px">
         {toolbar}
         {pageCustomers.map(customer => (
-          <CustomerMobileRow key={customer.id} customer={customer} onOpen={openCustomer} />
+          <CustomerMobileRow
+            key={customer.id}
+            customer={customer}
+            onOpen={openCustomer}
+            action={editAction(customer)}
+          />
         ))}
         {footer}
       </Card>
@@ -140,10 +165,10 @@ const CustomersTable = () => {
     <DataTable
       footer={footer}
       toolbar={toolbar}
+      columns={columns}
       rows={pageCustomers}
       getRowId={getCustomerId}
       onRowClick={openCustomer}
-      columns={CUSTOMER_COLUMNS}
       minWidth={CUSTOMER_TABLE_MIN_WIDTH}
     />
   );

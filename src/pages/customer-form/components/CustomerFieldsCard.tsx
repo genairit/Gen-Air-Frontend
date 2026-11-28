@@ -6,6 +6,7 @@ import type {
 
 import { Box } from "@mui/material";
 import type { FC, ReactNode } from "react";
+import { useStyles } from "./CustomerForm.style";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
 import TextField from "../../../components/TextField/TextField";
@@ -17,6 +18,7 @@ import { CUSTOMER_IDENTITY_FIELDS } from "../../../constants/customer-form.const
 interface ICustomerFieldsCardProps {
   title: string;
   subtitle: string;
+  compact?: boolean;
   disabled: boolean;
   icon: IconNameType;
   children?: ReactNode;
@@ -36,34 +38,49 @@ const CustomerFieldsCard: FC<ICustomerFieldsCardProps> = ({
   subtitle,
   disabled,
   children,
+  compact = false,
   onChange,
   minColumnWidth = 250,
 }) => {
   const styles = usePageStyles();
 
+  const formStyles = useStyles();
+  const inputs = (
+    <Box sx={styles.grid({ minColumnWidth, gap: "20px" })}>
+      {children}
+      {fields.map(field => (
+        <TextField
+          key={field.field}
+          title={field.label}
+          isLtr={field.isLtr}
+          disabled={disabled}
+          type={field.inputType}
+          maxLength={field.maxLength}
+          infoText={field.hint ?? ""}
+          value={values[field.field]}
+          placeholder={field.placeholder}
+          validator={toErrorValidator(errors[field.field])}
+          onChange={value => onChange({ [field.field]: value })}
+          slotProps={{ htmlInput: { "aria-label": field.label } }}
+          isRequired={CUSTOMER_IDENTITY_FIELDS.some(identity => identity.field === field.field)}
+        />
+      ))}
+    </Box>
+  );
+  if (compact) {
+    return (
+      <Box component="section">
+        <Box component="h2" sx={formStyles.sectionTitle}>
+          {title}
+        </Box>
+        {inputs}
+      </Box>
+    );
+  }
   return (
     <Card gap="18px">
       <CardHeader icon={icon} title={title} subtitle={subtitle} />
-      <Box sx={styles.grid({ minColumnWidth, gap: "20px" })}>
-        {children}
-        {fields.map(field => (
-          <TextField
-            key={field.field}
-            title={field.label}
-            isLtr={field.isLtr}
-            disabled={disabled}
-            type={field.inputType}
-            maxLength={field.maxLength}
-            infoText={field.hint ?? ""}
-            value={values[field.field]}
-            placeholder={field.placeholder}
-            validator={toErrorValidator(errors[field.field])}
-            onChange={value => onChange({ [field.field]: value })}
-            slotProps={{ htmlInput: { "aria-label": field.label } }}
-            isRequired={CUSTOMER_IDENTITY_FIELDS.some(identity => identity.field === field.field)}
-          />
-        ))}
-      </Box>
+      {inputs}
     </Card>
   );
 };

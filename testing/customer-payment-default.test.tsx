@@ -19,8 +19,8 @@ import { PROJECT_FORM_COPY } from "../src/constants/project-form.constant";
 import { CUSTOMER_FORM_COPY } from "../src/constants/customer-form.constant";
 import { useStyles as getLayoutStyles } from "../src/layouts/AppLayout.style";
 import { useStyles as getTabStyles } from "../src/components/Tabs/Tabs.style";
+import CustomerForm from "../src/pages/customer-form/components/CustomerForm";
 import { PROJECT_INTAKE_COPY } from "../src/constants/project-intake.constant";
-import NewCustomerForm from "../src/pages/customer-form/components/NewCustomerForm";
 import CustomerFieldsCard from "../src/pages/customer-form/components/CustomerFieldsCard";
 import { PAYMENT_CONFIGURATION_COPY } from "../src/constants/payment-configuration.constant";
 import { useStyles as getHeaderStyles } from "../src/components/CardHeader/CardHeader.style";
@@ -153,7 +153,7 @@ test("customer creation and editing save complete independent payment configurat
       state.renderer = create(
         <QueryClientProvider client={client}>
           <MemoryRouter>
-            <NewCustomerForm creatorName="Test" onCancel={() => {}} onCreated={() => {}} />
+            <CustomerForm creatorName="Test" onSaved={() => {}} onCancel={() => {}} />
           </MemoryRouter>
         </QueryClientProvider>,
       );
@@ -165,7 +165,7 @@ test("customer creation and editing save complete independent payment configurat
     assert.deepEqual(createEditor().props.value.paymentSchedule, []);
     assert.equal(createEditor().props.customLabel, PAYMENT_CONFIGURATION_COPY.CUSTOM);
     await act(async () =>
-      creation.root.findAllByType(CustomerFieldsCard)[0].props.onChange({
+      creation.root.findByProps({ title: CUSTOMER_FORM_COPY.IDENTITY }).props.onChange({
         name: customer.name,
         taxId: customer.taxId,
         address: customer.address,
@@ -248,4 +248,78 @@ test("customer creation and editing save complete independent payment configurat
     Reflect.set(globalThis, "window", previousWindow);
     Reflect.set(globalThis, "document", previousDocument);
   }
+});
+
+test("the client edit form completes unchanged saves without a request and retains a failed draft for retry", async t => {
+  Reflect.set(globalThis, "IS_REACT_ACT_ENVIRONMENT", true);
+  const previousWindow = Reflect.get(globalThis, "window");
+  const previousDocument = Reflect.get(globalThis, "document");
+  Reflect.set(globalThis, "window", Object.assign(new EventTarget(), { setTimeout, clearTimeout }));
+  Reflect.set(globalThis, "document", new EventTarget());
+  const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  const savedIds: string[] = [];
+  const attempts: unknown[] = [];
+  const adapter = httpClient.defaults.adapter;
+  const state: { renderer: ReturnType<typeof create> | null } = { renderer: null };
+  const saveError = new Error("Could not save client");
+  const newName = "שם מעודכן";
+  t.after(async () => {
+    await act(async () => state.renderer?.unmount());
+    client.clear();
+    httpClient.defaults.adapter = adapter;
+    Reflect.set(globalThis, "window", previousWindow);
+    Reflect.set(globalThis, "document", previousDocument);
+  });
+  httpClient.defaults.adapter = async config => {
+    assert.equal(config.method, "patch");
+    assert.equal(config.url, `/customer/${customer.id}`);
+    attempts.push(JSON.parse(config.data));
+    if (attempts.length === 1) {
+      throw saveError;
+    }
+    return {
+      data: { ...customer, name: newName },
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config,
+    };
+  };
+  await act(async () => {
+    state.renderer = create(
+      <QueryClientProvider client={client}>
+        <MemoryRouter>
+          <CustomerForm customer={customer} onCancel={() => {}} onSaved={id => savedIds.push(id)} />
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+  });
+  const editor = state.renderer;
+  assert.ok(editor);
+  const identity = () => editor.root.findByProps({ title: CUSTOMER_FORM_COPY.IDENTITY });
+  const save = async () => {
+    const button = editor.root
+      .findAllByType(Button)
+      .find(item => item.props.text === CUSTOMER_FORM_COPY.SAVE);
+    assert.ok(button);
+    await act(async () => {
+      button.props.onClick();
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+  };
+
+  await save();
+  assert.equal(attempts.length, 0);
+  assert.deepEqual(savedIds, [customer.id]);
+
+  await act(async () => identity().props.onChange({ name: newName }));
+  await save();
+  assert.equal(identity().props.values.name, newName);
+  assert.deepEqual(savedIds, [customer.id]);
+  assert.equal(editor.root.findByType(InlineError).props.message, getApiErrorMessage(saveError));
+
+  await save();
+  assert.deepEqual(attempts, [{ name: newName }, { name: newName }]);
+  assert.deepEqual(savedIds, [customer.id, customer.id]);
+  assert.equal(editor.root.findAllByType(InlineError).length, 0);
 });

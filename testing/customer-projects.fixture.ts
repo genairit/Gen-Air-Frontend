@@ -15,7 +15,6 @@ import { USER_ROLES } from "../src/constants/user-role.constant";
 import { PERMISSIONS } from "../src/constants/permission.constant";
 import { PRIORITY_SYNC_STATUSES } from "../src/constants/priority-sync.constant";
 import { CUSTOMER_PROJECT_KINDS } from "../src/constants/customer-project.constant";
-import { CUSTOMER_CONTACT_QUERY_ROOT } from "../src/constants/customer-contact.constant";
 import { PROJECT_DETAIL_FIELD_SETS } from "../src/constants/project-detail-field-set.constant";
 
 export const STAGE_ID = "6502a045-2a7d-4bc8-8ba1-36eaedc49a00";
@@ -108,7 +107,6 @@ export const createClient = () => {
   });
   client.setQueryData(QUERY_KEYS.PROJECT_STAGES, stages);
   client.setQueryData(QUERY_KEYS.customer(CUSTOMER_ID), createCustomer());
-  client.setQueryData([CUSTOMER_CONTACT_QUERY_ROOT, CUSTOMER_ID], []);
   return client;
 };
 
