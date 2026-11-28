@@ -18,7 +18,6 @@ import type {
 
 import { createPortal } from "react-dom";
 import { Box, Typography } from "@mui/material";
-import EstimateOutputs from "./EstimateOutputs";
 import Chip from "../../../components/Chip/Chip";
 import { usePageStyles } from "../../page.style";
 import Card from "../../../components/Card/Card";
@@ -27,6 +26,7 @@ import EstimateQuestions from "./EstimateQuestions";
 import EstimateQuantities from "./EstimateQuantities";
 import EstimateScopeField from "./EstimateScopeField";
 import Button from "../../../components/Button/Button";
+import EstimateDriveExport from "./EstimateDriveExport";
 import EstimateProjectPicker from "./EstimateProjectPicker";
 import { TAB_MODES } from "../../../constants/tabs.constant";
 import { CHIP_SIZES } from "../../../constants/chip.constant";
@@ -44,11 +44,7 @@ import { WorkspaceToolbarContext } from "../../../components/ProjectWorkspace/Wo
 
 interface IEstimateWorkspaceProps {
   canEdit: boolean;
-  canBrowse: boolean;
-  canApprove: boolean;
-  canReadQuotation: boolean;
-  canCreateQuotation: boolean;
-  canExportQuotation: boolean;
+  canExportToDrive: boolean;
   estimate: IEngineeringEstimate;
   onEditingChange: (editing: boolean) => void;
 }
@@ -56,11 +52,7 @@ interface IEstimateWorkspaceProps {
 const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
   estimate,
   canEdit,
-  canApprove,
-  canBrowse,
-  canReadQuotation,
-  canCreateQuotation,
-  canExportQuotation,
+  canExportToDrive,
   onEditingChange,
 }) => {
   useEffect(() => () => onEditingChange(false), [onEditingChange]);
@@ -136,47 +128,36 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
         onChange={(questions): void => patch({ questions })}
       />
     ),
-    [ESTIMATE_WORKSPACE_TAB.OUTPUT]: (
-      <EstimateOutputs
-        run={run}
-        busy={busy}
-        canEdit={canEdit}
-        estimate={estimate}
-        canBrowse={canBrowse}
-        canApprove={canApprove}
-        canReadQuotation={canReadQuotation}
-        canCreateQuotation={canCreateQuotation}
-        canExportQuotation={canExportQuotation}
-      />
-    ),
   };
 
   return (
     <Box sx={styles.stack({ gap: "12px" })}>
-      <Box sx={styles.spacedRow}>
-        <Box sx={estimateStyles.details}>
-          <Chip
-            size={CHIP_SIZES.MEDIUM}
-            sx={ESTIMATE_TYPOGRAPHY.status}
-            label={ESTIMATE_STATUS_LABELS[estimate.status]}
-          />
-          <Typography component="span" sx={ESTIMATE_TYPOGRAPHY.status}>
-            גרסה {estimate.version}
-          </Typography>
-          <Typography component="span" sx={ESTIMATE_TYPOGRAPHY.status}>
-            {ESTIMATE_SCOPE_LABELS[estimate.scope]}
-          </Typography>
+      {editing && (
+        <Box sx={styles.spacedRow}>
+          <Box sx={estimateStyles.details}>
+            <Chip
+              size={CHIP_SIZES.MEDIUM}
+              sx={ESTIMATE_TYPOGRAPHY.status}
+              label={ESTIMATE_STATUS_LABELS[estimate.status]}
+            />
+            <Typography component="span" sx={ESTIMATE_TYPOGRAPHY.status}>
+              גרסה {estimate.version}
+            </Typography>
+            <Typography component="span" sx={ESTIMATE_TYPOGRAPHY.status}>
+              {ESTIMATE_SCOPE_LABELS[estimate.scope]}
+            </Typography>
+          </Box>
+          {canEdit && editing && (
+            <Button
+              ariaExpanded={detailsOpen}
+              variant={BUTTON_VARIANTS.SECONDARY}
+              ariaControls={detailsOpen ? detailsId : null}
+              onClick={(): void => setDetailsOpen(!detailsOpen)}
+              text={detailsOpen ? "סגירת פרטי טיוטה" : "עריכת פרטי טיוטה"}
+            />
+          )}
         </Box>
-        {canEdit && editing && (
-          <Button
-            ariaExpanded={detailsOpen}
-            variant={BUTTON_VARIANTS.SECONDARY}
-            ariaControls={detailsOpen ? detailsId : null}
-            onClick={(): void => setDetailsOpen(!detailsOpen)}
-            text={detailsOpen ? "סגירת פרטי טיוטה" : "עריכת פרטי טיוטה"}
-          />
-        )}
-      </Box>
+      )}
       {canEdit && editing && detailsOpen && (
         <Box id={detailsId}>
           <Card gap="18px" padding="24px">
@@ -210,6 +191,16 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
       )}
       {editAction &&
         (toolbar ? createPortal(editAction, toolbar) : <Box sx={styles.endRow}>{editAction}</Box>)}
+      {canExportToDrive && (
+        <EstimateDriveExport
+          busy={busy}
+          id={estimate.id}
+          disabled={editing}
+          key={estimate.version}
+          version={estimate.version}
+          projectId={estimate.projectId}
+        />
+      )}
       {editing && (
         <Box sx={styles.row({ gap: "8px" })}>
           <Button
@@ -243,20 +234,18 @@ const EstimateWorkspace: FC<IEstimateWorkspaceProps> = ({
         </Typography>
       )}
       <EstimateDraftNavigation pending={dirty} />
-      <Tabs
-        activeId={activeTab}
-        mode={TAB_MODES.FILTER}
-        onChange={setActiveTab}
-        ariaLabel="תצוגת כתב הכמויות"
-        items={ESTIMATE_WORKSPACE_TABS}
-      />
+      {editing && (
+        <Tabs
+          activeId={activeTab}
+          mode={TAB_MODES.FILTER}
+          onChange={setActiveTab}
+          ariaLabel="תצוגת כתב הכמויות"
+          items={ESTIMATE_WORKSPACE_TABS}
+        />
+      )}
       {busy && <Typography role="status">מעדכן את כתב הכמויות…</Typography>}
       {command.isError && <InlineError message={getEstimateCommandErrorMessage(command.error)} />}
-      {editing && activeTab === ESTIMATE_WORKSPACE_TAB.OUTPUT ? (
-        <Typography>שמרו או בטלו את העריכה כדי להמשיך לתוצרים של הגרסה השמורה.</Typography>
-      ) : (
-        panels[activeTab]
-      )}
+      {panels[editing ? activeTab : ESTIMATE_WORKSPACE_TAB.QUANTITIES]}
     </Box>
   );
 };

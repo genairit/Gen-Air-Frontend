@@ -102,12 +102,12 @@ const EngineeringEstimatesPage: FC = () => {
             key={estimate.id}
             canEdit={canEdit}
             estimate={estimate}
-            canBrowse={canBrowse}
             onEditingChange={setEditing}
-            canReadQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_READ)}
-            canCreateQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_CREATE)}
-            canExportQuotation={hasPermission(user, PERMISSIONS.QUOTATIONS_EXPORT)}
-            canApprove={hasPermission(user, PERMISSIONS.ENGINEERING_ESTIMATES_APPROVE)}
+            canExportToDrive={
+              canEdit &&
+              hasPermission(user, PERMISSIONS.DRIVE_UPLOAD) &&
+              hasPermission(user, PERMISSIONS.PROJECTS_READ)
+            }
           />
         </WorkspaceToolbarContext.Provider>
       )}
